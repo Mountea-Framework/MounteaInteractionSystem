@@ -195,14 +195,13 @@ public:
 
 	/**
 	 * Sets whether Interactable Component should highlight all Mesh Components from its Owner upon interaction detection.
+	 * @note	LOCAL ONLY
 	 * @param NewValue True or false
 	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction|Setters")
 	void SetInteractionHighlight(const bool NewValue)
 	{
 		bInteractionHighlight = NewValue;
-
-		SetMeshComponentsHighlight(bInteractionHighlight);
 	};
 
 	/**
@@ -878,6 +877,15 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite,  Category="Interaction|Settings|Display")
 	FText InteractionActionKey = LOCTEXT("InteractionActionKey", "E");
 
+	/**
+	 * Editor only flag.
+	 * If true, will display debug lines and boxes.
+	 */
+	UPROPERTY(EditAnywhere, Category="Interaction|Debug")
+	uint8 bDebug : 1;
+
+protected:
+	
 	// TODO: replicate
 	/** Last Time Interactable was used.*/
 	UPROPERTY()
@@ -892,7 +900,7 @@ protected:
 	/** State of Interactable.*/
 	UPROPERTY()
 	EInteractableState InteractableState = EInteractableState::EIS_Disabled;
-
+	
 	// TODO: replicate
 	/** Interactor interacting with this Component*/
 	UPROPERTY()
@@ -922,7 +930,11 @@ protected:
 	UFUNCTION()
 	void InteractorChanged(float TimeHappened);
 
+	UFUNCTION(NetMulticast, Unreliable)
+	void Client_SetMeshComponentsHighlight(const bool bShowHighlight);
+
 	void SetMeshComponentsHighlight(const bool bShowHighlight);
+	
 	void OnWidgetClassChanged();
 
 private:
@@ -934,6 +946,10 @@ private:
 	void CooldownElapsed_TimerFunction();
 	void UpdateCollisionChannels() const;
 	void UpdateCollisionChannel(UShapeComponent* const CollisionShape) const;
+	FORCEINLINE bool HasAuthority() const
+	{
+		return GetOwner() && GetOwner()->HasAuthority();
+	}
 
 	void BindCollisionEvents(UShapeComponent* const NewCollisionShape)
 	{
@@ -948,8 +964,6 @@ private:
 		RemovedCollisionShape->OnComponentBeginOverlap.RemoveDynamic(this, &UActorInteractableComponent::OnActorBeginsOverlapping);
 		RemovedCollisionShape->OnComponentEndOverlap.RemoveDynamic(this, &UActorInteractableComponent::OnActorStopsOverlapping);
 	}
-
-	virtual void GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & OutLifetimeProps) const override;
 
 	#if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;

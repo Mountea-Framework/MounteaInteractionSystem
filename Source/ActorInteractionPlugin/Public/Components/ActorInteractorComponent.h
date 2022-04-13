@@ -34,6 +34,17 @@ struct FInteractionTraceData
 	}
 };
 
+/**
+ * A helper structure which is used for replicating the Interactor.
+ * Does contain only those variables that might change during Interaction Tick.
+ */
+struct FInteractorData
+{
+	class UActorInteractableComponent* Replicated_InteractingWith = nullptr;
+	const float Replicated_LastTickTime;
+	const float Replicated_LastInteractionTickTime;
+};
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInteractableFound, class UActorInteractableComponent*, FoundActorComponent);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInteractableLost, class UActorInteractableComponent*, LostActorComponent);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInteractionKeyPressed, float, TimeKeyPressed);
@@ -54,12 +65,17 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInteractorTypeChanged, float, Tim
  *
  * @see [InteractorComponent](https://sites.google.com/view/dominikpavlicek/home/documentation)
  */
-UCLASS(ClassGroup=(Interaction), meta=(BlueprintSpawnableComponent, DisplayName = "Interactor Component"))
+UCLASS(ClassGroup=(Interaction), Blueprintable, meta=(BlueprintSpawnableComponent, DisplayName = "Interactor Component"))
 class ACTORINTERACTIONPLUGIN_API UActorInteractorComponent final : public UActorComponent
 {
 	GENERATED_BODY()
 	
 	UActorInteractorComponent();
+	
+public:
+	
+	virtual void StartInteraction();// override;
+	virtual void StopInteraction();// override;
 
 protected:
 	
@@ -73,11 +89,15 @@ protected:
 	void UpdateTicking();
 	void UpdatePrecision();
 
-	UFUNCTION()
-	void OnRep_InteractorState();
+private:
 
-	UFUNCTION()
-	void OnRep_IgnoredActors();
+	// Returns whether component is attached to Auth owner
+	FORCEINLINE bool HasAuthority() const
+	{
+		return GetOwner() && GetOwner()->HasAuthority();
+	}
+
+	void CalculateTick();
 
 #pragma region Getters_Setters
 	
@@ -97,26 +117,22 @@ public:
 	 * - - OR InteractorTickInterval is 0
 	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction|Validation")
-	FORCEINLINE bool CanTick() const
-	{
-		return
-		GetWorld() != nullptr &&
-		GetOwner() != nullptr &&
-		(
-			GetInteractionState() == EInteractorState::EIS_StandBy ||
-			GetInteractionState() == EInteractorState::EIS_Active
-		)
-		&&
-		GetInteractorType() == EInteractorType::EIT_Active &&
-		(
-			GetInteractorTickInterval() <= KINDA_SMALL_NUMBER ||
-			GetInteractorTickInterval() > KINDA_SMALL_NUMBER &&
-			(
-				GetWorld()->TimeSince(LastTickTime) > GetInteractorTickInterval()
-			)
-		);
-	};
+	FORCEINLINE bool CanTick() const;
 
+	/**
+	 * A simple function that should be called when Interactor is requested to be activated and start searching for Interactable Components.
+	 * @param ErrorMessage	[OUT]	Error message that will be filled if results is false. Otherwise is empty. Is always cleared upon retrieval.
+	 * @return	Returns true if all required checks are OK, otherwise returns false with ErrorMessage which contains explanation.
+	 */
+	UFUNCTION(BlueprintCallable, Category="Interaction|State")
+	bool ActivateInteractor(FString& ErrorMessage);
+	
+	/**
+	 * A simple function that should be called when Interactor is requested to be deactivated and stop searching for Interactable Components.
+	 */
+	UFUNCTION(BlueprintCallable, Category="Interaction|State")
+	void DeactivateInteractor();
+	
 	/**
 	 *Returns what Interactable Actor Component is interacting with. If none, returns nullptr.
 	 * @return	Interactable Component that is being interacted with
@@ -132,32 +148,46 @@ public:
 	void SetInteractingWith(UActorInteractableComponent* NewInteractingWith);
 
 	/**
+	 * Returns Last Tick time (in seconds). This value will increase over time based on Tick Interval.
+	 * @return	Seconds of the last Tick
+	 */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction|Getters")
+	FORCEINLINE float GetLastTickTime() const {return LastTickTime; };
+
+	/**
+	 * Returns Successful Tick time (in seconds). This value will increase only if Interaction has found any Interactable.
+	 * @return	Seconds of the last Interaction Tick
+	 */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction|Getters")
+	FORCEINLINE float GetLastInteractionTickTime() const {return LastInteractionTickTime; };
+
+	/**
 	 * Returns Interaction Precision to work with.
 	 * @return Interaction Precision 
 	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction|Getters")
-	FORCEINLINE EInteractorPrecision GetInteractionPrecision() const { return InteractorPrecision; };
+	FORCEINLINE EInteractorPrecision GetInteractorPrecision() const { return InteractorPrecision; };
 
 	/**
 	 * Sets Interaction Precision to work with.
 	 * @param NewPrecision	Value to be used as new Interaction Precision
 	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction|Setters")
-	void SetInteractionPrecision(const EInteractorPrecision NewPrecision);
+	void SetInteractorPrecision(const EInteractorPrecision NewPrecision);
 
 	/**
 	 * Returns Interaction Precision Box Half Extend (in centimeters) which is used as a tracing shape.
 	 * @return Value of Box Half Extend in centimeters
 	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction|Getters")
-	float GetPrecisionBoxHalfExtend() const {return InteractorPrecisionBoxHalfExtend; };
+	float GetInteractorPrecisionBoxHalfExtend() const {return InteractorPrecisionBoxHalfExtend; };
 
 	/**
 	 * Sets Interaction Precision Box half extend which will be used as a tracing shape.
 	 * @param NewBoxHalfExtend Value in centimeters
 	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction|Setters")
-	void SetInteractionBoxHalfExtend(const float NewBoxHalfExtend);
+	void SetInteractorBoxHalfExtend(const float NewBoxHalfExtend);
 
 	/**
 	 * Returns whether Custom Trace Start is allowed or not.
@@ -207,7 +237,7 @@ public:
 	 * @return Value in seconds how long does it take between Tick
 	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction|Getters")
-	FORCEINLINE float GetInteractorTickInterval() const { return InteractionTickInterval; };
+	FORCEINLINE float GetInteractorTickInterval() const { return InteractorTickInterval; };
 
 	/**
 	 * Sets Interaction Tick Interval in seconds.
@@ -223,7 +253,7 @@ public:
 	 * @return	Value in centimeters how far Tracing goes when looking for Interactable Components
 	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction|Getters")
-	FORCEINLINE float GetInteractionRange() const { return InteractionRange; };
+	FORCEINLINE float GetInteractorRange() const { return InteractorRange; };
 
 	/**
 	 * Sets Interaction Range in centimeters.
@@ -231,21 +261,21 @@ public:
 	 * @param NewRange	Value in centimeters how far Tracing should go when looking for Interactable Components
 	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction|Setters")
-	void SetInteractionRange(const float NewRange);
+	void SetInteractorRange(const float NewRange);
 
 	/**
 	 * Returns Interaction State.
 	 * @return Value of Interactor State
 	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction|Getters")
-	FORCEINLINE EInteractorState GetInteractionState() const { return InteractorState; };
+	FORCEINLINE EInteractorState GetInteractorState() const { return InteractorState; };
 
 	/**
 	 * Sets Interaction State.
 	 * @param NewState	Value of Interactor State to be used
 	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction|Setters")
-	void SetInteractionState(const EInteractorState NewState);
+	void SetInteractorState(const EInteractorState NewState);
 
 	/**
 	 * Returns Interactor Type.
@@ -287,121 +317,138 @@ public:
 	 * @param NewIgnoredActors A list of Actors to be ignored.
 	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction|Setters")
-	void SetIgnoredActors(TArray<AActor*>& NewIgnoredActors)
-	{
-		IgnoredActors = NewIgnoredActors;
-	}
+	void SetIgnoredActors(const TArray<AActor*>& NewIgnoredActors);
 
 	/**
 	 * Adds a single Actor to the list of ignored Actors.
 	 * @param IgnoredActor	Actor to be ignored.
 	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction|Setters")
-	void AddIgnoredActor(AActor* IgnoredActor)
-	{
-		IgnoredActors.Add(IgnoredActor);
-	}
-	
+	void AddIgnoredActor(AActor* IgnoredActor);
+
 	/**
 	 * Adds a list of Actors to the list of ignored Actors.
 	 * @param ActorsToAdd	Array of Actors to be added to the ignored Actors list
 	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction|Setters")
-	void AddIgnoredActors(const TArray<AActor*>& ActorsToAdd)
-	{
-		IgnoredActors.Append(ActorsToAdd);
-	}
+	void AddIgnoredActors(const TArray<AActor*>& ActorsToAdd);
 
 	/**
 	 * Removes a single Actor from the list of ignored Actors.
 	 * @param UnignoredActor	Actor who is no longer being ignored. 
 	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction|Setters")
-	void RemoveIgnoredActor(AActor* UnignoredActor)
-	{
-		IgnoredActors.Remove(UnignoredActor);
-	}
+	void RemoveIgnoredActor(AActor* UnignoredActor);
 
 	/**
 	 * Removes a list of Actors from the list of ignored Actors.
 	 * @param UnignoredActors	List of Actors who ar eno longer being ignored.
 	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction|Setters")
-	void RemoveIgnoredActors(const TArray<AActor*>& UnignoredActors)
-	{
-		for (auto& Itr : UnignoredActors)
-		{
-			if (IgnoredActors.Contains(Itr))
-			{
-				IgnoredActors.Remove(Itr);
-			}
-		}
-	}
+	void RemoveIgnoredActors(const TArray<AActor*>& UnignoredActors);
 
 #pragma endregion Getters_Setters
 
+#pragma region Replication
+
+protected:
+
+	UFUNCTION()	void OnRep_InteractorComponent();
+	UFUNCTION() void OnRep_InteractorAutoActivate();
+	UFUNCTION()	void OnRep_InteractorState();
+	UFUNCTION()	void OnRep_InteractorTickInterval();
+	UFUNCTION() void OnRep_InteractorRange();
+	UFUNCTION() void OnRep_InteractorBoxHalfExtend();
+	UFUNCTION() void OnRep_InteractorPrecision();
+	UFUNCTION() void OnRep_InteractorTracingChannel();
+	UFUNCTION() void OnRep_InteractorType();
+	UFUNCTION() void OnRep_UseCustomStartTransform();
+	UFUNCTION() void OnRep_CustomTraceTransform();
+	UFUNCTION() void OnRep_IgnoredActors();
+	UFUNCTION() void OnRep_CanTick();
+	
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_SetInteractorAutoActivate(const bool Value);
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_SetInteractorTickInterval(const float Value);
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_SetInteractorState(const EInteractorState Value);
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_SetInteractorRange(const float Value);
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_SetInteractorPrecisionBoxHalfExtend(const float Value);
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_SetInteractorPrecision(const EInteractorPrecision& Value);
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_SetInteractorTracingChannel(const ECollisionChannel& Value);
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_SetInteractorType(const EInteractorType& Value);
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_SetUseCustomTraceStart(const bool Value);
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_SetCustomTraceStart(const FTransform& Value);
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_SetIgnoredActors(const TArray<AActor*>& Values);
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_AddIgnoredActor(AActor* Value);
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_RemoveIgnoredActor(AActor* Value);
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_StartInteraction();
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_StopInteraction();
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_CalculateTick();
+
+#pragma endregion Replication
+
 #pragma region Events
+	
 public:
 	
 	/**
 	 * Delegate called after Interactable Component is found. 
 	 */
-	UPROPERTY(BlueprintCallable, Category="Interaction|Events")
+	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category="Interaction|Events")
 	FOnInteractableFound OnInteractableFound;
 
 	/**
 	 * Delegate called after Interactable Component is lost. 
 	 */
-	UPROPERTY(BlueprintCallable, Category="Interaction|Events")
+	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category="Interaction|Events")
 	FOnInteractableLost OnInteractableLost;
 	
 	/**
 	 * Delegate called after Interaction Key is pressed.
 	 * @param TimeKeyPressed	Value in seconds. Must be set for Interaction to work properly.
 	 */
-	UPROPERTY(BlueprintCallable, Category="Interaction|Events")
+	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category="Interaction|Events")
 	FOnInteractionKeyPressed OnInteractionKeyPressed;
 
 	/**
 	 * Delegate called after Interaction Key is released.
 	 * @param TimeKeyReleased	Value in seconds. Must be set for Interaction to work properly.
 	 */
-	UPROPERTY(BlueprintCallable, Category="Interaction|Events")
+	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category="Interaction|Events")
 	FOnInteractionKeyReleased OnInteractionKeyReleased;
 
 	/**
 	 * Delegate called after Interactor Type is changed.
 	 * Responsible for updating all necessary value for Interactor to work properly.
 	 */
-	UPROPERTY(BlueprintCallable, Category="Interaction|Events")
+	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category="Interaction|Events")
 	FOnInteractorTypeChanged OnInteractorTypeChanged;
 
 #pragma endregion Events
 
 #pragma region Properties
-public:
 	
-	virtual void StartInteraction();// override;
-	virtual void StopInteraction();// override;
-
-	/**
-	 * A simple function that should be called when Interactor is requested to be activated and start searching for Interactable Components.
-	 * @param ErrorMessage	[OUT]	Error message that will be filled if results is false. Otherwise is empty. Is always cleared upon retrieval.
-	 * @return	Returns true if all required checks are OK, otherwise returns false with ErrorMessage which contains explanation.
-	 */
-	UFUNCTION(BlueprintCallable, Category="Interaction|State")
-	bool ActivateInteractor(FString& ErrorMessage);
-	
-	/**
-	 * A simple function that should be called when Interactor is requested to be deactivated and stop searching for Interactable Components.
-	 */
-	UFUNCTION(BlueprintCallable, Category="Interaction|State")
-	void DeactivateInteractor();
-
 protected:
 	
 	/** Defines whether Activation must be done or is turned on by default.*/
-	UPROPERTY(Replicated, EditAnywhere, BlueprintReadOnly, Category="Interaction|Settings", meta=(DispplayName="Auto Activate"))
+	UPROPERTY(ReplicatedUsing=OnRep_InteractorAutoActivate, EditAnywhere, BlueprintReadOnly, Category="Interaction|Settings", meta=(DispplayName="Auto Activate"))
 	uint8 bInteractorAutoActivate : 1;
 	
 	/**
@@ -410,7 +457,7 @@ protected:
 	 * @note	Active one is looking for Interactable objects each Tick (based on InteractionTickInterval).
 	 * @note	Passive on is not looking for any Interactable objects and is activated only when overlapping such objects.
 	 */
-	UPROPERTY(Replicated, EditAnywhere, Category="Interaction|Settings")
+	UPROPERTY(ReplicatedUsing=OnRep_InteractorType, EditAnywhere, Category="Interaction|Settings")
 	EInteractorType InteractorType = EInteractorType::EIT_Active;
 	
 	/**
@@ -418,7 +465,7 @@ protected:
 	 * - Low precision is using ShapeTrace and might cause issues if there are many interactable items close each other.
 	 * - High precision is using LineTrace and might cause frustration when interacting.
 	 */
-	UPROPERTY(Replicated, EditAnywhere, Category="Interaction|Settings", meta=(EditCondition="InteractorType == EInteractorType::EIT_Active"))
+	UPROPERTY(ReplicatedUsing=OnRep_InteractorPrecision, EditAnywhere, Category="Interaction|Settings", meta=(EditCondition="InteractorType == EInteractorType::EIT_Active"))
 	EInteractorPrecision InteractorPrecision = EInteractorPrecision::EIP_Low;
 	
 	/**
@@ -428,7 +475,7 @@ protected:
 	 * @note	Extremely low values are treated as Zero.
 	 * @note	Zero value will result in using High precision instead.
 	 */
-	UPROPERTY(Replicated, EditAnywhere, Category="Interaction|Settings", meta=(Units = "cm", EditCondition="InteractorType == EInteractorType::EIT_Active && InteractorPrecision == EInteractorPrecision::EIP_Low"))
+	UPROPERTY(ReplicatedUsing=OnRep_InteractorBoxHalfExtend, EditAnywhere, Category="Interaction|Settings", meta=(Units = "cm", EditCondition="InteractorType == EInteractorType::EIT_Active && InteractorPrecision == EInteractorPrecision::EIP_Low"))
 	float InteractorPrecisionBoxHalfExtend = 5.0f;
 	
 	/**
@@ -438,22 +485,14 @@ protected:
 	 * Can use custom Collision Channel.
 	 * @note	Default Channel: ECC_Visibility.
 	 */
-	UPROPERTY(Replicated, EditAnywhere, Category="Interaction|Settings", meta=(EditCondition="InteractorType == EInteractorType::EIT_Active"))
+	UPROPERTY(ReplicatedUsing=OnRep_InteractorTracingChannel, EditAnywhere, Category="Interaction|Settings", meta=(EditCondition="InteractorType == EInteractorType::EIT_Active"))
 	TEnumAsByte<ECollisionChannel> InteractorTracingChannel = ECollisionChannel::ECC_Visibility;
 	
 	/**
 	 * Defines whether Tracing starts at ActorEyesViewPoint (default) or at a given Location.
 	 */
-	UPROPERTY(Replicated, EditAnywhere, Category="Interaction|Settings", meta=(EditCondition="InteractorType == EInteractorType::EIT_Active"))
+	UPROPERTY(ReplicatedUsing=OnRep_UseCustomStartTransform, EditAnywhere, Category="Interaction|Settings", meta=(EditCondition="InteractorType == EInteractorType::EIT_Active"))
 	uint8 bUseCustomStartTransform : 1;
-	
-	/**
-	 * A list of Actors that won't be taken in count when tracing.
-	 * If left empty, only Owner Actor is ignored.
-	 * If using multiple Actors (a gun, for instance), all those child/attached Actors should be ignored.
-	 */
-	UPROPERTY(Replicated, EditInstanceOnly, Category="Interaction|Settings", ReplicatedUsing=OnRep_IgnoredActors)
-	TArray<AActor*> IgnoredActors;
 	
 	/**
 	 * Transform in World Space.
@@ -463,25 +502,34 @@ protected:
 	 * Defines where does the Tracing start and what direction it follows.
 	 * Will be ignored if bUseCustomStartTransform is false.
 	 */
-	UPROPERTY(Replicated, VisibleAnywhere, Category="Interaction|Settings", AdvancedDisplay, meta=(DisplayName="Trace Start (World Space Transform)"))
+	UPROPERTY(ReplicatedUsing=OnRep_CustomTraceTransform, VisibleAnywhere, Category="Interaction|Settings", AdvancedDisplay, meta=(DisplayName="Trace Start (World Space Transform)"))
 	FTransform CustomTraceTransform;
+	
+	/**
+	 * A list of Actors that won't be taken in count when tracing.
+	 * If left empty, only Owner Actor is ignored.
+	 * If using multiple Actors (a gun, for instance), all those child/attached Actors should be ignored.
+	 */
+	UPROPERTY(ReplicatedUsing=OnRep_IgnoredActors, EditInstanceOnly, Category="Interaction|Settings")
+	TArray<AActor*> IgnoredActors;
 	
 	/**
 	 * Optimization feature.
 	 * The frequency in seconds at which the Interaction function will be executed. If less than or equal 0 then it will tick every frame.
-	 * 
+	 *
+	 * @note	Min value is 0.0001 (1e-4)
 	 * @note	Lower the value, less frequent ticking is and less performance is required.
 	 * @note	Higher the value, more frequent ticking is and more performance is required.
 	 */
-	UPROPERTY(Replicated, EditAnywhere, Category="Interaction|Settings|Optimization", meta=(Units = "s", UIMin=0, ClampMin=0, EditCondition="InteractorType == EInteractorType::EIT_Active", DisplayName="Tick Interval (sec)"))
-	float InteractionTickInterval = 3.f;
+	UPROPERTY(ReplicatedUsing=OnRep_InteractorTickInterval, EditAnywhere, Category="Interaction|Settings|Optimization", meta=(Units = "s", UIMin=0, ClampMin=0, EditCondition="InteractorType == EInteractorType::EIT_Active", DisplayName="Tick Interval (sec)"))
+	float InteractorTickInterval = 3.f;
 	
 	/**
 	 * Defines the lenght of interaction vision.
 	 * @note	Higher the value, further items can be reached.
 	 */
-	UPROPERTY(Replicated, EditAnywhere, Category="Interaction|Settings|Optimization", meta=(Units = "cm", UIMin=0, ClampMin=0, EditCondition="InteractorType == EInteractorType::EIT_Active", DisplayName="Interaction Range (cm)"))
-	float InteractionRange = 250.f;
+	UPROPERTY(ReplicatedUsing=OnRep_InteractorRange, EditAnywhere, Category="Interaction|Settings|Optimization", meta=(Units = "cm", UIMin=0, ClampMin=0, EditCondition="InteractorType == EInteractorType::EIT_Active", DisplayName="Interaction Range (cm)"))
+	float InteractorRange = 250.f;
 
 	/**
 	 * Editor only flag.
@@ -492,25 +540,38 @@ protected:
 
 private:
 	
-	UPROPERTY(Replicated)
+	UPROPERTY(ReplicatedUsing=OnRep_InteractorComponent)
 	UActorInteractableComponent* InteractingWith = nullptr;
 	
-	UPROPERTY(Replicated)
+	UPROPERTY(ReplicatedUsing=OnRep_InteractorState, VisibleAnywhere, Category="Interaction|Debug")
 	EInteractorState InteractorState;
 	
-	UPROPERTY(Replicated)
+	UPROPERTY(ReplicatedUsing=OnRep_InteractorComponent)
 	float LastInteractionTickTime;
 	
-	UPROPERTY(Replicated)
-	float LastTickTime;	
+	UPROPERTY(ReplicatedUsing=OnRep_InteractorComponent, VisibleAnywhere, Category="Interaction|Debug")
+	float LastTickTime;
+
+	UPROPERTY(Replicated, ReplicatedUsing=OnRep_CanTick)
+	bool bCanTick;
 
 #pragma endregion Properties
 
+#pragma region Editor
+
+public:
+	
+	/**
+	 * This helper function toggles Debug mode on and off.
+	 */
+	UFUNCTION(BlueprintCallable, Category="Interaction|Debug")
+	void ToggleDebugMode() { bDebug = !bDebug; }
+
 private:
 	
-	#if WITH_EDITOR
+#if WITH_EDITOR
 	virtual void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;
-	#endif
+#endif
 
-	virtual void GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & OutLifetimeProps) const override;
+#pragma endregion Editor
 };

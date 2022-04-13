@@ -8,6 +8,7 @@
 #include "TimerManager.h"
 
 #include "Helpers/ActorInteractionPluginLog.h"
+#include "Kismet/GameplayStatics.h"
 
 #include "Widgets/ActorInteractableWidget.h"
 
@@ -164,14 +165,31 @@ void UActorInteractableComponent::OnActorStopsOverlapping(UPrimitiveComponent* O
 	}
 }
 
+void UActorInteractableComponent::Client_SetMeshComponentsHighlight_Implementation(const bool bShowHighlight)
+{
+	// Currently runs on all clients, how to fix it?
+	if (APlayerController* const PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0))
+	{
+		AIP_LOG(Warning, TEXT("Is Local: %s"), *FString(PlayerController->IsLocalController() ? "YES" : "NO"))
+		if (PlayerController->IsLocalController())
+		{
+			if(ListOfHighlightables.Num())
+			{
+				for (UPrimitiveComponent* Itr : ListOfHighlightables)
+				{
+					Itr->SetCustomDepthStencilValue(bShowHighlight ? StencilID : 0);
+				}
+			}
+		}
+	}
+}
+
 void UActorInteractableComponent::SetMeshComponentsHighlight(const bool bShowHighlight)
 {
-	if(ListOfHighlightables.Num())
+	// Do no execute this function on server for this is just cosmetics
+	if(GetOwner() && GetOwner()->HasAuthority())
 	{
-		for (UPrimitiveComponent* Itr : ListOfHighlightables)
-		{
-			Itr->SetCustomDepthStencilValue(bShowHighlight ? StencilID : 0);
-		}
+		Client_SetMeshComponentsHighlight(bShowHighlight);
 	}
 }
 
@@ -190,7 +208,6 @@ void UActorInteractableComponent::OnWidgetClassChanged()
 
 void UActorInteractableComponent::InteractorFound(UActorInteractorComponent* FoundInteractor)
 {
-
 	SetMeshComponentsHighlight(bInteractionHighlight);
 	
 	SetInteractionState(EInteractableState::EIS_Standby);
@@ -210,6 +227,7 @@ void UActorInteractableComponent::InteractorFound(UActorInteractorComponent* Fou
 
 void UActorInteractableComponent::InteractorLost(UActorInteractorComponent* LostInteractor)
 {
+	//Multicast_SetMeshComponentsHighlight(false);
 	SetMeshComponentsHighlight(false);
 	
 	StopInteractionLink(LostInteractor);
@@ -268,6 +286,7 @@ void UActorInteractableComponent::StopInteractionLink(UActorInteractorComponent*
 		SetInteractorComponent(nullptr);
 
 		SetHiddenInGame(true);
+		//Multicast_SetMeshComponentsHighlight(false);
 		SetMeshComponentsHighlight(false);
 		SetRemainingInteractionProgress(1.f);
 
@@ -359,8 +378,19 @@ void UActorInteractableComponent::SetRemainingInteractionProgress(const float& R
 
 void UActorInteractableComponent::StartInteraction(const float TimeKeyPressed)
 {
+	// TODO: server implementation, maybe multicast so all users know that this is used?
+	
 	if(!CanInteract()) return;
 
+	if (GetOwner() && GetOwner()->HasAuthority())
+	{
+		AIP_LOG(Warning, TEXT("[Server] StartInteraction: %f"), TimeKeyPressed)
+	}
+	else if(GetOwner() && !GetOwner()->HasAuthority())
+	{
+		AIP_LOG(Warning, TEXT("[Client] StartInteraction: %f"), TimeKeyPressed)
+	}
+		
 	OnInteractionStarted.Broadcast(GetInteractionType(), TimeKeyPressed);
 	
 	SetInteractionState(EInteractableState::EIS_Active);
@@ -412,6 +442,7 @@ void UActorInteractableComponent::FinishInteraction(float TimeInteractionFinishe
 {
 	if (GetInteractionState() != EInteractableState::EIS_Active) return;
 	
+	//Multicast_SetMeshComponentsHighlight(false);
 	SetMeshComponentsHighlight(false);
 	
 	if (GetInteractionLifecycle() == EInteractableLifecycle::EIL_Cycled)
@@ -541,6 +572,7 @@ void UActorInteractableComponent::CooldownElapsed_TimerFunction()
 		
 		SetRemainingInteractionProgress(1.f);
 		UpdateInteractableWidget();
+		//Multicast_SetMeshComponentsHighlight(bInteractionHighlight);
 		SetMeshComponentsHighlight(bInteractionHighlight);
 
 		GetWorld()->GetTimerManager().ClearTimer(TimerHandle_CooldownTime);
