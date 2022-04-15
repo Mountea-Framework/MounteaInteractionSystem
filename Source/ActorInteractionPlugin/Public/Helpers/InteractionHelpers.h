@@ -64,7 +64,8 @@ enum class EInteractorType : uint8
 {
  EIT_Active  UMETA(DisplayName = "Active", ToolTip = "Interaction is allowed only if the tracing is colliding with collision box of the Interactable Actor Component."),
  EIT_Passive UMETA(DisplayName = "Passive", Tooltip ="Interaction is allowed only if the Owning Actor does overlap collision box of the Interactable Actor Component."),
-
+ EIT_Mixed   UMETA(DisplayName = "Mixed", Tooptip = "Interaction is allowed for both tracing and overlapping with collision box of the Interactable Actor Component."),
+ 
  Default     UMETA(Hidden)
 };
 

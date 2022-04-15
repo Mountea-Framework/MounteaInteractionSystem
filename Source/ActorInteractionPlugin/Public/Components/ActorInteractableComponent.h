@@ -638,7 +638,6 @@ public:
 	{
 		if (GetInteractionState() != EInteractableState::EIS_Active) return false;
 		if (GetWorld() == nullptr) return false; 
-		// if (InteractionWidget == nullptr) return false;
 		if (GetInteractorComponent() == nullptr) return false;
 
 		return true;
@@ -649,7 +648,6 @@ public:
 	{
 		if (GetInteractionState() != EInteractableState::EIS_Standby) return false;
 		if (GetWorld() == nullptr) return false; 
-		// if (InteractionWidget == nullptr) return false;
 		if (GetInteractorComponent() == nullptr) return false;
 
 		return true;
@@ -758,17 +756,14 @@ protected:
 
 protected:
 	
-	// TODO: replicate
 	/** Defines whether Activation must be done or is turned on by default.*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite,  Category="Interaction|Settings")
 	uint8 bInteractableAutoActivate : 1;
-
-	// TODO: replicate
+	
 	/** Type of interaction this Interactable Actor required to finish the interaction process.*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite,  Category="Interaction|Settings")
 	EInteractableType InteractionType = EInteractableType::EIT_Hold;
-
-	// TODO: replicate
+	
 	/**
 	 * Defines which Collision Channel is used for Interaction Collision Tracing.
 	 *
@@ -783,8 +778,7 @@ protected:
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite,  Category="Interaction|Settings|Collision")
 	TEnumAsByte<ECollisionChannel> InteractableCollisionChannel = ECC_Visibility;
-
-	// TODO: replicate
+	
 	/**
 	 * List of collision shapes the Interactor is tracing against.
 	 * Keep in mind that those collision shapes will get their collision preset overwritten by this Interactable component!
@@ -794,7 +788,6 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Interaction|Settings", Replicated)
 	TArray<UShapeComponent*> CollisionShapes;
 	
-	// TODO: replicate
 	/** Time it takes to finish interaction.*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite,  Category="Interaction|Settings|Time", meta=(Units = "s", UIMin = 0, ClampMin = 0, EditCondition="InteractionType != EInteractableType::EIT_Press"))
 	float InteractionTime = 1.5f;
@@ -812,7 +805,6 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite,  Category="Interaction|Settings|Highlight")
 	uint8 bInteractionHighlight : 1;
 
-	// TODO: Getter Setter
 	/**
 	 * Defined what Stencil ID should be used to highlight the Primitive Mesh Components.
 	 * In order to smoothly integrate with other logic, keep this ID unique!
@@ -820,8 +812,7 @@ protected:
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly,  Category="Interaction|Settings|Highlight", meta=(EditCondition="bInteractionHighlight == true", UIMin=0, ClampMin=0, UIMax=255, ClampMax=255))
 	int32 StencilID = 133;
-
-	// TODO: Getter Setter
+	
 	/**
 	 * List of Primitive Components (Static and Skeletal Meshes) that will be highlighted when selected.
 	 * If left empty, Owning Component will be used instead.
@@ -830,21 +821,18 @@ protected:
 	 */
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite,  Category="Interaction|Settings|Highlight")
 	TArray<UPrimitiveComponent*> ListOfHighlightables;
-
-	// TODO: replicate
+	
 	/** Defined whether Interactable should be used only once or multiple times.*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite,  Category="Interaction|Settings|Lifecycle")
 	EInteractableLifecycle InteractableLifecycle = EInteractableLifecycle::EIL_Cycled;
-
-	// TODO: replicate
+	
 	/**
 	 * How long it takes (in seconds) until next interaction can be performed.
 	 * @note	0 means no Interaction Cooldown is applied.
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite,  Category="Interaction|Settings|Lifecycle", meta=(Units = "s", UIMin = 0, ClampMin = 0, EditCondition="InteractableLifecycle == EInteractableLifecycle::EIL_Cycled"))
 	float InteractionCooldown = 5.f;
-
-	// TODO: replicate
+	
 	/**
 	 * How many times interaction can be performed.
 	 * @note 0 means infinite times.
@@ -886,22 +874,18 @@ protected:
 
 protected:
 	
-	// TODO: replicate
 	/** Last Time Interactable was used.*/
 	UPROPERTY()
 	float LastInteractionTime = 0.f;
-
-	// TODO: replicate
+	
 	/** How many times was interaction performed.*/
 	UPROPERTY()
 	int32 InteractionCounter = 0;
-
-	// TODO: replicate
+	
 	/** State of Interactable.*/
 	UPROPERTY()
 	EInteractableState InteractableState = EInteractableState::EIS_Disabled;
 	
-	// TODO: replicate
 	/** Interactor interacting with this Component*/
 	UPROPERTY()
 	UActorInteractorComponent* InteractingInteractorComponent = nullptr;
@@ -930,11 +914,7 @@ protected:
 	UFUNCTION()
 	void InteractorChanged(float TimeHappened);
 
-	UFUNCTION(NetMulticast, Unreliable)
-	void Client_SetMeshComponentsHighlight(const bool bShowHighlight);
-
 	void SetMeshComponentsHighlight(const bool bShowHighlight);
-	
 	void OnWidgetClassChanged();
 
 private:

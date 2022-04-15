@@ -124,7 +124,7 @@ void UActorInteractableComponent::OnActorBeginsOverlapping(UPrimitiveComponent* 
 	if (UActorInteractorComponent* InteractorComponent = Cast<UActorInteractorComponent>(OtherActor->GetComponentByClass(UActorInteractorComponent::StaticClass())))
 	{
 		// Allowed only with passive Interactors
-		if (InteractorComponent->GetInteractorType() == EInteractorType::EIT_Passive)
+		if (InteractorComponent->GetInteractorType() != EInteractorType::EIT_Active)
 		{
 			OnInteractorFound.Broadcast(InteractorComponent);
 		}
@@ -158,38 +158,21 @@ void UActorInteractableComponent::OnActorStopsOverlapping(UPrimitiveComponent* O
 	if (UActorInteractorComponent* InteractorComponent = Cast<UActorInteractorComponent>(OtherActor->GetComponentByClass(UActorInteractorComponent::StaticClass())))
 	{
 		// Allowed only with passive Interactors
-		if (InteractorComponent->GetInteractorType() == EInteractorType::EIT_Passive)
+		if (InteractorComponent->GetInteractorType() != EInteractorType::EIT_Active)
 		{
 			OnInteractorLost.Broadcast(InteractorComponent);
 		}
 	}
 }
 
-void UActorInteractableComponent::Client_SetMeshComponentsHighlight_Implementation(const bool bShowHighlight)
-{
-	// Currently runs on all clients, how to fix it?
-	if (APlayerController* const PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0))
-	{
-		AIP_LOG(Warning, TEXT("Is Local: %s"), *FString(PlayerController->IsLocalController() ? "YES" : "NO"))
-		if (PlayerController->IsLocalController())
-		{
-			if(ListOfHighlightables.Num())
-			{
-				for (UPrimitiveComponent* Itr : ListOfHighlightables)
-				{
-					Itr->SetCustomDepthStencilValue(bShowHighlight ? StencilID : 0);
-				}
-			}
-		}
-	}
-}
-
 void UActorInteractableComponent::SetMeshComponentsHighlight(const bool bShowHighlight)
 {
-	// Do no execute this function on server for this is just cosmetics
-	if(GetOwner() && GetOwner()->HasAuthority())
+	if(ListOfHighlightables.Num())
 	{
-		Client_SetMeshComponentsHighlight(bShowHighlight);
+		for (UPrimitiveComponent* Itr : ListOfHighlightables)
+		{
+			Itr->SetCustomDepthStencilValue(bShowHighlight ? StencilID : 0);
+		}
 	}
 }
 
@@ -208,6 +191,12 @@ void UActorInteractableComponent::OnWidgetClassChanged()
 
 void UActorInteractableComponent::InteractorFound(UActorInteractorComponent* FoundInteractor)
 {
+	// This is soooo ugly, change it!
+	if (FoundInteractor->GetInteractingWith() != this)
+	{
+		FoundInteractor->OnInteractableLost.Broadcast(FoundInteractor->GetInteractingWith());
+	}
+	
 	SetMeshComponentsHighlight(bInteractionHighlight);
 	
 	SetInteractionState(EInteractableState::EIS_Standby);
@@ -227,7 +216,6 @@ void UActorInteractableComponent::InteractorFound(UActorInteractorComponent* Fou
 
 void UActorInteractableComponent::InteractorLost(UActorInteractorComponent* LostInteractor)
 {
-	//Multicast_SetMeshComponentsHighlight(false);
 	SetMeshComponentsHighlight(false);
 	
 	StopInteractionLink(LostInteractor);
@@ -237,16 +225,16 @@ void UActorInteractableComponent::OnInteractorTraced(UActorInteractorComponent* 
 {
 	switch (GetInteractionState())
 	{
-	case EInteractableState::EIS_Inactive:
-		break;
-	case EInteractableState::EIS_Disabled:
-	case EInteractableState::EIS_Active:
-	case EInteractableState::EIS_Cooldown:
-	case EInteractableState::EIS_Standby:
-	case EInteractableState::EIS_Finished:
-	case EInteractableState::Default:
-	default:
-		return;
+		case EInteractableState::EIS_Inactive:
+			break;
+		case EInteractableState::EIS_Disabled:
+		case EInteractableState::EIS_Active:
+		case EInteractableState::EIS_Cooldown:
+		case EInteractableState::EIS_Standby:
+		case EInteractableState::EIS_Finished:
+		case EInteractableState::Default:
+		default:
+			return;
 	}
 	
 	if (TracingInteractor)
@@ -257,11 +245,13 @@ void UActorInteractableComponent::OnInteractorTraced(UActorInteractorComponent* 
 			return;
 		}
 		
-		// Allowed only with active Interactors
-		if (TracingInteractor->GetInteractorType() == EInteractorType::EIT_Active)
+		// Not allowed for Passive Interactors
+		if (TracingInteractor->GetInteractorType() == EInteractorType::EIT_Passive)
 		{
-			OnInteractorFound.Broadcast(TracingInteractor);
+			return;
 		}
+
+		OnInteractorFound.Broadcast(TracingInteractor);
 	}
 }
 
@@ -277,6 +267,7 @@ void UActorInteractableComponent::StopInteractionLink(UActorInteractorComponent*
 	if (OtherComponent->GetInteractingWith() == this)
 	{
 		OtherComponent->OnInteractableLost.Broadcast(nullptr);
+		
 		OtherComponent->OnInteractionKeyPressed.RemoveDynamic(this, &UActorInteractableComponent::StartInteraction);
 		OtherComponent->OnInteractionKeyReleased.RemoveDynamic(this, &UActorInteractableComponent::StopInteraction);
 		OtherComponent->OnInteractorTypeChanged.RemoveDynamic(this, &UActorInteractableComponent::InteractorChanged);
@@ -286,7 +277,6 @@ void UActorInteractableComponent::StopInteractionLink(UActorInteractorComponent*
 		SetInteractorComponent(nullptr);
 
 		SetHiddenInGame(true);
-		//Multicast_SetMeshComponentsHighlight(false);
 		SetMeshComponentsHighlight(false);
 		SetRemainingInteractionProgress(1.f);
 
@@ -378,8 +368,6 @@ void UActorInteractableComponent::SetRemainingInteractionProgress(const float& R
 
 void UActorInteractableComponent::StartInteraction(const float TimeKeyPressed)
 {
-	// TODO: server implementation, maybe multicast so all users know that this is used?
-	
 	if(!CanInteract()) return;
 
 	if (GetOwner() && GetOwner()->HasAuthority())
@@ -442,7 +430,6 @@ void UActorInteractableComponent::FinishInteraction(float TimeInteractionFinishe
 {
 	if (GetInteractionState() != EInteractableState::EIS_Active) return;
 	
-	//Multicast_SetMeshComponentsHighlight(false);
 	SetMeshComponentsHighlight(false);
 	
 	if (GetInteractionLifecycle() == EInteractableLifecycle::EIL_Cycled)
@@ -473,6 +460,7 @@ void UActorInteractableComponent::FinishInteraction(float TimeInteractionFinishe
 				CooldownElapsed_TimerFunction();
 			}
 		}
+		/*
 		else
 		{
 			StopInteractionLink(GetInteractorComponent());
@@ -481,6 +469,7 @@ void UActorInteractableComponent::FinishInteraction(float TimeInteractionFinishe
 		
 			SetInteractionState(EInteractableState::EIS_Finished);
 		}
+		*/
 	}
 	else
 	{
@@ -496,7 +485,6 @@ void UActorInteractableComponent::FinishInteraction(float TimeInteractionFinishe
 
 void UActorInteractableComponent::CancelInteraction(UActorInteractableComponent* Component)
 {
-	// TODO
 	if(Component == this || Component == nullptr)
 	{
 		OnInteractorLost.Broadcast(GetInteractorComponent());
@@ -523,8 +511,7 @@ bool UActorInteractableComponent::ActivateInteractable(FString& ErrorMessage)
 		else ErrorMessage.Append(FString("|")).Append(NoWorldString);
 		bResult = false;
 	}
-
-	// Forcing state directly to avoid state machine restrictions
+	
 	SetInteractionState(EInteractableState::EIS_Inactive);
 	
 	return bResult;
@@ -544,8 +531,6 @@ void UActorInteractableComponent::DeactivateInteractable()
 	
 	StopInteractionLink(GetInteractorComponent());
 	
-	// Forcing state directly to avoid state machine restrictions
-	// We are overriding state here twice, in future update this should be changed
 	SetInteractionState(EInteractableState::EIS_Disabled);
 }
 
@@ -572,7 +557,6 @@ void UActorInteractableComponent::CooldownElapsed_TimerFunction()
 		
 		SetRemainingInteractionProgress(1.f);
 		UpdateInteractableWidget();
-		//Multicast_SetMeshComponentsHighlight(bInteractionHighlight);
 		SetMeshComponentsHighlight(bInteractionHighlight);
 
 		GetWorld()->GetTimerManager().ClearTimer(TimerHandle_CooldownTime);
@@ -587,7 +571,6 @@ void UActorInteractableComponent::CooldownElapsed_TimerFunction()
 
 void UActorInteractableComponent::UpdateCollisionChannels() const
 {
-	// No Collision Shapes
 	if(CollisionShapes.Num())
 	{
 		for (auto& Itr : CollisionShapes)

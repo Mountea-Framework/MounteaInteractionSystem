@@ -12,7 +12,7 @@
 class UActorInteractableComponent;
 
 /**
- * Interaction Tracing Data used for easier communication.
+ * Interaction Tracing Data used easier data management.
  */
 struct FInteractionTraceData
 {
@@ -23,6 +23,17 @@ struct FInteractionTraceData
 	FCollisionQueryParams CollisionParams;
 	ECollisionChannel CollisionChannel;
 
+	// Default zero constructor
+	FInteractionTraceData()
+	{
+		StartLocation = FVector();
+		EndLocation = FVector();
+		TraceRotation = FRotator();
+		HitResult = FHitResult();
+		CollisionParams = FCollisionQueryParams();
+		CollisionChannel = ECC_Visibility;
+	};
+	
 	FInteractionTraceData(const FVector& Start, const FVector& End, const FRotator Rotation, const FHitResult& Hit, const FCollisionQueryParams& Params, const ECollisionChannel& Channel)
 	{
 		StartLocation = Start;
@@ -31,18 +42,7 @@ struct FInteractionTraceData
 		HitResult = Hit;
 		CollisionParams = Params;
 		CollisionChannel = Channel;
-	}
-};
-
-/**
- * A helper structure which is used for replicating the Interactor.
- * Does contain only those variables that might change during Interaction Tick.
- */
-struct FInteractorData
-{
-	class UActorInteractableComponent* Replicated_InteractingWith = nullptr;
-	const float Replicated_LastTickTime;
-	const float Replicated_LastInteractionTickTime;
+	};
 };
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInteractableFound, class UActorInteractableComponent*, FoundActorComponent);
@@ -83,21 +83,12 @@ protected:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	
 	void TickInteraction(const float DeltaTime);
+	void CalculateInteractionTrace(FInteractionTraceData& Trace) const;
 	void TickPrecise(FInteractionTraceData& TraceData) const;
 	void TickLoose(FInteractionTraceData& TraceData) const;
 
 	void UpdateTicking();
 	void UpdatePrecision();
-
-private:
-
-	// Returns whether component is attached to Auth owner
-	FORCEINLINE bool HasAuthority() const
-	{
-		return GetOwner() && GetOwner()->HasAuthority();
-	}
-
-	void CalculateTick();
 
 #pragma region Getters_Setters
 	
@@ -117,7 +108,7 @@ public:
 	 * - - OR InteractorTickInterval is 0
 	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction|Validation")
-	FORCEINLINE bool CanTick() const;
+	bool CanTick() const;
 
 	/**
 	 * A simple function that should be called when Interactor is requested to be activated and start searching for Interactable Components.
@@ -142,6 +133,7 @@ public:
 
 	/**
 	 * Sets what Interactable Actor Component is interacting with. If none, pass nullptr.
+	 * Should not be called during runtime, unless initializing a new Component.
 	 * @param NewInteractingWith	Value to be set as Interacting with, could be nullptr
 	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction|Setters")
@@ -353,54 +345,13 @@ public:
 
 protected:
 
-	UFUNCTION()	void OnRep_InteractorComponent();
-	UFUNCTION() void OnRep_InteractorAutoActivate();
-	UFUNCTION()	void OnRep_InteractorState();
-	UFUNCTION()	void OnRep_InteractorTickInterval();
-	UFUNCTION() void OnRep_InteractorRange();
-	UFUNCTION() void OnRep_InteractorBoxHalfExtend();
-	UFUNCTION() void OnRep_InteractorPrecision();
-	UFUNCTION() void OnRep_InteractorTracingChannel();
-	UFUNCTION() void OnRep_InteractorType();
-	UFUNCTION() void OnRep_UseCustomStartTransform();
-	UFUNCTION() void OnRep_CustomTraceTransform();
-	UFUNCTION() void OnRep_IgnoredActors();
-	UFUNCTION() void OnRep_CanTick();
+	///////////////////////////////////////
+	////// HERE GO ON_REP FUNCTIONS ///////
+	///////////////////////////////////////
 	
-	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_SetInteractorAutoActivate(const bool Value);
-	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_SetInteractorTickInterval(const float Value);
-	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_SetInteractorState(const EInteractorState Value);
-	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_SetInteractorRange(const float Value);
-	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_SetInteractorPrecisionBoxHalfExtend(const float Value);
-	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_SetInteractorPrecision(const EInteractorPrecision& Value);
-	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_SetInteractorTracingChannel(const ECollisionChannel& Value);
-	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_SetInteractorType(const EInteractorType& Value);
-	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_SetUseCustomTraceStart(const bool Value);
-	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_SetCustomTraceStart(const FTransform& Value);
-	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_SetIgnoredActors(const TArray<AActor*>& Values);
-	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_AddIgnoredActor(AActor* Value);
-	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_RemoveIgnoredActor(AActor* Value);
-
-	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_StartInteraction();
-	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_StopInteraction();
-
-	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_CalculateTick();
+	///////////////////////////////////////
+	////// HERE GO SERVER FUNCTIONS ///////
+	///////////////////////////////////////
 
 #pragma endregion Replication
 
@@ -436,7 +387,7 @@ public:
 
 	/**
 	 * Delegate called after Interactor Type is changed.
-	 * Responsible for updating all necessary value for Interactor to work properly.
+	 * Responsible for updating all necessary values for Interactor to work properly.
 	 */
 	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category="Interaction|Events")
 	FOnInteractorTypeChanged OnInteractorTypeChanged;
@@ -447,8 +398,10 @@ public:
 	
 protected:
 	
-	/** Defines whether Activation must be done or is turned on by default.*/
-	UPROPERTY(ReplicatedUsing=OnRep_InteractorAutoActivate, EditAnywhere, BlueprintReadOnly, Category="Interaction|Settings", meta=(DispplayName="Auto Activate"))
+	/**
+	 * Defines whether the Interactor Component is Active after Begin Play or it must be activated manually.
+	 */
+	UPROPERTY(Replicated,  EditAnywhere, BlueprintReadOnly, Category="Interaction|Settings", meta=(DispplayName="Auto Activate"))
 	uint8 bInteractorAutoActivate : 1;
 	
 	/**
@@ -457,7 +410,7 @@ protected:
 	 * @note	Active one is looking for Interactable objects each Tick (based on InteractionTickInterval).
 	 * @note	Passive on is not looking for any Interactable objects and is activated only when overlapping such objects.
 	 */
-	UPROPERTY(ReplicatedUsing=OnRep_InteractorType, EditAnywhere, Category="Interaction|Settings")
+	UPROPERTY(Replicated, EditAnywhere, Category="Interaction|Settings")
 	EInteractorType InteractorType = EInteractorType::EIT_Active;
 	
 	/**
@@ -465,7 +418,7 @@ protected:
 	 * - Low precision is using ShapeTrace and might cause issues if there are many interactable items close each other.
 	 * - High precision is using LineTrace and might cause frustration when interacting.
 	 */
-	UPROPERTY(ReplicatedUsing=OnRep_InteractorPrecision, EditAnywhere, Category="Interaction|Settings", meta=(EditCondition="InteractorType == EInteractorType::EIT_Active"))
+	UPROPERTY(Replicated, EditAnywhere, Category="Interaction|Settings", meta=(EditCondition="InteractorType != EInteractorType::EIT_Passive"))
 	EInteractorPrecision InteractorPrecision = EInteractorPrecision::EIP_Low;
 	
 	/**
@@ -475,7 +428,7 @@ protected:
 	 * @note	Extremely low values are treated as Zero.
 	 * @note	Zero value will result in using High precision instead.
 	 */
-	UPROPERTY(ReplicatedUsing=OnRep_InteractorBoxHalfExtend, EditAnywhere, Category="Interaction|Settings", meta=(Units = "cm", EditCondition="InteractorType == EInteractorType::EIT_Active && InteractorPrecision == EInteractorPrecision::EIP_Low"))
+	UPROPERTY(Replicated,  EditAnywhere, Category="Interaction|Settings", meta=(Units = "cm", EditCondition="InteractorType != EInteractorType::EIT_Passive && InteractorPrecision == EInteractorPrecision::EIP_Low"))
 	float InteractorPrecisionBoxHalfExtend = 5.0f;
 	
 	/**
@@ -485,13 +438,13 @@ protected:
 	 * Can use custom Collision Channel.
 	 * @note	Default Channel: ECC_Visibility.
 	 */
-	UPROPERTY(ReplicatedUsing=OnRep_InteractorTracingChannel, EditAnywhere, Category="Interaction|Settings", meta=(EditCondition="InteractorType == EInteractorType::EIT_Active"))
+	UPROPERTY(Replicated,  EditAnywhere, Category="Interaction|Settings", meta=(EditCondition="InteractorType != EInteractorType::EIT_Passive"))
 	TEnumAsByte<ECollisionChannel> InteractorTracingChannel = ECollisionChannel::ECC_Visibility;
 	
 	/**
 	 * Defines whether Tracing starts at ActorEyesViewPoint (default) or at a given Location.
 	 */
-	UPROPERTY(ReplicatedUsing=OnRep_UseCustomStartTransform, EditAnywhere, Category="Interaction|Settings", meta=(EditCondition="InteractorType == EInteractorType::EIT_Active"))
+	UPROPERTY(Replicated, EditAnywhere, Category="Interaction|Settings", meta=(EditCondition="InteractorType != EInteractorType::EIT_Passive"))
 	uint8 bUseCustomStartTransform : 1;
 	
 	/**
@@ -502,7 +455,7 @@ protected:
 	 * Defines where does the Tracing start and what direction it follows.
 	 * Will be ignored if bUseCustomStartTransform is false.
 	 */
-	UPROPERTY(ReplicatedUsing=OnRep_CustomTraceTransform, VisibleAnywhere, Category="Interaction|Settings", AdvancedDisplay, meta=(DisplayName="Trace Start (World Space Transform)"))
+	UPROPERTY(Replicated,  VisibleAnywhere, Category="Interaction|Settings", AdvancedDisplay, meta=(DisplayName="Trace Start (World Space Transform)"))
 	FTransform CustomTraceTransform;
 	
 	/**
@@ -510,7 +463,7 @@ protected:
 	 * If left empty, only Owner Actor is ignored.
 	 * If using multiple Actors (a gun, for instance), all those child/attached Actors should be ignored.
 	 */
-	UPROPERTY(ReplicatedUsing=OnRep_IgnoredActors, EditInstanceOnly, Category="Interaction|Settings")
+	UPROPERTY(Replicated,  EditInstanceOnly, Category="Interaction|Settings")
 	TArray<AActor*> IgnoredActors;
 	
 	/**
@@ -521,14 +474,14 @@ protected:
 	 * @note	Lower the value, less frequent ticking is and less performance is required.
 	 * @note	Higher the value, more frequent ticking is and more performance is required.
 	 */
-	UPROPERTY(ReplicatedUsing=OnRep_InteractorTickInterval, EditAnywhere, Category="Interaction|Settings|Optimization", meta=(Units = "s", UIMin=0, ClampMin=0, EditCondition="InteractorType == EInteractorType::EIT_Active", DisplayName="Tick Interval (sec)"))
+	UPROPERTY(Replicated,  EditAnywhere, Category="Interaction|Settings|Optimization", meta=(Units = "s", UIMin=0, ClampMin=0, EditCondition="InteractorType != EInteractorType::EIT_Passive", DisplayName="Tick Interval (sec)"))
 	float InteractorTickInterval = 3.f;
 	
 	/**
 	 * Defines the lenght of interaction vision.
 	 * @note	Higher the value, further items can be reached.
 	 */
-	UPROPERTY(ReplicatedUsing=OnRep_InteractorRange, EditAnywhere, Category="Interaction|Settings|Optimization", meta=(Units = "cm", UIMin=0, ClampMin=0, EditCondition="InteractorType == EInteractorType::EIT_Active", DisplayName="Interaction Range (cm)"))
+	UPROPERTY(Replicated,  EditAnywhere, Category="Interaction|Settings|Optimization", meta=(Units = "cm", UIMin=0, ClampMin=0, EditCondition="InteractorType != EInteractorType::EIT_Passive", DisplayName="Interaction Range (cm)"))
 	float InteractorRange = 250.f;
 
 	/**
@@ -540,20 +493,17 @@ protected:
 
 private:
 	
-	UPROPERTY(ReplicatedUsing=OnRep_InteractorComponent)
+	UPROPERTY(Replicated,  VisibleAnywhere, Category="Interaction|Debug")
+	EInteractorState InteractorState;
+
+	UPROPERTY(Replicated,  VisibleAnywhere, Category="Interaction|Debug")
 	UActorInteractableComponent* InteractingWith = nullptr;
 	
-	UPROPERTY(ReplicatedUsing=OnRep_InteractorState, VisibleAnywhere, Category="Interaction|Debug")
-	EInteractorState InteractorState;
-	
-	UPROPERTY(ReplicatedUsing=OnRep_InteractorComponent)
+	UPROPERTY(Replicated, VisibleAnywhere, Category="Interaction|Debug")
 	float LastInteractionTickTime;
 	
-	UPROPERTY(ReplicatedUsing=OnRep_InteractorComponent, VisibleAnywhere, Category="Interaction|Debug")
+	UPROPERTY(Replicated, VisibleAnywhere, Category="Interaction|Debug")
 	float LastTickTime;
-
-	UPROPERTY(Replicated, ReplicatedUsing=OnRep_CanTick)
-	bool bCanTick;
 
 #pragma endregion Properties
 
@@ -564,13 +514,15 @@ public:
 	/**
 	 * This helper function toggles Debug mode on and off.
 	 */
-	UFUNCTION(BlueprintCallable, Category="Interaction|Debug")
+	UFUNCTION(BlueprintCallable, Category="Interaction|Debug", CallInEditor)
 	void ToggleDebugMode() { bDebug = !bDebug; }
 
 private:
 	
 #if WITH_EDITOR
+	
 	virtual void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;
+
 #endif
 
 #pragma endregion Editor
