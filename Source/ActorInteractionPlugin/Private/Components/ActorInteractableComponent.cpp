@@ -338,7 +338,8 @@ void UActorInteractableComponent::InitializeInteractionComponent()
 			GetInteractionActionKey(),
 			GetInteractionActionTitle(),
 			GetInteractionActionKey(),
-			this
+			this,
+			GetInteractionActionTexture()
 		);
 	}
 

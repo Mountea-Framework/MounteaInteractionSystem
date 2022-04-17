@@ -3,6 +3,7 @@
 
 #include "Widgets/ActorInteractableWidget.h"
 #include "Components/ActorInteractableComponent.h"
+#include "Components/Image.h"
 #include "Components/TextBlock.h"
 
 #include "Helpers/ActorInteractionPluginLog.h"
@@ -15,7 +16,8 @@ bool UActorInteractableWidget::Initialize()
 	bSuccess =
 		InteractableName != nullptr
 		&& InteractionAction != nullptr
-		&& InteractableKey != nullptr; 
+		&& InteractableKey != nullptr
+		&& InteractionTexture != nullptr; 
 
 	if (!bSuccess)
 	{
@@ -26,7 +28,7 @@ bool UActorInteractableWidget::Initialize()
 }
 
 void UActorInteractableWidget::InitializeInteractionWidget(const FText& NewInteractableKey, const FText& NewInteractableName,
-                                    const FText& NewInteractionAction, UActorInteractableComponent* NewOwningComponent)
+                                                           const FText& NewInteractionAction, UActorInteractableComponent* NewOwningComponent, UTexture2D* NewInteractionTexture)
 {
 	OwningComponent = NewOwningComponent;
 
@@ -39,6 +41,7 @@ void UActorInteractableWidget::InitializeInteractionWidget(const FText& NewInter
 	InteractableKey->SetText(NewInteractableKey);
 	InteractableName->SetText(NewInteractableName);
 	InteractionAction->SetText(NewInteractionAction);
+	InteractionTexture->SetBrushFromTexture(NewInteractionTexture);
 
 	TimeRemainder = OwningComponent->GetLastInteractionTime();
 	SetInteractionProgress(1.f);

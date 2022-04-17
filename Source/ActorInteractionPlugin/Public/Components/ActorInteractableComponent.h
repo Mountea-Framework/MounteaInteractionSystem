@@ -136,6 +136,13 @@ public:
 	FText GetInteractionActionKey() const {return InteractionActionKey; };
 
 	/**
+	 * Returns Interactable Action Texture to be displayed in a Widget.
+	 * @return Interactable Action Texture
+	 */
+	UFUNCTION(BlueprintCallable, Category="Interaction|Getters")
+	UTexture2D* GetInteractionActionTexture() const {return InteractionActionTexture; };
+	
+	/**
 	 * Returns current state of the Interactable Actor Component. Interactable State is using static state machine for quick and precise decision when and where interaction is allowed.
 	 * @return State of the Interactable Actor Component
 	 */
@@ -300,6 +307,18 @@ public:
 
 		UpdateInteractableWidget();
 	};
+	
+	/**
+	 * Set Interaction Action Texture that will be displayed in a Widget.
+	 * @param NewTexture Value to be set as Action Texture	
+	 */
+	UFUNCTION(BlueprintCallable, Category="Interaction|Setters")
+	void SetInteractionActionTexture(UTexture2D* NewTexture)
+	{
+		InteractionActionTexture = NewTexture;
+
+		UpdateInteractableWidget();
+	}
 	
 	/**
 	 * Sets new state of the Interactable Component.
@@ -865,6 +884,13 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite,  Category="Interaction|Settings|Display")
 	FText InteractionActionKey = LOCTEXT("InteractionActionKey", "E");
 
+	/** Value of the Interaction Key.
+	 * Could be "E" or any other Key.
+	 * @note If empty, nothing will be displayed by default.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite,  Category="Interaction|Settings|Display")
+	UTexture2D* InteractionActionTexture = nullptr;
+	
 	/**
 	 * Editor only flag.
 	 * If true, will display debug lines and boxes.

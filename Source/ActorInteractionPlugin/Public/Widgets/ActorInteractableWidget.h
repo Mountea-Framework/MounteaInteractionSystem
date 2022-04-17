@@ -41,7 +41,7 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	void InitializeInteractionWidget(const FText& NewInteractableKey, const FText& NewInteractableName, const FText& NewInteractionAction,
-	          UActorInteractableComponent* NewOwningComponent);
+	                                 UActorInteractableComponent* NewOwningComponent, UTexture2D* NewInteractionTexture);
 
 	virtual bool Initialize() override;
 
@@ -105,6 +105,12 @@ public:
 	FORCEINLINE UTextBlock* GetInteractionAction() const {return InteractionAction; };
 
 	/**
+	 * Helper function that returns Interactable Action Texture.
+	 * @return Interactable Texture
+	 */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
+	FORCEINLINE UImage* GetInteractionTexture() const {return InteractionTexture; };
+	/**
 	 * Event called when Owning Component requests re-draw of the Widget.
 	 * Should be responsible for getting data from Owning Component and setting those properly.
 	 */
@@ -134,6 +140,13 @@ protected:
 	 */
 	UPROPERTY(Category="Properties", BlueprintReadWrite, meta=(BindWidget))
 	UTextBlock* InteractionAction = nullptr;
+
+	/*
+	 * Texture of the Action that displays for instance a Console button image.
+	 * If left empty, nothing will be displayed.
+	 */
+	UPROPERTY(Category="Properties", BlueprintReadWrite, meta=(BindWidget))
+	UImage* InteractionTexture = nullptr;
 
 private:
 
