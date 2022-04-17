@@ -10,6 +10,7 @@
 #include "ActorInteractableComponent.generated.h"
 
 class UActorInteractorComponent;
+class UActorInteractableComponent;
 class UActorInteractableWidget;
 class UBoxComponent;
 class UShapeComponent;
@@ -23,6 +24,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInteractionStopped);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInteractorFound, UActorInteractorComponent*, InteractingComponent);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInteractorLost, UActorInteractorComponent*, InteractingComponent);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInteractableTraced, UActorInteractorComponent*, TracingInteractorComponent);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInteractorOverlapped, UPrimitiveComponent*, OverlappedInteractableCollisionComponent);
 
 /**
  * Implement an Actor component for being interacted with.
@@ -45,7 +47,7 @@ class ACTORINTERACTIONPLUGIN_API UActorInteractableComponent final : public UWid
 
 public:
 
-	#pragma region Getters_Setters
+#pragma region Getters_Setters
 
 	/**
 	 * Returns type of the Interactable Actor Component.
@@ -651,7 +653,8 @@ public:
 
 	#pragma endregion Getters_Setters
 
-	#pragma region Validation
+#pragma region Validation
+	
 	UFUNCTION(BlueprintCallable, Category="Interaction|Validation")
 	FORCEINLINE	bool IsInUse() const
 	{
@@ -672,7 +675,7 @@ public:
 		return true;
 	}	
 
-	#pragma endregion Validation
+#pragma endregion Validation
 
 	/**
 	 * Initialization function responsible for creating User Widget instance from Widget User class.
@@ -714,7 +717,7 @@ public:
 
 public:
 
-	#pragma region Events
+#pragma region Events
 	
 	/**
 	 * Delegate called after Interaction is finished.
@@ -758,9 +761,16 @@ public:
 	UPROPERTY(BlueprintAssignable, Category="Interaction|Events")
 	FOnInteractableTraced OnInteractableTraced;
 
-	#pragma endregion Events
+	/**
+	 * Delegate called after Interactor Component has overlapped this Interactable.
+	 * @param Interactable	Value of Interactable Component that has overlapped by the Interactor
+	 */
+	UPROPERTY(BlueprintAssignable, Category="Interaction|Events")
+	FOnInteractorOverlapped OnInteractorOverlapped;
 
-	#pragma region Properties
+#pragma endregion Events
+
+#pragma region Properties
 	
 protected:
 	
@@ -916,7 +926,7 @@ protected:
 	UPROPERTY()
 	UActorInteractorComponent* InteractingInteractorComponent = nullptr;
 	
-	#pragma endregion Properties
+#pragma endregion Properties
 	
 protected:
 
@@ -945,17 +955,13 @@ protected:
 
 private:
 
-	#pragma region Helpers
+#pragma region Helpers
 	
 	void StopInteractionLink(UActorInteractorComponent* OtherComponent);
 	void FinishInteraction_TimerFunction();
 	void CooldownElapsed_TimerFunction();
 	void UpdateCollisionChannels() const;
 	void UpdateCollisionChannel(UShapeComponent* const CollisionShape) const;
-	FORCEINLINE bool HasAuthority() const
-	{
-		return GetOwner() && GetOwner()->HasAuthority();
-	}
 
 	void BindCollisionEvents(UShapeComponent* const NewCollisionShape)
 	{
@@ -971,12 +977,17 @@ private:
 		RemovedCollisionShape->OnComponentEndOverlap.RemoveDynamic(this, &UActorInteractableComponent::OnActorStopsOverlapping);
 	}
 
+#pragma region Editor
+
 	#if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	virtual void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;
 	#endif
 
-	#pragma endregion Helper
+#pragma endregion Editor
+
+#pragma endregion Helper
+	
 };
 
 #undef LOCTEXT_NAMESPACE

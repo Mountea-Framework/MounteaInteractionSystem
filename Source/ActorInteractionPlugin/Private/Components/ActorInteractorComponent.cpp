@@ -156,6 +156,11 @@ void UActorInteractorComponent::StopInteraction()
 	}
 }
 
+void UActorInteractorComponent::OnInteractableOverlapped(UPrimitiveComponent* OverlappedComponent)
+{
+	UpdateOverlapping(true);
+}
+
 void UActorInteractorComponent::CalculateInteractionTrace(FInteractionTraceData& Trace) const
 {
 	FHitResult HitResult;
@@ -338,6 +343,18 @@ void UActorInteractorComponent::UpdatePrecision()
 	}
 }
 
+void UActorInteractorComponent::UpdateOverlapping(const bool bValue)
+{
+#if WITH_EDITOR
+	if (bDebug)
+	{
+		AIP_LOG(Warning, TEXT("Overlapping Update from %s to %s"), bOverlappingInteractable ? TEXT("TRUE") : TEXT("FALSE"), bValue ? TEXT("TRUE") : TEXT("FALSE"))
+	}
+#endif WITH_EDITOR
+		
+	bOverlappingInteractable = bValue;
+}
+
 #pragma region Getters_Setters
 
 void UActorInteractorComponent::SetInteractingWith(UActorInteractableComponent* NewInteractingWith)
@@ -352,10 +369,14 @@ void UActorInteractorComponent::SetInteractingWith(UActorInteractableComponent* 
 	if (InteractingWith)
 	{
 		SetInteractorState(EInteractorState::EIS_Active);
+
+		InteractingWith->OnInteractorOverlapped.AddUniqueDynamic(this, &UActorInteractorComponent::OnInteractableOverlapped);
 	}
 	else
 	{
 		SetInteractorState(EInteractorState::EIS_StandBy);
+		
+		UpdateOverlapping(false);
 	}
 }
 

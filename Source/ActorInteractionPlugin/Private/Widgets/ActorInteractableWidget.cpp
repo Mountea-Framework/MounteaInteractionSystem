@@ -1,6 +1,5 @@
 // Copyright Dominik Pavlicek 2022. All Rights Reserved.
 
-
 #include "Widgets/ActorInteractableWidget.h"
 #include "Components/ActorInteractableComponent.h"
 #include "Components/Image.h"
@@ -42,6 +41,24 @@ void UActorInteractableWidget::InitializeInteractionWidget(const FText& NewInter
 	InteractableName->SetText(NewInteractableName);
 	InteractionAction->SetText(NewInteractionAction);
 	InteractionTexture->SetBrushFromTexture(NewInteractionTexture);
+
+	// Hide if empty
+	if (InteractableKey == nullptr || InteractableKey->GetText().IsEmpty())
+	{
+		InteractableKey->SetVisibility(ESlateVisibility::Hidden);
+	}
+	if (InteractableName == nullptr || InteractableName->GetText().IsEmpty())
+	{
+		InteractableName->SetVisibility(ESlateVisibility::Hidden);
+	}
+	if (InteractionAction == nullptr || InteractionAction->GetText().IsEmpty())
+	{
+		InteractionAction->SetVisibility(ESlateVisibility::Hidden);
+	}
+	if (NewInteractionTexture == nullptr)
+	{
+		InteractionTexture->SetVisibility(ESlateVisibility::Hidden);
+	}
 
 	TimeRemainder = OwningComponent->GetLastInteractionTime();
 	SetInteractionProgress(1.f);

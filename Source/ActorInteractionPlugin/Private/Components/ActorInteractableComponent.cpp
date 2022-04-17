@@ -127,6 +127,7 @@ void UActorInteractableComponent::OnActorBeginsOverlapping(UPrimitiveComponent* 
 		if (InteractorComponent->GetInteractorType() != EInteractorType::EIT_Active)
 		{
 			OnInteractorFound.Broadcast(InteractorComponent);
+			OnInteractorOverlapped.Broadcast(OverlappedComponent);
 		}
 	}
 }
@@ -160,6 +161,7 @@ void UActorInteractableComponent::OnActorStopsOverlapping(UPrimitiveComponent* O
 		// Allowed only with passive Interactors
 		if (InteractorComponent->GetInteractorType() != EInteractorType::EIT_Active)
 		{
+			OnInteractorOverlapped.RemoveAll(this);
 			OnInteractorLost.Broadcast(InteractorComponent);
 		}
 	}
@@ -216,7 +218,7 @@ void UActorInteractableComponent::InteractorFound(UActorInteractorComponent* Fou
 
 void UActorInteractableComponent::InteractorLost(UActorInteractorComponent* LostInteractor)
 {
-	SetMeshComponentsHighlight(false);
+	//SetMeshComponentsHighlight(false);
 	
 	StopInteractionLink(LostInteractor);
 }
@@ -266,13 +268,16 @@ void UActorInteractableComponent::StopInteractionLink(UActorInteractorComponent*
 
 	if (OtherComponent->GetInteractingWith() == this)
 	{
-		OtherComponent->OnInteractableLost.Broadcast(nullptr);
-		
 		OtherComponent->OnInteractionKeyPressed.RemoveDynamic(this, &UActorInteractableComponent::StartInteraction);
 		OtherComponent->OnInteractionKeyReleased.RemoveDynamic(this, &UActorInteractableComponent::StopInteraction);
 		OtherComponent->OnInteractorTypeChanged.RemoveDynamic(this, &UActorInteractableComponent::InteractorChanged);
 
 		OtherComponent->OnInteractableLost.RemoveDynamic(this, &UActorInteractableComponent::CancelInteraction);
+		
+		OnInteractableTraced.RemoveAll(this);
+		OnInteractorOverlapped.RemoveAll(this);
+
+		OtherComponent->OnInteractableLost.Broadcast(nullptr);
 
 		SetInteractorComponent(nullptr);
 
@@ -350,11 +355,12 @@ void UActorInteractableComponent::InitializeInteractionComponent()
 	
 	UpdateInteractableWidget();
 
+	// Force allow Stencil for those Meshes
 	if(ListOfHighlightables.Num())
 	{
 		for (UPrimitiveComponent* Itr : ListOfHighlightables)
 		{
-			Itr->CustomDepthStencilWriteMask = ERendererStencilMask::ERSM_Default;
+			Itr->SetCustomDepthStencilWriteMask(ERendererStencilMask::ERSM_Default);
 		}
 	}
 }
@@ -429,6 +435,8 @@ void UActorInteractableComponent::StopInteraction(float TimeKeyReleased)
 
 void UActorInteractableComponent::FinishInteraction(float TimeInteractionFinished)
 {
+	// TODO: Mesh and Mixed Types
+	
 	if (GetInteractionState() != EInteractableState::EIS_Active) return;
 	
 	SetMeshComponentsHighlight(false);
@@ -600,19 +608,26 @@ void UActorInteractableComponent::UpdateCollisionChannel(UShapeComponent* const 
 	CollisionShape->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
 
 #if WITH_EDITOR
+	
 	CollisionShape->UpdateCollisionProfile();
 	if(CollisionShape->GetBodyInstance()) CollisionShape->GetBodyInstance()->LoadProfileData(true);
+
 #endif
 	
 	CollisionShape->OnComponentCollisionSettingsChangedEvent.Broadcast(CollisionShape);
 }
+
+#pragma region Replication
 
 void UActorInteractableComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 }
 
+#pragma endregion Replication
+
 #if WITH_EDITOR
+
 void UActorInteractableComponent::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);

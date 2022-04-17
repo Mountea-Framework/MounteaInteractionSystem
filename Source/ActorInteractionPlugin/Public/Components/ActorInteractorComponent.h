@@ -77,6 +77,9 @@ public:
 	virtual void StartInteraction();// override;
 	virtual void StopInteraction();// override;
 
+	UFUNCTION()
+	void OnInteractableOverlapped(UPrimitiveComponent* OverlappedComponent);
+
 protected:
 	
 	virtual void BeginPlay() override;
@@ -89,6 +92,8 @@ protected:
 
 	void UpdateTicking();
 	void UpdatePrecision();
+
+	FORCEINLINE void UpdateOverlapping(const bool bValue);;
 
 #pragma region Getters_Setters
 	
@@ -490,6 +495,12 @@ protected:
 	 */
 	UPROPERTY(EditAnywhere, Category="Interaction|Debug")
 	uint8 bDebug : 1;
+
+	/**
+	 * A helper attribute which defines whether Interactor has been activated using Overlap method.
+	 */
+	UPROPERTY(VisibleAnywhere, Category="Interaction|Debug")
+	uint8 bOverlappingInteractable : 1;
 
 private:
 	
