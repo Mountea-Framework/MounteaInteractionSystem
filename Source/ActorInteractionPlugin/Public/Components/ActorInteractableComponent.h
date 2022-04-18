@@ -972,9 +972,9 @@ protected:
 	
 	/**
 	 * Editor only flag.
-	 * If true, will display debug lines and boxes.
+	 * If true, will display debug info.
 	 */
-	UPROPERTY(EditAnywhere, Category="Interaction|Debug")
+	UPROPERTY(VisibleAnywhere, Category="Interaction|Debug")
 	uint8 bDebug : 1;
 
 protected:
@@ -1043,6 +1043,12 @@ private:
 		UpdateLifecycleLogic();
 	}
 
+	/**
+	 * This helper function toggles Debug mode on and off.
+	 */
+	UFUNCTION(CallInEditor, DisplayName="Refresh Details Panel", Category="Interaction")
+	void ToggleDebugMode() {bDebug = !bDebug; };
+	
 	void StopInteractionLink(UActorInteractorComponent* OtherComponent);
 	void FinishInteraction_TimerFunction();
 	void CooldownElapsed_TimerFunction();

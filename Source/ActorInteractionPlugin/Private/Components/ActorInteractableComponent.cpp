@@ -44,10 +44,13 @@ UActorInteractableComponent::UActorInteractableComponent()
 	bAutoRegister = true;
 	bAutoActivate = true;
 	bInteractableAutoActivate = true;
+	bInteractionHighlight = true;
 	
 	ComponentTags.Add(INTERACTABLE_TAG_NAME);
 	
 	UpdateCollisionChannels();
+
+	UpdateLifecycleLogic();
 }
 
 void UActorInteractableComponent::BeginPlay()
@@ -496,8 +499,6 @@ void UActorInteractableComponent::StopInteraction(float TimeKeyReleased)
 
 void UActorInteractableComponent::FinishInteraction(float TimeInteractionFinished)
 {
-	// TODO: Mash Type
-		
 	if (GetInteractionState() != EInteractableState::EIS_Active) return;
 
 	const float FinishTime = GetWorld()->GetTimeSeconds();
@@ -556,11 +557,12 @@ void UActorInteractableComponent::FinishInteraction(float TimeInteractionFinishe
 		}
 	}
 
-	OnInteractionCompleted.Broadcast(GetInteractionType(), FinishTime);	
+	// Call Mash failed before Finishing Interaction if needed
 	if (bMashFailed)
 	{
 		OnInteractionMashFailed.Broadcast();
 	}
+	OnInteractionCompleted.Broadcast(GetInteractionType(), FinishTime);	
 }
 
 void UActorInteractableComponent::CancelInteraction(UActorInteractableComponent* Component)
