@@ -49,7 +49,7 @@ UENUM(BlueprintType)
 enum class EInteractableLifecycle : uint8
 {
   EIL_OnlyOnce UMETA(DisplayName="Once", Tooltip="Once is Interactable finished, interaction is no more allowed."),
-  EIL_Cycled   UMETA(DisplayName="Cycled", Tooltip="Once is Interactbla finished, interaction is allowed once Cooldown period is finished."),
+  EIL_Cycled   UMETA(DisplayName="Cycled", Tooltip="Once is Interactable finished, interaction is allowed once Cooldown period is finished. Allowed for unlimited time unless Maximum Lifecycles are specified."),
 
   Default      UMETA(Hidden)
 };

@@ -453,7 +453,7 @@ void UActorInteractableComponent::StopInteraction(float TimeKeyReleased)
 	bool bAutoFinish = false;
 	if (GetInteractionType() == EInteractableType::EIT_Hybrid)
 	{
-		if (TimeKeyReleased - LastInteractionTime < MixedTimeThreshold)
+		if (TimeKeyReleased - LastInteractionTime < HybridTimeThreshold)
 		{
 			bAutoFinish = true;
 		}
@@ -497,7 +497,6 @@ void UActorInteractableComponent::FinishInteraction(float TimeInteractionFinishe
 				SetInteractionState(EInteractableState::EIS_Cooldown);
 
 				SetHiddenInGame(true);
-			
 				
 				GetWorld()->GetTimerManager().ClearTimer(TimerHandle_CooldownTime);
 

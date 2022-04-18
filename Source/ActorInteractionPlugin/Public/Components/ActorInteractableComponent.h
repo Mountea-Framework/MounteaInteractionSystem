@@ -645,6 +645,19 @@ public:
 		UpdateCollisionChannels();
 	}
 
+	/**
+	 * Helper function that returns value of Hybrid Time Threshold for calculation of finished Type.
+	 * @return HybridTimeThreshold value (in seconds)
+	 */
+	UFUNCTION(BlueprintCallable, Category="Interaction|Getters")
+	FORCEINLINE float GetHybridModeTimeThreshold() const { return HybridTimeThreshold; };
+
+	UFUNCTION(BlueprintCallable, Category="Interaction|Setters")
+	void SetHybridModeTimeThreshold(const float NewValue)
+	{
+		HybridTimeThreshold = FMath::Max(KINDA_SMALL_NUMBER, NewValue);
+	}
+
 	#pragma endregion Getters_Setters
 
 #pragma region Validation
@@ -777,6 +790,10 @@ protected:
 	// Timer Handle responsible for calling callback function a
 	FTimerHandle TimerHandle_HybridModeDilation = FTimerHandle();
 
+	// How many times is the Key pressed for this interaction circle
+	UPROPERTY(VisibleAnywhere, Category="Interaction|Debug")
+	int32 InteractionPressed = 0;
+	
 	UPROPERTY(VisibleAnywhere, Category="Interaction|Debug")
 	UActorInteractableWidget* InteractionWidget = nullptr;
 
@@ -823,7 +840,13 @@ protected:
 	 * If key is Hold for longer time than this Threshold, Hold event type is called.
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly,  Category="Interaction|Settings|Time", meta=(Units = "s", UIMin = 0, ClampMin = 0, EditCondition="InteractionType == EInteractableType::EIT_Hybrid"))
-	float MixedTimeThreshold = 0.25f;
+	float HybridTimeThreshold = 0.25f;
+
+	/**
+	 * How many time the button must be pressed to accept the interaction as completed.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly,  Category="Interaction|Settings|Mash", meta=(Units = "times", UIMin = 0, ClampMin = 0, EditCondition="InteractionType == EInteractableType::EIT_Mash"))
+	int32 MinMashAmountRequired = 5;
 	
 	/**
 	 * Defines whether Interactable should be highlighted with defined Material when Interaction is possible.
@@ -870,7 +893,7 @@ protected:
 	 * How many times interaction can be performed.
 	 * @note -1 means infinite times.
 	 */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly,  Category="Interaction|Settings|Lifecycle", meta=(UIMin = 0, ClampMin = 0, EditCondition="InteractableLifecycle == EInteractableLifecycle::EIL_Cycled && InteractionType != EInteractableType::EIT_Auto"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly,  Category="Interaction|Settings|Lifecycle", meta=(Units = "times", UIMin = 0, ClampMin = 0, EditCondition="InteractableLifecycle == EInteractableLifecycle::EIL_Cycled && InteractionType != EInteractableType::EIT_Auto"))
 	int32 InteractionCyclesAllowed = -1;
 	
 	/** User Widget class that will be forced to use.*/
