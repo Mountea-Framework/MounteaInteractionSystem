@@ -221,13 +221,17 @@ void UActorInteractableComponent::InteractorFound(UActorInteractorComponent* Fou
 	{
 		case EInteractableType::EIT_Hold:
 		case EInteractableType::EIT_Press:
-		case EInteractableType::EIT_Mash:
 		case EInteractableType::EIT_Hybrid:
 			FoundInteractor->OnInteractionKeyPressed.AddUniqueDynamic(this, &UActorInteractableComponent::StartInteraction);
 			FoundInteractor->OnInteractionKeyReleased.AddUniqueDynamic(this, &UActorInteractableComponent::StopInteraction);
 			FoundInteractor->OnInteractorTypeChanged.AddUniqueDynamic(this, &UActorInteractableComponent::InteractorChanged);
 			FoundInteractor->OnInteractableLost.AddUniqueDynamic(this, &UActorInteractableComponent::CancelInteraction);
 			break;
+		case EInteractableType::EIT_Mash:
+			FoundInteractor->OnInteractionKeyPressed.AddUniqueDynamic(this, &UActorInteractableComponent::StartInteraction);
+			FoundInteractor->OnInteractionKeyPressed.AddUniqueDynamic(this, &UActorInteractableComponent::StartMashing);
+			FoundInteractor->OnInteractorTypeChanged.AddUniqueDynamic(this, &UActorInteractableComponent::InteractorChanged);
+			FoundInteractor->OnInteractableLost.AddUniqueDynamic(this, &UActorInteractableComponent::CancelInteraction);
 		case EInteractableType::EIT_Auto:
 			StartInteraction(Time);
 			FoundInteractor->OnInteractorTypeChanged.AddUniqueDynamic(this, &UActorInteractableComponent::InteractorChanged);
@@ -293,6 +297,8 @@ void UActorInteractableComponent::StopInteractionLink(UActorInteractorComponent*
 		OtherComponent->OnInteractorTypeChanged.RemoveDynamic(this, &UActorInteractableComponent::InteractorChanged);
 
 		OtherComponent->OnInteractableLost.RemoveDynamic(this, &UActorInteractableComponent::CancelInteraction);
+		
+		OtherComponent->OnInteractionKeyPressed.RemoveDynamic(this, &UActorInteractableComponent::StartMashing);
 		
 		OnInteractorOverlapped.RemoveAll(this);
 
@@ -415,11 +421,13 @@ void UActorInteractableComponent::SetRemainingInteractionProgress(const float& R
 void UActorInteractableComponent::StartInteraction(const float TimeKeyPressed)
 {
 	if(!CanInteract()) return;
-		
+
 	OnInteractionStarted.Broadcast(GetInteractionType(), TimeKeyPressed);
 	
 	SetInteractionState(EInteractableState::EIS_Active);
 	SetLastInteractionTime(TimeKeyPressed);
+
+	AIP_LOG(Warning, TEXT("KeyPressed"))
 
 	switch (GetInteractionType())
 	{
@@ -437,6 +445,18 @@ void UActorInteractableComponent::StartInteraction(const float TimeKeyPressed)
 				GetInteractionTime()
 			);
 			break;
+		case EInteractableType::EIT_Mash:
+			if(!GetWorld()->GetTimerManager().IsTimerActive(TimerHandle_InteractionTime))
+			{
+				GetWorld()->GetTimerManager().SetTimer
+				(
+					TimerHandle_InteractionTime,
+					this,
+					&UActorInteractableComponent::FinishInteraction_TimerFunction,
+					GetInteractionTime()
+				);
+			}
+			break;
 		default:
 			break;
 	}
@@ -450,18 +470,18 @@ void UActorInteractableComponent::StopInteraction(float TimeKeyReleased)
 		return;
 	}
 
-	bool bAutoFinish = false;
+	bool bHybridAutoFinish = false;
 	if (GetInteractionType() == EInteractableType::EIT_Hybrid)
 	{
 		if (TimeKeyReleased - LastInteractionTime < HybridTimeThreshold)
 		{
-			bAutoFinish = true;
+			bHybridAutoFinish = true;
 		}
 	}
 	
 	OnInteractionStopped.Broadcast();
 	
-	if (TimeKeyReleased - GetLastInteractionTime() > GetInteractionTime() || bAutoFinish)
+	if (TimeKeyReleased - GetLastInteractionTime() > GetInteractionTime() || bHybridAutoFinish)
 	{
 		FinishInteraction(TimeKeyReleased);
 	}
@@ -477,19 +497,30 @@ void UActorInteractableComponent::StopInteraction(float TimeKeyReleased)
 void UActorInteractableComponent::FinishInteraction(float TimeInteractionFinished)
 {
 	// TODO: Mash Type
-	
+		
 	if (GetInteractionState() != EInteractableState::EIS_Active) return;
 
 	const float FinishTime = GetWorld()->GetTimeSeconds();
 	
 	SetMeshComponentsHighlight(false);
+
+	bool bMashFailed = false;
+	if (GetInteractionType() == EInteractableType::EIT_Mash)
+	{
+		bMashFailed = InteractionPressed < MinMashAmountRequired;
+		InteractionPressed = 0;
+	}
 	
 	if (GetInteractionLifecycle() == EInteractableLifecycle::EIL_Cycled)
 	{
-		IncrementInteractionPassedLifecycles();
-
+		// Increment only if Mash didn't fail or not even Mash type
+		if (!bMashFailed)
+		{
+			IncrementInteractionPassedLifecycles();
+		}
+		
 		const int32 RemainingCycles = GetMaxAllowedLifecycles() == -1 ? -1 : GetMaxAllowedLifecycles() - GetPassedLifecycles();
-		//GetMaxAllowedLifecycles() - GetPassedLifecycles() > 0;
+
 		if (RemainingCycles == -1 || RemainingCycles > 0)
 		{
 			if (GetInteractionCooldown() > KINDA_SMALL_NUMBER)
@@ -512,8 +543,10 @@ void UActorInteractableComponent::FinishInteraction(float TimeInteractionFinishe
 				CooldownElapsed_TimerFunction();
 			}
 		}
-		/*
-		else
+	}
+	else
+	{
+		if (!bMashFailed)
 		{
 			StopInteractionLink(GetInteractorComponent());
 		
@@ -521,18 +554,13 @@ void UActorInteractableComponent::FinishInteraction(float TimeInteractionFinishe
 		
 			SetInteractionState(EInteractableState::EIS_Finished);
 		}
-		*/
-	}
-	else
-	{
-		StopInteractionLink(GetInteractorComponent());
-		
-		GetWorld()->GetTimerManager().ClearTimer(TimerHandle_InteractionTime);
-		
-		SetInteractionState(EInteractableState::EIS_Finished);
 	}
 
 	OnInteractionCompleted.Broadcast(GetInteractionType(), FinishTime);	
+	if (bMashFailed)
+	{
+		OnInteractionMashFailed.Broadcast();
+	}
 }
 
 void UActorInteractableComponent::CancelInteraction(UActorInteractableComponent* Component)
@@ -541,6 +569,14 @@ void UActorInteractableComponent::CancelInteraction(UActorInteractableComponent*
 	{
 		OnInteractorLost.Broadcast(GetInteractorComponent());
 	}
+}
+
+void UActorInteractableComponent::StartMashing(float TimeMashHappened)
+{
+	if(GetInteractionState() != EInteractableState::EIS_Active) return;
+	
+	InteractionPressed++;
+	OnInteractionMashKeyPressed.Broadcast();
 }
 
 bool UActorInteractableComponent::ActivateInteractable(FString& ErrorMessage)

@@ -20,6 +20,8 @@ class UShapeComponent;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnInteractionCompleted, EInteractableType, FinishedInteractionType, const float, FinishTime);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnInteractionStarted, EInteractableType, RecievedInteractionType, const float, RecievedInteractionTime);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInteractionStopped);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInteractionMashKeyPressed);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInteractionMashFailed);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInteractorFound, UActorInteractorComponent*, InteractingComponent);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInteractorLost, UActorInteractorComponent*, InteractingComponent);
@@ -652,12 +654,37 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Interaction|Getters")
 	FORCEINLINE float GetHybridModeTimeThreshold() const { return HybridTimeThreshold; };
 
+	/**
+	 * Helper function which sets how long a time dilation between Press and Hold is accepted for Press.
+	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction|Setters")
 	void SetHybridModeTimeThreshold(const float NewValue)
 	{
 		HybridTimeThreshold = FMath::Max(KINDA_SMALL_NUMBER, NewValue);
 	}
 
+	/**
+	 * Helper function to get how many times (at least) it is required to Mash the Interaction key to finish Interaction.
+	 */
+	UFUNCTION(BlueprintCallable,Category="Interaction|Getters")
+	FORCEINLINE int32 GetMinInteractionMashAmount() const {return MinMashAmountRequired; };
+
+	/**
+	 * Helper function to set how many times (at least) it is required to Mash the Interaction key to finish Interaction.
+	 * Value is clamped to be at least 1.
+	 */
+	UFUNCTION(BlueprintCallable, Category="Interaction|Setters")
+	void SetMinInteractionMashAmount(const int32 Value)
+	{
+		MinMashAmountRequired = FMath::Max(1, Value);
+	}
+
+	/**
+	 * Helper function to get how many times the Interaction key has been pressed (valid only for Mash event type).
+	 */
+	UFUNCTION(BlueprintCallable,Category="Interaction|Getters")
+	FORCEINLINE int32 GetInteractionCurrentMashAmount() const {return InteractionPressed; };
+	
 	#pragma endregion Getters_Setters
 
 #pragma region Validation
@@ -701,6 +728,9 @@ public:
 
 	UFUNCTION()
 	void CancelInteraction(UActorInteractableComponent* Component);
+
+	UFUNCTION()
+	void StartMashing(float TimeMashHappened);
 
 	/**
 	 * A simple function that should be called when Interactable is requested to be activated and start receiving inputs from Interactor Component.
@@ -775,6 +805,18 @@ public:
 	UPROPERTY(BlueprintAssignable, Category="Interaction|Events")
 	FOnInteractorOverlapped OnInteractorOverlapped;
 
+	/**
+	 * Delegate called only if Mash Event fails to fill the minimum required Key hits.
+	 */
+	UPROPERTY(BlueprintAssignable, Category="Interaction|Events")
+	FOnInteractionMashFailed OnInteractionMashFailed;
+
+	/**
+	 * Delegate called once Interaction key is pressed and the Interaction Type is Mash.
+	 */
+	UPROPERTY(BlueprintAssignable, Category="Interaction|Events")
+	FOnInteractionMashKeyPressed OnInteractionMashKeyPressed;
+
 #pragma endregion Events
 
 #pragma region Properties
@@ -845,7 +887,7 @@ protected:
 	/**
 	 * How many time the button must be pressed to accept the interaction as completed.
 	 */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly,  Category="Interaction|Settings|Mash", meta=(Units = "times", UIMin = 0, ClampMin = 0, EditCondition="InteractionType == EInteractableType::EIT_Mash"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly,  Category="Interaction|Settings|Mash", meta=(Units = "times", UIMin = 1, ClampMin = 1, EditCondition="InteractionType == EInteractableType::EIT_Mash"))
 	int32 MinMashAmountRequired = 5;
 	
 	/**
@@ -954,7 +996,15 @@ protected:
 	UActorInteractorComponent* InteractingInteractorComponent = nullptr;
 	
 #pragma endregion Properties
-	
+
+#pragma region Replication
+private:
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+#pragma endregion Replication
+
+#pragma region Helpers
+
 protected:
 
 	virtual void BeginPlay() override;
@@ -978,15 +1028,8 @@ protected:
 	void InteractorChanged(float TimeHappened);
 
 	void SetMeshComponentsHighlight(const bool bShowHighlight);
-	void OnWidgetClassChanged();
+	void OnWidgetClassChanged();	
 
-#pragma region Replication
-private:
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-
-#pragma endregion Replication
-
-#pragma region Helpers
 private:
 	
 	/**
