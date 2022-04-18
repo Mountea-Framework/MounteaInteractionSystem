@@ -17,8 +17,8 @@ class UShapeComponent;
 
 #define LOCTEXT_NAMESPACE "ActorInteractionPlugin"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInteractionCompleted, EInteractableType, FinishedInteractionType);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnInteractionStarted, EInteractableType, RecievedInteractionType, float, RecievedInteractionTime);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnInteractionCompleted, EInteractableType, FinishedInteractionType, const float, FinishTime);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnInteractionStarted, EInteractableType, RecievedInteractionType, const float, RecievedInteractionTime);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInteractionStopped);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInteractorFound, UActorInteractorComponent*, InteractingComponent);
@@ -34,9 +34,9 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInteractorOverlapped, UPrimitiveC
  * 
  * All logic, like hiding and setting values, should be done in Blueprint classes to keep this Widget Component as flexible as possible.
  * 
- * @note Networking is not implemented.
+ * @warning Networking is not implemented!
  * 
- * @see [InteractableComponent](https://sites.google.com/view/dominikpavlicek/home/documentation)
+ * @see https://sites.google.com/view/dominikpavlicek/home/documentation
  */
 UCLASS(ClassGroup=(Interaction), NotBlueprintable, HideCategories = (Navigation, Physics, Collision, Lighting, Rendering, Mobile, Animation, HLOD, UserInterface), meta=(BlueprintSpawnableComponent, DisplayName="Interactable Component"))
 class ACTORINTERACTIONPLUGIN_API UActorInteractableComponent final : public UWidgetComponent
@@ -163,10 +163,7 @@ public:
 	 * @param NewType Type to be used as the new Interactable Type.
 	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction|Setters")
-	void SetInteractionType(const EInteractableType NewType)
-	{
-		InteractionType = NewType;
-	};
+	void SetInteractionType(const EInteractableType NewType);
 
 	/**
 	 * Sets what Collision Channel is the Interactable Component using to be detected. Only matching Collision Channels are being detected by Interactor Component.
@@ -218,10 +215,7 @@ public:
 	 * @param NewLifecycleType Lifecycle Type to be set
 	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction|Setters")
-	void SetInteractionLifecycleType(const EInteractableLifecycle NewLifecycleType)
-	{
-		InteractableLifecycle = NewLifecycleType;
-	};
+	void SetInteractionLifecycleType(const EInteractableLifecycle NewLifecycleType);
 	
 	/**
 	 * Sets how many times interaction can be performed before it is restricted.
@@ -710,7 +704,7 @@ public:
 	void DeactivateInteractable();
 
 	/**
-	 * Helper function that should update Interactable User Widget every time that text might have changed.
+	 * Helper function that should update Interactable User Widget every time that any displayed variable might have changed.
 	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction|UI")
 	void UpdateInteractableWidget() const;
@@ -778,7 +772,10 @@ protected:
 	FTimerHandle TimerHandle_InteractionTime = FTimerHandle();
 
 	// Timer Handle responsible for calling callback function after Cooldown Time passes
-	FTimerHandle TimerHandle_CooldownTime = FTimerHandle();;
+	FTimerHandle TimerHandle_CooldownTime = FTimerHandle();
+
+	// Timer Handle responsible for calling callback function a
+	FTimerHandle TimerHandle_HybridModeDilation = FTimerHandle();
 
 	UPROPERTY(VisibleAnywhere, Category="Interaction|Debug")
 	UActorInteractableWidget* InteractionWidget = nullptr;
@@ -786,11 +783,11 @@ protected:
 protected:
 	
 	/** Defines whether Activation must be done or is turned on by default.*/
-	UPROPERTY(EditAnywhere, BlueprintReadWrite,  Category="Interaction|Settings")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly,  Category="Interaction|Settings")
 	uint8 bInteractableAutoActivate : 1;
 	
 	/** Type of interaction this Interactable Actor required to finish the interaction process.*/
-	UPROPERTY(EditAnywhere, BlueprintReadWrite,  Category="Interaction|Settings")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly,  Category="Interaction|Settings")
 	EInteractableType InteractionType = EInteractableType::EIT_Hold;
 	
 	/**
@@ -805,7 +802,7 @@ protected:
 	 * Can use custom Collision Channel.
 	 * Default Channel: ECC_Visibility.
 	 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite,  Category="Interaction|Settings|Collision")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite,  Category="Interaction|Settings")
 	TEnumAsByte<ECollisionChannel> InteractableCollisionChannel = ECC_Visibility;
 	
 	/**
@@ -814,13 +811,20 @@ protected:
 	 *
 	 * List is checked whether Collision Shapes do have the same Owning Component as Interactable Component.
 	 */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Interaction|Settings", Replicated)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Interaction|Settings|Collisions")
 	TArray<UShapeComponent*> CollisionShapes;
 	
 	/** Time it takes to finish interaction.*/
-	UPROPERTY(EditAnywhere, BlueprintReadWrite,  Category="Interaction|Settings|Time", meta=(Units = "s", UIMin = 0, ClampMin = 0, EditCondition="InteractionType != EInteractableType::EIT_Press"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly,  Category="Interaction|Settings|Time", meta=(Units = "s", UIMin = 0, ClampMin = 0, EditCondition="InteractionType != EInteractableType::EIT_Press"))
 	float InteractionTime = 1.5f;
 
+	/**
+	 * Time (in seconds) it takes to accept input as Press.
+	 * If key is Hold for longer time than this Threshold, Hold event type is called.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly,  Category="Interaction|Settings|Time", meta=(Units = "s", UIMin = 0, ClampMin = 0, EditCondition="InteractionType == EInteractableType::EIT_Hybrid"))
+	float MixedTimeThreshold = 0.25f;
+	
 	/**
 	 * Defines whether Interactable should be highlighted with defined Material when Interaction is possible.
 	 *
@@ -831,7 +835,7 @@ protected:
 	 * - - - Projects Settings -> Engine -> Rendering -> PostProcessing
 	 * - - - - Set to value: Enabled with Stencil
 	 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite,  Category="Interaction|Settings|Highlight")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly,  Category="Interaction|Settings|Highlight")
 	uint8 bInteractionHighlight : 1;
 
 	/**
@@ -848,57 +852,57 @@ protected:
 	 *
 	 * List is checked whether Highlightables do have the same Owning Component as Interactable Component. 
 	 */
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite,  Category="Interaction|Settings|Highlight")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly,  Category="Interaction|Settings|Highlight")
 	TArray<UPrimitiveComponent*> ListOfHighlightables;
 	
 	/** Defined whether Interactable should be used only once or multiple times.*/
-	UPROPERTY(EditAnywhere, BlueprintReadWrite,  Category="Interaction|Settings|Lifecycle")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly,  Category="Interaction|Settings|Lifecycle", meta=(EditCondition="InteractionType != EInteractableType::EIT_Auto"))
 	EInteractableLifecycle InteractableLifecycle = EInteractableLifecycle::EIL_Cycled;
 	
 	/**
 	 * How long it takes (in seconds) until next interaction can be performed.
 	 * @note	0 means no Interaction Cooldown is applied.
 	 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite,  Category="Interaction|Settings|Lifecycle", meta=(Units = "s", UIMin = 0, ClampMin = 0, EditCondition="InteractableLifecycle == EInteractableLifecycle::EIL_Cycled"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly,  Category="Interaction|Settings|Lifecycle", meta=(Units = "s", UIMin = 0, ClampMin = 0, EditCondition="InteractableLifecycle == EInteractableLifecycle::EIL_Cycled && InteractionType != EInteractableType::EIT_Auto"))
 	float InteractionCooldown = 5.f;
 	
 	/**
 	 * How many times interaction can be performed.
-	 * @note 0 means infinite times.
+	 * @note -1 means infinite times.
 	 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite,  Category="Interaction|Settings|Lifecycle", meta=(UIMin = 0, ClampMin = 0, EditCondition="InteractableLifecycle == EInteractableLifecycle::EIL_Cycled"))
-	int32 InteractionCyclesAllowed = 0;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly,  Category="Interaction|Settings|Lifecycle", meta=(UIMin = 0, ClampMin = 0, EditCondition="InteractableLifecycle == EInteractableLifecycle::EIL_Cycled && InteractionType != EInteractableType::EIT_Auto"))
+	int32 InteractionCyclesAllowed = -1;
 	
 	/** User Widget class that will be forced to use.*/
-	UPROPERTY(EditAnywhere, BlueprintReadWrite,  Category="Interaction|Settings|Display")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly,  Category="Interaction|Settings|Widget")
 	TSubclassOf<UActorInteractableWidget> InteractableWidgetClass;
 	
 	/** Value of the Interaction Action Title.
 	 * Could be "A Book", "Open Door" or anything short and descriptive.
 	 * @note If empty, nothing will be displayed by default.
  	 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite,  Category="Interaction|Settings|Display")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly,  Category="Interaction|Settings|Widget")
 	FText InteractionActionTitle = LOCTEXT("InteractionActionTitle", "Object");
 
 	/** Value of the Interaction Action Text (Body).
 	 * Could be "Hold to Open" or anything short and descriptive.
 	 * @note If empty, nothing will be displayed by default.
 	 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite,  Category="Interaction|Settings|Display")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly,  Category="Interaction|Settings|Widget")
 	FText InteractionActionText = LOCTEXT("InteractionActionText", "Hold");
 
 	/** Value of the Interaction Key.
 	 * Could be "E" or any other Key.
 	 * @note If empty, nothing will be displayed by default.
 	 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite,  Category="Interaction|Settings|Display")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly,  Category="Interaction|Settings|Widget")
 	FText InteractionActionKey = LOCTEXT("InteractionActionKey", "E");
 
 	/** Value of the Interaction Key.
 	 * Could be "E" or any other Key.
 	 * @note If empty, nothing will be displayed by default.
 	 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite,  Category="Interaction|Settings|Display")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly,  Category="Interaction|Settings|Widget")
 	UTexture2D* InteractionActionTexture = nullptr;
 	
 	/**
@@ -953,16 +957,33 @@ protected:
 	void SetMeshComponentsHighlight(const bool bShowHighlight);
 	void OnWidgetClassChanged();
 
+#pragma region Replication
 private:
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+#pragma endregion Replication
 
 #pragma region Helpers
+private:
 	
+	/**
+	 * A helper to refresh details panel on Instances.
+	 * Even without refreshing all data will be saved correctly. This is purely cosmetic event.
+	 */
+	UFUNCTION(CallInEditor, DisplayName="Refresh Details Panel", Category="Interaction")
+	void RefreshDetailsPanel()
+	{
+		UpdateCollisionChannels();
+		UpdateLifecycleLogic();
+	}
+
 	void StopInteractionLink(UActorInteractorComponent* OtherComponent);
 	void FinishInteraction_TimerFunction();
 	void CooldownElapsed_TimerFunction();
 	void UpdateCollisionChannels() const;
 	void UpdateCollisionChannel(UShapeComponent* const CollisionShape) const;
-
+	void UpdateLifecycleLogic();
+	
 	void BindCollisionEvents(UShapeComponent* const NewCollisionShape)
 	{
 		if(NewCollisionShape)
@@ -978,11 +999,14 @@ private:
 	}
 
 #pragma region Editor
+private:
 
-	#if WITH_EDITOR
+#if WITH_EDITOR
+	
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	virtual void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;
-	#endif
+
+#endif
 
 #pragma endregion Editor
 

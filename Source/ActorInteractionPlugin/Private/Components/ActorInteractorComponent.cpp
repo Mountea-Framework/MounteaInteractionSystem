@@ -17,11 +17,17 @@ UActorInteractorComponent::UActorInteractorComponent()
 	// Tick only if ticking is required
 	PrimaryComponentTick.bCanEverTick = true;
 	PrimaryComponentTick.bStartWithTickEnabled = true;
+
+	bAutoRegister = true;
+	bAutoActivate = true;
 	
 	bInteractorAutoActivate = true;
 	SetIsReplicatedByDefault(true);
 	
 	ComponentTags.Add(INTERACTOR_TAG_NAME);
+
+	bUseCustomStartTransform = false;
+	bOverlappingInteractable = false;
 
 #if WITH_EDITOR
 	bDebug = false;
@@ -92,14 +98,10 @@ bool UActorInteractorComponent::CanTick() const
 	const bool bTimeSince = TimeSince > GetInteractorTickInterval();
 
 	const bool bIsMixed = GetInteractorType() == EInteractorType::EIT_Mixed;
-	const bool bMixedTickAllowed = bIsMixed && InteractingWith == nullptr;
-	const bool bIsOverlapping = InteractingWith == nullptr ? false : GetOwner()->IsOverlappingActor(InteractingWith->GetOwner() );
-
-	AIP_LOG(Warning, TEXT("IS OVERLAPPING = %s"), bIsOverlapping ? TEXT("TRUE") : TEXT("FALSE"))
 	
 	if (bIsMixed)
 	{
-		return bHasWorld && bHasOwner && bHasState && bHasActiveType && (bUnlimitedTickTime || bTimeSince) && !bIsOverlapping;
+		return bHasWorld && bHasOwner && bHasState && bHasActiveType && (bUnlimitedTickTime || bTimeSince) && !bOverlappingInteractable;
 	}
 	
 	return 
@@ -515,7 +517,6 @@ void UActorInteractorComponent::GetLifetimeReplicatedProps(TArray<FLifetimePrope
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	/*
-	 *
 	DOREPLIFETIME_CONDITION(UActorInteractorComponent, bInteractorAutoActivate, COND_OwnerOnly);
 	DOREPLIFETIME_CONDITION(UActorInteractorComponent, InteractorState, COND_OwnerOnly);
 	
@@ -534,6 +535,7 @@ void UActorInteractorComponent::GetLifetimeReplicatedProps(TArray<FLifetimePrope
 
 	DOREPLIFETIME_CONDITION(UActorInteractorComponent, IgnoredActors, COND_OwnerOnly);
 
+	DOREPLIFETIME_CONDITION(UActorInteractorComponent, bOverlappingInteractable, COND_OwnerOnly);
 	*/
 }
 

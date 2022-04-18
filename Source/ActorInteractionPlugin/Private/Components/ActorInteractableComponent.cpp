@@ -40,6 +40,10 @@ UActorInteractableComponent::UActorInteractableComponent()
 	bDrawAtDesiredSize = true;
 	UActorComponent::SetActive(true);
 	SetHiddenInGame(true);
+
+	bAutoRegister = true;
+	bAutoActivate = true;
+	bInteractableAutoActivate = true;
 	
 	ComponentTags.Add(INTERACTABLE_TAG_NAME);
 	
@@ -96,6 +100,8 @@ void UActorInteractableComponent::BeginPlay()
 		DeactivateInteractable();
 	}
 
+	UpdateLifecycleLogic();
+	
 	InitializeInteractionComponent();
 }
 
@@ -193,7 +199,7 @@ void UActorInteractableComponent::OnWidgetClassChanged()
 
 void UActorInteractableComponent::InteractorFound(UActorInteractorComponent* FoundInteractor)
 {
-	// This is soooo ugly, change it!
+	// TODO This is soooo ugly, change it!
 	if (FoundInteractor->GetInteractingWith() != this)
 	{
 		FoundInteractor->OnInteractableLost.Broadcast(FoundInteractor->GetInteractingWith());
@@ -208,18 +214,32 @@ void UActorInteractableComponent::InteractorFound(UActorInteractorComponent* Fou
 	UpdateInteractableWidget();
 		
 	FoundInteractor->OnInteractableFound.Broadcast(this);
-	
-	FoundInteractor->OnInteractionKeyPressed.AddUniqueDynamic(this, &UActorInteractableComponent::StartInteraction);
-	FoundInteractor->OnInteractionKeyReleased.AddUniqueDynamic(this, &UActorInteractableComponent::StopInteraction);
-	FoundInteractor->OnInteractorTypeChanged.AddUniqueDynamic(this, &UActorInteractableComponent::InteractorChanged);
 
-	FoundInteractor->OnInteractableLost.AddUniqueDynamic(this, &UActorInteractableComponent::CancelInteraction);
+	const float Time = GetWorld()->GetTimeSeconds();
+
+	switch (GetInteractionType())
+	{
+		case EInteractableType::EIT_Hold:
+		case EInteractableType::EIT_Press:
+		case EInteractableType::EIT_Mash:
+		case EInteractableType::EIT_Hybrid:
+			FoundInteractor->OnInteractionKeyPressed.AddUniqueDynamic(this, &UActorInteractableComponent::StartInteraction);
+			FoundInteractor->OnInteractionKeyReleased.AddUniqueDynamic(this, &UActorInteractableComponent::StopInteraction);
+			FoundInteractor->OnInteractorTypeChanged.AddUniqueDynamic(this, &UActorInteractableComponent::InteractorChanged);
+			FoundInteractor->OnInteractableLost.AddUniqueDynamic(this, &UActorInteractableComponent::CancelInteraction);
+			break;
+		case EInteractableType::EIT_Auto:
+			StartInteraction(Time);
+			FoundInteractor->OnInteractorTypeChanged.AddUniqueDynamic(this, &UActorInteractableComponent::InteractorChanged);
+			FoundInteractor->OnInteractableLost.AddUniqueDynamic(this, &UActorInteractableComponent::CancelInteraction);
+			break;
+		case EInteractableType::Default:
+		default: break;
+	}
 }
 
 void UActorInteractableComponent::InteractorLost(UActorInteractorComponent* LostInteractor)
 {
-	//SetMeshComponentsHighlight(false);
-	
 	StopInteractionLink(LostInteractor);
 }
 
@@ -274,7 +294,6 @@ void UActorInteractableComponent::StopInteractionLink(UActorInteractorComponent*
 
 		OtherComponent->OnInteractableLost.RemoveDynamic(this, &UActorInteractableComponent::CancelInteraction);
 		
-		OnInteractableTraced.RemoveAll(this);
 		OnInteractorOverlapped.RemoveAll(this);
 
 		OtherComponent->OnInteractableLost.Broadcast(nullptr);
@@ -286,6 +305,26 @@ void UActorInteractableComponent::StopInteractionLink(UActorInteractorComponent*
 		SetRemainingInteractionProgress(1.f);
 
 		SetInteractionState(EInteractableState::EIS_Inactive);
+	}
+}
+
+void UActorInteractableComponent::SetInteractionType(const EInteractableType NewType)
+{
+	InteractionType = NewType;
+
+	if (InteractionType == EInteractableType::EIT_Auto)
+	{
+		SetInteractionLifecycleType(EInteractableLifecycle::EIL_OnlyOnce);
+	}
+}
+
+void UActorInteractableComponent::SetInteractionLifecycleType(const EInteractableLifecycle NewLifecycleType)
+{
+	InteractableLifecycle = NewLifecycleType;
+
+	if (InteractableLifecycle == EInteractableLifecycle::EIL_OnlyOnce)
+	{
+		SetInteractionAllowedLifecycles(0);
 	}
 }
 
@@ -376,15 +415,6 @@ void UActorInteractableComponent::SetRemainingInteractionProgress(const float& R
 void UActorInteractableComponent::StartInteraction(const float TimeKeyPressed)
 {
 	if(!CanInteract()) return;
-
-	if (GetOwner() && GetOwner()->HasAuthority())
-	{
-		AIP_LOG(Warning, TEXT("[Server] StartInteraction: %f"), TimeKeyPressed)
-	}
-	else if(GetOwner() && !GetOwner()->HasAuthority())
-	{
-		AIP_LOG(Warning, TEXT("[Client] StartInteraction: %f"), TimeKeyPressed)
-	}
 		
 	OnInteractionStarted.Broadcast(GetInteractionType(), TimeKeyPressed);
 	
@@ -396,7 +426,9 @@ void UActorInteractableComponent::StartInteraction(const float TimeKeyPressed)
 		case EInteractableType::EIT_Press:
 			FinishInteraction(TimeKeyPressed);
 			break;
+		case EInteractableType::EIT_Hybrid:
 		case EInteractableType::EIT_Hold:
+		case EInteractableType::EIT_Auto:
 			GetWorld()->GetTimerManager().SetTimer
 			(
 				TimerHandle_InteractionTime,
@@ -418,9 +450,18 @@ void UActorInteractableComponent::StopInteraction(float TimeKeyReleased)
 		return;
 	}
 
+	bool bAutoFinish = false;
+	if (GetInteractionType() == EInteractableType::EIT_Hybrid)
+	{
+		if (TimeKeyReleased - LastInteractionTime < MixedTimeThreshold)
+		{
+			bAutoFinish = true;
+		}
+	}
+	
 	OnInteractionStopped.Broadcast();
 	
-	if (TimeKeyReleased - GetLastInteractionTime() > GetInteractionTime())
+	if (TimeKeyReleased - GetLastInteractionTime() > GetInteractionTime() || bAutoFinish)
 	{
 		FinishInteraction(TimeKeyReleased);
 	}
@@ -435,9 +476,11 @@ void UActorInteractableComponent::StopInteraction(float TimeKeyReleased)
 
 void UActorInteractableComponent::FinishInteraction(float TimeInteractionFinished)
 {
-	// TODO: Mesh and Mixed Types
+	// TODO: Mash Type
 	
 	if (GetInteractionState() != EInteractableState::EIS_Active) return;
+
+	const float FinishTime = GetWorld()->GetTimeSeconds();
 	
 	SetMeshComponentsHighlight(false);
 	
@@ -445,8 +488,9 @@ void UActorInteractableComponent::FinishInteraction(float TimeInteractionFinishe
 	{
 		IncrementInteractionPassedLifecycles();
 
-		const int32 RemainingCycles = GetMaxAllowedLifecycles() - GetPassedLifecycles() > 0;
-		if (GetMaxAllowedLifecycles() == 0 || RemainingCycles > 0)
+		const int32 RemainingCycles = GetMaxAllowedLifecycles() == -1 ? -1 : GetMaxAllowedLifecycles() - GetPassedLifecycles();
+		//GetMaxAllowedLifecycles() - GetPassedLifecycles() > 0;
+		if (RemainingCycles == -1 || RemainingCycles > 0)
 		{
 			if (GetInteractionCooldown() > KINDA_SMALL_NUMBER)
 			{
@@ -489,7 +533,7 @@ void UActorInteractableComponent::FinishInteraction(float TimeInteractionFinishe
 		SetInteractionState(EInteractableState::EIS_Finished);
 	}
 
-	OnInteractionCompleted.Broadcast(GetInteractionType());	
+	OnInteractionCompleted.Broadcast(GetInteractionType(), FinishTime);	
 }
 
 void UActorInteractableComponent::CancelInteraction(UActorInteractableComponent* Component)
@@ -617,6 +661,14 @@ void UActorInteractableComponent::UpdateCollisionChannel(UShapeComponent* const 
 	CollisionShape->OnComponentCollisionSettingsChangedEvent.Broadcast(CollisionShape);
 }
 
+void UActorInteractableComponent::UpdateLifecycleLogic()
+{
+	if (InteractionType == EInteractableType::EIT_Auto)
+	{
+		SetInteractionLifecycleType(EInteractableLifecycle::EIL_OnlyOnce);
+	}
+}
+
 #pragma region Replication
 
 void UActorInteractableComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -638,20 +690,34 @@ void UActorInteractableComponent::PostEditChangeProperty(FPropertyChangedEvent& 
 	{
 		UpdateCollisionChannels();
 	}
-
+	
+	// If any shape is changed refresh it all so no unwanted bindings stay there
+	if (PropertyName == TEXT("CollisionShapes"))
+	{
+		const auto TempCollisionShapes = GetCollisionShapes();
+		RemoveCollisionShapes(GetCollisionShapes());
+		SetCollisionShapes(TempCollisionShapes);
+	}
+	
 	const bool bTextChanged =
 		PropertyName == TEXT("InteractionActorName") ||
 		PropertyName == TEXT("InteractionActionName") ||
-		PropertyName == TEXT("InteractionActionKey");
+		PropertyName == TEXT("InteractionActionKey") ||
+		PropertyName == TEXT("InteractionActionTexture");
 	if (bTextChanged)
 	{
 		UpdateInteractableWidget();
 	}
 
-	if (PropertyName == "InteractableWidgetClass")
+	if (PropertyName == TEXT("InteractableWidgetClass"))
 	{
 		WidgetClass = InteractableWidgetClass;
 		SetInteractableWidgetClass(InteractableWidgetClass);
+	}
+
+	if (PropertyName == TEXT("InteractionType"))
+	{
+		UpdateLifecycleLogic();
 	}
 }
 

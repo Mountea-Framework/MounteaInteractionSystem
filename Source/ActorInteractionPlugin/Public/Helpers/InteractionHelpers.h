@@ -13,10 +13,10 @@
 UENUM(BlueprintType)
 enum class EInteractableType : uint8
 {
- EIT_Hold    UMETA(DisplayName = "Hold", Tooltip = "Press and hold, HUD will display progress."),
- EIT_Press   UMETA(DisplayName = "Press", Tooltip = "Press"),
- EIT_Mash    UMETA(DisplayName = "Mash", Tooltip = "Mashing the button for a specified time and time"),
- EIT_Hybrid  UMETA(DisplayName = "Hybrid - Hold & Press", Tooltip = "Press and hold, based on time treshold both events will be called."),
+ EIT_Hold    UMETA(DisplayName = "Hold", Tooltip = "Press and hold the button."),
+ EIT_Press   UMETA(DisplayName = "Press", Tooltip = "Press the button only once"),
+ EIT_Mash    UMETA(DisplayName = "Mash", Tooltip = "Press the button multiple times for a period of time"),
+ EIT_Hybrid  UMETA(DisplayName = "Hybrid - Hold & Press", Tooltip = "Press and hold the button, based on time treshold only relevant event will be called."),
  EIT_Auto    UMETA(DisplayName = "Auto", Tooltip = "Interactable will automatically finish if interaction conditions are met (tracing or overlapping)."),
 
  Default     UMETA(Hidden)

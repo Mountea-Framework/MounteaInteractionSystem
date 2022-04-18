@@ -58,12 +58,12 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInteractorTypeChanged, float, Tim
  * Interaction is processed by Interactor Component provided with base data from the Interactable Component.
  * Dependency injection is achieved by using IInteractorComponentInterface instead of direct class usage.
  * 
- * @note	Interactor Actor Component is using "ActorEyesViewPoint" by default. To change this value, go to Actor -> Base Eye Height.
+ * @warning 	Interactor Actor Component is using "ActorEyesViewPoint" by default. To change this value, go to Actor -> Base Eye Height.
  * - Higher the value, higher the tracing start point will be located.
  *
  * @warning Networking is not implemented.
  *
- * @see [InteractorComponent](https://sites.google.com/view/dominikpavlicek/home/documentation)
+ * @see https://sites.google.com/view/dominikpavlicek/home/documentation
  */
 UCLASS(ClassGroup=(Interaction), Blueprintable, meta=(BlueprintSpawnableComponent, DisplayName = "Interactor Component"))
 class ACTORINTERACTIONPLUGIN_API UActorInteractorComponent final : public UActorComponent
@@ -423,7 +423,7 @@ protected:
 	 * - Low precision is using ShapeTrace and might cause issues if there are many interactable items close each other.
 	 * - High precision is using LineTrace and might cause frustration when interacting.
 	 */
-	UPROPERTY(Replicated, EditAnywhere, Category="Interaction|Settings", meta=(EditCondition="InteractorType != EInteractorType::EIT_Passive"))
+	UPROPERTY(Replicated, EditAnywhere, Category="Interaction|Settings|Active or Mixed", meta=(EditCondition="InteractorType != EInteractorType::EIT_Passive"))
 	EInteractorPrecision InteractorPrecision = EInteractorPrecision::EIP_Low;
 	
 	/**
@@ -433,7 +433,7 @@ protected:
 	 * @note	Extremely low values are treated as Zero.
 	 * @note	Zero value will result in using High precision instead.
 	 */
-	UPROPERTY(Replicated,  EditAnywhere, Category="Interaction|Settings", meta=(Units = "cm", EditCondition="InteractorType != EInteractorType::EIT_Passive && InteractorPrecision == EInteractorPrecision::EIP_Low"))
+	UPROPERTY(Replicated,  EditAnywhere, Category="Interaction|Settings|Active or Mixed", meta=(Units = "cm", EditCondition="InteractorType != EInteractorType::EIT_Passive && InteractorPrecision == EInteractorPrecision::EIP_Low"))
 	float InteractorPrecisionBoxHalfExtend = 5.0f;
 	
 	/**
@@ -443,13 +443,13 @@ protected:
 	 * Can use custom Collision Channel.
 	 * @note	Default Channel: ECC_Visibility.
 	 */
-	UPROPERTY(Replicated,  EditAnywhere, Category="Interaction|Settings", meta=(EditCondition="InteractorType != EInteractorType::EIT_Passive"))
+	UPROPERTY(Replicated,  EditAnywhere, Category="Interaction|Settings|Active or Mixed", meta=(EditCondition="InteractorType != EInteractorType::EIT_Passive"))
 	TEnumAsByte<ECollisionChannel> InteractorTracingChannel = ECollisionChannel::ECC_Visibility;
 	
 	/**
 	 * Defines whether Tracing starts at ActorEyesViewPoint (default) or at a given Location.
 	 */
-	UPROPERTY(Replicated, EditAnywhere, Category="Interaction|Settings", meta=(EditCondition="InteractorType != EInteractorType::EIT_Passive"))
+	UPROPERTY(Replicated, EditAnywhere, Category="Interaction|Settings|Active or Mixed", meta=(EditCondition="InteractorType != EInteractorType::EIT_Passive"))
 	uint8 bUseCustomStartTransform : 1;
 	
 	/**
@@ -460,7 +460,7 @@ protected:
 	 * Defines where does the Tracing start and what direction it follows.
 	 * Will be ignored if bUseCustomStartTransform is false.
 	 */
-	UPROPERTY(Replicated,  VisibleAnywhere, Category="Interaction|Settings", AdvancedDisplay, meta=(DisplayName="Trace Start (World Space Transform)"))
+	UPROPERTY(Replicated,  VisibleAnywhere, Category="Interaction|Settings|Active or Mixed", AdvancedDisplay, meta=(DisplayName="Trace Start (World Space Transform)"))
 	FTransform CustomTraceTransform;
 	
 	/**
@@ -479,27 +479,27 @@ protected:
 	 * @note	Lower the value, less frequent ticking is and less performance is required.
 	 * @note	Higher the value, more frequent ticking is and more performance is required.
 	 */
-	UPROPERTY(Replicated,  EditAnywhere, Category="Interaction|Settings|Optimization", meta=(Units = "s", UIMin=0, ClampMin=0, EditCondition="InteractorType != EInteractorType::EIT_Passive", DisplayName="Tick Interval (sec)"))
-	float InteractorTickInterval = 3.f;
+	UPROPERTY(Replicated,  EditAnywhere, Category="Interaction|Settings|Active or Mixed|Optimization", meta=(Units = "s", UIMin=0, ClampMin=0, EditCondition="InteractorType != EInteractorType::EIT_Passive", DisplayName="Tick Interval (sec)"))
+	float InteractorTickInterval = 1.f;
 	
 	/**
 	 * Defines the lenght of interaction vision.
 	 * @note	Higher the value, further items can be reached.
 	 */
-	UPROPERTY(Replicated,  EditAnywhere, Category="Interaction|Settings|Optimization", meta=(Units = "cm", UIMin=0, ClampMin=0, EditCondition="InteractorType != EInteractorType::EIT_Passive", DisplayName="Interaction Range (cm)"))
+	UPROPERTY(Replicated,  EditAnywhere, Category="Interaction|Settings|Active or Mixed|Optimization", meta=(Units = "cm", UIMin=0, ClampMin=0, EditCondition="InteractorType != EInteractorType::EIT_Passive", DisplayName="Interaction Range (cm)"))
 	float InteractorRange = 250.f;
 
 	/**
 	 * Editor only flag.
 	 * If true, will display debug lines and boxes.
 	 */
-	UPROPERTY(EditAnywhere, Category="Interaction|Debug")
+	UPROPERTY(VisibleAnywhere, Category="Interaction|Debug")
 	uint8 bDebug : 1;
 
 	/**
 	 * A helper attribute which defines whether Interactor has been activated using Overlap method.
 	 */
-	UPROPERTY(VisibleAnywhere, Category="Interaction|Debug")
+	UPROPERTY(Replicated, VisibleAnywhere, Category="Interaction|Debug")
 	uint8 bOverlappingInteractable : 1;
 
 private:
@@ -525,7 +525,7 @@ public:
 	/**
 	 * This helper function toggles Debug mode on and off.
 	 */
-	UFUNCTION(BlueprintCallable, Category="Interaction|Debug", CallInEditor)
+	UFUNCTION(BlueprintCallable, CallInEditor, Category="Interaction")
 	void ToggleDebugMode() { bDebug = !bDebug; }
 
 private:
