@@ -520,7 +520,7 @@ public:
 	/**
 	 * This helper function toggles Debug mode on and off.
 	 */
-	UFUNCTION(BlueprintCallable, CallInEditor, Category="Interaction")
+	UFUNCTION(BlueprintCallable, CallInEditor, Category="Interaction", meta=(DevelopmentOnly))
 	void ToggleDebugMode() { bDebug = !bDebug; }
 
 private:

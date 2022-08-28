@@ -965,7 +965,7 @@ protected:
 	 * Editor only flag.
 	 * If true, will display debug info.
 	 */
-	UPROPERTY(VisibleAnywhere, Category="Interaction|Debug")
+	UPROPERTY(EditAnywhere, Category="Interaction|Debug")
 	uint8 bDebug : 1;
 
 protected:
@@ -1037,7 +1037,7 @@ private:
 	/**
 	 * This helper function toggles Debug mode on and off.
 	 */
-	UFUNCTION(CallInEditor, DisplayName="Refresh Details Panel", Category="Interaction")
+	UFUNCTION(CallInEditor, DisplayName="Refresh Details Panel", Category="Interaction", meta=(DevelopmentOnly))
 	void ToggleDebugMode() {bDebug = !bDebug; };
 	
 	void StopInteractionLink(UActorInteractorComponent* OtherComponent);
