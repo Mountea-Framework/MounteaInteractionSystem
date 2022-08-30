@@ -6,6 +6,7 @@
 #include "Components/ActorComponent.h"
 
 #include "Helpers/InteractionHelpers.h"
+#include "Interfaces/ActorInteractorInterface.h"
 
 #include "ActorInteractorComponent.generated.h"
 
@@ -45,12 +46,6 @@ struct FInteractionTraceData
 	};
 };
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInteractableFound, class UActorInteractableComponent*, FoundActorComponent);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInteractableLost, class UActorInteractableComponent*, LostActorComponent);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInteractionKeyPressed, float, TimeKeyPressed);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInteractionKeyReleased, float, TimeKeyReleased);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInteractorTypeChanged, float, TimeChanged);
-
 /**
  * Implement an Actor component for interaction.
  *
@@ -66,7 +61,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInteractorTypeChanged, float, Tim
  * @see https://sites.google.com/view/dominikpavlicek/home/documentation
  */
 UCLASS(ClassGroup=(Interaction), Blueprintable, meta=(BlueprintSpawnableComponent, DisplayName = "Interactor Component"))
-class ACTORINTERACTIONPLUGIN_API UActorInteractorComponent final : public UActorComponent
+class ACTORINTERACTIONPLUGIN_API UActorInteractorComponent final : public UActorComponent, public IActorInteractorInterface
 {
 	GENERATED_BODY()
 	
@@ -74,11 +69,11 @@ class ACTORINTERACTIONPLUGIN_API UActorInteractorComponent final : public UActor
 	
 public:
 	
-	virtual void StartInteraction();// override;
-	virtual void StopInteraction();// override;
+	virtual void StartInteraction() override;
+	virtual void StopInteraction() override;
 
 	UFUNCTION()
-	void OnInteractableOverlapped(UPrimitiveComponent* OverlappedComponent);
+	virtual void OnInteractableOverlapped(UPrimitiveComponent* OverlappedComponent) override;
 
 protected:
 	
@@ -279,7 +274,7 @@ public:
 	 * @return Returns type of the Interactor Component
 	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction|Getters")
-	FORCEINLINE EInteractorType GetInteractorType() const { return InteractorType; };
+	virtual  EInteractorType GetInteractorType() const override;
 
 	/**
 	 * Sets Interactor Type.
@@ -493,7 +488,7 @@ protected:
 	 * Editor only flag.
 	 * If true, will display debug lines and boxes.
 	 */
-	UPROPERTY(VisibleAnywhere, Category="Interaction|Debug")
+	UPROPERTY(EditAnywhere, Category="Interaction|Debug")
 	uint8 bDebug : 1;
 
 	/**
@@ -525,7 +520,7 @@ public:
 	/**
 	 * This helper function toggles Debug mode on and off.
 	 */
-	UFUNCTION(BlueprintCallable, CallInEditor, Category="Interaction")
+	UFUNCTION(BlueprintCallable, CallInEditor, Category="Interaction", meta=(DevelopmentOnly))
 	void ToggleDebugMode() { bDebug = !bDebug; }
 
 private:

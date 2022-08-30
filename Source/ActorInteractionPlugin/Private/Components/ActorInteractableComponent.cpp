@@ -191,9 +191,9 @@ void UActorInteractableComponent::OnWidgetClassChanged()
 {
 	SetWidgetClass(InteractableWidgetClass);
 	
-	if (IsValid(Widget))
+	if (GetWidget())
 	{
-		Widget->RemoveFromParent();
+		GetWidget()->RemoveFromParent();
 		SetWidget(nullptr);
 
 		InitWidget();
