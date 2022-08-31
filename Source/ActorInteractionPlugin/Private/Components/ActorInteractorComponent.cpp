@@ -352,7 +352,7 @@ void UActorInteractorComponent::UpdateOverlapping(const bool bValue)
 	{
 		AIP_LOG(Warning, TEXT("Overlapping Update from %s to %s"), bOverlappingInteractable ? TEXT("TRUE") : TEXT("FALSE"), bValue ? TEXT("TRUE") : TEXT("FALSE"))
 	}
-#endif WITH_EDITOR
+#endif
 		
 	bOverlappingInteractable = bValue;
 }
