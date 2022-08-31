@@ -6,7 +6,6 @@
 #include "Components/ShapeComponent.h"
 #include "Components/WidgetComponent.h"
 #include "Helpers/InteractionHelpers.h"
-#include "Interfaces/ActorInteractableInterface.h"
 
 #include "ActorInteractableComponent.generated.h"
 
@@ -18,6 +17,16 @@ class UShapeComponent;
 
 #define LOCTEXT_NAMESPACE "ActorInteractionPlugin"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnInteractionCompleted, EInteractableType, FinishedInteractionType, const float, FinishTime);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnInteractionStarted, EInteractableType, RecievedInteractionType, const float, RecievedInteractionTime);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInteractionStopped);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInteractionMashKeyPressed);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInteractionMashFailed);
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInteractorFound, UActorInteractorComponent*, InteractingComponent);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInteractorLost, UActorInteractorComponent*, InteractingComponent);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInteractableTraced, UActorInteractorComponent*, TracingInteractorComponent);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInteractorOverlapped, UPrimitiveComponent*, OverlappedInteractableCollisionComponent);
 
 /**
  * Implement an Actor component for being interacted with.
@@ -32,7 +41,7 @@ class UShapeComponent;
  * @see https://sites.google.com/view/dominikpavlicek/home/documentation
  */
 UCLASS(ClassGroup=(Interaction), NotBlueprintable, HideCategories = (Navigation, Physics, Collision, Lighting, Rendering, Mobile, Animation, HLOD, UserInterface), meta=(BlueprintSpawnableComponent, DisplayName="Interactable Component"))
-class ACTORINTERACTIONPLUGIN_API UActorInteractableComponent final : public UWidgetComponent, public IActorInteractableInterface
+class ACTORINTERACTIONPLUGIN_API UActorInteractableComponent final : public UWidgetComponent
 {
 	GENERATED_BODY()
 	

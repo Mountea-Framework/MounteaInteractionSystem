@@ -6,7 +6,6 @@
 #include "Components/ActorComponent.h"
 
 #include "Helpers/InteractionHelpers.h"
-#include "Interfaces/ActorInteractorInterface.h"
 
 #include "ActorInteractorComponent.generated.h"
 
@@ -46,6 +45,12 @@ struct FInteractionTraceData
 	};
 };
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInteractableFound, class UActorInteractableComponent*, FoundActorComponent);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInteractableLost, class UActorInteractableComponent*, LostActorComponent);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInteractionKeyPressed, float, TimeKeyPressed);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInteractionKeyReleased, float, TimeKeyReleased);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInteractorTypeChanged, float, TimeChanged);
+
 /**
  * Implement an Actor component for interaction.
  *
@@ -61,7 +66,7 @@ struct FInteractionTraceData
  * @see https://sites.google.com/view/dominikpavlicek/home/documentation
  */
 UCLASS(ClassGroup=(Interaction), Blueprintable, meta=(BlueprintSpawnableComponent, DisplayName = "Interactor Component"))
-class ACTORINTERACTIONPLUGIN_API UActorInteractorComponent final : public UActorComponent, public IActorInteractorInterface
+class ACTORINTERACTIONPLUGIN_API UActorInteractorComponent final : public UActorComponent
 {
 	GENERATED_BODY()
 	
@@ -69,11 +74,11 @@ class ACTORINTERACTIONPLUGIN_API UActorInteractorComponent final : public UActor
 	
 public:
 	
-	virtual void StartInteraction() override;
-	virtual void StopInteraction() override;
+	virtual void StartInteraction();// override;
+	virtual void StopInteraction();// override;
 
 	UFUNCTION()
-	virtual void OnInteractableOverlapped(UPrimitiveComponent* OverlappedComponent) override;
+	void OnInteractableOverlapped(UPrimitiveComponent* OverlappedComponent);
 
 protected:
 	
@@ -274,7 +279,7 @@ public:
 	 * @return Returns type of the Interactor Component
 	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction|Getters")
-	virtual  EInteractorType GetInteractorType() const override;
+	FORCEINLINE EInteractorType GetInteractorType() const { return InteractorType; };
 
 	/**
 	 * Sets Interactor Type.
@@ -520,7 +525,7 @@ public:
 	/**
 	 * This helper function toggles Debug mode on and off.
 	 */
-	UFUNCTION(BlueprintCallable, CallInEditor, Category="Interaction", meta=(DevelopmentOnly))
+	UFUNCTION(CallInEditor, DisplayName="Refresh Details Panel", Category="Interaction", meta=(DevelopmentOnly))
 	void ToggleDebugMode() { bDebug = !bDebug; }
 
 private:

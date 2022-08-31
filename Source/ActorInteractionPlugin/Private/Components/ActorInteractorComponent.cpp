@@ -484,9 +484,6 @@ void UActorInteractorComponent::SetInteractorState(const EInteractorState NewSta
 	InteractorState = NewState;
 }
 
-EInteractorType UActorInteractorComponent::GetInteractorType() const
-{ return InteractorType; }
-
 #pragma endregion Getters_Setters
 
 #pragma region Replication
