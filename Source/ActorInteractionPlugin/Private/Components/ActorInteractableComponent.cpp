@@ -33,7 +33,8 @@ UActorInteractableComponent::UActorInteractableComponent()
 	}
 	#endif
 
-	SetInteractableWidgetClass(InteractableWidgetClass);
+	InteractableWidgetClass = WidgetClass;
+	SetWidgetClass(InteractableWidgetClass);
 	
 	Space = EWidgetSpace::Screen;
 	DrawSize = FIntPoint(64, 64);
@@ -63,12 +64,22 @@ void UActorInteractableComponent::BeginPlay()
 	if(!GetOwner())
 	{
 		AIP_LOG(Error, TEXT("[BeginPlay] Cannot get Owner reference. Please report this bug."))
+		
+		UnregisterComponent();
+		MarkPendingKill();
 		return;
 	}
 	if(!GetWorld())
 	{
 		AIP_LOG(Error, TEXT("[BeginPlay] Cannot get World reference. Please report this bug."))
+		
+		UnregisterComponent();
+		MarkPendingKill();
 		return;
+	}
+	if (InteractableWidgetClass.Get() == nullptr)
+	{
+		AIP_LOG(Error, TEXT("[BeginPlay] Invalid Interactable Widget Class!"))
 	}
 	if (CollisionShapes.Num())
 	{

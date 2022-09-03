@@ -939,7 +939,7 @@ protected:
 	int32 InteractionCyclesAllowed = -1;
 	
 	/** User Widget class that will be forced to use.*/
-	UPROPERTY(EditAnywhere, BlueprintReadOnly,  Category="Interaction|Settings|Widget")
+	UPROPERTY(SaveGame, EditAnywhere, BlueprintReadOnly, Category="Interaction|Settings|Widget", NoClear, meta=(NoResetToDefault, BlueprintBaseOnly=true, AllowAbstract=false))
 	TSubclassOf<UActorInteractableWidget> InteractableWidgetClass;
 	
 	/** Value of the Interaction Action Title.
@@ -1046,7 +1046,7 @@ private:
 	/**
 	 * This helper function toggles Debug mode on and off.
 	 */
-	UFUNCTION(CallInEditor, DisplayName="Refresh Details Panel", Category="Interaction", meta=(DevelopmentOnly))
+	UFUNCTION(BlueprintCallable, Category="Interaction", meta=(DevelopmentOnly))
 	void ToggleDebugMode() {bDebug = !bDebug; };
 	
 	void StopInteractionLink(UActorInteractorComponent* OtherComponent);
