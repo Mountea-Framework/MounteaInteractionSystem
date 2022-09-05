@@ -3,6 +3,12 @@
 Component tool for smart Actor Interaction with other Actors.
 Developed with Designers in mind to allow you as easy as possible implementation while maintaining high scalability and diverse options to tweak everything to your liking.
 
+### Discord Channel
+
+[![Discord LINK](https://static.wikia.nocookie.net/siivagunner/images/9/9f/Discord_icon.svg/revision/latest?cb=20210814160101)](https://discord.gg/2vXWEEN)
+
+Join support and community Discord!
+
 ### Prerequisites
 
 The things you need before running this plugin.
