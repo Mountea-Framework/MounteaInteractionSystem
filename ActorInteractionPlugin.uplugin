@@ -4,7 +4,7 @@
 	"VersionName": "2.1.0.0",
 	"FriendlyName": "Actor Interaction Plugin",
 	"Description": "Component utilities for smart Actor Interaction with other Actors. Developed with Designers in mind to allow you as easy as possible implementation while maintaining high scalability and diverse options to tweak everything to your liking.",
-	"Category": "Gameplay",
+	"Category": "Mountea Framework",
 	"CreatedBy": "Dominik Pavlicek",
 	"CreatedByURL": "https://sites.google.com/view/dominikpavlicek/home",
 	"DocsURL": "https://sites.google.com/view/dominikpavlicek/home/documentation",
