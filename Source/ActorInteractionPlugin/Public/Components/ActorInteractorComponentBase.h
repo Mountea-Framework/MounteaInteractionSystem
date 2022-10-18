@@ -26,34 +26,51 @@ protected:
 
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category="Interaction")
 	void OnInteractableFoundEvent(const TScriptInterface<IActorInteractableInterface>& FoundInteractable);
-	
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category="Interaction")
 	void OnInteractableLostEvent(const TScriptInterface<IActorInteractableInterface>& LostInteractable);
-	
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category="Interaction")
 	void OnInteractionKeyPressedEvent(const float TimeKeyPressed);
-	
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category="Interaction")
 	void OnInteractionKeyReleasedEvent(const float TimeKeyReleased);
 
-	virtual void StartInteraction() override;
-	virtual void StopInteraction() override;
 	
+	UFUNCTION(BlueprintCallable, Category="Interaction")
+	virtual void StartInteraction() override;
+	UFUNCTION(BlueprintCallable, Category="Interaction")
+	virtual void StopInteraction() override;
+
+	
+	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual bool ActivateInteractor(FString& ErrorMessage) override;
+	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void DeactivateInteractor() override;
 
+	
+	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void TickInteraction(const float DeltaTime) override;
 
+	
+	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual ECollisionChannel GetResponseChannel() const override;
+	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void SetResponseChannel(const ECollisionChannel NewResponseChannel) override;
 
+
+	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual EInteractorState GetState() const override;
+	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void SetState(const EInteractorState NewState) override;
 
-	virtual bool DoesAutoActivate() const override;
-	virtual void SetAutoActivate(const bool bNewAutoActivate) override;
 
+	UFUNCTION(BlueprintCallable, Category="Interaction")
+	virtual bool DoesAutoActivate() const override;
+	UFUNCTION(BlueprintCallable, Category="Interaction", meta=(DisplayName="Set Auto Activate"))
+	virtual void SetDoesAutoActivate(const bool bNewAutoActivate) override;
+
+
+	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual FKey GetInteractionKey() const override;
+	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void SetInteractionKey(const FKey NewInteractorKey) override;
 
 protected:
@@ -69,4 +86,18 @@ protected:
 	
 	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Interaction")
 	FInteractionKeyReleased OnInteractionKeyReleased;
+
+protected:
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Interaction|Required", meta=(DisplayName="Auto Activate", NoResetToDefault))
+	uint8 bDoesAutoActivate : 1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Interaction|Required", meta=(NoResetToDefault))
+	TEnumAsByte<ECollisionChannel> CollisionChannel;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Interaction|Required", meta=(NoResetToDefault))
+	FKey InteractionKey;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Interaction|Required", meta=(NoResetToDefault))
+	EInteractorState InteractorState;
 };

@@ -45,7 +45,7 @@ public:
 	virtual void SetState(const EInteractorState NewState) = 0;
 
 	virtual bool DoesAutoActivate() const = 0;
-	virtual void SetAutoActivate(const bool bNewAutoActivate) = 0;
+	virtual void SetDoesAutoActivate(const bool bNewAutoActivate) = 0;
 
 	virtual FKey GetInteractionKey() const = 0;
 	virtual void SetInteractionKey(const FKey NewInteractorKey) = 0;

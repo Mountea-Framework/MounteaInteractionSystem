@@ -48,38 +48,41 @@ void UActorInteractorComponentBase::TickInteraction(const float DeltaTime)
 
 ECollisionChannel UActorInteractorComponentBase::GetResponseChannel() const
 {
-	return ECC_Visibility;
+	return CollisionChannel;
 }
 
 void UActorInteractorComponentBase::SetResponseChannel(const ECollisionChannel NewResponseChannel)
 {
+	CollisionChannel = NewResponseChannel;
 }
 
 EInteractorState UActorInteractorComponentBase::GetState() const
 {
-	return EInteractorState::EIS_Active;
+	return InteractorState;
 }
 
 void UActorInteractorComponentBase::SetState(const EInteractorState NewState)
 {
+	InteractorState = NewState;
 }
 
 bool UActorInteractorComponentBase::DoesAutoActivate() const
 {
-	return true;
+	return bDoesAutoActivate;
 }
 
-void UActorInteractorComponentBase::SetAutoActivate(const bool bNewAutoActivate)
+void UActorInteractorComponentBase::SetDoesAutoActivate(const bool bNewAutoActivate)
 {
-	Super::SetAutoActivate(bNewAutoActivate);
+	bDoesAutoActivate = bNewAutoActivate;
 }
 
 FKey UActorInteractorComponentBase::GetInteractionKey() const
 {
-	return FKey("F");
+	return InteractionKey;
 }
 
 void UActorInteractorComponentBase::SetInteractionKey(const FKey NewInteractorKey)
 {
+	InteractionKey = NewInteractorKey;
 }
 
