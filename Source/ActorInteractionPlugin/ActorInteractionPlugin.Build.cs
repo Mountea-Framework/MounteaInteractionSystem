@@ -44,7 +44,7 @@ public class ActorInteractionPlugin : ModuleRules
 				"Slate",
 				"SlateCore",
 				"Projects",
-				// "InputCore" // Future feature update: Uncomment for implementation of UActorInteractableComponent InteractionKeys
+				"InputCore"
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);
