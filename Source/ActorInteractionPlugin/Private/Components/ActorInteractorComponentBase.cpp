@@ -8,6 +8,11 @@
 UActorInteractorComponentBase::UActorInteractorComponentBase()
 {
 	PrimaryComponentTick.bCanEverTick = true;
+
+	InteractionKeyPerPlatform.Add((TEXT("Windows")), FKey("E"));
+	InteractionKeyPerPlatform.Add((TEXT("Mac")), FKey("E"));
+	InteractionKeyPerPlatform.Add((TEXT("PS4")), FKey("Gamepad Face Button Down"));
+	InteractionKeyPerPlatform.Add((TEXT("XboxOne")), FKey("Gamepad Face Button Down"));
 }
 
 void UActorInteractorComponentBase::BeginPlay()
@@ -86,14 +91,26 @@ void UActorInteractorComponentBase::SetDoesAutoActivate(const bool bNewAutoActiv
 	bDoesAutoActivate = bNewAutoActivate;
 }
 
-FKey UActorInteractorComponentBase::GetInteractionKey() const
+FKey UActorInteractorComponentBase::GetInteractionKey(FString& RequestedPlatform) const
 {
-	return InteractionKey;
+	if(InteractionKeyPerPlatform.Find(RequestedPlatform))
+	{
+		return *InteractionKeyPerPlatform.Find(RequestedPlatform);
+	}
+	else
+	{
+		return FKey();
+	}
 }
 
-void UActorInteractorComponentBase::SetInteractionKey(const FKey NewInteractorKey)
+void UActorInteractorComponentBase::SetInteractionKey(FString& Platform, const FKey NewInteractorKey)
 {
-	InteractionKey = NewInteractorKey;
+	InteractionKeyPerPlatform.Add(Platform, NewInteractorKey);
+}
+
+TMap<FString, FKey> UActorInteractorComponentBase::GetInteractionKeys() const
+{
+	return InteractionKeyPerPlatform;
 }
 
 void UActorInteractorComponentBase::SetActiveInteractable(const TScriptInterface<IActorInteractableInterface>& NewInteractable)

@@ -85,11 +85,27 @@ protected:
 	virtual void SetDoesAutoActivate(const bool bNewAutoActivate) override;
 
 
+	/**
+	 * Returns Interaction Key for specified Platform.
+	 * @param RequestedPlatform Name of platform you want to know the Interaction Key
+	 * @return 
+	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
-	virtual FKey GetInteractionKey() const override;
+	virtual FKey GetInteractionKey(FString& RequestedPlatform) const override;
+	
+	/**
+	 * Sets or Updates Interaction Key for specified Platform.
+	 * There is no validation for Keys validation! Nothing stops you from setting Keyboard keys for Consoles. Please, be careful with this variable!
+	 * @param Platform Name of platform you want to set or update the Interaction Key
+	 * @param NewInteractorKey The interaction key to setup.
+	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
-	virtual void SetInteractionKey(const FKey NewInteractorKey) override;
+	virtual void SetInteractionKey(FString& Platform, const FKey NewInteractorKey) override;
+	
+	UFUNCTION(BlueprintCallable, Category="Interaction")
+	virtual TMap<FString, FKey> GetInteractionKeys() const override;
 
+	
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void SetActiveInteractable(const TScriptInterface<IActorInteractableInterface>& NewInteractable) override;
 	UFUNCTION(BlueprintCallable, Category="Interaction")
@@ -116,11 +132,15 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Interaction|Required", meta=(NoResetToDefault))
 	TEnumAsByte<ECollisionChannel> CollisionChannel;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Interaction|Required", meta=(NoResetToDefault))
-	FKey InteractionKey;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Interaction|Required", meta=(NoResetToDefault))
+	/**
+	 * List of Interaction Keys for each platform.
+	 * There is no validation for Keys validation! Nothing stops you from setting Keyboard keys for Consoles. Please, be careful with this variable!
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Interaction|Required", meta=(NoResetToDefault))
+	TMap<FString, FKey> InteractionKeyPerPlatform;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Interaction|Read Only", meta=(NoResetToDefault))
 	EInteractorState InteractorState;
 
 private:
