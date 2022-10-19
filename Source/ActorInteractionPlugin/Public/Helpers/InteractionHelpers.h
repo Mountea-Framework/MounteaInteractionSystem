@@ -77,9 +77,10 @@ enum class EInteractorType : uint8
 UENUM(BlueprintType)
 enum class EInteractorState : uint8
 {
- EIS_Disabled UMETA(DisplayName = "Disabled", Tooltip = "Interactor is disabled"),
- EIS_StandBy  UMETA(DisplayName = "StandBy", Tooltip = "Interactor is enabled"),
- EIS_Active   UMETA(DisplayName = "Active", Tooltip = "Interactor is in use"),
+ EIS_Disabled   UMETA(DisplayName = "Disabled", Tooltip = "Interactor is disabled"),
+ EIS_StandBy    UMETA(DisplayName = "StandBy", Tooltip = "Interactor is enabled"),
+ EIS_Suppressed UMETA(DisplayName = "Restrained", Tooltip = "Intertactor is enabled but cannot interact. Useful for cutscenes or in inventory states."),
+ EIS_Active     UMETA(DisplayName = "Active", Tooltip = "Interactor is in use"),
 
  Default      UMETA(Hidden)
 };
