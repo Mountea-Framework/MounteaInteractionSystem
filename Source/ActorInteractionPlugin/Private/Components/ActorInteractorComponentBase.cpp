@@ -42,19 +42,63 @@ void UActorInteractorComponentBase::OnInteractableLostEvent_Implementation(const
 
 void UActorInteractorComponentBase::StartInteraction()
 {
+	if (CanInteract())
+	{
+		// TODO
+	}
+	else
+	{
+		return;
+	}
 }
 
 void UActorInteractorComponentBase::StopInteraction()
 {
+	// TODO
 }
 
 bool UActorInteractorComponentBase::ActivateInteractor(FString& ErrorMessage)
 {
-	return true;
+	switch (InteractorState)
+	{
+		case EInteractorState::EIS_Disabled:
+		case EInteractorState::EIS_Suppressed:
+			ErrorMessage.Append(TEXT("Interactor Component has been Activated"));
+			InteractorState = EInteractorState::EIS_StandBy;
+			return true;
+		case EInteractorState::EIS_StandBy:
+		case EInteractorState::EIS_Active:
+			ErrorMessage.Append(TEXT("Interactor Component is already Active"));
+			break;
+		case EInteractorState::Default:
+		default:
+			ErrorMessage.Append(TEXT("Interactor Component cannot proces activation request, invalid state"));
+			break;
+	}
+	
+	return false;
 }
 
 void UActorInteractorComponentBase::DeactivateInteractor()
 {
+	InteractorState = EInteractorState::EIS_Disabled;
+}
+
+bool UActorInteractorComponentBase::CanInteract() const
+{
+	switch (InteractorState)
+	{
+		case EInteractorState::EIS_Disabled:
+			return false;
+		case EInteractorState::EIS_StandBy:
+		case EInteractorState::EIS_Suppressed:
+			return true;
+		case EInteractorState::EIS_Active:
+			return false;
+		case EInteractorState::Default:
+		default:
+			return false;
+	}
 }
 
 void UActorInteractorComponentBase::TickInteraction(const float DeltaTime)

@@ -62,6 +62,8 @@ protected:
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void DeactivateInteractor() override;
 
+	UFUNCTION(BlueprintCallable, Category="Interaction")
+	virtual bool CanInteract() const override;
 	
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void TickInteraction(const float DeltaTime) override;
