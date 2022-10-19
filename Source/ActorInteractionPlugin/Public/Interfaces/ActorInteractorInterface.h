@@ -36,6 +36,8 @@ public:
 	virtual bool ActivateInteractor(FString& ErrorMessage) = 0;
 	virtual void DeactivateInteractor() = 0;
 
+	virtual bool CanInteract() const = 0;
+
 	virtual void TickInteraction(const float DeltaTime) = 0;
 
 	virtual ECollisionChannel GetResponseChannel() const = 0;
