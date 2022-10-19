@@ -47,8 +47,9 @@ public:
 	virtual bool DoesAutoActivate() const = 0;
 	virtual void SetDoesAutoActivate(const bool bNewAutoActivate) = 0;
 
-	virtual FKey GetInteractionKey() const = 0;
-	virtual void SetInteractionKey(const FKey NewInteractorKey) = 0;
+	virtual FKey GetInteractionKey(FString& RequestedPlatform) const = 0;
+	virtual void SetInteractionKey(FString& Platform, const FKey NewInteractorKey) = 0;
+	virtual TMap<FString, FKey> GetInteractionKeys() const = 0;
 
 	virtual TScriptInterface<IActorInteractableInterface> GetActiveInteractable() const = 0;
 	virtual void SetActiveInteractable(const TScriptInterface<IActorInteractableInterface>& NewInteractable) = 0;
