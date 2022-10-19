@@ -24,13 +24,30 @@ protected:
 
 protected:
 
-	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category="Interaction")
+	/**
+	 * Event bound to OnInteractableFound event.
+	 * Once OnInteractableFound is called this event is, too.
+	 * Be sure to call Parent event to access all C++ implementation!
+	 * 
+	 * @param FoundInteractable Interactable Component which is found
+	 */
+	UFUNCTION(BlueprintNativeEvent, Category="Interaction")
 	void OnInteractableFoundEvent(const TScriptInterface<IActorInteractableInterface>& FoundInteractable);
-	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category="Interaction")
+	
+	/**
+	 * Event bound to OnInteractableLost event.
+	 * Once OnInteractableLost is called this event is, too.
+	 * Be sure to call Parent event to access all C++ implementation!
+	 * 
+	 * @param LostInteractable Interactable Component which is lost
+	 */
+	UFUNCTION(BlueprintNativeEvent, Category="Interaction")
 	void OnInteractableLostEvent(const TScriptInterface<IActorInteractableInterface>& LostInteractable);
-	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category="Interaction")
+
+	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
 	void OnInteractionKeyPressedEvent(const float TimeKeyPressed);
-	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category="Interaction")
+
+	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
 	void OnInteractionKeyReleasedEvent(const float TimeKeyReleased);
 
 	
@@ -73,6 +90,11 @@ protected:
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void SetInteractionKey(const FKey NewInteractorKey) override;
 
+	UFUNCTION(BlueprintCallable, Category="Interaction")
+	virtual void SetActiveInteractable(const TScriptInterface<IActorInteractableInterface>& NewInteractable) override;
+	UFUNCTION(BlueprintCallable, Category="Interaction")
+	virtual TScriptInterface<IActorInteractableInterface> GetActiveInteractable() const override;
+
 protected:
 
 	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Interaction")
@@ -100,4 +122,14 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Interaction|Required", meta=(NoResetToDefault))
 	EInteractorState InteractorState;
+
+private:
+
+	// This is Interactable which is set as Active
+	UPROPERTY()
+	TScriptInterface<IActorInteractableInterface> ActiveInteractable;
+
+	// List of Interactables, possibly all overlapping ones
+	UPROPERTY()
+	TArray<TScriptInterface<IActorInteractableInterface>> ListOfInteractables;
 };

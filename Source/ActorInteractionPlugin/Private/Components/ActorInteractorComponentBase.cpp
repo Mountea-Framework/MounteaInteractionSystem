@@ -25,6 +25,16 @@ void UActorInteractorComponentBase::TickComponent(float DeltaTime, ELevelTick Ti
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 }
 
+void UActorInteractorComponentBase::OnInteractableFoundEvent_Implementation(const TScriptInterface<IActorInteractableInterface>& FoundInteractable)
+{
+	SetActiveInteractable(FoundInteractable);
+}
+
+void UActorInteractorComponentBase::OnInteractableLostEvent_Implementation(const TScriptInterface<IActorInteractableInterface>& LostInteractable)
+{
+	SetActiveInteractable(nullptr);
+}
+
 void UActorInteractorComponentBase::StartInteraction()
 {
 }
@@ -84,5 +94,15 @@ FKey UActorInteractorComponentBase::GetInteractionKey() const
 void UActorInteractorComponentBase::SetInteractionKey(const FKey NewInteractorKey)
 {
 	InteractionKey = NewInteractorKey;
+}
+
+void UActorInteractorComponentBase::SetActiveInteractable(const TScriptInterface<IActorInteractableInterface>& NewInteractable)
+{
+	ActiveInteractable = NewInteractable;
+}
+
+TScriptInterface<IActorInteractableInterface> UActorInteractorComponentBase::GetActiveInteractable() const
+{
+	return ActiveInteractable;
 }
 
