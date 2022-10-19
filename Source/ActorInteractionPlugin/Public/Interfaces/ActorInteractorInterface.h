@@ -49,4 +49,7 @@ public:
 
 	virtual FKey GetInteractionKey() const = 0;
 	virtual void SetInteractionKey(const FKey NewInteractorKey) = 0;
+
+	virtual TScriptInterface<IActorInteractableInterface> GetActiveInteractable() const = 0;
+	virtual void SetActiveInteractable(const TScriptInterface<IActorInteractableInterface>& NewInteractable) = 0;
 };
