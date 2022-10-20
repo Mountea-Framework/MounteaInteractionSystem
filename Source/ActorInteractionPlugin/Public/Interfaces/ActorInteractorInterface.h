@@ -21,6 +21,8 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractableLost, const TScriptInte
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractionKeyPressed, float, TimeKeyPressed);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractionKeyReleased, float, TimeKeyReleased);
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FStateChanged);
+
 /**
  * 
  */
@@ -35,6 +37,9 @@ public:
 	
 	virtual bool ActivateInteractor(FString& ErrorMessage) = 0;
 	virtual void DeactivateInteractor() = 0;
+
+	virtual void SetInteractionDependency(const TScriptInterface<IActorInteractorInterface> NewInteractionDependency) = 0;
+	virtual TScriptInterface<IActorInteractorInterface> GetInteractionDependency() const = 0;
 
 	virtual bool CanInteract() const = 0;
 
