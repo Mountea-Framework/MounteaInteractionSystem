@@ -19,6 +19,7 @@ void UActorInteractorComponentBase::BeginPlay()
 {
 	Super::BeginPlay();
 
+	OnInteractableSelected.AddUniqueDynamic(this, &UActorInteractorComponentBase::OnInteractableSelectedEvent);
 	OnInteractableFound.AddUniqueDynamic(this, &UActorInteractorComponentBase::OnInteractableFoundEvent);
 	OnInteractableLost.AddUniqueDynamic(this, &UActorInteractorComponentBase::OnInteractableLostEvent);
 	OnInteractionKeyPressed.AddUniqueDynamic(this, &UActorInteractorComponentBase::OnInteractionKeyPressedEvent);
@@ -31,9 +32,19 @@ void UActorInteractorComponentBase::TickComponent(float DeltaTime, ELevelTick Ti
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 }
 
+void UActorInteractorComponentBase::OnInteractableSelectedEvent_Implementation(const TScriptInterface<IActorInteractableInterface>& SelectedInteractable)
+{
+	SetActiveInteractable(SelectedInteractable);
+}
+
 void UActorInteractorComponentBase::OnInteractableFoundEvent_Implementation(const TScriptInterface<IActorInteractableInterface>& FoundInteractable)
 {
-	SetActiveInteractable(FoundInteractable);
+	if (!ListOfInteractables.Contains(FoundInteractable))
+	{
+		ListOfInteractables.Add(FoundInteractable);
+	}
+
+	SelectInteractable();
 }
 
 void UActorInteractorComponentBase::OnInteractableLostEvent_Implementation(const TScriptInterface<IActorInteractableInterface>& LostInteractable)
@@ -41,11 +52,34 @@ void UActorInteractorComponentBase::OnInteractableLostEvent_Implementation(const
 	SetActiveInteractable(nullptr);
 }
 
+void UActorInteractorComponentBase::SelectInteractable() const
+{
+	if (ListOfInteractables.Num())
+	{		
+		auto TempInteractable = ActiveInteractable;
+		for (auto& Itr : ListOfInteractables)
+		{
+			/**
+			 * TODO
+			 * Much cleaner calculation what to choose based on weight etc.
+			 */
+		}
+
+		OnInteractableSelected.Broadcast(ListOfInteractables[0]);
+		return;
+	}
+
+	OnInteractableSelected.Broadcast(nullptr);
+}
+
 void UActorInteractorComponentBase::StartInteraction()
 {
 	if (CanInteract())
 	{
-		// TODO
+		/**
+		 * TODO
+		 * Interaction can start here
+		 */
 	}
 	else
 	{
@@ -55,7 +89,10 @@ void UActorInteractorComponentBase::StartInteraction()
 
 void UActorInteractorComponentBase::StopInteraction()
 {
-	// TODO
+	/**
+	 * TODO
+	 * Interaction must stop here
+	 */
 }
 
 bool UActorInteractorComponentBase::ActivateInteractor(FString& ErrorMessage)
@@ -169,7 +206,7 @@ TMap<FString, FKey> UActorInteractorComponentBase::GetInteractionKeys() const
 	return InteractionKeyPerPlatform;
 }
 
-void UActorInteractorComponentBase::SetActiveInteractable(const TScriptInterface<IActorInteractableInterface>& NewInteractable)
+void UActorInteractorComponentBase::SetActiveInteractable(const TScriptInterface<IActorInteractableInterface> NewInteractable)
 {
 	ActiveInteractable = NewInteractable;
 }

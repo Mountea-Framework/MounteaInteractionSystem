@@ -24,6 +24,9 @@ protected:
 
 protected:
 
+	UFUNCTION(BlueprintNativeEvent, Category="Interaction")
+	void OnInteractableSelectedEvent(const TScriptInterface<IActorInteractableInterface>& SelectedInteractable);
+
 	/**
 	 * Event bound to OnInteractableFound event.
 	 * Once OnInteractableFound is called this event is, too.
@@ -52,7 +55,9 @@ protected:
 
 	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
 	void OnInteractorStateChanged();
-	
+
+	UFUNCTION()
+	virtual void SelectInteractable() const override;
 	
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void StartInteraction() override;
@@ -118,11 +123,14 @@ protected:
 
 	
 	UFUNCTION(BlueprintCallable, Category="Interaction")
-	virtual void SetActiveInteractable(const TScriptInterface<IActorInteractableInterface>& NewInteractable) override;
+	virtual void SetActiveInteractable(const TScriptInterface<IActorInteractableInterface> NewInteractable) override;
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual TScriptInterface<IActorInteractableInterface> GetActiveInteractable() const override;
 
 protected:
+	
+	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Interaction")
+	FInteractableSelected OnInteractableSelected;
 
 	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Interaction")
 	FInteractableFound OnInteractableFound;
