@@ -44,12 +44,35 @@ void UActorInteractorComponentBase::OnInteractableFoundEvent_Implementation(cons
 		ListOfInteractables.Add(FoundInteractable);
 	}
 
+	for (const auto Itr : InteractionDependencies)
+	{
+		if (Itr.GetInterface())
+		{
+			Itr->SetState(EInteractorState::EIS_Suppressed);
+		}
+	}
+	
 	SelectInteractable();
 }
 
 void UActorInteractorComponentBase::OnInteractableLostEvent_Implementation(const TScriptInterface<IActorInteractableInterface>& LostInteractable)
 {
+	if (ListOfInteractables.Contains(LostInteractable))
+	{
+		ListOfInteractables.Remove(LostInteractable);
+	}
+	
 	SetActiveInteractable(nullptr);
+}
+
+void UActorInteractorComponentBase::OnInteractionKeyPressedEvent_Implementation(const float TimeKeyPressed)
+{
+	StartInteraction();
+}
+
+void UActorInteractorComponentBase::OnInteractionKeyReleasedEvent_Implementation(const float TimeKeyReleased)
+{
+	StopInteraction();
 }
 
 void UActorInteractorComponentBase::SelectInteractable() const
@@ -80,6 +103,8 @@ void UActorInteractorComponentBase::StartInteraction()
 		 * TODO
 		 * Interaction can start here
 		 */
+
+		//ActiveInteractable->OnInteractionStarted();
 	}
 	else
 	{
@@ -93,11 +118,17 @@ void UActorInteractorComponentBase::StopInteraction()
 	 * TODO
 	 * Interaction must stop here
 	 */
+
+	//ActiveInteractable->OnInteractionStopped();
 }
 
 bool UActorInteractorComponentBase::ActivateInteractor(FString& ErrorMessage)
 {
-	switch (InteractorState)
+	const EInteractorState CachedState = GetState();
+	
+	SetState(EInteractorState::EIS_Active);
+	
+	switch (CachedState)
 	{
 		case EInteractorState::EIS_Disabled:
 		case EInteractorState::EIS_Suppressed:
@@ -117,32 +148,69 @@ bool UActorInteractorComponentBase::ActivateInteractor(FString& ErrorMessage)
 	return false;
 }
 
+bool UActorInteractorComponentBase::WakeUpInteractor(FString& ErrorMessage)
+{
+	const EInteractorState CachedState = GetState();
+	
+	SetState(EInteractorState::EIS_StandBy);
+	
+	switch (CachedState)
+	{
+		case EInteractorState::EIS_Disabled:
+		case EInteractorState::EIS_Suppressed:
+			ErrorMessage.Append(TEXT("Interactor Component has been Awaken"));
+			InteractorState = EInteractorState::EIS_StandBy;
+			return true;
+		case EInteractorState::EIS_StandBy:
+		case EInteractorState::EIS_Active:
+			ErrorMessage.Append(TEXT("Interactor Component is already Awake"));
+			break;
+		case EInteractorState::Default:
+		default:
+			ErrorMessage.Append(TEXT("Interactor Component cannot proces activation request, invalid state"));
+			break;
+	}
+	
+	return false;
+}
+
 void UActorInteractorComponentBase::DeactivateInteractor()
 {
-	InteractorState = EInteractorState::EIS_Disabled;
+	SetState(EInteractorState::EIS_Disabled);
 }
 
-void UActorInteractorComponentBase::SetInteractionDependency(const TScriptInterface<IActorInteractorInterface> NewInteractionDependency)
+void UActorInteractorComponentBase::AddInteractionDependency(const TScriptInterface<IActorInteractorInterface> InteractionDependency)
 {
-	InteractionDependency = NewInteractionDependency;
+	if (InteractionDependencies.Contains(InteractionDependency))
+	{
+		return;
+	}
+	
+	InteractionDependencies.Add(InteractionDependency);
 }
 
-TScriptInterface<IActorInteractorInterface> UActorInteractorComponentBase::GetInteractionDependency() const
+void UActorInteractorComponentBase::RemoveInteractionDependency(const TScriptInterface<IActorInteractorInterface> InteractionDependency)
 {
-	return InteractionDependency;
+	if (InteractionDependencies.Contains(InteractionDependency))
+	{
+		InteractionDependencies.Remove(InteractionDependency);
+	}
+}
+
+TArray<TScriptInterface<IActorInteractorInterface>> UActorInteractorComponentBase::GetInteractionDependencies() const
+{
+	return InteractionDependencies;
 }
 
 bool UActorInteractorComponentBase::CanInteract() const
 {
 	switch (InteractorState)
 	{
-		case EInteractorState::EIS_Disabled:
-			return false;
 		case EInteractorState::EIS_StandBy:
+			return ActiveInteractable.GetInterface() != nullptr;
 		case EInteractorState::EIS_Suppressed:
-			return true;
 		case EInteractorState::EIS_Active:
-			return false;
+		case EInteractorState::EIS_Disabled:
 		case EInteractorState::Default:
 		default:
 			return false;
@@ -170,8 +238,26 @@ EInteractorState UActorInteractorComponentBase::GetState() const
 
 void UActorInteractorComponentBase::SetState(const EInteractorState NewState)
 {
-	InteractorState = NewState;
-	OnStateChanged.Broadcast();
+	switch (NewState)
+	{
+		case EInteractorState::EIS_Suppressed:
+		case EInteractorState::EIS_StandBy:
+		case EInteractorState::EIS_Disabled:
+			InteractorState = NewState;
+			OnStateChanged.Broadcast();
+			break;
+		case EInteractorState::EIS_Active:
+			if (InteractorState == EInteractorState::EIS_StandBy)
+			{
+				InteractorState = NewState;
+				OnStateChanged.Broadcast();
+			}
+			break;
+		case EInteractorState::Default:
+			break;
+		default:
+			break;
+	}
 }
 
 bool UActorInteractorComponentBase::DoesAutoActivate() const
@@ -184,7 +270,7 @@ void UActorInteractorComponentBase::SetDoesAutoActivate(const bool bNewAutoActiv
 	bDoesAutoActivate = bNewAutoActivate;
 }
 
-FKey UActorInteractorComponentBase::GetInteractionKey(FString& RequestedPlatform) const
+FKey UActorInteractorComponentBase::GetInteractionKey(const FString& RequestedPlatform) const
 {
 	if(InteractionKeyPerPlatform.Find(RequestedPlatform))
 	{
@@ -196,7 +282,7 @@ FKey UActorInteractorComponentBase::GetInteractionKey(FString& RequestedPlatform
 	}
 }
 
-void UActorInteractorComponentBase::SetInteractionKey(FString& Platform, const FKey NewInteractorKey)
+void UActorInteractorComponentBase::SetInteractionKey(const FString& Platform, const FKey NewInteractorKey)
 {
 	InteractionKeyPerPlatform.Add(Platform, NewInteractorKey);
 }

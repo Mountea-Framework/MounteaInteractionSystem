@@ -23,7 +23,14 @@ protected:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 protected:
-
+	
+	/**
+	 * Event bound to OnInteractableSelected event.
+	 * Once OnInteractableSelected is called this event is, too.
+	 * Be sure to call Parent event to access all C++ implementation!
+	 * 
+	 * @param SelectedInteractable Interactable Component which is being interacted with
+	 */
 	UFUNCTION(BlueprintNativeEvent, Category="Interaction")
 	void OnInteractableSelectedEvent(const TScriptInterface<IActorInteractableInterface>& SelectedInteractable);
 
@@ -47,10 +54,10 @@ protected:
 	UFUNCTION(BlueprintNativeEvent, Category="Interaction")
 	void OnInteractableLostEvent(const TScriptInterface<IActorInteractableInterface>& LostInteractable);
 
-	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	UFUNCTION(BlueprintNativeEvent, Category="Interaction")
 	void OnInteractionKeyPressedEvent(const float TimeKeyPressed);
 
-	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	UFUNCTION(BlueprintNativeEvent, Category="Interaction")
 	void OnInteractionKeyReleasedEvent(const float TimeKeyReleased);
 
 	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
@@ -68,34 +75,39 @@ protected:
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual bool ActivateInteractor(FString& ErrorMessage) override;
 	UFUNCTION(BlueprintCallable, Category="Interaction")
+	virtual bool WakeUpInteractor(FString& ErrorMessage) override;
+	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void DeactivateInteractor() override;
 
 	UFUNCTION(BlueprintCallable, Category="Interaction")
-	virtual void SetInteractionDependency(const TScriptInterface<IActorInteractorInterface> NewInteractionDependency) override;
+	virtual void AddInteractionDependency(const TScriptInterface<IActorInteractorInterface> InteractionDependency) override;
 
 	UFUNCTION(BlueprintCallable, Category="Interaction")
-	virtual TScriptInterface<IActorInteractorInterface> GetInteractionDependency() const override;
+	virtual void RemoveInteractionDependency(const TScriptInterface<IActorInteractorInterface> InteractionDependency) override;
 
-	UFUNCTION(BlueprintCallable, Category="Interaction")
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
+	virtual TArray<TScriptInterface<IActorInteractorInterface>> GetInteractionDependencies() const override;
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual bool CanInteract() const override;
 	
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void TickInteraction(const float DeltaTime) override;
 
 	
-	UFUNCTION(BlueprintCallable, Category="Interaction")
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual ECollisionChannel GetResponseChannel() const override;
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void SetResponseChannel(const ECollisionChannel NewResponseChannel) override;
 
 
-	UFUNCTION(BlueprintCallable, Category="Interaction")
+	UFUNCTION(BlueprintCallable, BlueprintPure,Category="Interaction")
 	virtual EInteractorState GetState() const override;
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void SetState(const EInteractorState NewState) override;
 
 
-	UFUNCTION(BlueprintCallable, Category="Interaction")
+	UFUNCTION(BlueprintCallable, BlueprintPure,Category="Interaction")
 	virtual bool DoesAutoActivate() const override;
 	UFUNCTION(BlueprintCallable, Category="Interaction", meta=(DisplayName="Set Auto Activate"))
 	virtual void SetDoesAutoActivate(const bool bNewAutoActivate) override;
@@ -106,8 +118,8 @@ protected:
 	 * @param RequestedPlatform Name of platform you want to know the Interaction Key
 	 * @return 
 	 */
-	UFUNCTION(BlueprintCallable, Category="Interaction")
-	virtual FKey GetInteractionKey(FString& RequestedPlatform) const override;
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
+	virtual FKey GetInteractionKey(const FString& RequestedPlatform) const override;
 	
 	/**
 	 * Sets or Updates Interaction Key for specified Platform.
@@ -116,15 +128,15 @@ protected:
 	 * @param NewInteractorKey The interaction key to setup.
 	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
-	virtual void SetInteractionKey(FString& Platform, const FKey NewInteractorKey) override;
+	virtual void SetInteractionKey(const FString& Platform, const FKey NewInteractorKey) override;
 	
-	UFUNCTION(BlueprintCallable, Category="Interaction")
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual TMap<FString, FKey> GetInteractionKeys() const override;
 
 	
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void SetActiveInteractable(const TScriptInterface<IActorInteractableInterface> NewInteractable) override;
-	UFUNCTION(BlueprintCallable, Category="Interaction")
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual TScriptInterface<IActorInteractableInterface> GetActiveInteractable() const override;
 
 protected:
@@ -169,7 +181,7 @@ private:
 
 	// Master which can suppress this interactor
 	UPROPERTY()
-	TScriptInterface<IActorInteractorInterface> InteractionDependency;
+	TArray<TScriptInterface<IActorInteractorInterface>> InteractionDependencies;
 	
 	// This is Interactable which is set as Active
 	UPROPERTY()
@@ -178,4 +190,5 @@ private:
 	// List of Interactables, possibly all overlapping ones
 	UPROPERTY()
 	TArray<TScriptInterface<IActorInteractableInterface>> ListOfInteractables;
+
 };
