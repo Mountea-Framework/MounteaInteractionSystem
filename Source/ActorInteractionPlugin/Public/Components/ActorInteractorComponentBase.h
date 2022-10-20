@@ -50,6 +50,9 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
 	void OnInteractionKeyReleasedEvent(const float TimeKeyReleased);
 
+	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	void OnInteractorStateChanged();
+	
 	
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void StartInteraction() override;
@@ -61,6 +64,12 @@ protected:
 	virtual bool ActivateInteractor(FString& ErrorMessage) override;
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void DeactivateInteractor() override;
+
+	UFUNCTION(BlueprintCallable, Category="Interaction")
+	virtual void SetInteractionDependency(const TScriptInterface<IActorInteractorInterface> NewInteractionDependency) override;
+
+	UFUNCTION(BlueprintCallable, Category="Interaction")
+	virtual TScriptInterface<IActorInteractorInterface> GetInteractionDependency() const override;
 
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual bool CanInteract() const override;
@@ -127,6 +136,9 @@ protected:
 	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Interaction")
 	FInteractionKeyReleased OnInteractionKeyReleased;
 
+	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Interaction")
+	FStateChanged OnStateChanged;
+
 protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Interaction|Required", meta=(DisplayName="Auto Activate", NoResetToDefault))
@@ -147,6 +159,10 @@ protected:
 
 private:
 
+	// Master which can suppress this interactor
+	UPROPERTY()
+	TScriptInterface<IActorInteractorInterface> InteractionDependency;
+	
 	// This is Interactable which is set as Active
 	UPROPERTY()
 	TScriptInterface<IActorInteractableInterface> ActiveInteractable;

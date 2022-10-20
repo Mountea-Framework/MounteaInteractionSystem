@@ -23,6 +23,7 @@ void UActorInteractorComponentBase::BeginPlay()
 	OnInteractableLost.AddUniqueDynamic(this, &UActorInteractorComponentBase::OnInteractableLostEvent);
 	OnInteractionKeyPressed.AddUniqueDynamic(this, &UActorInteractorComponentBase::OnInteractionKeyPressedEvent);
 	OnInteractionKeyReleased.AddUniqueDynamic(this, &UActorInteractorComponentBase::OnInteractionKeyReleasedEvent);
+	OnStateChanged.AddUniqueDynamic(this, &UActorInteractorComponentBase::OnInteractorStateChanged);
 }
 
 void UActorInteractorComponentBase::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -84,6 +85,16 @@ void UActorInteractorComponentBase::DeactivateInteractor()
 	InteractorState = EInteractorState::EIS_Disabled;
 }
 
+void UActorInteractorComponentBase::SetInteractionDependency(const TScriptInterface<IActorInteractorInterface> NewInteractionDependency)
+{
+	InteractionDependency = NewInteractionDependency;
+}
+
+TScriptInterface<IActorInteractorInterface> UActorInteractorComponentBase::GetInteractionDependency() const
+{
+	return InteractionDependency;
+}
+
 bool UActorInteractorComponentBase::CanInteract() const
 {
 	switch (InteractorState)
@@ -123,6 +134,7 @@ EInteractorState UActorInteractorComponentBase::GetState() const
 void UActorInteractorComponentBase::SetState(const EInteractorState NewState)
 {
 	InteractorState = NewState;
+	OnStateChanged.Broadcast();
 }
 
 bool UActorInteractorComponentBase::DoesAutoActivate() const
