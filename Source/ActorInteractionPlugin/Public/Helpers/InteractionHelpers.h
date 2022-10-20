@@ -79,8 +79,8 @@ enum class EInteractorState : uint8
 {
  EIS_Disabled   UMETA(DisplayName = "Disabled", Tooltip = "Interactor is disabled"),
  EIS_StandBy    UMETA(DisplayName = "StandBy", Tooltip = "Interactor is enabled"),
- EIS_Suppressed UMETA(DisplayName = "Restrained", Tooltip = "Intertactor is enabled but cannot interact. Useful for cutscenes or in inventory states."),
- EIS_Active     UMETA(DisplayName = "Active", Tooltip = "Interactor is in use"),
+ EIS_Suppressed UMETA(DisplayName = "Suppressed", Tooltip = "Intertactor is enabled but cannot interact. Useful for cutscenes or in inventory states."),
+ EIS_Active     UMETA(DisplayName = "Interacting", Tooltip = "Interactor is in use"),
 
  Default      UMETA(Hidden)
 };
