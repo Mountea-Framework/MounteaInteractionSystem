@@ -16,6 +16,7 @@ class UActorInteractorInterface : public UInterface
 enum class EInteractorState : uint8;
 class IActorInteractableInterface;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractableSelected, const TScriptInterface<IActorInteractableInterface>&, SelectedInteractable);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractableFound, const TScriptInterface<IActorInteractableInterface>&, FoundInteractable);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractableLost, const TScriptInterface<IActorInteractableInterface>&, LostInteractable);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractionKeyPressed, float, TimeKeyPressed);
@@ -41,6 +42,8 @@ public:
 	virtual void SetInteractionDependency(const TScriptInterface<IActorInteractorInterface> NewInteractionDependency) = 0;
 	virtual TScriptInterface<IActorInteractorInterface> GetInteractionDependency() const = 0;
 
+	virtual void SelectInteractable() const = 0;
+
 	virtual bool CanInteract() const = 0;
 
 	virtual void TickInteraction(const float DeltaTime) = 0;
@@ -59,5 +62,5 @@ public:
 	virtual TMap<FString, FKey> GetInteractionKeys() const = 0;
 
 	virtual TScriptInterface<IActorInteractableInterface> GetActiveInteractable() const = 0;
-	virtual void SetActiveInteractable(const TScriptInterface<IActorInteractableInterface>& NewInteractable) = 0;
+	virtual void SetActiveInteractable(const TScriptInterface<IActorInteractableInterface> NewInteractable) = 0;
 };
