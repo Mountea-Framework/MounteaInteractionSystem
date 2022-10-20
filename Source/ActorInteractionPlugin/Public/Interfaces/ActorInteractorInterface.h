@@ -37,10 +37,12 @@ public:
 	virtual void StopInteraction() = 0;
 	
 	virtual bool ActivateInteractor(FString& ErrorMessage) = 0;
+	virtual bool WakeUpInteractor(FString& ErrorMessage) = 0;
 	virtual void DeactivateInteractor() = 0;
 
-	virtual void SetInteractionDependency(const TScriptInterface<IActorInteractorInterface> NewInteractionDependency) = 0;
-	virtual TScriptInterface<IActorInteractorInterface> GetInteractionDependency() const = 0;
+	virtual void AddInteractionDependency(const TScriptInterface<IActorInteractorInterface> InteractionDependency) = 0;
+	virtual void RemoveInteractionDependency(const TScriptInterface<IActorInteractorInterface> InteractionDependency) = 0;
+	virtual TArray<TScriptInterface<IActorInteractorInterface>> GetInteractionDependencies() const = 0;
 
 	virtual void SelectInteractable() const = 0;
 
@@ -57,8 +59,8 @@ public:
 	virtual bool DoesAutoActivate() const = 0;
 	virtual void SetDoesAutoActivate(const bool bNewAutoActivate) = 0;
 
-	virtual FKey GetInteractionKey(FString& RequestedPlatform) const = 0;
-	virtual void SetInteractionKey(FString& Platform, const FKey NewInteractorKey) = 0;
+	virtual FKey GetInteractionKey(const FString& RequestedPlatform) const = 0;
+	virtual void SetInteractionKey(const FString& Platform, const FKey NewInteractorKey) = 0;
 	virtual TMap<FString, FKey> GetInteractionKeys() const = 0;
 
 	virtual TScriptInterface<IActorInteractableInterface> GetActiveInteractable() const = 0;
