@@ -180,15 +180,15 @@ protected:
 private:
 
 	// Master which can suppress this interactor
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere, Category="Interaction|Read Only")
 	TArray<TScriptInterface<IActorInteractorInterface>> InteractionDependencies;
 	
 	// This is Interactable which is set as Active
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere, Category="Interaction|Read Only")
 	TScriptInterface<IActorInteractableInterface> ActiveInteractable;
 
 	// List of Interactables, possibly all overlapping ones
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere, Category="Interaction|Read Only")
 	TArray<TScriptInterface<IActorInteractableInterface>> ListOfInteractables;
 
 };
