@@ -282,8 +282,6 @@ ECollisionChannel UActorInteractorComponentBase::GetResponseChannel() const
 
 void UActorInteractorComponentBase::SetResponseChannel(const ECollisionChannel NewResponseChannel)
 {
-
-	
 	CollisionChannel = NewResponseChannel;
 
 	OnCollisionChanged.Broadcast(NewResponseChannel);
@@ -375,9 +373,4 @@ void UActorInteractorComponentBase::SetActiveInteractable(const TScriptInterface
 TScriptInterface<IActorInteractableInterface> UActorInteractorComponentBase::GetActiveInteractable() const
 {
 	return ActiveInteractable;
-}
-
-void UActorInteractorComponentBase::ToggleDebug()
-{
-	bToggleDebug = !bToggleDebug;
 }
