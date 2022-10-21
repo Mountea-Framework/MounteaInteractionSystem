@@ -375,7 +375,7 @@ protected:
 	 * Serves a general purpose as a flag.
 	 * Does not affect Shipping builds by default C++ implementation.
 	 */
-	UPROPERTY(EditAnywhere, Category="Interaction|Required", meta=(DisplayName="Auto Activate", NoResetToDefault))
+	UPROPERTY(EditAnywhere, Category="Interaction|Required")
 	uint8 bToggleDebug : 1;
 
 	/**
