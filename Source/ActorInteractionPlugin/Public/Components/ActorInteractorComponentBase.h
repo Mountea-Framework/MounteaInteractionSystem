@@ -305,6 +305,13 @@ protected:
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual TScriptInterface<IActorInteractableInterface> GetActiveInteractable() const override;
 
+	/**
+	 * Development Only.
+	 * Toggles debug On/Off.
+	 */
+	UFUNCTION(BlueprintCallable, CallInEditor, Category="Interaction", meta=(DevelopmentOnly))
+	virtual void ToggleDebug() override;
+
 protected:
 
 	/**
@@ -360,7 +367,16 @@ protected:
 	 */
 	UPROPERTY(BlueprintAssignable, Category="Interaction")
 	FAutoActivateChanged OnAutoActivateChanged;
+
 protected:
+
+	/**
+	 * If active, debug can be drawn.
+	 * Serves a general purpose as a flag.
+	 * Does not affect Shipping builds by default C++ implementation.
+	 */
+	UPROPERTY(EditAnywhere, Category="Interaction|Required", meta=(DisplayName="Auto Activate", NoResetToDefault))
+	uint8 bToggleDebug : 1;
 
 	/**
 	 * If auto activation is true, component will start as Stand By and can start immediately interact.
