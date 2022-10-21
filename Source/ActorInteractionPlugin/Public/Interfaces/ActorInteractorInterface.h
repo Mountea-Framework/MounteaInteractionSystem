@@ -22,7 +22,9 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractableLost, const TScriptInte
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractionKeyPressed, float, TimeKeyPressed);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractionKeyReleased, float, TimeKeyReleased);
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FStateChanged);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FStateChanged, const EInteractorState&, NewState);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCollisionChanged, const TEnumAsByte<ECollisionChannel>&, NewCollisionChannel);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FAutoActivateChanged, const bool, NewAutoActivate);
 
 /**
  * 
@@ -32,7 +34,7 @@ class ACTORINTERACTIONPLUGIN_API IActorInteractorInterface
 	GENERATED_BODY()
 
 public:
-	
+		
 	virtual void StartInteraction() = 0;
 	virtual void StopInteraction() = 0;
 	
@@ -44,7 +46,7 @@ public:
 	virtual void RemoveInteractionDependency(const TScriptInterface<IActorInteractorInterface> InteractionDependency) = 0;
 	virtual TArray<TScriptInterface<IActorInteractorInterface>> GetInteractionDependencies() const = 0;
 
-	virtual void SelectInteractable() const = 0;
+	virtual void CompareInteractable(const TScriptInterface<IActorInteractableInterface>& FoundInteractable) = 0;
 
 	virtual bool CanInteract() const = 0;
 
