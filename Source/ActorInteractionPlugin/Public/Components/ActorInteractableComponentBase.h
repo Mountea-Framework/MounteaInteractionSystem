@@ -175,44 +175,46 @@ protected:
 
 protected:
 
-	UPROPERTY()
+	UPROPERTY(EditAnywhere, Category="Interaction|Required")
 	uint8 bToggleDebug : 1;
 	
-	UPROPERTY()
+	UPROPERTY(EditAnywhere, Category="Interaction|Required")
 	uint8 bInteractableAutoActivate : 1;
 	
-	UPROPERTY()
+	UPROPERTY(EditAnywhere, Category="Interaction|Required")
 	uint8 bInteractableAutoSetup : 1;
 
-
-	UPROPERTY()
-	EInteractableState InteractableState;
-
-	UPROPERTY()
+	UPROPERTY(EditAnywhere, Category="Interaction|Required", meta=(NoResetToDefault))
 	TEnumAsByte<ECollisionChannel> CollisionChannel;
-
-
-	UPROPERTY()
+	
+	UPROPERTY(EditAnywhere, Category="Interaction|Required", meta=(UIMin=0, ClampMin=0))
 	int32 InteractionWeight;
+	
 
-	UPROPERTY()
-	UObject* InteractionOwner;
 
-	UPROPERTY()
+	
+	UPROPERTY(EditAnywhere, Category="Interaction|Optional", meta=(NoResetToDefault))
 	TArray<FName> CollisionOverrides;
 	
-	UPROPERTY()
+	UPROPERTY(EditAnywhere, Category="Interaction|Optional", meta=(NoResetToDefault))
 	TArray<FName> HighlightableOverrides;
+	
 
 	
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere, Category="Interaction|Read Only", meta=(NoResetToDefault))
+	EInteractableState InteractableState;
+	
+	UPROPERTY(VisibleAnywhere, Category="Interaction|Read Only", meta=(NoResetToDefault))
 	TArray<UMeshComponent*> HighlightableMeshComponents;
 
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere, Category="Interaction|Read Only", meta=(NoResetToDefault))
 	TArray<UPrimitiveComponent*> CollisionComponents;
 
 private:
+
+	UPROPERTY(VisibleAnywhere, Category="Interaction|Read Only", meta=(NoResetToDefault, DisplayThumbnail = false))
+	UObject* InteractionOwner;
 	
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere, Category="Interaction|Read Only", meta=(NoResetToDefault, DisplayThumbnail = false))
 	TScriptInterface<IActorInteractorInterface> Interactor;
 };
