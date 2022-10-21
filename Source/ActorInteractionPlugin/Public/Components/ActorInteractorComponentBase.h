@@ -310,7 +310,10 @@ protected:
 	 * Toggles debug On/Off.
 	 */
 	UFUNCTION(BlueprintCallable, CallInEditor, Category="Interaction", meta=(DevelopmentOnly))
-	virtual void ToggleDebug() override;
+	virtual void ToggleDebug() override
+	{
+		bToggleDebug = !bToggleDebug;
+	}
 
 protected:
 
