@@ -9,6 +9,9 @@ UActorInteractorComponentBase::UActorInteractorComponentBase()
 {
 	PrimaryComponentTick.bCanEverTick = true;
 
+	bDoesAutoActivate = false;
+	bToggleDebug = false;
+
 	InteractionKeyPerPlatform.Add((TEXT("Windows")), FKey("E"));
 	InteractionKeyPerPlatform.Add((TEXT("Mac")), FKey("E"));
 	InteractionKeyPerPlatform.Add((TEXT("PS4")), FKey("Gamepad Face Button Down"));
@@ -372,4 +375,9 @@ void UActorInteractorComponentBase::SetActiveInteractable(const TScriptInterface
 TScriptInterface<IActorInteractableInterface> UActorInteractorComponentBase::GetActiveInteractable() const
 {
 	return ActiveInteractable;
+}
+
+void UActorInteractorComponentBase::ToggleDebug()
+{
+	bToggleDebug = !bToggleDebug;
 }
