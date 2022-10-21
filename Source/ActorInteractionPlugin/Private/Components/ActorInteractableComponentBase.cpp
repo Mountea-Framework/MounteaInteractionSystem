@@ -8,6 +8,13 @@
 UActorInteractableComponentBase::UActorInteractableComponentBase()
 {
 	PrimaryComponentTick.bCanEverTick = true;
+
+	bToggleDebug = false;
+	bInteractableAutoActivate = false;
+	bInteractableAutoSetup = false;
+
+	InteractableState = EInteractableState::EIS_Disabled;
+	InteractionWeight = 1;
 }
 
 void UActorInteractableComponentBase::BeginPlay()
@@ -200,4 +207,3 @@ void UActorInteractableComponentBase::RemoveHighlightableOverride(const FName Ta
 void UActorInteractableComponentBase::RemoveHighlightableOverrides(const TArray<FName> Tags)
 {
 }
-
