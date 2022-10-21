@@ -7,7 +7,7 @@
 #include "ActorInteractorInterface.generated.h"
 
 // This class does not need to be modified.
-UINTERFACE(MinimalAPI)
+UINTERFACE(MinimalAPI, BlueprintType)
 class UActorInteractorInterface : public UInterface
 {
 	GENERATED_BODY()
