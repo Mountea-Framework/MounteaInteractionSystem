@@ -70,4 +70,6 @@ public:
 
 	virtual TScriptInterface<IActorInteractableInterface> GetActiveInteractable() const = 0;
 	virtual void SetActiveInteractable(const TScriptInterface<IActorInteractableInterface> NewInteractable) = 0;
+
+	virtual void ToggleDebug() = 0;
 };
