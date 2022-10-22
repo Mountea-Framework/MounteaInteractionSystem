@@ -52,9 +52,6 @@ class ACTORINTERACTIONPLUGIN_API IActorInteractableInterface
 
 public:
 
-	virtual bool DoesAutoActive() const = 0;
-	virtual void ToggleAutoActivate(const bool NewValue) = 0;
-
 	virtual bool DoesAutoSetup() const = 0;
 	virtual void ToggleAutoSetup(const bool NewValue) = 0;
 
@@ -72,8 +69,8 @@ public:
 	virtual int32 GetInteractableWeight() const = 0;
 	virtual void SetInteractableWeight(const int32 NewWeight) = 0;
 
-	virtual UObject* GetInteractableOwner() const = 0;
-	virtual void SetInteractableOwner(const UObject* NewOwner) = 0;
+	virtual AActor* GetInteractableOwner() const = 0;
+	virtual void SetInteractableOwner(const AActor* NewOwner) = 0;
 
 	virtual ECollisionChannel GetCollisionChannel() const = 0;
 	virtual void SetCollisionChannel(const ECollisionChannel& NewChannel) = 0;
