@@ -20,7 +20,6 @@ public:
 protected:
 
 	virtual void BeginPlay() override;
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 protected:
 
@@ -119,6 +118,39 @@ protected:
 	UFUNCTION()
 	virtual void RemoveHighlightableOverrides(const TArray<FName> Tags) override;
 
+
+	UFUNCTION(Category="Interaction")
+	void OnInteractableBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
+
+	UFUNCTION(Category="Interaction")
+	void OnInteractableStopOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+	UFUNCTION(Category="Interaction")
+	void OnInteractableTraced(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+
+	
+	/**
+	 * Event bound to OnInteractorOverlapped.
+	 */
+	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	void OnInteractableBeginOverlapEvent(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
+
+	/**
+	 * Event bound to OnInteractorStopOverlap.
+	 */
+	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	void OnInteractableStopOverlapEvent(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+	/**
+	 * Event bound to OnInteractorTraced.
+	 */
+	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	void OnInteractableTracedEvent(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+
+	
+	virtual void BindCollisionEvents(UPrimitiveComponent* PrimitiveComponent) const override;
+	virtual void UnbindCollisionEvents(UPrimitiveComponent* PrimitiveComponent) const override;
+	
 	/**
 	 * Development Only.
 	 * Toggles debug On/Off.
@@ -135,10 +167,14 @@ protected:
 	FInteractorFound OnInteractorFound;
 	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Interaction")
 	FInteractorLost OnInteractorLost;
-	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Interaction")
+	
+	UPROPERTY(BlueprintAssignable, Category="Interaction")
 	FInteractorTraced OnInteractorTraced;
-	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Interaction")
+	UPROPERTY(BlueprintAssignable, Category="Interaction")
 	FInteractorOverlapped OnInteractorOverlapped;
+	UPROPERTY(BlueprintAssignable, Category="Interaction")
+	FInteractorStopOverlap OnInteractorStopOverlap;
+	
 	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Interaction")
 	FInteractionCompleted OnInteractionCompleted;
 	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Interaction")
