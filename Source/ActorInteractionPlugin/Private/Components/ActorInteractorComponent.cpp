@@ -3,6 +3,8 @@
 
 #include "Components/ActorInteractorComponent.h"
 
+#include "ActorInteractionInterface.h"
+
 #include "Components/ActorInteractableComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Helpers/ActorInteractionPluginLog.h"
@@ -244,6 +246,13 @@ void UActorInteractorComponent::TickInteraction(const float DeltaTime)
 					UActorInteractableComponent* InteractableComponent = Cast<UActorInteractableComponent>(Itr);
 					if(InteractableComponent->FindCollisionShape(HitComponent))
 					{
+						AActor* InteractableActor = InteractableComponent->GetOwner();
+						if (InteractableActor->GetClass()->ImplementsInterface(UActorInteractionInterface::StaticClass()))
+						{
+							if (!IActorInteractionInterface::Execute_CanInteract(InteractableActor, GetOwner()))
+								continue;
+						}
+
 						if (InteractableComponent != InteractingWith)
 						{
 							LastInteractionTickTime = WorldTime;
