@@ -91,7 +91,7 @@ protected:
 	 * @param NewState New State if this Interactor
 	 */
 	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
-	void OnInteractorStateChanged(const EInteractorState& NewState);
+	void OnInteractorStateChanged(const EInteractorStateV2& NewState);
 
 	/**
 	 * Event bound to OnCollisionChanged event.
@@ -240,14 +240,14 @@ protected:
 	 * Returns Interactor State.
 	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure,Category="Interaction")
-	virtual EInteractorState GetState() const override;
+	virtual EInteractorStateV2 GetState() const override;
 
 	/**
 	 * Tries to set Interactor State.
 	 * State machine apply!
 	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
-	virtual void SetState(const EInteractorState NewState) override;
+	virtual void SetState(const EInteractorStateV2 NewState) override;
 
 
 	/**
@@ -388,6 +388,13 @@ protected:
 	uint8 bDoesAutoActivate : 1;
 
 	/**
+	 * New and easier way to set Default State.
+	 * This state will be propagated to Interactor State.
+	 */
+	UPROPERTY(EditAnywhere, Category="Interaction|Read Only", meta=(NoResetToDefault))
+	EInteractorStateV2 DefaultInteractorState;
+
+	/**
 	 * Response Collision Channel this Interactor is interacting against.
 	 * Tip: Use custom Collision Channel for Interaction types.
 	 * * Interaction Overlap
@@ -409,7 +416,7 @@ protected:
 	 * Current read-only State of this Interactor.
 	 */
 	UPROPERTY(VisibleAnywhere, Category="Interaction|Read Only", meta=(NoResetToDefault))
-	EInteractorState InteractorState;
+	EInteractorStateV2 InteractorState;
 
 private:
 	

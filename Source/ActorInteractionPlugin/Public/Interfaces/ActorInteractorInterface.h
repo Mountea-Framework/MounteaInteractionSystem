@@ -13,7 +13,7 @@ class UActorInteractorInterface : public UInterface
 	GENERATED_BODY()
 };
 
-enum class EInteractorState : uint8;
+enum class EInteractorStateV2 : uint8;
 class IActorInteractableInterface;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractableSelected, const TScriptInterface<IActorInteractableInterface>&, SelectedInteractable);
@@ -23,7 +23,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractableLost, const TScriptInte
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FInteractionKeyPressed, const float, TimeKeyPressed, const FKey&, PressedKey);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FInteractionKeyReleased, const float, TimeKeyReleased, const FKey&, ReleasedKey);
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FStateChanged, const EInteractorState&, NewState);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FStateChanged, const EInteractorStateV2&, NewState);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCollisionChanged, const TEnumAsByte<ECollisionChannel>&, NewCollisionChannel);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FAutoActivateChanged, const bool, NewAutoActivate);
 
@@ -57,8 +57,8 @@ public:
 	virtual ECollisionChannel GetResponseChannel() const = 0;
 	virtual void SetResponseChannel(const ECollisionChannel NewResponseChannel) = 0;
 
-	virtual EInteractorState GetState() const = 0;
-	virtual void SetState(const EInteractorState NewState) = 0;
+	virtual EInteractorStateV2 GetState() const = 0;
+	virtual void SetState(const EInteractorStateV2 NewState) = 0;
 
 	virtual bool DoesAutoActivate() const = 0;
 	virtual void ToggleAutoActivate(const bool bNewAutoActivate) = 0;
