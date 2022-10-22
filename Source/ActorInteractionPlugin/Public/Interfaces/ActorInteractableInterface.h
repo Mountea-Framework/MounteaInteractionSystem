@@ -57,11 +57,12 @@ public:
 
 	virtual bool ActivateInteractable(FString& ErrorMessage) = 0;
 	virtual bool WakeUpInteractable(FString& ErrorMessage) = 0;
-	virtual bool SuppressInteractable(FString& ErrorMessage) = 0;
+	virtual bool SnoozeInteractable(FString& ErrorMessage) = 0;
+	virtual bool CompleteInteractable(FString& ErrorMessage) = 0;
 	virtual void DeactivateInteractable() = 0;
 
 	virtual EInteractableStateV2 GetState() const = 0;
-	virtual void SetState(const EInteractableStateV2& NewState) = 0;
+	virtual void SetState(const EInteractableStateV2 NewState) = 0;
 	
 	virtual TScriptInterface<IActorInteractorInterface> GetInteractor() const = 0;
 	virtual void SetInteractor(const TScriptInterface<IActorInteractorInterface> NewInteractor) = 0;
