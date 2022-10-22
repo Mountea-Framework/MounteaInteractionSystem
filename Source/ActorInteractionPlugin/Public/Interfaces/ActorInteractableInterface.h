@@ -71,7 +71,7 @@ public:
 	virtual void SetInteractableWeight(const int32 NewWeight) = 0;
 
 	virtual AActor* GetInteractableOwner() const = 0;
-	virtual void SetInteractableOwner(const AActor* NewOwner) = 0;
+	virtual void SetInteractableOwner(AActor* NewOwner) = 0;
 
 	virtual ECollisionChannel GetCollisionChannel() const = 0;
 	virtual void SetCollisionChannel(const ECollisionChannel& NewChannel) = 0;
