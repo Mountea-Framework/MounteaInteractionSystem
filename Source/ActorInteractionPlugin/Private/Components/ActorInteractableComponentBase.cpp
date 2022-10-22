@@ -14,7 +14,10 @@ UActorInteractableComponentBase::UActorInteractableComponentBase()
 	bInteractableAutoSetup = false;
 
 	InteractableState = EInteractableStateV2::EIS_Asleep;
+	DefaultInteractableState = EInteractableStateV2::EIS_Asleep;
 	InteractionWeight = 1;
+
+	InteractionOwner = GetOwner();
 }
 
 void UActorInteractableComponentBase::BeginPlay()
@@ -24,18 +27,12 @@ void UActorInteractableComponentBase::BeginPlay()
 	OnInteractorOverlapped.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableBeginOverlapEvent);
 	OnInteractorStopOverlap.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableStopOverlapEvent);
 	OnInteractorTraced.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableTracedEvent);
+
+	SetState(DefaultInteractableState);
+
+	AutoSetup();
 }
 
-
-bool UActorInteractableComponentBase::DoesAutoActive() const
-{
-	return bInteractableAutoActivate;
-}
-
-void UActorInteractableComponentBase::ToggleAutoActivate(const bool NewValue)
-{
-	bInteractableAutoActivate = NewValue;
-}
 
 bool UActorInteractableComponentBase::DoesAutoSetup() const
 {
@@ -94,12 +91,12 @@ void UActorInteractableComponentBase::SetInteractableWeight(const int32 NewWeigh
 {
 }
 
-UObject* UActorInteractableComponentBase::GetInteractableOwner() const
+AActor* UActorInteractableComponentBase::GetInteractableOwner() const
 {
 	return nullptr;
 }
 
-void UActorInteractableComponentBase::SetInteractableOwner(const UObject* NewOwner)
+void UActorInteractableComponentBase::SetInteractableOwner(const AActor* NewOwner)
 {
 }
 
@@ -255,4 +252,16 @@ void UActorInteractableComponentBase::UnbindCollisionEvents(UPrimitiveComponent*
 	PrimitiveComponent->OnComponentBeginOverlap.RemoveDynamic(this, &UActorInteractableComponentBase::OnInteractableBeginOverlap);
 	PrimitiveComponent->OnComponentEndOverlap.RemoveDynamic(this, &UActorInteractableComponentBase::OnInteractableStopOverlap);
 	PrimitiveComponent->OnComponentHit.RemoveDynamic(this, &UActorInteractableComponentBase::OnInteractableTraced);
+}
+
+void UActorInteractableComponentBase::AutoSetup()
+{
+	if (!DoesAutoSetup()) return;
+
+	/**
+	 * TODO:
+	 * - Add all parent Primitive Comps to Collision Shapes
+	 * - Add all parent Mesh Comps to Highlightable Meshes
+	 * - Bind Events
+	 */
 }
