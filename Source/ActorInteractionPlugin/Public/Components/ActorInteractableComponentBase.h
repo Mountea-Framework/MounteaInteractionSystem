@@ -24,11 +24,6 @@ protected:
 protected:
 
 	UFUNCTION()
-	virtual bool DoesAutoActive() const override;
-	UFUNCTION()
-	virtual void ToggleAutoActivate(const bool NewValue) override;
-
-	UFUNCTION()
 	virtual bool DoesAutoSetup() const override;
 	UFUNCTION()
 	virtual void ToggleAutoSetup(const bool NewValue) override;
@@ -58,9 +53,9 @@ protected:
 	virtual void SetInteractableWeight(const int32 NewWeight) override;
 
 	UFUNCTION()
-	virtual UObject* GetInteractableOwner() const override;
+	virtual AActor* GetInteractableOwner() const override;
 	UFUNCTION()
-	virtual void SetInteractableOwner(const UObject* NewOwner) override;
+	virtual void SetInteractableOwner(const AActor* NewOwner) override;
 
 	UFUNCTION()
 	virtual ECollisionChannel GetCollisionChannel() const override;
@@ -161,6 +156,14 @@ protected:
 		bToggleDebug = !bToggleDebug;
 	}
 
+	/**
+	 * Helper function.
+	 * Looks for Collision and Highlightable Overrides and binds them.
+	 * Looks for Parent Component which will be set as Collision Mesh and Highlighted Mesh.
+	 */
+	UFUNCTION()
+	void AutoSetup();
+
 protected:
 
 	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Interaction")
@@ -213,7 +216,11 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category="Interaction|Required")
 	uint8 bToggleDebug : 1;
-	
+
+	/**
+	 * If set to true, Interactable will automatically assigns owning Component in Hierarchy as Highlightable Meshes and Collision Shapes.
+	 * This setup might be useful for simple Actors, might cause issues with more complex ones.
+	 */
 	UPROPERTY(EditAnywhere, Category="Interaction|Required")
 	uint8 bInteractableAutoActivate : 1;
 	
@@ -227,7 +234,8 @@ protected:
 	int32 InteractionWeight;
 	
 
-
+	UPROPERTY(EditAnywhere, Category="Interaction|Optional", meta=(NoResetToDefault))
+	EInteractableStateV2 DefaultInteractableState;
 	
 	UPROPERTY(EditAnywhere, Category="Interaction|Optional", meta=(NoResetToDefault))
 	TArray<FName> CollisionOverrides;
@@ -248,8 +256,13 @@ protected:
 
 private:
 
+	/**
+	 * Owning Actor of this Interactable.
+	 * By default its set to Owner.
+	 * Can be overriden.
+	 */
 	UPROPERTY(VisibleAnywhere, Category="Interaction|Read Only", meta=(NoResetToDefault, DisplayThumbnail = false))
-	UObject* InteractionOwner;
+	AActor* InteractionOwner;
 	
 	UPROPERTY(VisibleAnywhere, Category="Interaction|Read Only", meta=(NoResetToDefault, DisplayThumbnail = false))
 	TScriptInterface<IActorInteractorInterface> Interactor;
