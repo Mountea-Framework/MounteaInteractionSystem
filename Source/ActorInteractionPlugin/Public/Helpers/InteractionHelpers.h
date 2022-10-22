@@ -77,10 +77,9 @@ enum class EInteractorType : uint8
 UENUM(BlueprintType)
 enum class EInteractorState : uint8
 {
- EIS_Disabled   UMETA(DisplayName = "Disabled", Tooltip = "Interactor is disabled"),
- EIS_StandBy    UMETA(DisplayName = "StandBy", Tooltip = "Interactor is enabled"),
- EIS_Suppressed UMETA(DisplayName = "Suppressed", Tooltip = "Intertactor is enabled but cannot interact. Useful for cutscenes or in inventory states."),
- EIS_Active     UMETA(DisplayName = "Interacting", Tooltip = "Interactor is in use"),
+ EIS_Disabled UMETA(DisplayName = "Disabled", Tooltip = "Interactor is disabled"),
+ EIS_StandBy  UMETA(DisplayName = "StandBy", Tooltip = "Interactor is enabled"),
+ EIS_Active   UMETA(DisplayName = "Active", Tooltip = "Interactor is in use"),
 
  Default      UMETA(Hidden)
 };
@@ -101,6 +100,42 @@ enum class EInteractorPrecision : uint8
  Default     UMETA(Hidden)
 };
 
+#pragma region State Machine
+
+/**
+ * State of Interactable Actor Component.
+ * 
+ * Machine State of the Interactable Actor Component Base.
+ */
+UENUM(BlueprintType, meta=(ScriptName="Interactable State"))
+enum class EInteractableStateV2 : uint8
+{
+ EIS_Active    UMETA(DisplayName = "Active",    Tooltip = "Interactable is awaken and being interacted with."),
+ EIS_Awake     UMETA(DisplayName = "StandBy",   ToolTip = "Interactable is awaken and can be interacted with."),
+ EIS_Asleep    UMETA(DisplayName = "Inactive",  Tooltip = "Interactable is asleep, but can be awaken. Default state."),
+ EIS_Cooldown  UMETA(DisplayName = "Cooldown",  Tooltip = "Interactable is disabled during cooldown period. Then will be awaken again."),
+ EIS_Completed UMETA(DisplayName = "Finished",  Tooltip = "Interactable is disabled after sucesful interaction."),
+ EIS_Disabled  UMETA(DisplayName = "Disabled",  Tooltip = "Interactable is disabled. Can be awaken."),
+
+ Default      UMETA(Hidden)
+};
+
+UENUM(BlueprintType, meta=(ScriptName="Interactor State"))
+enum class EInteractorStateV2 : uint8
+{
+ EIS_Awake      UMETA(DisplayName = "Awake",       Tooltip = "Interactor is awaken. Interactor is looking for Interactables."),
+ EIS_Asleep     UMETA(DisplayName = "Asleep",      Tooltip = "Interactor is asleep, but can be awaken. Default state. Useful for cutscenes or UI interactions."),
+ EIS_Suppressed UMETA(DisplayName = "Suppressed",  Tooltip = "Interactor is suppressed and cannot interact. Default state for secondary Interactors when master is Active."),
+ EIS_Active     UMETA(DisplayName = "Interacting", Tooltip = "Interactor is in use"),
+ EIS_Disabled   UMETA(DisplayName = "Disabled",    Tooltip = "Interactor is disabled. Can be awaken."),
+
+ Default      UMETA(Hidden)
+};
+
+#pragma endregion 
+
+#pragma region TEMPLATES
+
 /**
  * Template that allows reading Name value from any given UENUM.
  * @param Name: Name of the UENUM (ECollisionChannel, for instance)
@@ -108,9 +143,11 @@ enum class EInteractorPrecision : uint8
  * @return FString of the Value (ECC_Visibility in our example, or invalid of name not specified nor UENUM does not exist)
  */
 template<typename TEnum>
-static FORCEINLINE FString GetEnumValueAsString(const FString& Name, TEnum Value)
+static FString GetEnumValueAsString(const FString& Name, TEnum Value)
 {
-  const UEnum* enumPtr = FindObject<UEnum>(ANY_PACKAGE, *Name, true);
-  if (!enumPtr) return FString("invalid");
-  return enumPtr->GetNameByValue((int64)Value).ToString();
+ const UEnum* enumPtr = FindObject<UEnum>(ANY_PACKAGE, *Name, true);
+ if (!enumPtr) return FString("invalid");
+ return enumPtr->GetDisplayNameTextByValue((int64)Value).ToString();
 }
+
+#pragma endregion TEMPLATES
