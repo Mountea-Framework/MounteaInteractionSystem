@@ -19,8 +19,9 @@ enum class EInteractableState : uint8;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractorFound, const TScriptInterface<IActorInteractorInterface>&, FoundInteractor);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractorLost, const TScriptInterface<IActorInteractorInterface>&, LostInteractor);
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractorTraced, const TScriptInterface<IActorInteractorInterface>&, TracingInteractor);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractorOverlapped, UPrimitiveComponent*, OverlappedInteractorComponent);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_FiveParams(FInteractorTraced, UPrimitiveComponent*, HitComponent, AActor*, OtherActor, UPrimitiveComponent*, OtherComp, FVector, NormalImpulse, const FHitResult&, Hit);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_SixParams(FInteractorOverlapped, UPrimitiveComponent*, OverlappedComponent, AActor*, OtherActor, UPrimitiveComponent*, OtherComp, int32, OtherBodyIndex, bool, bFromSweep, const FHitResult &, SweepResult);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(FInteractorStopOverlap, UPrimitiveComponent*, OverlappedComponent, AActor*, OtherActor, UPrimitiveComponent*, OtherComp, int32, OtherBodyIndex);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractionCompleted, const float&, FinishTime);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractionStarted, const float&, StartTime);
@@ -107,4 +108,7 @@ public:
 	virtual void RemoveHighlightableOverrides(const TArray<FName> Tags) = 0;
 
 	virtual void ToggleDebug() = 0;
+
+	virtual void BindCollisionEvents(UPrimitiveComponent* PrimitiveComponent) const = 0;
+	virtual void UnbindCollisionEvents(UPrimitiveComponent* PrimitiveComponent) const = 0;
 };
