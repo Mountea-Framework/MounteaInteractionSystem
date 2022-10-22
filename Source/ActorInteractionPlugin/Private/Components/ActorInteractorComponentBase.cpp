@@ -147,7 +147,6 @@ bool UActorInteractorComponentBase::ActivateInteractor(FString& ErrorMessage)
 	{
 		case EInteractorStateV2::EIS_Awake:
 			ErrorMessage.Append(TEXT("Interactor Component has been Activated"));
-			InteractorState = EInteractorStateV2::EIS_Active;
 			return true;
 		case EInteractorStateV2::EIS_Active:
 			ErrorMessage.Append(TEXT("Interactor Component is already Active"));
@@ -179,11 +178,10 @@ bool UActorInteractorComponentBase::WakeUpInteractor(FString& ErrorMessage)
 		case EInteractorStateV2::EIS_Suppressed:
 		case EInteractorStateV2::EIS_Awake:
 			ErrorMessage.Append(TEXT("Interactor Component has been Awaken"));
-			InteractorState = EInteractorStateV2::EIS_Awake;
 			return true;
 		case EInteractorStateV2::EIS_Active:
-			ErrorMessage.Append(TEXT("Interactor Component is already Awake"));
-			break;
+			ErrorMessage.Append(TEXT("Interactor Component is Awaken and no longer Active"));
+			return true;
 		case EInteractorStateV2::Default:
 		default:
 			ErrorMessage.Append(TEXT("Interactor Component cannot proces activation request, invalid state"));
@@ -209,7 +207,7 @@ bool UActorInteractorComponentBase::SuppressInteractor(FString& ErrorMessage)
 			break;
 		case EInteractorStateV2::EIS_Suppressed:
 			ErrorMessage.Append(TEXT("Interactor Component is already Suppressed"));
-		break;
+			break;
 		case EInteractorStateV2::EIS_Awake:
 		case EInteractorStateV2::EIS_Active:
 			ErrorMessage.Append(TEXT("Interactor Component has been Suppressed"));
@@ -320,20 +318,22 @@ void UActorInteractorComponentBase::SetState(const EInteractorStateV2 NewState)
 				case EInteractorStateV2::Default:
 				default: break;
 			}
+			break;
 		case EInteractorStateV2::EIS_Asleep:
 			switch (InteractorState)
 			{
 				case EInteractorStateV2::EIS_Awake:
 				case EInteractorStateV2::EIS_Suppressed:
 				case EInteractorStateV2::EIS_Active:
+				case EInteractorStateV2::EIS_Disabled:
 					InteractorState = NewState;
 					OnStateChanged.Broadcast(InteractorState);
 					break;
 				case EInteractorStateV2::EIS_Asleep:
-				case EInteractorStateV2::EIS_Disabled:
 				case EInteractorStateV2::Default:
 				default: break;
 			}
+			break;
 		case EInteractorStateV2::EIS_Suppressed:
 			switch (InteractorState)
 			{
@@ -348,6 +348,7 @@ void UActorInteractorComponentBase::SetState(const EInteractorStateV2 NewState)
 				case EInteractorStateV2::Default:
 				default: break;
 			}
+			break;
 		case EInteractorStateV2::EIS_Active:
 			switch (InteractorState)
 			{
@@ -362,6 +363,7 @@ void UActorInteractorComponentBase::SetState(const EInteractorStateV2 NewState)
 				case EInteractorStateV2::Default:
 				default: break;
 			}
+			break;
 		case EInteractorStateV2::EIS_Disabled:
 			switch (InteractorState)
 			{
@@ -376,9 +378,9 @@ void UActorInteractorComponentBase::SetState(const EInteractorStateV2 NewState)
 				case EInteractorStateV2::Default:
 				default: break;
 			}
-		case EInteractorStateV2::Default:
-		default:
 			break;
+		case EInteractorStateV2::Default:
+		default: break;
 	}
 }
 
