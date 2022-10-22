@@ -13,6 +13,7 @@ UActorInteractorComponentBase::UActorInteractorComponentBase()
 	bToggleDebug = false;
 
 	InteractorState = EInteractorStateV2::EIS_Asleep;
+	DefaultInteractorState = EInteractorStateV2::EIS_Asleep;
 
 	InteractionKeyPerPlatform.Add((TEXT("Windows")), FKey("E"));
 	InteractionKeyPerPlatform.Add((TEXT("Mac")), FKey("E"));
