@@ -57,7 +57,7 @@ protected:
 	UFUNCTION()
 	virtual AActor* GetInteractableOwner() const override;
 	UFUNCTION()
-	virtual void SetInteractableOwner(const AActor* NewOwner) override;
+	virtual void SetInteractableOwner(AActor* NewOwner) override;
 
 	UFUNCTION()
 	virtual ECollisionChannel GetCollisionChannel() const override;
@@ -144,6 +144,8 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
 	void OnInteractableTracedEvent(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
+	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	void OnInteractableCollisionChannelChangedEvent(const ECollisionChannel NewChannel);
 	
 	virtual void BindCollisionEvents(UPrimitiveComponent* PrimitiveComponent) const override;
 	virtual void UnbindCollisionEvents(UPrimitiveComponent* PrimitiveComponent) const override;
@@ -195,6 +197,8 @@ protected:
 	FInteractableStateChanged OnInteractableStateChanged;
 	UPROPERTY(BlueprintAssignable, Category="Interaction")
 	FInteractableOwnerChanged OnInteractableOwnerChanged;
+	UPROPERTY(BlueprintAssignable, Category="Interaction")
+	FInteractableCollisionChannelChanged OnInteractableCollisionChannelChanged;
 	
 	UPROPERTY(BlueprintAssignable, Category="Interaction")
 	FHighlightableComponentAdded OnHighlightableComponentAdded;
@@ -231,7 +235,10 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category="Interaction|Required", meta=(NoResetToDefault))
 	TEnumAsByte<ECollisionChannel> CollisionChannel;
-	
+
+	/**
+	 * Clamped in setter function to be at least 0 or higher.
+	 */
 	UPROPERTY(EditAnywhere, Category="Interaction|Required", meta=(UIMin=0, ClampMin=0))
 	int32 InteractionWeight;
 	
