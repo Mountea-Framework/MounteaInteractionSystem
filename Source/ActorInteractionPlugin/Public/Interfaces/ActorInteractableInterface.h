@@ -14,7 +14,7 @@ class UActorInteractableInterface : public UInterface
 };
 
 class IActorInteractorInterface;
-enum class EInteractableState : uint8;
+enum class EInteractableStateV2 : uint8;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractorFound, const TScriptInterface<IActorInteractorInterface>&, FoundInteractor);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractorLost, const TScriptInterface<IActorInteractorInterface>&, LostInteractor);
@@ -29,7 +29,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FInteractionStopped);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractableAutoSetupChanged, const bool, NewValue);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractableWeightChanged, const int32&, NewWeight);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractableStateChanged, const EInteractableState&, NewState);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractableStateChanged, const EInteractableStateV2&, NewState);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractableOwnerChanged, const UObject*, NewOwner);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractableCollisionChannelChanged, const ECollisionChannel, NewCollisionChannel);
 
@@ -63,8 +63,8 @@ public:
 	virtual bool SuppressInteractable(FString& ErrorMessage) = 0;
 	virtual void DeactivateInteractable() = 0;
 
-	virtual EInteractableState GetState() const = 0;
-	virtual void SetState(const EInteractableState& NewState) = 0;
+	virtual EInteractableStateV2 GetState() const = 0;
+	virtual void SetState(const EInteractableStateV2& NewState) = 0;
 	
 	virtual TScriptInterface<IActorInteractorInterface> GetInteractor() const = 0;
 	virtual void SetInteractor(const TScriptInterface<IActorInteractorInterface> NewInteractor) = 0;

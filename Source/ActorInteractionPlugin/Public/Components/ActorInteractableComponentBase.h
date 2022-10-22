@@ -43,9 +43,9 @@ protected:
 	virtual void DeactivateInteractable() override;
 
 	UFUNCTION()
-	virtual EInteractableState GetState() const override;
+	virtual EInteractableStateV2 GetState() const override;
 	UFUNCTION()
-	virtual void SetState(const EInteractableState& NewState) override;
+	virtual void SetState(const EInteractableStateV2& NewState) override;
 
 	UFUNCTION()
 	virtual TScriptInterface<IActorInteractorInterface> GetInteractor() const override;
@@ -238,7 +238,7 @@ protected:
 
 	
 	UPROPERTY(VisibleAnywhere, Category="Interaction|Read Only", meta=(NoResetToDefault))
-	EInteractableState InteractableState;
+	EInteractableStateV2 InteractableState;
 	
 	UPROPERTY(VisibleAnywhere, Category="Interaction|Read Only", meta=(NoResetToDefault))
 	TArray<UMeshComponent*> HighlightableMeshComponents;

@@ -13,7 +13,7 @@ UActorInteractableComponentBase::UActorInteractableComponentBase()
 	bInteractableAutoActivate = false;
 	bInteractableAutoSetup = false;
 
-	InteractableState = EInteractableState::EIS_Disabled;
+	InteractableState = EInteractableStateV2::EIS_Asleep;
 	InteractionWeight = 1;
 }
 
@@ -66,12 +66,12 @@ void UActorInteractableComponentBase::DeactivateInteractable()
 {
 }
 
-EInteractableState UActorInteractableComponentBase::GetState() const
+EInteractableStateV2 UActorInteractableComponentBase::GetState() const
 {
-	return EInteractableState::EIS_Standby;
+	return EInteractableStateV2::EIS_Asleep;
 }
 
-void UActorInteractableComponentBase::SetState(const EInteractableState& NewState)
+void UActorInteractableComponentBase::SetState(const EInteractableStateV2& NewState)
 {
 	
 }
