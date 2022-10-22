@@ -46,21 +46,126 @@ void UActorInteractableComponentBase::ToggleAutoSetup(const bool NewValue)
 
 bool UActorInteractableComponentBase::ActivateInteractable(FString& ErrorMessage)
 {
+	const EInteractableStateV2 CachedState = GetState();
+
+	SetState(EInteractableStateV2::EIS_Active);
+
+	switch (CachedState)
+	{
+		case EInteractableStateV2::EIS_Active:
+			ErrorMessage.Append(TEXT("Interactable Component is already Active"));
+			break;
+		case EInteractableStateV2::EIS_Awake:
+			ErrorMessage.Append(TEXT("Interactable Component has been Activated"));
+			return true;
+		case EInteractableStateV2::EIS_Asleep:
+		case EInteractableStateV2::EIS_Cooldown:
+		case EInteractableStateV2::EIS_Completed:
+		case EInteractableStateV2::EIS_Disabled:
+			ErrorMessage.Append(TEXT("Interactable Component cannot be Activated"));
+			break;
+		case EInteractableStateV2::Default: 
+		default:
+			ErrorMessage.Append(TEXT("Interactable Component cannot proces activation request, invalid state"));
+			break;
+	}
+	
 	return false;
 }
 
 bool UActorInteractableComponentBase::WakeUpInteractable(FString& ErrorMessage)
 {
+	const EInteractableStateV2 CachedState = GetState();
+
+	SetState(EInteractableStateV2::EIS_Awake);
+
+	switch (CachedState)
+	{
+		case EInteractableStateV2::EIS_Awake:
+			ErrorMessage.Append(TEXT("Interactable Component is already Awake"));
+			break;
+		case EInteractableStateV2::EIS_Active:
+		case EInteractableStateV2::EIS_Asleep:
+		case EInteractableStateV2::EIS_Cooldown:
+		case EInteractableStateV2::EIS_Disabled:
+			ErrorMessage.Append(TEXT("Interactable Component has been Awaken"));
+			return true;
+		case EInteractableStateV2::EIS_Completed:
+			ErrorMessage.Append(TEXT("Interactable Component cannot be Awaken"));
+			break;
+		case EInteractableStateV2::Default: 
+		default:
+			ErrorMessage.Append(TEXT("Interactable Component cannot proces activation request, invalid state"));
+			break;
+	}
+	
 	return false;
 }
 
-bool UActorInteractableComponentBase::SuppressInteractable(FString& ErrorMessage)
+bool UActorInteractableComponentBase::SnoozeInteractable(FString& ErrorMessage)
 {
+	const EInteractableStateV2 CachedState = GetState();
+
+	SetState(EInteractableStateV2::EIS_Asleep);
+
+	switch (CachedState)
+	{
+		case EInteractableStateV2::EIS_Asleep:
+			ErrorMessage.Append(TEXT("Interactable Component is already Asleep"));
+			break;
+		case EInteractableStateV2::EIS_Awake:
+		case EInteractableStateV2::EIS_Active:
+		case EInteractableStateV2::EIS_Disabled:
+			ErrorMessage.Append(TEXT("Interactable Component has been Awaken"));
+			return true;
+		case EInteractableStateV2::EIS_Cooldown:
+			// TODO: reset cooldown
+			ErrorMessage.Append(TEXT("Interactable Component has been Awaken"));
+			return true;
+		case EInteractableStateV2::EIS_Completed:
+			ErrorMessage.Append(TEXT("Interactable Component cannot be Awaken"));
+			break;
+		case EInteractableStateV2::Default: 
+		default:
+			ErrorMessage.Append(TEXT("Interactable Component cannot proces activation request, invalid state"));
+			break;
+	}
+	
+	return false;
+}
+
+bool UActorInteractableComponentBase::CompleteInteractable(FString& ErrorMessage)
+{
+	const EInteractableStateV2 CachedState = GetState();
+
+	SetState(EInteractableStateV2::EIS_Asleep);
+
+	switch (CachedState)
+	{
+		case EInteractableStateV2::EIS_Active:
+			ErrorMessage.Append(TEXT("Interactable Component is Completed"));
+			return true;
+		case EInteractableStateV2::EIS_Asleep:
+		case EInteractableStateV2::EIS_Awake:
+		case EInteractableStateV2::EIS_Disabled:
+		case EInteractableStateV2::EIS_Cooldown:
+			ErrorMessage.Append(TEXT("Interactable Component cannot be Completed"));
+			break;
+		case EInteractableStateV2::EIS_Completed:
+			ErrorMessage.Append(TEXT("Interactable Component is already Completed"));
+			break;
+		case EInteractableStateV2::Default: 
+		default:
+			ErrorMessage.Append(TEXT("Interactable Component cannot proces activation request, invalid state"));
+			break;
+	}
+	
 	return false;
 }
 
 void UActorInteractableComponentBase::DeactivateInteractable()
 {
+	SetState(EInteractableStateV2::EIS_Disabled);
 }
 
 EInteractableStateV2 UActorInteractableComponentBase::GetState() const
@@ -68,9 +173,109 @@ EInteractableStateV2 UActorInteractableComponentBase::GetState() const
 	return EInteractableStateV2::EIS_Asleep;
 }
 
-void UActorInteractableComponentBase::SetState(const EInteractableStateV2& NewState)
+void UActorInteractableComponentBase::SetState(const EInteractableStateV2 NewState)
 {
-	
+	switch (NewState)
+	{
+		case EInteractableStateV2::EIS_Active:
+			switch (InteractableState)
+			{
+				case EInteractableStateV2::EIS_Awake:
+					InteractableState = NewState;
+					OnInteractableStateChanged.Broadcast(InteractableState);
+					break;
+				case EInteractableStateV2::EIS_Active:
+				case EInteractableStateV2::EIS_Asleep:
+				case EInteractableStateV2::EIS_Cooldown:
+				case EInteractableStateV2::EIS_Completed:
+				case EInteractableStateV2::EIS_Disabled:
+				case EInteractableStateV2::Default:
+				default: break;
+			}
+			break;
+		case EInteractableStateV2::EIS_Awake:
+			switch (InteractableState)
+			{
+				case EInteractableStateV2::EIS_Active:
+				case EInteractableStateV2::EIS_Asleep:
+				case EInteractableStateV2::EIS_Cooldown:
+				case EInteractableStateV2::EIS_Disabled:
+					InteractableState = NewState;
+					OnInteractableStateChanged.Broadcast(InteractableState);
+					break;
+				case EInteractableStateV2::EIS_Completed:
+				case EInteractableStateV2::EIS_Awake:
+				case EInteractableStateV2::Default: 
+				default: break;
+			}
+			break;
+		case EInteractableStateV2::EIS_Asleep:
+			switch (InteractableState)
+			{
+				case EInteractableStateV2::EIS_Active:
+				case EInteractableStateV2::EIS_Awake:
+				case EInteractableStateV2::EIS_Cooldown:
+				case EInteractableStateV2::EIS_Disabled:
+					InteractableState = NewState;
+					OnInteractableStateChanged.Broadcast(InteractableState);
+					break;
+				case EInteractableStateV2::EIS_Completed:
+				case EInteractableStateV2::EIS_Asleep:
+				case EInteractableStateV2::Default: 
+				default: break;
+			}
+			break;
+		case EInteractableStateV2::EIS_Cooldown:
+			switch (InteractableState)
+			{
+				case EInteractableStateV2::EIS_Active:
+					InteractableState = NewState;
+					OnInteractableStateChanged.Broadcast(InteractableState);
+					break;
+				case EInteractableStateV2::EIS_Awake:
+				case EInteractableStateV2::EIS_Cooldown:
+				case EInteractableStateV2::EIS_Disabled:
+				case EInteractableStateV2::EIS_Completed:
+				case EInteractableStateV2::EIS_Asleep:
+				case EInteractableStateV2::Default: 
+				default: break;
+			}
+			break;
+		case EInteractableStateV2::EIS_Completed:
+			switch (InteractableState)
+			{
+				case EInteractableStateV2::EIS_Active:
+					InteractableState = NewState;
+					OnInteractableStateChanged.Broadcast(InteractableState);
+					break;
+				case EInteractableStateV2::EIS_Completed:
+				case EInteractableStateV2::EIS_Awake:
+				case EInteractableStateV2::EIS_Cooldown:
+				case EInteractableStateV2::EIS_Disabled:
+				case EInteractableStateV2::EIS_Asleep:
+				case EInteractableStateV2::Default: 
+				default: break;
+			}
+			break;
+		case EInteractableStateV2::EIS_Disabled:
+			switch (InteractableState)
+			{
+				case EInteractableStateV2::EIS_Active:
+				case EInteractableStateV2::EIS_Completed:
+				case EInteractableStateV2::EIS_Awake:
+				case EInteractableStateV2::EIS_Cooldown:
+				case EInteractableStateV2::EIS_Asleep:
+					InteractableState = NewState;
+					OnInteractableStateChanged.Broadcast(InteractableState);
+					break;
+				case EInteractableStateV2::EIS_Disabled:
+				case EInteractableStateV2::Default: 
+				default: break;
+			}
+			break;
+		case EInteractableStateV2::Default: 
+		default: break;
+	}
 }
 
 TScriptInterface<IActorInteractorInterface> UActorInteractableComponentBase::GetInteractor() const
