@@ -111,11 +111,11 @@ UENUM(BlueprintType, meta=(ScriptName="Interactable State"))
 enum class EInteractableStateV2 : uint8
 {
  EIS_Active    UMETA(DisplayName = "Active",    Tooltip = "Interactable is awaken and being interacted with."),
- EIS_Awake     UMETA(DisplayName = "StandBy",   ToolTip = "Interactable is awaken and can be interacted with."),
- EIS_Asleep    UMETA(DisplayName = "Inactive",  Tooltip = "Interactable is asleep, but can be awaken. Default state."),
- EIS_Cooldown  UMETA(DisplayName = "Cooldown",  Tooltip = "Interactable is disabled during cooldown period. Then will be awaken again."),
- EIS_Completed UMETA(DisplayName = "Finished",  Tooltip = "Interactable is disabled after sucesful interaction."),
- EIS_Disabled  UMETA(DisplayName = "Disabled",  Tooltip = "Interactable is disabled. Can be awaken."),
+ EIS_Awake     UMETA(DisplayName = "StandBy",   ToolTip = "Interactable is awaken and can be interacted with. Will react to Interactors."),
+ EIS_Asleep    UMETA(DisplayName = "Inactive",  Tooltip = "Interactable is asleep, but can be awaken. Default state. Doesn't react to Interactors."),
+ EIS_Cooldown  UMETA(DisplayName = "Cooldown",  Tooltip = "Interactable is disabled during cooldown period. Then will be awaken again. Doesn't react to Interactors."),
+ EIS_Completed UMETA(DisplayName = "Finished",  Tooltip = "Interactable is disabled after sucesful interaction. Doesn't react to Interactors. Cannot be activated again."),
+ EIS_Disabled  UMETA(DisplayName = "Disabled",  Tooltip = "Interactable is disabled. Can be awaken. Doesn't react to Interactors."),
 
  Default      UMETA(Hidden)
 };
