@@ -33,14 +33,16 @@ protected:
 	UFUNCTION()
 	virtual bool WakeUpInteractable(FString& ErrorMessage) override;
 	UFUNCTION()
-	virtual bool SuppressInteractable(FString& ErrorMessage) override;
+	virtual bool SnoozeInteractable(FString& ErrorMessage) override;
+	UFUNCTION()
+	virtual bool CompleteInteractable(FString& ErrorMessage) override;
 	UFUNCTION() 
 	virtual void DeactivateInteractable() override;
 
 	UFUNCTION()
 	virtual EInteractableStateV2 GetState() const override;
 	UFUNCTION()
-	virtual void SetState(const EInteractableStateV2& NewState) override;
+	virtual void SetState(const EInteractableStateV2 NewState) override;
 
 	UFUNCTION()
 	virtual TScriptInterface<IActorInteractorInterface> GetInteractor() const override;
