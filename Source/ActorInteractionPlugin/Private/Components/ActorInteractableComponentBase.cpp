@@ -20,13 +20,11 @@ UActorInteractableComponentBase::UActorInteractableComponentBase()
 void UActorInteractableComponentBase::BeginPlay()
 {
 	Super::BeginPlay();
-}
 
-void UActorInteractableComponentBase::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
-{
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	OnInteractorOverlapped.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableBeginOverlapEvent);
+	OnInteractorStopOverlap.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableStopOverlapEvent);
+	OnInteractorTraced.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableTracedEvent);
 }
-
 
 
 bool UActorInteractableComponentBase::DoesAutoActive() const
@@ -206,4 +204,55 @@ void UActorInteractableComponentBase::RemoveHighlightableOverride(const FName Ta
 
 void UActorInteractableComponentBase::RemoveHighlightableOverrides(const TArray<FName> Tags)
 {
+}
+
+void UActorInteractableComponentBase::OnInteractableBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	/**
+	 * TODO
+	 * Validation
+	 * If Valid, then Broadcast
+	 */
+	
+	OnInteractorOverlapped.Broadcast(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
+}
+
+void UActorInteractableComponentBase::OnInteractableStopOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	/**
+	 * TODO
+	 * Validation
+	 * If Valid, then Broadcast
+	 */
+
+	OnInteractorStopOverlap.Broadcast(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex);
+}
+
+void UActorInteractableComponentBase::OnInteractableTraced(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+{
+	/**
+	 * TODO
+	 * Validation
+	 * If Valid, then Broadcast
+	 */
+
+	OnInteractorTraced.Broadcast(HitComponent, OtherActor, OtherComp, NormalImpulse, Hit);
+}
+
+void UActorInteractableComponentBase::BindCollisionEvents(UPrimitiveComponent* PrimitiveComponent) const
+{
+	if (!PrimitiveComponent) return;
+
+	PrimitiveComponent->OnComponentBeginOverlap.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableBeginOverlap);
+	PrimitiveComponent->OnComponentEndOverlap.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableStopOverlap);
+	PrimitiveComponent->OnComponentHit.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableTraced);
+}
+
+void UActorInteractableComponentBase::UnbindCollisionEvents(UPrimitiveComponent* PrimitiveComponent) const
+{
+	if(!PrimitiveComponent) return;
+
+	PrimitiveComponent->OnComponentBeginOverlap.RemoveDynamic(this, &UActorInteractableComponentBase::OnInteractableBeginOverlap);
+	PrimitiveComponent->OnComponentEndOverlap.RemoveDynamic(this, &UActorInteractableComponentBase::OnInteractableStopOverlap);
+	PrimitiveComponent->OnComponentHit.RemoveDynamic(this, &UActorInteractableComponentBase::OnInteractableTraced);
 }
