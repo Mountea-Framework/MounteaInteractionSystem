@@ -387,12 +387,6 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Interaction|Required", meta=(DisplayName="Auto Activate", NoResetToDefault))
 	uint8 bDoesAutoActivate : 1;
 
-	/**
-	 * New and easier way to set Default State.
-	 * This state will be propagated to Interactor State.
-	 */
-	UPROPERTY(EditAnywhere, Category="Interaction|Read Only", meta=(NoResetToDefault))
-	EInteractorStateV2 DefaultInteractorState;
 
 	/**
 	 * Response Collision Channel this Interactor is interacting against.
@@ -412,13 +406,23 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Interaction|Required", meta=(NoResetToDefault))
 	TMap<FString, FKey> InteractionKeyPerPlatform;
 
+	
+
+	/**
+	 * New and easier way to set Default State.
+	 * This state will be propagated to Interactor State.
+	 */
+	UPROPERTY(EditAnywhere, Category="Interaction|Optional", meta=(NoResetToDefault))
+	EInteractorStateV2 DefaultInteractorState;
+
+
+private:
+
 	/**
 	 * Current read-only State of this Interactor.
 	 */
 	UPROPERTY(VisibleAnywhere, Category="Interaction|Read Only", meta=(NoResetToDefault))
 	EInteractorStateV2 InteractorState;
-
-private:
 	
 	// This is Interactable which is set as Active
 	UPROPERTY(VisibleAnywhere, Category="Interaction|Read Only")
