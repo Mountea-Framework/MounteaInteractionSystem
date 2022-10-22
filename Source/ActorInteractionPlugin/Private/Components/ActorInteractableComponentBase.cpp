@@ -28,6 +28,8 @@ void UActorInteractableComponentBase::BeginPlay()
 	OnInteractorStopOverlap.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableStopOverlapEvent);
 	OnInteractorTraced.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableTracedEvent);
 
+	OnInteractableCollisionChannelChanged.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableCollisionChannelChangedEvent);
+
 	SetState(DefaultInteractableState);
 
 	AutoSetup();
@@ -280,29 +282,34 @@ void UActorInteractableComponentBase::SetState(const EInteractableStateV2 NewSta
 
 TScriptInterface<IActorInteractorInterface> UActorInteractableComponentBase::GetInteractor() const
 {
-	return nullptr;
+	return Interactor;
 }
 
 void UActorInteractableComponentBase::SetInteractor(const TScriptInterface<IActorInteractorInterface> NewInteractor)
 {
+	Interactor = NewInteractor;
 }
 
 int32 UActorInteractableComponentBase::GetInteractableWeight() const
 {
-	return 0;
+	return InteractionWeight;
 }
 
 void UActorInteractableComponentBase::SetInteractableWeight(const int32 NewWeight)
 {
+	InteractionWeight = FMath::Max(0, NewWeight);
+
+	OnInteractableWeightChanged.Broadcast(InteractionWeight);
 }
 
 AActor* UActorInteractableComponentBase::GetInteractableOwner() const
 {
-	return nullptr;
+	return InteractionOwner;
 }
 
-void UActorInteractableComponentBase::SetInteractableOwner(const AActor* NewOwner)
+void UActorInteractableComponentBase::SetInteractableOwner(AActor* NewOwner)
 {
+	InteractionOwner = NewOwner;
 }
 
 ECollisionChannel UActorInteractableComponentBase::GetCollisionChannel() const
@@ -312,6 +319,9 @@ ECollisionChannel UActorInteractableComponentBase::GetCollisionChannel() const
 
 void UActorInteractableComponentBase::SetCollisionChannel(const ECollisionChannel& NewChannel)
 {
+	CollisionChannel = NewChannel;
+
+	OnInteractableCollisionChannelChanged.Broadcast(CollisionChannel);
 }
 
 TArray<UPrimitiveComponent*> UActorInteractableComponentBase::GetCollisionComponents() const
@@ -321,6 +331,7 @@ TArray<UPrimitiveComponent*> UActorInteractableComponentBase::GetCollisionCompon
 
 void UActorInteractableComponentBase::AddCollisionComponent(const UPrimitiveComponent* CollisionComp)
 {
+	
 }
 
 void UActorInteractableComponentBase::AddCollisionComponents(const TArray<UPrimitiveComponent*> NewCollisionComponents)
