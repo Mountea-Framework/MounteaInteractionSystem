@@ -249,7 +249,7 @@ void UActorInteractorComponent::TickInteraction(const float DeltaTime)
 						AActor* InteractableActor = InteractableComponent->GetOwner();
 						if (InteractableActor->GetClass()->ImplementsInterface(UActorInteractionInterface::StaticClass()))
 						{
-							if (!IActorInteractionInterface::Execute_CanInteract(InteractableActor, GetOwner()))
+							if (!IActorInteractionInterface::Execute_CanInteract(InteractableActor, InteractableComponent, GetOwner()))
 								continue;
 						}
 

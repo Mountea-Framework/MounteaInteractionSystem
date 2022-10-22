@@ -5,6 +5,8 @@
 
 #include "ActorInteractionInterface.generated.h"
 
+class UActorInteractableComponent;
+
 UINTERFACE(BlueprintType)
 class ACTORINTERACTIONPLUGIN_API UActorInteractionInterface : public UInterface
 {
@@ -17,5 +19,5 @@ class ACTORINTERACTIONPLUGIN_API IActorInteractionInterface
 
 public:
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Interaction")
-	bool CanInteract(const AActor* With);
+	bool CanInteract(const UActorInteractableComponent* Interactable, const AActor* With);
 };
