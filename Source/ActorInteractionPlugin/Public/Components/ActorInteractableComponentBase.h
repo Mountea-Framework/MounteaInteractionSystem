@@ -222,6 +222,7 @@ protected:
 	void OnInteractableStateChangedEvent(const EInteractableStateV2& NewState);
 
 	/***/
+	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
 	void OnInteractableOwnerChangedEvent(const AActor* NewOwner);
 
 	/***/

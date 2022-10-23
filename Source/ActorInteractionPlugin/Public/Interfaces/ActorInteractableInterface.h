@@ -64,8 +64,8 @@ public:
 	virtual bool CompleteInteractable(FString& ErrorMessage) = 0;
 	virtual void DeactivateInteractable() = 0;
 
-	virtual void InteractorFound(const TScriptInterface<IActorInteractorInterface>& FoundInteractor);
-	virtual void InteractorLost(const TScriptInterface<IActorInteractorInterface>& LostInteractor);
+	virtual void InteractorFound(const TScriptInterface<IActorInteractorInterface>& FoundInteractor) = 0;
+	virtual void InteractorLost(const TScriptInterface<IActorInteractorInterface>& LostInteractor) = 0;
 
 	virtual void InteractionCompleted(const float& TimeCompleted) = 0;
 	virtual void InteractionStarted(const float& TimeStarted) = 0;
