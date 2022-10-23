@@ -136,6 +136,12 @@ public:
 
 	virtual void ToggleDebug() = 0;
 
+	virtual void FindAndAddCollisionShapes() = 0;
+	virtual void FindAndAddHighlightableMeshes() = 0;
+	
 	virtual void BindCollisionEvents(UPrimitiveComponent* PrimitiveComponent) const = 0;
 	virtual void UnbindCollisionEvents(UPrimitiveComponent* PrimitiveComponent) const = 0;
+
+	virtual void BindHighlightable(UMeshComponent* MeshComponent) const = 0;
+	virtual void UnbindHighlightable(UMeshComponent* MeshComponent) const = 0;
 };
