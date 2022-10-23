@@ -726,22 +726,43 @@ void UActorInteractableComponentBase::UnbindCollisionEvents(UPrimitiveComponent*
 
 void UActorInteractableComponentBase::BindHighlightable(UMeshComponent* MeshComponent) const
 {
+	if (!MeshComponent) return;
+	
+	MeshComponent->SetRenderCustomDepth(true);
 }
 
 void UActorInteractableComponentBase::UnbindHighlightable(UMeshComponent* MeshComponent) const
 {
+	if (!MeshComponent) return;
+	
+	MeshComponent->SetRenderCustomDepth(false);
 }
 
 void UActorInteractableComponentBase::AutoSetup()
 {
 	if (DoesAutoSetup())
 	{
-		/**
-		 * TODO:
-		 * - Add all parent Primitive Comps to Collision Shapes
-		 * - Add all parent Mesh Comps to Highlightable Meshes		DONE
-		 * - Bind Events											DONE
-		 */
+		
+		// Get all Parent Components
+		TArray<USceneComponent*> ParentComponents;
+		GetParentComponents(ParentComponents);
+
+		// Iterate over them and assign them properly
+		if (ParentComponents.Num() > 0)
+		{
+			for (const auto Itr : ParentComponents)
+			{
+				if (UPrimitiveComponent* PrimitiveComp = Cast<UPrimitiveComponent>(Itr))
+				{
+					AddCollisionComponent(PrimitiveComp);
+
+					if (UMeshComponent* MeshComp = Cast<UMeshComponent>(PrimitiveComp))
+					{
+						AddHighlightableComponent(MeshComp);
+					}
+				}
+			}
+		}
 	}
 
 	FindAndAddCollisionShapes();
