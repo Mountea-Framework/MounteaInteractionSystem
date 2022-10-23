@@ -138,13 +138,81 @@ protected:
 #pragma region EventFunctions
 
 #pragma region NativeFunctions
-	
 
+	
+	/**
+	 * Event called once Interactor is found.
+	 * Called by OnInteractorFound
+	 * Calls OnInteractorFoundEvent
+	 */
+	UFUNCTION(Category="Interaction")
+	virtual void InteractorFound(const TScriptInterface<IActorInteractorInterface>& FoundInteractor) override;
+
+	/**
+	 * Event called once Interactor is lost.
+	 * Called by OnInteractorLost
+	 * Calls OnInteractorLostEvent
+	 */
+	UFUNCTION(Category="Interaction")
+	virtual void InteractorLost(const TScriptInterface<IActorInteractorInterface>& LostInteractor) override;
+
+	/**
+	 * Event called once Interaction is completed.
+	 * Called from OnInteractionCompleted
+	 * Calls OnInteractionCompletedEvent
+	 */
+	UFUNCTION(Category="Interaction")
+	virtual void InteractionCompleted(const float& TimeCompleted) override;
+
+	/**
+	 * Event called once Interaction Starts.
+	 * Called by OnInteractionStarted
+	 * Calls OnInteractionStartedEvent
+	 */
+	UFUNCTION(Category="Interaction")
+	virtual void InteractionStarted(const float& TimeStarted) override;
+
+	/**
+	 * Event called once Interaction Stops.
+	 * Called by OnInteractionStopped
+	 * Calls OnInteractionStoppedEvent
+	 */
+	UFUNCTION(Category="Interaction")
+	virtual void InteractionStopped() override;
+
+	/**
+	 * Event called once Interaction Lifecycles is Completed.
+	 * Called by OnLifecycleCompleted
+	 * Calls OnLifecycleCompletedEvent
+	 */
+	UFUNCTION(Category="Interaction")
+	virtual void InteractionLifecycleCompleted() override;
+
+	/**
+	 * Event called once Interaction Cooldown is Completed and Interactable can be Interacted with again.
+	 * Called by OnCooldownCompleted
+	 * Calls OnCooldownCompletedEvent
+	 */
+	UFUNCTION(Category="Interaction")
+	virtual void InteractionCooldownCompleted() override;
+
+	
+	/**
+	 * Function called once any of Collision Shapes is overlapped.
+	 * Called by OnInteractorOverlapped
+	 * Calls OnInteractableBeginOverlapEvent
+	 * Overlap event is called only if:
+	 * * Other Actor Implements Interactor Interface
+	 * * Other Actor contains Component which Implements Interactor Interface
+	 * * Interactor Interface does have same CollisionChannel as Interactable
+	 */
 	UFUNCTION(Category="Interaction")
 	void OnInteractableBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
 
 	/**
 	 * Event called once any of Collision Shapes stops overlapping.
+	 * Called by OnInteractorStopOverlap
+	 * Calls OnInteractorStopOverlapEvent
 	 * Stop overlap event is called only if:
 	 * * Other Actor Implements Interactor Interface
 	 * * Other Actor contains Component which Implements Interactor Interface
@@ -155,6 +223,8 @@ protected:
 
 	/**
 	 * Event called once any of Collision Shapes is hit by trace.
+	 * Called by OnInteractorTraced
+	 * Calls OnInteractorTracedEvent
 	 * Hit by trace event is called only if:
 	 * * Other Actor Implements Interactor Interface
 	 * * Other Actor contains Component which Implements Interactor Interface
@@ -162,34 +232,6 @@ protected:
 	 */
 	UFUNCTION(Category="Interaction")
 	void OnInteractableTraced(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
-	
-	/***/
-	UFUNCTION(Category="Interaction")
-	virtual void InteractorFound(const TScriptInterface<IActorInteractorInterface>& FoundInteractor) override;
-
-	/***/
-	UFUNCTION(Category="Interaction")
-	virtual void InteractorLost(const TScriptInterface<IActorInteractorInterface>& LostInteractor) override;
-
-	/***/
-	UFUNCTION(Category="Interaction")
-	virtual void InteractionCompleted(const float& TimeCompleted) override;
-
-	/***/
-	UFUNCTION(Category="Interaction")
-	virtual void InteractionStarted(const float& TimeStarted) override;
-
-	/***/
-	UFUNCTION(Category="Interaction")
-	virtual void InteractionStopped() override;
-
-	/***/
-	UFUNCTION(Category="Interaction")
-	virtual void InteractionLifecycleCompleted() override;
-
-	/***/
-	UFUNCTION(Category="Interaction")
-	virtual void InteractionCooldownCompleted() override;
 
 #pragma endregion
 
@@ -429,8 +471,11 @@ protected:
 
 #pragma region InteractionHelpers
 
+	virtual void FindAndAddCollisionShapes() override;
+	virtual void FindAndAddHighlightableMeshes() override;
+
 	/**
-	 * Unbinds Collision Events for specified Primitive Component.
+	 * Binds Collision Events for specified Primitive Component.
 	 * Automatically called when Interactable is:
 	 * * Awaken
 	 * * Asleep
@@ -445,6 +490,23 @@ protected:
 	 * * Cooldown
 	 */
 	virtual void UnbindCollisionEvents(UPrimitiveComponent* PrimitiveComponent) const override;
+
+	/**
+	 * Binds Highlightable Events for specified Mesh Component.
+	 * Automatically called when Interactable is:
+	 * * Awaken
+	 * * Asleep
+	 */
+	virtual void BindHighlightable(UMeshComponent* MeshComponent) const override;
+
+	/**
+	 * Unbinds Highlightable Events for specified Mesh Component.
+	 * Automatically called when Interactable is:
+	 * * Deactivated
+	 * * Finished
+	 * * Cooldown
+	 */
+	virtual void UnbindHighlightable(UMeshComponent* MeshComponent) const override;
 	
 	/**
 	 * Development Only.
@@ -467,12 +529,14 @@ protected:
 #pragma endregion 
 
 protected:
-
-	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Interaction")
-	FInteractorFound OnInteractorFound;
-	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Interaction")
-	FInteractorLost OnInteractorLost;
 	
+	/**
+	 * Event called once any of Collision Shapes is hit by trace.
+	 * Hit by trace event is called only if:
+	 * * Other Actor Implements Interactor Interface
+	 * * Other Actor contains Component which Implements Interactor Interface
+	 * * Interactor Interface does have same CollisionChannel as Interactable
+	 */
 	UPROPERTY(BlueprintAssignable, Category="Interaction")
 	FInteractorTraced OnInteractorTraced;
 
@@ -485,17 +549,64 @@ protected:
 	 */
 	UPROPERTY(BlueprintAssignable, Category="Interaction")
 	FInteractorOverlapped OnInteractorOverlapped;
+	
+	/**
+	 * Event called once any of Collision Shapes stops overlapping.
+	 * Stop overlap event is called only if:
+	 * * Other Actor Implements Interactor Interface
+	 * * Other Actor contains Component which Implements Interactor Interface
+	 * * Interactor Interface does have same CollisionChannel as Interactable
+	 */
 	UPROPERTY(BlueprintAssignable, Category="Interaction")
 	FInteractorStopOverlap OnInteractorStopOverlap;
-	
+
+
+	/**
+	 * Event called once Interactor is found.
+	 * Called by OnInteractorFound
+	 */
+	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Interaction")
+	FInteractorFound OnInteractorFound;
+
+	/**
+	 * Event called once Interactor is lost.
+	 * Called by OnInteractorLost
+	 */
+	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Interaction")
+	FInteractorLost OnInteractorLost;
+
+	/**
+	 * Event called once Interaction is completed.
+	 * Called from OnInteractionCompleted
+	 */
 	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Interaction")
 	FInteractionCompleted OnInteractionCompleted;
+
+	/**
+	 * Event called once Interaction Starts.
+	 * Called by OnInteractionStarted
+	 */
 	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Interaction")
 	FInteractionStarted OnInteractionStarted;
+
+	/**
+	 * Event called once Interaction Stops.
+	 * Called by OnInteractionStopped
+	 */
 	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Interaction")
 	FInteractionStopped OnInteractionStopped;
+
+	/**
+	 * Event called once Interaction Lifecycles is Completed.
+	 * Called by OnLifecycleCompleted
+	 */	
 	UPROPERTY(BlueprintAssignable, Category="Interaction")
 	FLifecycleCompleted OnLifecycleCompleted;
+
+	/**
+	 * Event called once Interaction Cooldown is Completed and Interactable can be Interacted with again.
+	 * Called by OnCooldownCompleted
+	 */
 	UPROPERTY(BlueprintAssignable, Category="Interaction")
 	FCooldownCompleted OnCooldownCompleted;
 
