@@ -7,6 +7,7 @@
 #include "Interfaces/ActorInteractableInterface.h"
 #include "ActorInteractableComponentBase.generated.h"
 
+enum class EInteractableLifecycle : uint8;
 
 UCLASS(ClassGroup=(Interaction), Blueprintable, hideCategories=(Collision, AssetUserData, Cooking, ComponentTick, Activation), meta=(BlueprintSpawnableComponent, DisplayName = "Interactable Component"))
 class ACTORINTERACTIONPLUGIN_API UActorInteractableComponentBase : public UWidgetComponent, public IActorInteractableInterface
@@ -67,24 +68,24 @@ protected:
 	UFUNCTION()
 	virtual TArray<UPrimitiveComponent*> GetCollisionComponents() const override;
 	UFUNCTION()
-	virtual void AddCollisionComponent(const UPrimitiveComponent* CollisionComp) override;
+	virtual void AddCollisionComponent(UPrimitiveComponent* CollisionComp) override;
 	UFUNCTION()
 	virtual void AddCollisionComponents(const TArray<UPrimitiveComponent*> NewCollisionComponents) override;
 	UFUNCTION()
-	virtual void RemoveCollisionComponent(const UPrimitiveComponent* CollisionComp) override;
+	virtual void RemoveCollisionComponent(UPrimitiveComponent* CollisionComp) override;
 	UFUNCTION()
 	virtual void RemoveCollisionComponents(const TArray<UPrimitiveComponent*> RemoveCollisionComponents) override;
 
 	UFUNCTION()
 	virtual TArray<UMeshComponent*> GetHighlightableComponents() const override;
 	UFUNCTION()
-	virtual void AddHighlightableComponent(const UMeshComponent* HighlightableComp) override;
+	virtual void AddHighlightableComponent(UMeshComponent* HighlightableComp) override;
 	UFUNCTION()
-	virtual void AddHighlightableComponents(const TArray<UMeshComponent*> HighlightableComponents) override;
+	virtual void AddHighlightableComponents(const TArray<UMeshComponent*> AddHighlightableComponents) override;
 	UFUNCTION()
-	virtual void RemoveHighlightableComponent(const UMeshComponent* HighlightableComp) override;
+	virtual void RemoveHighlightableComponent(UMeshComponent* HighlightableComp) override;
 	UFUNCTION()
-	virtual void RemoveHighlightableComponents(const TArray<UMeshComponent*> HighlightableComponents) override;
+	virtual void RemoveHighlightableComponents(const TArray<UMeshComponent*> RemoveHighlightableComponents) override;
 	
 
 
@@ -115,16 +116,65 @@ protected:
 	UFUNCTION()
 	virtual void RemoveHighlightableOverrides(const TArray<FName> Tags) override;
 
+#pragma region EventFunctions
 
+#pragma region NativeFunctions
+	
+	/***/
 	UFUNCTION(Category="Interaction")
 	void OnInteractableBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
 
+	/***/
 	UFUNCTION(Category="Interaction")
 	void OnInteractableStopOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
+	/***/
 	UFUNCTION(Category="Interaction")
 	void OnInteractableTraced(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+	
+	/***/
+	UFUNCTION(Category="Interaction")
+	virtual void InteractorFound(const TScriptInterface<IActorInteractorInterface>& FoundInteractor) override;
 
+	/***/
+	UFUNCTION(Category="Interaction")
+	virtual void InteractorLost(const TScriptInterface<IActorInteractorInterface>& LostInteractor) override;
+
+	/***/
+	UFUNCTION(Category="Interaction")
+	virtual void InteractionCompleted(const float& TimeCompleted) override;
+
+	/***/
+	UFUNCTION(Category="Interaction")
+	virtual void InteractionStarted(const float& TimeStarted) override;
+
+	/***/
+	UFUNCTION(Category="Interaction")
+	virtual void InteractionStopped() override;
+
+	/***/
+	UFUNCTION(Category="Interaction")
+	virtual void InteractionLifecycleCompleted() override;
+
+	/***/
+	UFUNCTION(Category="Interaction")
+	virtual void InteractionCooldownCompleted() override;
+
+#pragma endregion
+
+#pragma region InteractionEvents
+	
+	/**
+	 * 
+	 */
+	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	void OnInteractorFoundEvent(const TScriptInterface<IActorInteractorInterface>& FoundInteractor);
+
+	/**
+	 * 
+	 */
+	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	void OnInteractorLostEvent(const TScriptInterface<IActorInteractorInterface>& LostInteractor);
 	
 	/**
 	 * Event bound to OnInteractorOverlapped.
@@ -145,7 +195,42 @@ protected:
 	void OnInteractableTracedEvent(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
 	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	void OnInteractionCompletedEvent(const float& FinishTime);
+	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	void OnInteractionStartedEvent(const float& StartTime);
+	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	void OnInteractionStoppedEvent();
+	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	void OnLifecycleCompletedEvent();
+	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	void OnCooldownCompletedEvent();
+
+#pragma endregion 
+
+#pragma region AttributesEvents
+
+	/***/
+	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	void OnInteractableAutoSetupChangedEvent(const bool NewValue);
+
+	/***/
+	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	void OnInteractableWeightChangedEvent(const int32& NewWeight);
+
+	/***/
+	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	void OnInteractableStateChangedEvent(const EInteractableStateV2& NewState);
+
+	/***/
+	void OnInteractableOwnerChangedEvent(const AActor* NewOwner);
+
+	/***/
+	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
 	void OnInteractableCollisionChannelChangedEvent(const ECollisionChannel NewChannel);
+
+#pragma endregion 
+
+#pragma endregion 
 	
 	virtual void BindCollisionEvents(UPrimitiveComponent* PrimitiveComponent) const override;
 	virtual void UnbindCollisionEvents(UPrimitiveComponent* PrimitiveComponent) const override;
@@ -188,6 +273,10 @@ protected:
 	FInteractionStarted OnInteractionStarted;
 	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Interaction")
 	FInteractionStopped OnInteractionStopped;
+	UPROPERTY(BlueprintAssignable, Category="Interaction")
+	FLifecycleCompleted OnLifecycleCompleted;
+	UPROPERTY(BlueprintAssignable, Category="Interaction")
+	FCooldownCompleted OnCooldownCompleted;
 
 	UPROPERTY(BlueprintAssignable, Category="Interaction")
 	FInteractableAutoSetupChanged OnInteractableAutoSetupChanged;
@@ -212,9 +301,9 @@ protected:
 	UPROPERTY(BlueprintAssignable, Category="Interaction")
 	FHighlightableOverrideAdded OnHighlightableOverrideAdded;
 	UPROPERTY(BlueprintAssignable, Category="Interaction")
-	FCollisionOverrideAdded OnCollisionOverrideAdded;
-	UPROPERTY(BlueprintAssignable, Category="Interaction")
 	FHighlightableOverrideRemoved OnHighlightableOverrideRemoved;
+	UPROPERTY(BlueprintAssignable, Category="Interaction")
+	FCollisionOverrideAdded OnCollisionOverrideAdded;
 	UPROPERTY(BlueprintAssignable, Category="Interaction")
 	FCollisionOverrideRemoved OnCollisionOverrideRemoved;
 
@@ -245,20 +334,27 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category="Interaction|Optional", meta=(NoResetToDefault))
 	EInteractableStateV2 DefaultInteractableState;
-	
 	UPROPERTY(EditAnywhere, Category="Interaction|Optional", meta=(NoResetToDefault))
 	TArray<FName> CollisionOverrides;
-	
 	UPROPERTY(EditAnywhere, Category="Interaction|Optional", meta=(NoResetToDefault))
 	TArray<FName> HighlightableOverrides;
-	
 
+	/**
+	 * 
+	 */
+	UPROPERTY(EditAnywhere, Category="Interaction|Required", meta=(NoResetToDefault))
+	EInteractableLifecycle LifecycleMode;
+	UPROPERTY(EditAnywhere, Category="Interaction|Required", meta=(NoResetToDefault, EditCondition = "LifecycleMode == EInteractableLifecycle::EIL_Cycled"))
+	int32 LifecycleCount;
+	UPROPERTY(EditAnywhere, Category="Interaction|Required", meta=(NoResetToDefault))
+	float CooldownPeriod;
+	
 	
 	UPROPERTY(VisibleAnywhere, Category="Interaction|Read Only", meta=(NoResetToDefault))
 	EInteractableStateV2 InteractableState;
 	
 	UPROPERTY(VisibleAnywhere, Category="Interaction|Read Only", meta=(NoResetToDefault))
-	TArray<UMeshComponent*> HighlightableMeshComponents;
+	TArray<UMeshComponent*> HighlightableComponents;
 
 	UPROPERTY(VisibleAnywhere, Category="Interaction|Read Only", meta=(NoResetToDefault))
 	TArray<UPrimitiveComponent*> CollisionComponents;
