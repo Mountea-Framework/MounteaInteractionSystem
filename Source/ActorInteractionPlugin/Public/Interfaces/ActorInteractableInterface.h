@@ -15,6 +15,7 @@ class UActorInteractableInterface : public UInterface
 
 class IActorInteractorInterface;
 enum class EInteractableStateV2 : uint8;
+enum class EInteractableLifecycle : uint8;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractorFound, const TScriptInterface<IActorInteractorInterface>&, FoundInteractor);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractorLost, const TScriptInterface<IActorInteractorInterface>&, LostInteractor);
@@ -35,6 +36,9 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractableWeightChanged, const in
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractableStateChanged, const EInteractableStateV2&, NewState);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractableOwnerChanged, const AActor*, NewOwner);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractableCollisionChannelChanged, const ECollisionChannel, NewCollisionChannel);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FLifecycleModeChanged, const EInteractableLifecycle&, NewMode);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FLifecycleCountChanged, const int32, NewLifecycleCount);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCooldownPeriodChanged, const float, NewCooldownPeriod);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FHighlightableComponentAdded, const UMeshComponent*, NewHighlightableComp);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCollisionComponentAdded, const UPrimitiveComponent*, NewCollisionComp);
@@ -72,6 +76,8 @@ public:
 	virtual void InteractionStopped() = 0;
 	virtual void InteractionLifecycleCompleted() = 0;
 	virtual void InteractionCooldownCompleted() = 0;
+
+	
 	
 	virtual EInteractableStateV2 GetState() const = 0;
 	virtual void SetState(const EInteractableStateV2 NewState) = 0;
@@ -87,6 +93,17 @@ public:
 
 	virtual ECollisionChannel GetCollisionChannel() const = 0;
 	virtual void SetCollisionChannel(const ECollisionChannel& NewChannel) = 0;
+
+	virtual EInteractableLifecycle GetLifecycleMode() const = 0;
+	virtual void SetLifecycleMode(const EInteractableLifecycle& NewMode) = 0;
+
+	virtual int32 GetLifecycleCount() const = 0;
+	virtual void SetLifecycleCount(const int32 NewLifecycleCount) = 0;
+
+	virtual float GetCooldownPeriod() const = 0;
+	virtual void SetCooldownPeriod(const float NewCooldownPeriod) = 0;
+	
+	
 
 	virtual TArray<UPrimitiveComponent*> GetCollisionComponents() const = 0;
 	virtual void AddCollisionComponent(UPrimitiveComponent* CollisionComp) = 0;
