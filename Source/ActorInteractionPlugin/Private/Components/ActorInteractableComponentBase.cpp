@@ -9,12 +9,14 @@ UActorInteractableComponentBase::UActorInteractableComponentBase()
 	PrimaryComponentTick.bCanEverTick = true;
 
 	bToggleDebug = false;
-	bInteractableAutoActivate = false;
 	bInteractableAutoSetup = false;
 
 	InteractableState = EInteractableStateV2::EIS_Asleep;
 	DefaultInteractableState = EInteractableStateV2::EIS_Asleep;
 	InteractionWeight = 1;
+	
+	bInteractionHighlight = true;
+	StencilID = 133;
 
 	LifecycleMode = EInteractableLifecycle::EIL_Cycled;
 	LifecycleCount = 2;
@@ -26,6 +28,8 @@ UActorInteractableComponentBase::UActorInteractableComponentBase()
 void UActorInteractableComponentBase::BeginPlay()
 {
 	Super::BeginPlay();
+
+	InteractionOwner = GetOwner();
 
 	// Interaction Events
 	OnInteractorFound.AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractorFound);
@@ -47,11 +51,22 @@ void UActorInteractableComponentBase::BeginPlay()
 	OnInteractableStateChanged.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableStateChangedEvent);
 	OnInteractableOwnerChanged.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableOwnerChangedEvent);
 	OnInteractableCollisionChannelChanged.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableCollisionChannelChangedEvent);
-	
-	// Collision Events
+	OnLifecycleModeChanged.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnLifecycleModeChangedEvent);
+	OnLifecycleCountChanged.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnLifecycleCountChangedEvent);
+	OnCooldownPeriodChanged.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnCooldownPeriodChangedEvent);
 
 	// Highlight Events
-
+	OnHighlightableComponentAdded.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnHighlightableComponentAddedEvent);
+	OnHighlightableComponentRemoved.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnHighlightableComponentRemovedEvent);
+	OnHighlightableOverrideAdded.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnHighlightableOverrideAddedEvent);
+	OnHighlightableOverrideRemoved.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnHighlightableOverrideRemovedEvent);
+	
+	// Collision Events
+	OnCollisionComponentAdded.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnCollisionComponentAddedEvent);
+	OnCollisionComponentRemoved.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnCollisionComponentRemovedEvent);
+	OnCollisionOverrideAdded.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnCollisionOverrideAddedEvent);
+	OnCollisionOverrideRemoved.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnCollisionOverrideRemovedEvent);
+	
 	SetState(DefaultInteractableState);
 
 	AutoSetup();
@@ -194,7 +209,7 @@ void UActorInteractableComponentBase::DeactivateInteractable()
 
 EInteractableStateV2 UActorInteractableComponentBase::GetState() const
 {
-	return EInteractableStateV2::EIS_Asleep;
+	return InteractableState;
 }
 
 void UActorInteractableComponentBase::SetState(const EInteractableStateV2 NewState)
@@ -351,6 +366,69 @@ void UActorInteractableComponentBase::SetCollisionChannel(const ECollisionChanne
 TArray<UPrimitiveComponent*> UActorInteractableComponentBase::GetCollisionComponents() const
 {
 	return CollisionComponents;
+}
+
+EInteractableLifecycle UActorInteractableComponentBase::GetLifecycleMode() const
+{
+	return LifecycleMode;
+}
+
+void UActorInteractableComponentBase::SetLifecycleMode(const EInteractableLifecycle& NewMode)
+{
+	LifecycleMode = NewMode;
+
+	OnLifecycleModeChanged.Broadcast(LifecycleMode);
+}
+
+int32 UActorInteractableComponentBase::GetLifecycleCount() const
+{
+	return LifecycleCount;
+}
+
+void UActorInteractableComponentBase::SetLifecycleCount(const int32 NewLifecycleCount)
+{
+	switch (LifecycleMode)
+	{
+		case EInteractableLifecycle::EIL_Cycled:
+			if (NewLifecycleCount < -1)
+			{
+				LifecycleCount = -1;
+				OnLifecycleCountChanged.Broadcast(LifecycleCount);
+			}
+			else if (NewLifecycleCount < 2)
+			{
+				LifecycleCount = 2;
+				OnLifecycleCountChanged.Broadcast(LifecycleCount);
+			}
+			else if (NewLifecycleCount > 2)
+			{
+				LifecycleCount = NewLifecycleCount;
+				OnLifecycleCountChanged.Broadcast(LifecycleCount);
+			}
+			break;
+		case EInteractableLifecycle::EIL_OnlyOnce:
+		case EInteractableLifecycle::Default:
+		default: break;
+	}
+}
+
+float UActorInteractableComponentBase::GetCooldownPeriod() const
+{
+	return CooldownPeriod;
+}
+
+void UActorInteractableComponentBase::SetCooldownPeriod(const float NewCooldownPeriod)
+{
+	switch (LifecycleMode)
+	{
+		case EInteractableLifecycle::EIL_Cycled:
+			LifecycleCount = FMath::Max(0.1f, NewCooldownPeriod);
+			OnLifecycleCountChanged.Broadcast(LifecycleCount);
+			break;
+		case EInteractableLifecycle::EIL_OnlyOnce:
+		case EInteractableLifecycle::Default:
+		default: break;
+	}
 }
 
 void UActorInteractableComponentBase::AddCollisionComponent(UPrimitiveComponent* CollisionComp)
