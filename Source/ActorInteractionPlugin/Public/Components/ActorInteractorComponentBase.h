@@ -30,6 +30,8 @@ protected:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 protected:
+
+#pragma region Events
 	
 	/**
 	 * Event bound to OnInteractableSelected event.
@@ -113,6 +115,8 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
 	void OnInteractorAutoActivateChanged(const bool NewAutoActivate);
 
+#pragma endregion 
+	
 	/**
 	 * Compares Interactables.
 	 * If with the same Owner, then by Weight.

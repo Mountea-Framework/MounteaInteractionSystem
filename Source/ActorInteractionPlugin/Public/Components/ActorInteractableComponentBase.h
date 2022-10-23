@@ -7,8 +7,6 @@
 #include "Interfaces/ActorInteractableInterface.h"
 #include "ActorInteractableComponentBase.generated.h"
 
-enum class EInteractableLifecycle : uint8;
-
 UCLASS(ClassGroup=(Interaction), Blueprintable, hideCategories=(Collision, AssetUserData, Cooking, ComponentTick, Activation), meta=(BlueprintSpawnableComponent, DisplayName = "Interactable Component"))
 class ACTORINTERACTIONPLUGIN_API UActorInteractableComponentBase : public UWidgetComponent, public IActorInteractableInterface
 {
@@ -22,6 +20,8 @@ protected:
 
 	virtual void BeginPlay() override;
 
+#pragma region InteractableFunctions
+	
 protected:
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
@@ -134,6 +134,8 @@ protected:
 	virtual void RemoveHighlightableOverride(const FName Tag) override;
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void RemoveHighlightableOverrides(const TArray<FName> Tags) override;
+
+#pragma endregion
 
 #pragma region EventFunctions
 
@@ -467,8 +469,6 @@ protected:
 
 #pragma endregion 
 
-#pragma endregion
-
 #pragma region InteractionHelpers
 
 	virtual void FindAndAddCollisionShapes() override;
@@ -526,9 +526,15 @@ protected:
 	UFUNCTION()
 	void AutoSetup();
 
-#pragma endregion 
+#pragma endregion
 
+#pragma endregion
+
+#pragma region Events
+	
 protected:
+
+#pragma region InteractionReactionEvents
 	
 	/**
 	 * Event called once any of Collision Shapes is hit by trace.
@@ -560,6 +566,9 @@ protected:
 	UPROPERTY(BlueprintAssignable, Category="Interaction")
 	FInteractorStopOverlap OnInteractorStopOverlap;
 
+#pragma endregion 
+
+#pragma region InteractionEvents
 
 	/**
 	 * Event called once Interactor is found.
@@ -610,46 +619,143 @@ protected:
 	UPROPERTY(BlueprintAssignable, Category="Interaction")
 	FCooldownCompleted OnCooldownCompleted;
 
-	UPROPERTY(BlueprintAssignable, Category="Interaction")
-	FInteractableAutoSetupChanged OnInteractableAutoSetupChanged;
-	UPROPERTY(BlueprintAssignable, Category="Interaction")
-	FInteractableWeightChanged OnInteractableWeightChanged;
-	UPROPERTY(BlueprintAssignable, Category="Interaction")
-	FInteractableStateChanged OnInteractableStateChanged;
-	UPROPERTY(BlueprintAssignable, Category="Interaction")
-	FInteractableOwnerChanged OnInteractableOwnerChanged;
-	UPROPERTY(BlueprintAssignable, Category="Interaction")
-	FInteractableCollisionChannelChanged OnInteractableCollisionChannelChanged;
-	UPROPERTY(BlueprintAssignable, Category="Interaction")
-	FLifecycleModeChanged OnLifecycleModeChanged;
-	UPROPERTY(BlueprintAssignable, Category="Interaction")
-	FLifecycleCountChanged OnLifecycleCountChanged;
-	UPROPERTY(BlueprintAssignable, Category="Interaction")
-	FCooldownPeriodChanged OnCooldownPeriodChanged;
-	
+#pragma endregion
+
+#pragma region InteractionComponents
+
+	/**
+	 * Event called once Highlightable Component is added to Highlightable Meshes.
+	 * Returns which MeshComponent has been added.
+	 */
 	UPROPERTY(BlueprintAssignable, Category="Interaction")
 	FHighlightableComponentAdded OnHighlightableComponentAdded;
+
+	/**
+	 * Event called once Highlightable Component is removed from Highlightable Meshes.
+	 * Returns which MeshComponent has been removed.
+	 */
 	UPROPERTY(BlueprintAssignable, Category="Interaction")
 	FHighlightableComponentRemoved OnHighlightableComponentRemoved;
+
+	/**
+	 * Event called once Collision Component is added to Collision Shapes.
+	 * Returns which PrimitiveComponent has been added.
+	 */	
 	UPROPERTY(BlueprintAssignable, Category="Interaction")
 	FCollisionComponentAdded OnCollisionComponentAdded;
+
+	/**
+	 * Event called once Collision Component is removed from Collision Shapes.
+	 * Returns which PrimitiveComponent has been removed.
+	 */		
 	UPROPERTY(BlueprintAssignable, Category="Interaction")
 	FCollisionComponentRemoved OnCollisionComponentRemoved;
-	
+
+#pragma endregion 
+
+#pragma region InteractionHelperEvents
+
+	/**
+	 * Event called once Auto Setup has changed.
+	 * Expected to be more a debugging event rather than in-game event.
+	 */
+	UPROPERTY(BlueprintAssignable, Category="Interaction")
+	FInteractableAutoSetupChanged OnInteractableAutoSetupChanged;
+
+	/**
+	 * Event called once Interaction Weight has changed.
+	 * Expected to be more a debugging event rather than in-game event.
+	 */
+	UPROPERTY(BlueprintAssignable, Category="Interaction")
+	FInteractableWeightChanged OnInteractableWeightChanged;
+
+	/**
+	 * Event called once Interactable State has changed.
+	 * Expected to be more a debugging event rather than in-game event.
+	 */
+	UPROPERTY(BlueprintAssignable, Category="Interaction")
+	FInteractableStateChanged OnInteractableStateChanged;
+
+	/**
+	 * Event called once Interactable Owner has changed.
+	 * Expected to be more a debugging event rather than in-game event.
+	 */
+	UPROPERTY(BlueprintAssignable, Category="Interaction")
+	FInteractableOwnerChanged OnInteractableOwnerChanged;
+
+	/**
+	 * Event called once Interactable Collision Channel has changed.
+	 * Expected to be more a debugging event rather than in-game event.
+	 */
+	UPROPERTY(BlueprintAssignable, Category="Interaction")
+	FInteractableCollisionChannelChanged OnInteractableCollisionChannelChanged;
+
+	/**
+	 * Event called once Lifecycle Mode has changed.
+	 * Expected to be more a debugging event rather than in-game event.
+	 */
+	UPROPERTY(BlueprintAssignable, Category="Interaction")
+	FLifecycleModeChanged OnLifecycleModeChanged;
+
+	/**
+	 * Event called once Lifecycle Count has changed.
+	 * Expected to be more a debugging event rather than in-game event.
+	 */
+	UPROPERTY(BlueprintAssignable, Category="Interaction")
+	FLifecycleCountChanged OnLifecycleCountChanged;
+
+	/**
+	 * Event called once Cooldown Period has changed.
+	 * Expected to be more a debugging event rather than in-game event.
+	 */
+	UPROPERTY(BlueprintAssignable, Category="Interaction")
+	FCooldownPeriodChanged OnCooldownPeriodChanged;
+
+	/**
+	 * Event called once new Highlightable Override has been added.
+	 * Expected to be more a debugging event rather than in-game event.
+	 * Highlightable Override is not meant to be updated in-game as the setup is not well optimized.
+	 * Currently there is not implemented any function to update Highlightable Meshes from Highlightable Override in-game.
+	 */
 	UPROPERTY(BlueprintAssignable, Category="Interaction")
 	FHighlightableOverrideAdded OnHighlightableOverrideAdded;
+	
+	/**
+	 * Event called once Highlightable Override has been removed.
+	 * Expected to be more a debugging event rather than in-game event.
+	 * Highlightable Override is not meant to be updated in-game as the setup is not well optimized.
+	 * Currently there is not implemented any function to update Highlightable Meshes from Highlightable Override in-game.
+	 */
 	UPROPERTY(BlueprintAssignable, Category="Interaction")
 	FHighlightableOverrideRemoved OnHighlightableOverrideRemoved;
+
+	/**
+	 * Event called once new Collision Override has been added.
+	 * Expected to be more a debugging event rather than in-game event.
+	 * Collision Override is not meant to be updated in-game as the setup is not well optimized.
+	 * Currently there is not implemented any function to update Collision Shapes from Collision Override in-game.
+	 */
 	UPROPERTY(BlueprintAssignable, Category="Interaction")
 	FCollisionOverrideAdded OnCollisionOverrideAdded;
+
+	/**
+	 * Event called once Collision Override has been removed.
+	 * Expected to be more a debugging event rather than in-game event.
+	 * Collision Override is not meant to be updated in-game as the setup is not well optimized.
+	 * Currently there is not implemented any function to update Collision Shapes from Collision Override in-game.
+	 */
 	UPROPERTY(BlueprintAssignable, Category="Interaction")
 	FCollisionOverrideRemoved OnCollisionOverrideRemoved;
 
+#pragma endregion 
+
+#pragma endregion 
+
 #pragma region Attributes
-	
-protected:
 
 #pragma region Debug
+
+protected:
 
 	/**
 	 * If active, debug can be drawn.
@@ -662,6 +768,8 @@ protected:
 #pragma endregion
 
 #pragma region Required
+
+protected:
 
 	/**
 	 * Default state of the Interactable to be set in BeginPlay.
@@ -735,6 +843,8 @@ protected:
 #pragma endregion
 
 #pragma region Optional
+
+protected:
 	
 	/**
 	 * Expects: Actor Tags
@@ -780,6 +890,8 @@ protected:
 #pragma endregion 
 
 #pragma region ReadOnly
+
+protected:
 	
 	/**
 	 * Current State of the Interactable.

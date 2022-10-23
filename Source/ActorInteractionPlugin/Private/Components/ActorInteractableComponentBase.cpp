@@ -74,6 +74,7 @@ void UActorInteractableComponentBase::BeginPlay()
 	AutoSetup();
 }
 
+#pragma region InteractionImplementations
 
 bool UActorInteractableComponentBase::DoesAutoSetup() const
 {
@@ -775,3 +776,5 @@ void UActorInteractableComponentBase::AutoSetup()
 	FindAndAddCollisionShapes();
 	FindAndAddHighlightableMeshes();
 }
+
+#pragma endregion
