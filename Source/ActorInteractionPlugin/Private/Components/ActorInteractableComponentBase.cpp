@@ -2,6 +2,8 @@
 
 #include "Components/ActorInteractableComponentBase.h"
 
+#include "../../../../../../Source/AInvP_426/AInvP_426.h"
+#include "Helpers/ActorInteractionPluginLog.h"
 #include "Helpers/InteractionHelpers.h"
 
 UActorInteractableComponentBase::UActorInteractableComponentBase()
@@ -672,6 +674,38 @@ void UActorInteractableComponentBase::OnInteractableTraced(UPrimitiveComponent* 
 	OnInteractorTraced.Broadcast(HitComponent, OtherActor, OtherComp, NormalImpulse, Hit);
 }
 
+void UActorInteractableComponentBase::FindAndAddCollisionShapes()
+{
+	for (const auto Itr : CollisionOverrides)
+	{
+		if (const auto NewCollision = FindPrimitiveByTag(Itr))
+		{
+			AddCollisionComponent(NewCollision);
+			BindCollisionEvents(NewCollision);
+		}
+		else
+		{
+			AIntP_LOG(Error, TEXT("[Actor Interactable Component] Primitive Component with %s tag not found!"), *Itr.ToString())
+		}
+	}
+}
+
+void UActorInteractableComponentBase::FindAndAddHighlightableMeshes()
+{
+	for (const auto Itr : HighlightableOverrides)
+	{
+		if (const auto NewMesh = FindMeshByTag(Itr))
+		{
+			AddHighlightableComponent(NewMesh);
+			BindHighlightable(NewMesh);
+		}
+		else
+		{
+			AIntP_LOG(Error, TEXT("[Actor Interactable Component] Mesh Component with %s tag not found!"), *Itr.ToString())
+		}
+	}
+}
+
 void UActorInteractableComponentBase::BindCollisionEvents(UPrimitiveComponent* PrimitiveComponent) const
 {
 	if (!PrimitiveComponent) return;
@@ -690,14 +724,26 @@ void UActorInteractableComponentBase::UnbindCollisionEvents(UPrimitiveComponent*
 	PrimitiveComponent->OnComponentHit.RemoveDynamic(this, &UActorInteractableComponentBase::OnInteractableTraced);
 }
 
+void UActorInteractableComponentBase::BindHighlightable(UMeshComponent* MeshComponent) const
+{
+}
+
+void UActorInteractableComponentBase::UnbindHighlightable(UMeshComponent* MeshComponent) const
+{
+}
+
 void UActorInteractableComponentBase::AutoSetup()
 {
-	if (!DoesAutoSetup()) return;
+	if (DoesAutoSetup())
+	{
+		/**
+		 * TODO:
+		 * - Add all parent Primitive Comps to Collision Shapes
+		 * - Add all parent Mesh Comps to Highlightable Meshes		DONE
+		 * - Bind Events											DONE
+		 */
+	}
 
-	/**
-	 * TODO:
-	 * - Add all parent Primitive Comps to Collision Shapes
-	 * - Add all parent Mesh Comps to Highlightable Meshes
-	 * - Bind Events
-	 */
+	FindAndAddCollisionShapes();
+	FindAndAddHighlightableMeshes();
 }
