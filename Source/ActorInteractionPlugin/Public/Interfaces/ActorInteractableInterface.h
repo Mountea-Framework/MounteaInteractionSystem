@@ -27,10 +27,13 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractionCompleted, const float&,
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractionStarted, const float&, StartTime);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FInteractionStopped);
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FLifecycleCompleted);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FCooldownCompleted);
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractableAutoSetupChanged, const bool, NewValue);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractableWeightChanged, const int32&, NewWeight);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractableStateChanged, const EInteractableStateV2&, NewState);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractableOwnerChanged, const UObject*, NewOwner);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractableOwnerChanged, const AActor*, NewOwner);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractableCollisionChannelChanged, const ECollisionChannel, NewCollisionChannel);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FHighlightableComponentAdded, const UMeshComponent*, NewHighlightableComp);
@@ -61,6 +64,15 @@ public:
 	virtual bool CompleteInteractable(FString& ErrorMessage) = 0;
 	virtual void DeactivateInteractable() = 0;
 
+	virtual void InteractorFound(const TScriptInterface<IActorInteractorInterface>& FoundInteractor);
+	virtual void InteractorLost(const TScriptInterface<IActorInteractorInterface>& LostInteractor);
+
+	virtual void InteractionCompleted(const float& TimeCompleted) = 0;
+	virtual void InteractionStarted(const float& TimeStarted) = 0;
+	virtual void InteractionStopped() = 0;
+	virtual void InteractionLifecycleCompleted() = 0;
+	virtual void InteractionCooldownCompleted() = 0;
+	
 	virtual EInteractableStateV2 GetState() const = 0;
 	virtual void SetState(const EInteractableStateV2 NewState) = 0;
 	
@@ -77,15 +89,15 @@ public:
 	virtual void SetCollisionChannel(const ECollisionChannel& NewChannel) = 0;
 
 	virtual TArray<UPrimitiveComponent*> GetCollisionComponents() const = 0;
-	virtual void AddCollisionComponent(const UPrimitiveComponent* CollisionComp) = 0;
+	virtual void AddCollisionComponent(UPrimitiveComponent* CollisionComp) = 0;
 	virtual void AddCollisionComponents(const TArray<UPrimitiveComponent*> CollisionComponents) = 0;
-	virtual void RemoveCollisionComponent(const UPrimitiveComponent* CollisionComp) = 0;
+	virtual void RemoveCollisionComponent(UPrimitiveComponent* CollisionComp) = 0;
 	virtual void RemoveCollisionComponents(const TArray<UPrimitiveComponent*> CollisionComponents) = 0;
 
 	virtual TArray<UMeshComponent*> GetHighlightableComponents() const = 0;
-	virtual void AddHighlightableComponent(const UMeshComponent* HighlightableComp) = 0;
+	virtual void AddHighlightableComponent(UMeshComponent* HighlightableComp) = 0;
 	virtual void AddHighlightableComponents(const TArray<UMeshComponent*> HighlightableComponents) = 0;
-	virtual void RemoveHighlightableComponent(const UMeshComponent* HighlightableComp) = 0;
+	virtual void RemoveHighlightableComponent(UMeshComponent* HighlightableComp) = 0;
 	virtual void RemoveHighlightableComponents(const TArray<UMeshComponent*> HighlightableComponents) = 0;
 	
 
