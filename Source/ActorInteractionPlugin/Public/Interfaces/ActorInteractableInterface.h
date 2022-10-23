@@ -139,9 +139,9 @@ public:
 	virtual void FindAndAddCollisionShapes() = 0;
 	virtual void FindAndAddHighlightableMeshes() = 0;
 	
-	virtual void BindCollisionEvents(UPrimitiveComponent* PrimitiveComponent) const = 0;
-	virtual void UnbindCollisionEvents(UPrimitiveComponent* PrimitiveComponent) const = 0;
+	virtual void BindCollisionShape(UPrimitiveComponent* PrimitiveComponent) const = 0;
+	virtual void UnbindCollisionShape(UPrimitiveComponent* PrimitiveComponent) const = 0;
 
-	virtual void BindHighlightable(UMeshComponent* MeshComponent) const = 0;
-	virtual void UnbindHighlightable(UMeshComponent* MeshComponent) const = 0;
+	virtual void BindHighlightableMesh(UMeshComponent* MeshComponent) const = 0;
+	virtual void UnbindHighlightableMesh(UMeshComponent* MeshComponent) const = 0;
 };

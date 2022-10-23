@@ -439,7 +439,9 @@ void UActorInteractableComponentBase::AddCollisionComponent(UPrimitiveComponent*
 	if (CollisionComponents.Contains(CollisionComp)) return;
 	
 	CollisionComponents.Add(CollisionComp);
-
+	
+	BindCollisionShape(CollisionComp);
+	
 	OnCollisionComponentAdded.Broadcast(CollisionComp);
 }
 
@@ -455,9 +457,11 @@ void UActorInteractableComponentBase::RemoveCollisionComponent(UPrimitiveCompone
 {
 	if (CollisionComp == nullptr) return;
 	if (!CollisionComponents.Contains(CollisionComp)) return;
-
+	
 	CollisionComponents.Remove(CollisionComp);
 
+	UnbindCollisionShape(CollisionComp);
+	
 	OnCollisionComponentRemoved.Broadcast(CollisionComp);
 }
 
@@ -474,17 +478,19 @@ TArray<UMeshComponent*> UActorInteractableComponentBase::GetHighlightableCompone
 	return HighlightableComponents;
 }
 
-void UActorInteractableComponentBase::AddHighlightableComponent(UMeshComponent* HighlightableComp)
+void UActorInteractableComponentBase::AddHighlightableComponent(UMeshComponent* MeshComponent)
 {
-	if (HighlightableComp == nullptr) return;
-	if (HighlightableComponents.Contains(HighlightableComp)) return;
+	if (MeshComponent == nullptr) return;
+	if (HighlightableComponents.Contains(MeshComponent)) return;
 
-	HighlightableComponents.Add(HighlightableComp);
+	HighlightableComponents.Add(MeshComponent);
 
-	OnHighlightableComponentAdded.Broadcast(HighlightableComp);
+	BindHighlightableMesh(MeshComponent);
+
+	OnHighlightableComponentAdded.Broadcast(MeshComponent);
 }
 
-void UActorInteractableComponentBase::AddHighlightableComponents(const TArray<UMeshComponent*> AddHighlightableComponents)
+void UActorInteractableComponentBase::AddHighlightableComponents(const TArray<UMeshComponent*> AddMeshComponents)
 {
 	for (UMeshComponent* const Itr : HighlightableComponents)
 	{
@@ -492,19 +498,21 @@ void UActorInteractableComponentBase::AddHighlightableComponents(const TArray<UM
 	}
 }
 
-void UActorInteractableComponentBase::RemoveHighlightableComponent(UMeshComponent* HighlightableComp)
+void UActorInteractableComponentBase::RemoveHighlightableComponent(UMeshComponent* MeshComponent)
 {
-	if (HighlightableComp == nullptr) return;
-	if (!HighlightableComponents.Contains(HighlightableComp)) return;
+	if (MeshComponent == nullptr) return;
+	if (!HighlightableComponents.Contains(MeshComponent)) return;
 
-	HighlightableComponents.Remove(HighlightableComp);
+	HighlightableComponents.Remove(MeshComponent);
 
-	OnHighlightableComponentRemoved.Broadcast(HighlightableComp);
+	UnbindHighlightableMesh(MeshComponent);
+
+	OnHighlightableComponentRemoved.Broadcast(MeshComponent);
 }
 
-void UActorInteractableComponentBase::RemoveHighlightableComponents(const TArray<UMeshComponent*> RemoveHighlightableComponents)
+void UActorInteractableComponentBase::RemoveHighlightableComponents(const TArray<UMeshComponent*> RemoveMeshComponents)
 {
-	for (UMeshComponent* const Itr : RemoveHighlightableComponents)
+	for (UMeshComponent* const Itr : RemoveMeshComponents)
 	{
 		RemoveHighlightableComponent(Itr);
 	}
@@ -681,7 +689,7 @@ void UActorInteractableComponentBase::FindAndAddCollisionShapes()
 		if (const auto NewCollision = FindPrimitiveByTag(Itr))
 		{
 			AddCollisionComponent(NewCollision);
-			BindCollisionEvents(NewCollision);
+			BindCollisionShape(NewCollision);
 		}
 		else
 		{
@@ -697,7 +705,7 @@ void UActorInteractableComponentBase::FindAndAddHighlightableMeshes()
 		if (const auto NewMesh = FindMeshByTag(Itr))
 		{
 			AddHighlightableComponent(NewMesh);
-			BindHighlightable(NewMesh);
+			BindHighlightableMesh(NewMesh);
 		}
 		else
 		{
@@ -706,7 +714,7 @@ void UActorInteractableComponentBase::FindAndAddHighlightableMeshes()
 	}
 }
 
-void UActorInteractableComponentBase::BindCollisionEvents(UPrimitiveComponent* PrimitiveComponent) const
+void UActorInteractableComponentBase::BindCollisionShape(UPrimitiveComponent* PrimitiveComponent) const
 {
 	if (!PrimitiveComponent) return;
 
@@ -715,7 +723,7 @@ void UActorInteractableComponentBase::BindCollisionEvents(UPrimitiveComponent* P
 	PrimitiveComponent->OnComponentHit.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableTraced);
 }
 
-void UActorInteractableComponentBase::UnbindCollisionEvents(UPrimitiveComponent* PrimitiveComponent) const
+void UActorInteractableComponentBase::UnbindCollisionShape(UPrimitiveComponent* PrimitiveComponent) const
 {
 	if(!PrimitiveComponent) return;
 
@@ -724,14 +732,14 @@ void UActorInteractableComponentBase::UnbindCollisionEvents(UPrimitiveComponent*
 	PrimitiveComponent->OnComponentHit.RemoveDynamic(this, &UActorInteractableComponentBase::OnInteractableTraced);
 }
 
-void UActorInteractableComponentBase::BindHighlightable(UMeshComponent* MeshComponent) const
+void UActorInteractableComponentBase::BindHighlightableMesh(UMeshComponent* MeshComponent) const
 {
 	if (!MeshComponent) return;
 	
 	MeshComponent->SetRenderCustomDepth(true);
 }
 
-void UActorInteractableComponentBase::UnbindHighlightable(UMeshComponent* MeshComponent) const
+void UActorInteractableComponentBase::UnbindHighlightableMesh(UMeshComponent* MeshComponent) const
 {
 	if (!MeshComponent) return;
 	
@@ -742,7 +750,6 @@ void UActorInteractableComponentBase::AutoSetup()
 {
 	if (DoesAutoSetup())
 	{
-		
 		// Get all Parent Components
 		TArray<USceneComponent*> ParentComponents;
 		GetParentComponents(ParentComponents);
@@ -764,7 +771,7 @@ void UActorInteractableComponentBase::AutoSetup()
 			}
 		}
 	}
-
+	
 	FindAndAddCollisionShapes();
 	FindAndAddHighlightableMeshes();
 }

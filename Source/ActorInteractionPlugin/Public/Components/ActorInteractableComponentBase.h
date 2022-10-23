@@ -98,13 +98,13 @@ protected:
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual TArray<UMeshComponent*> GetHighlightableComponents() const override;
 	UFUNCTION(BlueprintCallable, Category="Interaction")
-	virtual void AddHighlightableComponent(UMeshComponent* HighlightableComp) override;
+	virtual void AddHighlightableComponent(UMeshComponent* MeshComponent) override;
 	UFUNCTION(BlueprintCallable, Category="Interaction")
-	virtual void AddHighlightableComponents(const TArray<UMeshComponent*> AddHighlightableComponents) override;
+	virtual void AddHighlightableComponents(const TArray<UMeshComponent*> AddMeshComponents) override;
 	UFUNCTION(BlueprintCallable, Category="Interaction")
-	virtual void RemoveHighlightableComponent(UMeshComponent* HighlightableComp) override;
+	virtual void RemoveHighlightableComponent(UMeshComponent* MeshComponent) override;
 	UFUNCTION(BlueprintCallable, Category="Interaction")
-	virtual void RemoveHighlightableComponents(const TArray<UMeshComponent*> RemoveHighlightableComponents) override;
+	virtual void RemoveHighlightableComponents(const TArray<UMeshComponent*> RemoveMeshComponents) override;
 
 	
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
@@ -480,7 +480,7 @@ protected:
 	 * * Awaken
 	 * * Asleep
 	 */
-	virtual void BindCollisionEvents(UPrimitiveComponent* PrimitiveComponent) const override;
+	virtual void BindCollisionShape(UPrimitiveComponent* PrimitiveComponent) const override;
 	
 	/**
 	 * Unbinds Collision Events for specified Primitive Component.
@@ -489,7 +489,7 @@ protected:
 	 * * Finished
 	 * * Cooldown
 	 */
-	virtual void UnbindCollisionEvents(UPrimitiveComponent* PrimitiveComponent) const override;
+	virtual void UnbindCollisionShape(UPrimitiveComponent* PrimitiveComponent) const override;
 
 	/**
 	 * Binds Highlightable Events for specified Mesh Component.
@@ -497,7 +497,7 @@ protected:
 	 * * Awaken
 	 * * Asleep
 	 */
-	virtual void BindHighlightable(UMeshComponent* MeshComponent) const override;
+	virtual void BindHighlightableMesh(UMeshComponent* MeshComponent) const override;
 
 	/**
 	 * Unbinds Highlightable Events for specified Mesh Component.
@@ -506,7 +506,7 @@ protected:
 	 * * Finished
 	 * * Cooldown
 	 */
-	virtual void UnbindHighlightable(UMeshComponent* MeshComponent) const override;
+	virtual void UnbindHighlightableMesh(UMeshComponent* MeshComponent) const override;
 	
 	/**
 	 * Development Only.
