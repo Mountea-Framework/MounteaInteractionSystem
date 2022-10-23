@@ -56,6 +56,7 @@ void UActorInteractableComponentBase::BeginPlay()
 	OnLifecycleModeChanged.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnLifecycleModeChangedEvent);
 	OnLifecycleCountChanged.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnLifecycleCountChangedEvent);
 	OnCooldownPeriodChanged.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnCooldownPeriodChangedEvent);
+	OnInteractorChanged.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractorChangedEvent);
 
 	// Highlight Events
 	OnHighlightableComponentAdded.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnHighlightableComponentAddedEvent);
@@ -328,6 +329,8 @@ TScriptInterface<IActorInteractorInterface> UActorInteractableComponentBase::Get
 void UActorInteractableComponentBase::SetInteractor(const TScriptInterface<IActorInteractorInterface> NewInteractor)
 {
 	Interactor = NewInteractor;
+
+	OnInteractorChanged.Broadcast(Interactor);
 }
 
 int32 UActorInteractableComponentBase::GetInteractableWeight() const
@@ -722,6 +725,27 @@ void UActorInteractableComponentBase::BindCollisionShape(UPrimitiveComponent* Pr
 	PrimitiveComponent->OnComponentBeginOverlap.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableBeginOverlap);
 	PrimitiveComponent->OnComponentEndOverlap.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableStopOverlap);
 	PrimitiveComponent->OnComponentHit.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableTraced);
+
+	FCollisionShapeCache CachedValues;
+	CachedValues.bGenerateOverlapEvents = PrimitiveComponent->GetGenerateOverlapEvents();
+	CachedValues.CollisionEnabled = PrimitiveComponent->GetCollisionEnabled();
+	CachedValues.CollisionResponse = GetCollisionResponseToChannel(CollisionChannel);
+	
+	CachedCollisionShapesSettings.Add(PrimitiveComponent, CachedValues);
+
+	PrimitiveComponent->SetGenerateOverlapEvents(true);
+	PrimitiveComponent->SetCollisionResponseToChannel(CollisionChannel, ECollisionResponse::ECR_Overlap);
+
+	switch (PrimitiveComponent->GetCollisionEnabled())
+	{
+		case ECollisionEnabled::NoCollision:
+			PrimitiveComponent->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+			break;
+		case ECollisionEnabled::QueryOnly:
+		case ECollisionEnabled::PhysicsOnly:
+		case ECollisionEnabled::QueryAndPhysics:
+		default: break;
+	}
 }
 
 void UActorInteractableComponentBase::UnbindCollisionShape(UPrimitiveComponent* PrimitiveComponent) const
@@ -731,6 +755,19 @@ void UActorInteractableComponentBase::UnbindCollisionShape(UPrimitiveComponent* 
 	PrimitiveComponent->OnComponentBeginOverlap.RemoveDynamic(this, &UActorInteractableComponentBase::OnInteractableBeginOverlap);
 	PrimitiveComponent->OnComponentEndOverlap.RemoveDynamic(this, &UActorInteractableComponentBase::OnInteractableStopOverlap);
 	PrimitiveComponent->OnComponentHit.RemoveDynamic(this, &UActorInteractableComponentBase::OnInteractableTraced);
+
+	if (CachedCollisionShapesSettings.Find(PrimitiveComponent))
+	{
+		PrimitiveComponent->SetGenerateOverlapEvents(CachedCollisionShapesSettings[PrimitiveComponent].bGenerateOverlapEvents);
+		PrimitiveComponent->SetCollisionEnabled(CachedCollisionShapesSettings[PrimitiveComponent].CollisionEnabled);
+		PrimitiveComponent->SetCollisionResponseToChannel(CollisionChannel, CachedCollisionShapesSettings[PrimitiveComponent].CollisionResponse);
+	}
+	else
+	{
+		PrimitiveComponent->SetGenerateOverlapEvents(true);
+		PrimitiveComponent->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+		PrimitiveComponent->SetCollisionResponseToChannel(CollisionChannel, ECollisionResponse::ECR_Overlap);
+	}
 }
 
 void UActorInteractableComponentBase::BindHighlightableMesh(UMeshComponent* MeshComponent) const

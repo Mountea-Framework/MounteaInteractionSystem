@@ -7,6 +7,33 @@
 #include "Interfaces/ActorInteractableInterface.h"
 #include "ActorInteractableComponentBase.generated.h"
 
+USTRUCT()
+struct FCollisionShapeCache
+{
+	GENERATED_BODY()
+
+	FCollisionShapeCache()
+	{
+		bGenerateOverlapEvents = false;
+		CollisionEnabled = ECollisionEnabled::QueryOnly;
+		CollisionResponse = ECR_Overlap;
+	};
+
+	FCollisionShapeCache(bool GeneratesOverlaps, TEnumAsByte<ECollisionEnabled::Type> collisionEnabled, TEnumAsByte<ECollisionResponse> collisionResponse) :
+	bGenerateOverlapEvents(GeneratesOverlaps),
+	CollisionEnabled(collisionEnabled),
+	CollisionResponse(collisionResponse)
+	{};
+
+	UPROPERTY()
+	uint8 bGenerateOverlapEvents : 1;
+	UPROPERTY()
+	TEnumAsByte<ECollisionEnabled::Type> CollisionEnabled;
+	UPROPERTY()
+	TEnumAsByte<ECollisionResponse> CollisionResponse;
+	
+};
+
 UCLASS(ClassGroup=(Interaction), Blueprintable, hideCategories=(Collision, AssetUserData, Cooking, ComponentTick, Activation), meta=(BlueprintSpawnableComponent, DisplayName = "Interactable Component"))
 class ACTORINTERACTIONPLUGIN_API UActorInteractableComponentBase : public UWidgetComponent, public IActorInteractableInterface
 {
@@ -467,6 +494,16 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
 	void OnCollisionComponentRemovedEvent(const UPrimitiveComponent* RemovedCollisionComp);
 
+	/**
+	 * Event bound to OnInteractorChanged event.
+	 * Once OnInteractorChanged is called this event is, too.
+	 * Be sure to call Parent event to access all C++ implementation!
+	 * 
+	 * @param NewInteractor Interactor set as new Interactor, could be nullptr
+	 */
+	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	void OnInteractorChangedEvent(const TScriptInterface<IActorInteractorInterface>& NewInteractor);
+
 #pragma endregion 
 
 #pragma region InteractionHelpers
@@ -476,6 +513,7 @@ protected:
 
 	/**
 	 * Binds Collision Events for specified Primitive Component.
+	 * Caches Primitive Component collision settings.
 	 * Automatically called when Interactable is:
 	 * * Awaken
 	 * * Asleep
@@ -484,6 +522,7 @@ protected:
 	
 	/**
 	 * Unbinds Collision Events for specified Primitive Component.
+	 * Is using cached values to return Primitive Component to pre-interaction state.
 	 * Automatically called when Interactable is:
 	 * * Deactivated
 	 * * Finished
@@ -710,6 +749,13 @@ protected:
 	 */
 	UPROPERTY(BlueprintAssignable, Category="Interaction")
 	FCooldownPeriodChanged OnCooldownPeriodChanged;
+		
+	/**
+	 * Event called once Interactor has been removed.
+	 * Expected to be more a debugging event rather than in-game event.
+	 */
+	UPROPERTY(BlueprintAssignable, Category="Interaction")
+	FInteractorChanged OnInteractorChanged;
 
 	/**
 	 * Event called once new Highlightable Override has been added.
@@ -764,6 +810,14 @@ protected:
 	 */
 	UPROPERTY(EditAnywhere, Category="Interaction|Debug")
 	uint8 bToggleDebug : 1;
+
+	/**
+	 * Cached Collision Shape Settings.
+	 * Filled when Collision Shapes are registered.
+	 * Once Collision Shape is unregistered, it reads its cached settings and returns to pre-interaction Collision Settings.
+	 */
+	UPROPERTY(VisibleAnywhere, Category="Interaction|Debug")
+	mutable TMap<UPrimitiveComponent*, FCollisionShapeCache> CachedCollisionShapesSettings;
 
 #pragma endregion
 
