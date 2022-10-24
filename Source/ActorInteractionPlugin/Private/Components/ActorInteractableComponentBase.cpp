@@ -2,7 +2,6 @@
 
 #include "Components/ActorInteractableComponentBase.h"
 
-#include "../../../../../../Source/AInvP_426/AInvP_426.h"
 #include "Helpers/ActorInteractionPluginLog.h"
 #include "Helpers/InteractionHelpers.h"
 
