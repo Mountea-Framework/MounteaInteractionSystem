@@ -3,6 +3,10 @@
 
 #include "Components/ActorInteractorComponentBase.h"
 
+#if WITH_EDITOR
+#include "Helpers/ActorInteractionPluginLog.h"
+#endif
+
 #include "Helpers/InteractionHelpers.h"
 
 UActorInteractorComponentBase::UActorInteractorComponentBase()
