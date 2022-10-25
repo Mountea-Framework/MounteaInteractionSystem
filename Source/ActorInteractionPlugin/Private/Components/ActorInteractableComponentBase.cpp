@@ -210,6 +210,29 @@ void UActorInteractableComponentBase::DeactivateInteractable()
 	SetState(EInteractableStateV2::EIS_Disabled);
 }
 
+bool UActorInteractableComponentBase::CanInteractEvent_Implementation() const
+{
+	return CanInteract();
+}
+
+bool UActorInteractableComponentBase::CanInteract() const
+{
+	switch (InteractableState)
+	{
+		case EInteractableStateV2::EIS_Awake:
+			return GetInteractor().GetInterface() != nullptr;
+		case EInteractableStateV2::EIS_Active: // already interacting
+		case EInteractableStateV2::EIS_Asleep:
+		case EInteractableStateV2::EIS_Disabled:
+		case EInteractableStateV2::EIS_Cooldown:
+		case EInteractableStateV2::EIS_Completed:
+		case EInteractableStateV2::Default: 
+		default: break;
+	}
+
+	return false;
+}
+
 EInteractableStateV2 UActorInteractableComponentBase::GetState() const
 {
 	return InteractableState;
