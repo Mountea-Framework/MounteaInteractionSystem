@@ -72,20 +72,35 @@ protected:
 	 * Calls Internal CanInteract which is implemented in C++.
 	 * Be sure to call Parent Event!
 	 */
-	UFUNCTION(BlueprintNativeEvent, BlueprintPure, Category="Interaction")
+	UFUNCTION(BlueprintNativeEvent, BlueprintPure, Category="Interaction", meta=(DisplayName = "Can Interact"))
 	bool CanInteractEvent() const;
 
 	/**
 	 * Optimized request for Interactables.
 	 * Can be overriden in C++ for specific class needs.
 	 */
-	UFUNCTION()
+	UFUNCTION(Category="Interaction")
 	virtual bool CanInteract() const override;
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual EInteractableStateV2 GetState() const override;
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void SetState(const EInteractableStateV2 NewState) override;
+
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
+	virtual TArray<TSoftClassPtr<UObject>> GetIgnoredClasses() const override;
+	UFUNCTION(BlueprintCallable, Category="Interaction")
+	virtual void SetIgnoredClasses(const TArray<TSoftClassPtr<UObject>> NewIgnoredClasses) override;
+	UFUNCTION(BlueprintCallable, Category="Interaction")
+	virtual void AddIgnoredClass(TSoftClassPtr<UObject> AddIgnoredClass) override;
+	UFUNCTION(BlueprintCallable, Category="Interaction")
+	virtual void AddIgnoredClasses(TArray<TSoftClassPtr<UObject>> AddIgnoredClasses) override;
+	UFUNCTION(BlueprintCallable, Category="Interaction")
+	virtual void RemoveIgnoredClass(TSoftClassPtr<UObject> RemoveIgnoredClass) override;
+	UFUNCTION(BlueprintCallable, Category="Interaction")
+	virtual void RemoveIgnoredClasses(TArray<TSoftClassPtr<UObject>> RemoveIgnoredClasses) override;
+	
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual TScriptInterface<IActorInteractorInterface> GetInteractor() const override;
@@ -385,6 +400,16 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
 	void OnCollisionOverrideRemovedEvent(const FName RemovedTag);
 
+#pragma endregion
+
+#pragma region IgnoredClassesEvents
+
+	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	void OnIgnoredClassAdded(const TSoftClassPtr<UObject>& IgnoredClass);
+
+	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	void OnIgnoredClassRemoved(const TSoftClassPtr<UObject>& IgnoredClass);
+
 #pragma endregion 
 
 #pragma region AttributesEvents
@@ -619,6 +644,24 @@ protected:
 	 */
 	UPROPERTY(BlueprintAssignable, Category="Interaction")
 	FInteractorStopOverlap OnInteractorStopOverlap;
+
+#pragma endregion
+
+#pragma region IgnoredClasses
+
+	/**
+	 * Event called once Ignored Interactor Class is successfully added.
+	 * Called by OnIgnoredInteractorClassAdded.
+	 */
+	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category="Interaction")
+	FIgnoredInteractorClassAdded OnIgnoredInteractorClassAdded;
+
+	/**
+	 * Event called once Ignored Interactor Class is successfully removed.
+	 * Called by OnIgnoredInteractorClassRemoved.
+	 */
+	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category="Interaction")
+	FIgnoredInteractorClassRemoved OnIgnoredInteractorClassRemoved;
 
 #pragma endregion 
 
@@ -914,6 +957,13 @@ protected:
 #pragma region Optional
 
 protected:
+
+	
+	/**
+	 * List of Interactable Classes which are ignored
+	 */
+	UPROPERTY(EditAnywhere, Category="Interaction|Optional", meta=(NoResetToDefault, AllowAbstract=false, MustImplement="ActorInteractorInterface", BlueprintBaseOnly))
+	TArray<TSoftClassPtr<UObject>> IgnoredClasses;
 	
 	/**
 	 * Expects: Actor Tags
