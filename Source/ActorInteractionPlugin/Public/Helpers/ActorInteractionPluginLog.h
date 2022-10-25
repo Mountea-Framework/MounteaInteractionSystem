@@ -11,3 +11,8 @@ ACTORINTERACTIONPLUGIN_API DECLARE_LOG_CATEGORY_EXTERN(LogActorInteraction, Disp
 { \
 	UE_LOG(LogActorInteraction, Verbosity, Format, ##__VA_ARGS__); \
 }
+
+#define AIntP_LOG(Verbosity, Format, ...) \
+{ \
+	UE_LOG(LogActorInteraction, Verbosity, Format, ##__VA_ARGS__); \
+}
