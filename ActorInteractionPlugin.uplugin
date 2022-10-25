@@ -10,7 +10,7 @@
 	"DocsURL": "https://sites.google.com/view/dominikpavlicek/home/documentation",
 	"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/product/ca842c00ec0d4db0b3aad17701e1637b",
 	"SupportURL": "https://bit.ly/DominikPavlicek_SupportServer",
-	"EngineVersion": "4.26.0",
+	"EngineVersion": "4.25.0",
 	"CanContainContent": true,
 	"IsBetaVersion": false,
 	"IsExperimentalVersion": false,
