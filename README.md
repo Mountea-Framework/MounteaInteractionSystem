@@ -4,7 +4,7 @@ Component tool for smart Actor Interaction with other Actors.
 Developed with Designers in mind to allow you as easy as possible implementation while maintaining high scalability and diverse options to tweak everything to your liking.
 
 ![UE4](https://img.shields.io/badge/UE4-4.25%2B-orange)
-[![Discord](https://img.shields.io/discord/566990120520122380?label=online%20users&logo=discord)]([https://discord.gg/2vXWEEN](https://discord.gg/2vXWEEN))
+[![Discord](https://img.shields.io/discord/566990120520122380?label=online%20users&logo=discord)]
 
 ### Discord Channel
 
