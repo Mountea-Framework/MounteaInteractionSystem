@@ -67,6 +67,21 @@ protected:
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void DeactivateInteractable() override;
 
+	/**
+	 * Returns whether this Interactable can interacted with or not.
+	 * Calls Internal CanInteract which is implemented in C++.
+	 * Be sure to call Parent Event!
+	 */
+	UFUNCTION(BlueprintNativeEvent, BlueprintPure, Category="Interaction")
+	bool CanInteractEvent() const;
+
+	/**
+	 * Optimized request for Interactables.
+	 * Can be overriden in C++ for specific class needs.
+	 */
+	UFUNCTION()
+	virtual bool CanInteract() const override;
+
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual EInteractableStateV2 GetState() const override;
 	UFUNCTION(BlueprintCallable, Category="Interaction")
