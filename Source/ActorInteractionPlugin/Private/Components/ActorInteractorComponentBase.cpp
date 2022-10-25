@@ -40,7 +40,14 @@ void UActorInteractorComponentBase::BeginPlay()
 	OnCollisionChanged.AddUniqueDynamic(this, &UActorInteractorComponentBase::OnInteractorCollisionChanged);
 	OnAutoActivateChanged.AddUniqueDynamic(this, &UActorInteractorComponentBase::OnInteractorAutoActivateChanged);
 
-	SetState(DefaultInteractorState);
+	if (bDoesAutoActivate)
+	{
+		SetState(EInteractorStateV2::EIS_Awake);
+	}
+	else
+	{
+		SetState(DefaultInteractorState);
+	}
 }
 
 void UActorInteractorComponentBase::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
