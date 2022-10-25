@@ -386,12 +386,11 @@ protected:
 	uint8 bToggleDebug : 1;
 
 	/**
-	 * If auto activation is true, component will start as Stand By and can start immediately interact.
+	 * If auto activation is true, component will start as Awake and can start immediately interact.
 	 */
 	UPROPERTY(EditAnywhere, Category="Interaction|Required", meta=(DisplayName="Auto Activate", NoResetToDefault))
 	uint8 bDoesAutoActivate : 1;
-
-
+	
 	/**
 	 * Response Collision Channel this Interactor is interacting against.
 	 * Tip: Use custom Collision Channel for Interaction types.
@@ -409,16 +408,13 @@ protected:
 	 */
 	UPROPERTY(EditAnywhere, Category="Interaction|Required", meta=(NoResetToDefault))
 	TMap<FString, FKey> InteractionKeyPerPlatform;
-
 	
-
 	/**
 	 * New and easier way to set Default State.
 	 * This state will be propagated to Interactor State.
 	 */
 	UPROPERTY(EditAnywhere, Category="Interaction|Optional", meta=(NoResetToDefault))
 	EInteractorStateV2 DefaultInteractorState;
-
 
 private:
 
