@@ -2,8 +2,13 @@
 
 #include "Components/ActorInteractableComponentBase.h"
 
+#if WITH_EDITOR
 #include "Helpers/ActorInteractionPluginLog.h"
+#endif
+
 #include "Helpers/InteractionHelpers.h"
+
+#include "Interfaces/ActorInteractorInterface.h"
 
 UActorInteractableComponentBase::UActorInteractableComponentBase()
 {
@@ -56,6 +61,10 @@ void UActorInteractableComponentBase::BeginPlay()
 	OnLifecycleCountChanged.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnLifecycleCountChangedEvent);
 	OnCooldownPeriodChanged.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnCooldownPeriodChangedEvent);
 	OnInteractorChanged.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractorChangedEvent);
+
+	// Ignored Classes Events
+	OnIgnoredInteractorClassAdded.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnIgnoredClassAdded);
+	OnIgnoredInteractorClassRemoved.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnIgnoredClassRemoved);
 
 	// Highlight Events
 	OnHighlightableComponentAdded.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnHighlightableComponentAddedEvent);
@@ -343,6 +352,56 @@ void UActorInteractableComponentBase::SetState(const EInteractableStateV2 NewSta
 	}
 }
 
+TArray<TSoftClassPtr<UObject>> UActorInteractableComponentBase::GetIgnoredClasses() const
+{
+	return IgnoredClasses;
+}
+
+void UActorInteractableComponentBase::SetIgnoredClasses(const TArray<TSoftClassPtr<UObject>> NewIgnoredClasses)
+{
+	IgnoredClasses.Empty();
+
+	IgnoredClasses = NewIgnoredClasses;
+}
+
+void UActorInteractableComponentBase::AddIgnoredClass(TSoftClassPtr<UObject> AddIgnoredClass)
+{
+	if (AddIgnoredClass == nullptr) return;
+
+	if (IgnoredClasses.Contains(AddIgnoredClass)) return;
+
+	IgnoredClasses.Add(AddIgnoredClass);
+
+	OnIgnoredInteractorClassAdded.Broadcast(AddIgnoredClass);
+}
+
+void UActorInteractableComponentBase::AddIgnoredClasses(TArray<TSoftClassPtr<UObject>> AddIgnoredClasses)
+{
+	for (const auto Itr : AddIgnoredClasses)
+	{
+		AddIgnoredClass(Itr);
+	}
+}
+
+void UActorInteractableComponentBase::RemoveIgnoredClass(TSoftClassPtr<UObject> RemoveIgnoredClass)
+{
+	if (RemoveIgnoredClass == nullptr) return;
+
+	if (!IgnoredClasses.Contains(RemoveIgnoredClass)) return;
+
+	IgnoredClasses.Remove(RemoveIgnoredClass);
+
+	OnIgnoredInteractorClassRemoved.Broadcast(RemoveIgnoredClass);
+}
+
+void UActorInteractableComponentBase::RemoveIgnoredClasses(TArray<TSoftClassPtr<UObject>> RemoveIgnoredClasses)
+{
+	for (const auto Itr : RemoveIgnoredClasses)
+	{
+		RemoveIgnoredClass(Itr);
+	}
+}
+
 TScriptInterface<IActorInteractorInterface> UActorInteractableComponentBase::GetInteractor() const
 {
 	return Interactor;
@@ -546,11 +605,37 @@ void UActorInteractableComponentBase::RemoveHighlightableComponents(const TArray
 
 UMeshComponent* UActorInteractableComponentBase::FindMeshByTag(const FName Tag) const
 {
+	if (!GetOwner()) return nullptr;
+
+	TArray<UMeshComponent*> PrimitiveComponents;
+	GetOwner()->GetComponents(PrimitiveComponents);
+
+	for (const auto Itr : PrimitiveComponents)
+	{
+		if (Itr && Itr->ComponentHasTag(Tag))
+		{
+			return Itr;
+		}
+	}
+	
 	return nullptr;
 }
 
 UPrimitiveComponent* UActorInteractableComponentBase::FindPrimitiveByTag(const FName Tag) const
 {
+	if (!GetOwner()) return nullptr;
+
+	TArray<UPrimitiveComponent*> PrimitiveComponents;
+	GetOwner()->GetComponents(PrimitiveComponents);
+
+	for (const auto Itr : PrimitiveComponents)
+	{
+		if (Itr && Itr->ComponentHasTag(Tag))
+		{
+			return Itr;
+		}
+	}
+	
 	return nullptr;
 }
 
@@ -682,6 +767,27 @@ void UActorInteractableComponentBase::OnInteractableBeginOverlap(UPrimitiveCompo
 	 * Validation
 	 * If Valid, then Broadcast
 	 */
+
+	if (!OtherActor) return;
+
+	TArray<UActorComponent*> InteractorComponents = OtherActor->GetComponentsByInterface(UActorInteractorInterface::StaticClass());
+
+	if (InteractorComponents.Num() == 0) return;
+
+	for (const auto Itr : InteractorComponents)
+	{
+		TScriptInterface<IActorInteractorInterface> FoundInteractor;
+
+		FoundInteractor = Itr;
+		FoundInteractor.SetObject(Itr);
+		FoundInteractor.SetInterface(Cast<IActorInteractorInterface>(Itr));
+
+		if (FoundInteractor->GetResponseChannel() != GetCollisionChannel()) continue;
+
+		SetInteractor(FoundInteractor);
+
+		break;
+	}
 	
 	OnInteractorOverlapped.Broadcast(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
 }
