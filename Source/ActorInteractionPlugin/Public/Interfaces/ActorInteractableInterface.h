@@ -78,8 +78,10 @@ public:
 	virtual void InteractionLifecycleCompleted() = 0;
 	virtual void InteractionCooldownCompleted() = 0;
 
+
+	virtual bool CanInteract() = 0;
 	
-	
+
 	virtual EInteractableStateV2 GetState() const = 0;
 	virtual void SetState(const EInteractableStateV2 NewState) = 0;
 	
