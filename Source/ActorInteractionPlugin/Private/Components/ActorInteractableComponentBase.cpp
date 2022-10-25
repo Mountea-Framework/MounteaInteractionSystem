@@ -798,21 +798,35 @@ void UActorInteractableComponentBase::OnInteractableBeginOverlap(UPrimitiveCompo
 		if (FoundInteractor->GetResponseChannel() != GetCollisionChannel()) continue;
 
 		SetInteractor(FoundInteractor);
+		
 		OnInteractorOverlapped.Broadcast(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
 
+		OnInteractorFound.Broadcast(FoundInteractor);
 		break;
 	}
 }
 
 void UActorInteractableComponentBase::OnInteractableStopOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	/**
-	 * TODO
-	 * Validation
-	 * If Valid, then Broadcast
-	 */
+	if (!OtherActor) return;
 
-	OnInteractorStopOverlap.Broadcast(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex);
+	TArray<UActorComponent*> InteractorComponents = OtherActor->GetComponentsByInterface(UActorInteractorInterface::StaticClass());
+
+	if (InteractorComponents.Num() == 0) return;
+
+	for (const auto Itr : InteractorComponents)
+	{
+		if (Itr == GetInteractor().GetObject())
+		{
+			OnInteractorLost.Broadcast(GetInteractor());
+			
+			SetInteractor(nullptr);
+			
+			OnInteractorStopOverlap.Broadcast(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex);
+			
+			return;
+		}
+	}
 }
 
 void UActorInteractableComponentBase::OnInteractableTraced(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
