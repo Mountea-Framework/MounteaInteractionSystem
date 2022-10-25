@@ -773,23 +773,35 @@ void UActorInteractableComponentBase::OnInteractableBeginOverlap(UPrimitiveCompo
 	TArray<UActorComponent*> InteractorComponents = OtherActor->GetComponentsByInterface(UActorInteractorInterface::StaticClass());
 
 	if (InteractorComponents.Num() == 0) return;
-
+	
 	for (const auto Itr : InteractorComponents)
 	{
 		TScriptInterface<IActorInteractorInterface> FoundInteractor;
-
+		if (IgnoredClasses.Contains(Itr->StaticClass())) continue;
+		
 		FoundInteractor = Itr;
 		FoundInteractor.SetObject(Itr);
 		FoundInteractor.SetInterface(Cast<IActorInteractorInterface>(Itr));
 
+		switch (FoundInteractor->GetState())
+		{
+			case EInteractorStateV2::EIS_Active:
+			case EInteractorStateV2::EIS_Awake:
+				break;
+			case EInteractorStateV2::EIS_Asleep:
+			case EInteractorStateV2::EIS_Suppressed:
+			case EInteractorStateV2::EIS_Disabled:
+			case EInteractorStateV2::Default:
+				continue;
+		}
+
 		if (FoundInteractor->GetResponseChannel() != GetCollisionChannel()) continue;
 
 		SetInteractor(FoundInteractor);
+		OnInteractorOverlapped.Broadcast(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
 
 		break;
 	}
-	
-	OnInteractorOverlapped.Broadcast(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
 }
 
 void UActorInteractableComponentBase::OnInteractableStopOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
