@@ -41,6 +41,9 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FLifecycleCountChanged, const int32,
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCooldownPeriodChanged, const float, NewCooldownPeriod);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractorChanged, const TScriptInterface<IActorInteractorInterface>&, NewInteractor);
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FIgnoredInteractorClassAdded, const TSoftClassPtr<UObject>&, IgnoredClass);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FIgnoredInteractorClassRemoved, const TSoftClassPtr<UObject>&, IgnoredClass);
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FHighlightableComponentAdded, const UMeshComponent*, NewHighlightableComp);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCollisionComponentAdded, const UPrimitiveComponent*, NewCollisionComp);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FHighlightableComponentRemoved, const UMeshComponent*, RemovedHighlightableComp);
@@ -79,9 +82,8 @@ public:
 	virtual void InteractionCooldownCompleted() = 0;
 
 
-	virtual bool CanInteract() = 0;
+	virtual bool CanInteract() const = 0;
 	
-
 	virtual EInteractableStateV2 GetState() const = 0;
 	virtual void SetState(const EInteractableStateV2 NewState) = 0;
 	
@@ -106,6 +108,13 @@ public:
 	virtual float GetCooldownPeriod() const = 0;
 	virtual void SetCooldownPeriod(const float NewCooldownPeriod) = 0;
 	
+	
+	virtual TArray<TSoftClassPtr<UObject>> GetIgnoredClasses() const = 0;
+	virtual void SetIgnoredClasses(const TArray<TSoftClassPtr<UObject>> NewIgnoredClasses) = 0;
+	virtual void AddIgnoredClass(TSoftClassPtr<UObject> AddIgnoredClass) = 0;
+	virtual void AddIgnoredClasses(TArray<TSoftClassPtr<UObject>> AddIgnoredClasses) = 0;
+	virtual void RemoveIgnoredClass(TSoftClassPtr<UObject> AddIgnoredClass) = 0;
+	virtual void RemoveIgnoredClasses(TArray<TSoftClassPtr<UObject>> AddIgnoredClasses) = 0;
 	
 
 	virtual TArray<UPrimitiveComponent*> GetCollisionComponents() const = 0;
