@@ -115,6 +115,21 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
 	void OnInteractorAutoActivateChanged(const bool NewAutoActivate);
 
+#pragma endregion
+
+#pragma region Handles
+
+	virtual FInteractableSelected& GetOnInteractableSelectedHandle() override
+	{ return OnInteractableSelected; };
+	virtual FInteractableFound& GetOnInteractableFoundHandle() override
+	{ return OnInteractableFound; };
+	virtual FInteractableLost& GetOnInteractableLostHandle() override
+	{ return OnInteractableLost; };
+	virtual FInteractionKeyPressed& OnInteractionKeyPressedHandle() override
+	{ return OnInteractionKeyPressed; };
+	virtual FInteractionKeyReleased& OnInteractionKeyReleasedHandle() override
+	{ return OnInteractionKeyReleased; };
+
 #pragma endregion 
 	
 	/**
