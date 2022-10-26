@@ -853,6 +853,27 @@ protected:
 
 #pragma endregion 
 
+#pragma region Handles
+
+	virtual FInteractorFound& GetOnInteractorFoundHandle() override
+	{ return OnInteractorFound; };
+	virtual FInteractorLost& GetOnInteractorLostHandle() override
+	{ return OnInteractorLost; };
+	virtual FInteractorTraced& GetOnInteractorTracedHandle() override
+	{ return OnInteractorTraced; };
+	virtual FInteractorOverlapped& GetOnInteractorOverlappedHandle() override
+	{ return OnInteractorOverlapped; };
+	virtual FInteractorStopOverlap& GetOnInteractorStopOverlapHandle() override
+	{ return OnInteractorStopOverlap; };
+	virtual FInteractionCompleted& GetOnInteractionCompletedHandle() override
+	{ return OnInteractionCompleted; };
+	virtual FInteractionStarted& GetOnInteractionStartedHandle() override
+	{ return OnInteractionStarted; };
+	virtual FInteractionStopped& GetOnInteractionStoppedHandle() override
+	{ return OnInteractionStopped; };
+
+#pragma endregion 
+
 #pragma endregion 
 
 #pragma region Attributes
