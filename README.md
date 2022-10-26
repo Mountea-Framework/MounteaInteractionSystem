@@ -3,7 +3,8 @@
 Component tool for smart Actor Interaction with other Actors.
 Developed with Designers in mind to allow you as easy as possible implementation while maintaining high scalability and diverse options to tweak everything to your liking.
 
-![UE4](https://img.shields.io/badge/UE4-4.25%2B-orange)
+![UE4](https://img.shields.io/badge/UE4-4.25%2B-green)
+![UE4](https://badgen.net/badge/license/Apache%202.0/blue)
 [![Discord](https://badgen.net/discord/members/k3YhHH4W?label=Discord&logo=discord&logoColor=ffffff&color=7389D8)](https://discord.com/invite/k3YhHH4W)
 
 ### Discord Channel
@@ -20,12 +21,11 @@ The things you need before running this plugin.
 
 ### Installation
 
-A step by step guide that will tell you how to get the development environment up and running.
+Download the plugin (either from Releases or from Marketplace). For more detailed guide take a look at Wiki page.
 
-```
-$ Download the branch you are interested in
-$ Instal the plugin to your Game Project (within /Plugin folder)
-```
+1. Download the branch release you are interested in
+2. Instal the plugin to your Game Project (within /Plugin folder)
+
 
 ## Usage
 
