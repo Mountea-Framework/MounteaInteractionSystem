@@ -72,4 +72,10 @@ public:
 	virtual void SetActiveInteractable(const TScriptInterface<IActorInteractableInterface> NewInteractable) = 0;
 
 	virtual void ToggleDebug() = 0;
+
+	virtual FInteractableSelected& GetOnInteractableSelectedHandle() = 0;
+	virtual FInteractableFound& GetOnInteractableFoundHandle() = 0;
+	virtual FInteractableLost& GetOnInteractableLostHandle() = 0;
+	virtual FInteractionKeyPressed& OnInteractionKeyPressedHandle() = 0;
+	virtual FInteractionKeyReleased& OnInteractionKeyReleasedHandle() = 0;
 };
