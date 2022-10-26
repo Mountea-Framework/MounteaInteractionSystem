@@ -41,5 +41,5 @@ A best way to describe the usage is to take a look or play the demo build.
 
 ## Additional Documentation and Acknowledgments
 
-* Trello board: https://trello.com/b/a9yrcH44/actor-interaction-plugin
+* Roadmap: https://github.com/orgs/Mountea-Framework/projects/2
 * Documentation: https://sites.google.com/view/dominikpavlicek/home/documentation 
