@@ -156,4 +156,13 @@ public:
 
 	virtual void BindHighlightableMesh(UMeshComponent* MeshComponent) const = 0;
 	virtual void UnbindHighlightableMesh(UMeshComponent* MeshComponent) const = 0;
+
+	virtual FInteractorFound& GetOnInteractorFoundHandle() = 0;
+	virtual FInteractorLost& GetOnInteractorLostHandle() = 0;
+	virtual FInteractorTraced& GetOnInteractorTracedHandle() = 0;
+	virtual FInteractorOverlapped& GetOnInteractorOverlappedHandle() = 0;
+	virtual FInteractorStopOverlap& GetOnInteractorStopOverlapHandle() = 0;
+	virtual FInteractionCompleted& GetOnInteractionCompletedHandle() = 0;
+	virtual FInteractionStarted& GetOnInteractionStartedHandle() = 0;
+	virtual FInteractionStopped& GetOnInteractionStoppedHandle() = 0;
 };
