@@ -3,8 +3,9 @@
 Component tool for smart Actor Interaction with other Actors.
 Developed with Designers in mind to allow you as easy as possible implementation while maintaining high scalability and diverse options to tweak everything to your liking.
 
-![UE4](https://img.shields.io/badge/UE4-4.25%2B-green)
-![UE4](https://badgen.net/badge/license/Apache%202.0/blue)
+![UE](https://img.shields.io/badge/supported-4.25%2B-green)
+![License](https://img.shields.io/github/license/Mountea-Framework/ActorInteractionPlugin)
+[![Discord](https://img.shields.io/discord/566990120520122380?color=7389D8&label=Discord)](https://discord.com/invite/k3YhHH4W)
 [![Discord](https://badgen.net/discord/members/k3YhHH4W?label=Discord&logo=discord&logoColor=ffffff&color=7389D8)](https://discord.com/invite/k3YhHH4W)
 
 ### Discord Channel
