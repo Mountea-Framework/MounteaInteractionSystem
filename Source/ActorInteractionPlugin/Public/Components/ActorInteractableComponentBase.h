@@ -7,7 +7,7 @@
 #include "Interfaces/ActorInteractableInterface.h"
 #include "ActorInteractableComponentBase.generated.h"
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FCollisionShapeCache
 {
 	GENERATED_BODY()
@@ -25,11 +25,11 @@ struct FCollisionShapeCache
 	CollisionResponse(collisionResponse)
 	{};
 
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere)
 	uint8 bGenerateOverlapEvents : 1;
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere)
 	TEnumAsByte<ECollisionEnabled::Type> CollisionEnabled;
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere)
 	TEnumAsByte<ECollisionResponse> CollisionResponse;
 	
 };
@@ -895,7 +895,7 @@ protected:
 	 * Filled when Collision Shapes are registered.
 	 * Once Collision Shape is unregistered, it reads its cached settings and returns to pre-interaction Collision Settings.
 	 */
-	UPROPERTY(VisibleAnywhere, Category="Interaction|Debug")
+	UPROPERTY(VisibleAnywhere, Category="Interaction|Debug", meta=(DisplayThumbnail = false, ShowOnlyInnerProperties))
 	mutable TMap<UPrimitiveComponent*, FCollisionShapeCache> CachedCollisionShapesSettings;
 
 #pragma endregion
