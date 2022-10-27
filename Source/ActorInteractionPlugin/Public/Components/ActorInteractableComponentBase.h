@@ -100,7 +100,15 @@ protected:
 	virtual void RemoveIgnoredClass(TSoftClassPtr<UObject> RemoveIgnoredClass) override;
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void RemoveIgnoredClasses(TArray<TSoftClassPtr<UObject>> RemoveIgnoredClasses) override;
-	
+
+	UFUNCTION(BlueprintCallable, Category="Interaction")
+	virtual void AddInteractionDependency(const TScriptInterface<IActorInteractableInterface> InteractionDependency) override;
+	UFUNCTION(BlueprintCallable, Category="Interaction")
+	virtual void RemoveInteractionDependency(const TScriptInterface<IActorInteractableInterface> InteractionDependency) override;
+	UFUNCTION(BlueprintCallable, Category="Interaction")
+	virtual TArray<TScriptInterface<IActorInteractableInterface>> GetInteractionDependencies() const override;
+	UFUNCTION(Category="Interaction")
+	virtual void ProcessDependencies() override;
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual TScriptInterface<IActorInteractorInterface> GetInteractor() const override;
@@ -1038,15 +1046,18 @@ protected:
 	 * Is subject to State Machine.
 	 * @see [State Machine] https://github.com/Mountea-Framework/ActorInteractionPlugin/wiki/Actor-Interactable-Component-Validations#state-machine
 	 */
-	UPROPERTY(VisibleAnywhere, Category="Interaction|Read Only", meta=(NoResetToDefault))
+	UPROPERTY(VisibleAnywhere, Category="Interaction|Read Only")
 	EInteractableStateV2 InteractableState;
+
+	UPROPERTY(VisibleAnywhere, Category="Interaction|Read Only")
+	TArray<TScriptInterface<IActorInteractableInterface>> InteractionDependencies;
 	
 	/**
 	 * List of Highlightable Components.
 	 * * Set Overlap Events to true
 	 * * Response to Collision Channel to overlap
 	 */
-	UPROPERTY(VisibleAnywhere, Category="Interaction|Read Only", meta=(NoResetToDefault))
+	UPROPERTY(VisibleAnywhere, Category="Interaction|Read Only")
 	TArray<UMeshComponent*> HighlightableComponents;
 	
 	/**
@@ -1055,7 +1066,7 @@ protected:
 	 * * Allow Render Custom Depth
 	 * * Use specific StencilID
 	 */
-	UPROPERTY(VisibleAnywhere, Category="Interaction|Read Only", meta=(NoResetToDefault))
+	UPROPERTY(VisibleAnywhere, Category="Interaction|Read Only")
 	TArray<UPrimitiveComponent*> CollisionComponents;
 
 private:
@@ -1065,13 +1076,13 @@ private:
 	 * By default its set to Owner.
 	 * Can be overriden.
 	 */
-	UPROPERTY(VisibleAnywhere, Category="Interaction|Read Only", meta=(NoResetToDefault, DisplayThumbnail = false))
+	UPROPERTY(VisibleAnywhere, Category="Interaction|Read Only", meta=(DisplayThumbnail = false))
 	AActor* InteractionOwner;
 
 	/**
 	 * Interactor which is using this Interactable.
 	 */
-	UPROPERTY(VisibleAnywhere, Category="Interaction|Read Only", meta=(NoResetToDefault, DisplayThumbnail = false))
+	UPROPERTY(VisibleAnywhere, Category="Interaction|Read Only", meta=(DisplayThumbnail = false))
 	TScriptInterface<IActorInteractorInterface> Interactor;
 
 #pragma endregion
