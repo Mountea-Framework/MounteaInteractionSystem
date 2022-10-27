@@ -107,6 +107,12 @@ public:
 
 	virtual float GetCooldownPeriod() const = 0;
 	virtual void SetCooldownPeriod(const float NewCooldownPeriod) = 0;
+
+
+	virtual void AddInteractionDependency(const TScriptInterface<IActorInteractableInterface> InteractionDependency) = 0;
+	virtual void RemoveInteractionDependency(const TScriptInterface<IActorInteractableInterface> InteractionDependency) = 0;
+	virtual TArray<TScriptInterface<IActorInteractableInterface>> GetInteractionDependencies() const = 0;
+	virtual void ProcessDependencies() = 0;
 	
 	
 	virtual TArray<TSoftClassPtr<UObject>> GetIgnoredClasses() const = 0;
