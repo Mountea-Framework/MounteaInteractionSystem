@@ -206,6 +206,12 @@ protected:
 	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual TArray<TScriptInterface<IActorInteractorInterface>> GetInteractionDependencies() const override;
+
+	/**
+	 * 
+	 */
+	UFUNCTION(Category="Interaction")
+	virtual void ProcessDependencies() override;
 	
 	/**
 	 * Returns whether this Interactor can interact or not.
