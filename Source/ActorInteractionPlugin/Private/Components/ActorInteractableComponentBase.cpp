@@ -378,6 +378,8 @@ void UActorInteractableComponentBase::SetState(const EInteractableStateV2 NewSta
 		case EInteractableStateV2::Default: 
 		default: break;
 	}
+
+	ProcessDependencies();
 }
 
 TArray<TSoftClassPtr<UObject>> UActorInteractableComponentBase::GetIgnoredClasses() const
@@ -451,10 +453,31 @@ TArray<TScriptInterface<IActorInteractableInterface>> UActorInteractableComponen
 
 void UActorInteractableComponentBase::ProcessDependencies()
 {
-	/**
-	 * TODO
-	 * Based on state process all dependencies and set them state
-	 */
+	if (InteractionDependencies.Num() == 0) return;
+	
+	for (const auto Itr : InteractionDependencies)
+	{
+		switch (InteractableState)
+		{
+			case EInteractableStateV2::EIS_Active:
+			case EInteractableStateV2::EIS_Suppressed:
+				Itr->SetState(EInteractableStateV2::EIS_Suppressed);
+				break;
+			case EInteractableStateV2::EIS_Disabled:
+			case EInteractableStateV2::EIS_Awake:
+			case EInteractableStateV2::EIS_Asleep:
+				Itr->SetState(InteractableState);
+				break;
+			case EInteractableStateV2::EIS_Cooldown:
+			case EInteractableStateV2::EIS_Completed:
+				Itr->SetState(EInteractableStateV2::EIS_Awake);
+				RemoveInteractionDependency(Itr);
+				break;
+			case EInteractableStateV2::Default:
+			default:
+				break;
+		}
+	}
 }
 
 TScriptInterface<IActorInteractorInterface> UActorInteractableComponentBase::GetInteractor() const
