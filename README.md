@@ -5,8 +5,8 @@ Developed with Designers in mind to allow you as easy as possible implementation
 
 ![UE](https://img.shields.io/badge/supported-4.25%2B-green)
 ![License](https://img.shields.io/github/license/Mountea-Framework/ActorInteractionPlugin)
-[![Discord](https://img.shields.io/discord/566990120520122380?color=7389D8&label=Discord)](https://discord.com/invite/bmDN5QNg)
-[![Discord](https://badgen.net/discord/members/bmDN5QNg?label=Discord&logo=discord&logoColor=ffffff&color=7389D8)](https://discord.com/invite/bmDN5QNg)
+[![Discord](https://img.shields.io/discord/566990120520122380?color=7389D8&label=Discord)](https://discord.com/invite/2vXWEEN)
+[![Discord](https://badgen.net/discord/members/2vXWEEN?label=Discord&logo=discord&logoColor=ffffff&color=7389D8)](https://discord.com/invite/2vXWEEN)
 
 ### Discord Channel
 
