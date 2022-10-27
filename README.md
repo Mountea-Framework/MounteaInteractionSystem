@@ -1,7 +1,8 @@
-# ActorInteractionPlugin
+# Actor Interaction Plugin
 
-Component tool for smart Actor Interaction with other Actors.
-Developed with Designers in mind to allow you as easy as possible implementation while maintaining high scalability and diverse options to tweak everything to your liking.
+Actor Interaction Plugin is an Open-source Mountea Framework components-based simple framework providing utilities for smart Actor Interaction with other Actors.
+Developed with Game Developers in mind to allow as easy as possible implementation while maintaining high scalability and diverse options to tweak everything.
+
 
 ![UE](https://img.shields.io/badge/supported-4.25%2B-green)
 ![License](https://img.shields.io/github/license/Mountea-Framework/ActorInteractionPlugin)
