@@ -260,6 +260,14 @@ TArray<TScriptInterface<IActorInteractorInterface>> UActorInteractorComponentBas
 	return InteractionDependencies;
 }
 
+void UActorInteractorComponentBase::ProcessDependencies()
+{
+	/**
+	 * TODO
+	 * Based on state process all dependencies and set them state
+	 */
+}
+
 bool UActorInteractorComponentBase::CanInteractEvent_Implementation() const
 {
 	return CanInteract();
