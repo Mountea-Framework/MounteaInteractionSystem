@@ -110,6 +110,7 @@ bool UActorInteractableComponentBase::ActivateInteractable(FString& ErrorMessage
 			ErrorMessage.Append(TEXT("Interactable Component has been Activated"));
 			return true;
 		case EInteractableStateV2::EIS_Asleep:
+		case EInteractableStateV2::EIS_Suppressed:
 		case EInteractableStateV2::EIS_Cooldown:
 		case EInteractableStateV2::EIS_Completed:
 		case EInteractableStateV2::EIS_Disabled:
@@ -137,6 +138,7 @@ bool UActorInteractableComponentBase::WakeUpInteractable(FString& ErrorMessage)
 			break;
 		case EInteractableStateV2::EIS_Active:
 		case EInteractableStateV2::EIS_Asleep:
+		case EInteractableStateV2::EIS_Suppressed:
 		case EInteractableStateV2::EIS_Cooldown:
 		case EInteractableStateV2::EIS_Disabled:
 			ErrorMessage.Append(TEXT("Interactable Component has been Awaken"));
@@ -165,16 +167,17 @@ bool UActorInteractableComponentBase::SnoozeInteractable(FString& ErrorMessage)
 			ErrorMessage.Append(TEXT("Interactable Component is already Asleep"));
 			break;
 		case EInteractableStateV2::EIS_Awake:
+		case EInteractableStateV2::EIS_Suppressed:
 		case EInteractableStateV2::EIS_Active:
 		case EInteractableStateV2::EIS_Disabled:
-			ErrorMessage.Append(TEXT("Interactable Component has been Awaken"));
+			ErrorMessage.Append(TEXT("Interactable Component has been Asleep"));
 			return true;
 		case EInteractableStateV2::EIS_Cooldown:
 			// TODO: reset cooldown
-			ErrorMessage.Append(TEXT("Interactable Component has been Awaken"));
+			ErrorMessage.Append(TEXT("Interactable Component has been Asleep"));
 			return true;
 		case EInteractableStateV2::EIS_Completed:
-			ErrorMessage.Append(TEXT("Interactable Component cannot be Awaken"));
+			ErrorMessage.Append(TEXT("Interactable Component cannot be Asleep"));
 			break;
 		case EInteractableStateV2::Default: 
 		default:
@@ -197,6 +200,7 @@ bool UActorInteractableComponentBase::CompleteInteractable(FString& ErrorMessage
 			ErrorMessage.Append(TEXT("Interactable Component is Completed"));
 			return true;
 		case EInteractableStateV2::EIS_Asleep:
+		case EInteractableStateV2::EIS_Suppressed:
 		case EInteractableStateV2::EIS_Awake:
 		case EInteractableStateV2::EIS_Disabled:
 		case EInteractableStateV2::EIS_Cooldown:
@@ -235,6 +239,7 @@ bool UActorInteractableComponentBase::CanInteract() const
 		case EInteractableStateV2::EIS_Disabled:
 		case EInteractableStateV2::EIS_Cooldown:
 		case EInteractableStateV2::EIS_Completed:
+		case EInteractableStateV2::EIS_Suppressed:
 		case EInteractableStateV2::Default: 
 		default: break;
 	}
@@ -260,6 +265,7 @@ void UActorInteractableComponentBase::SetState(const EInteractableStateV2 NewSta
 					break;
 				case EInteractableStateV2::EIS_Active:
 				case EInteractableStateV2::EIS_Asleep:
+				case EInteractableStateV2::EIS_Suppressed:
 				case EInteractableStateV2::EIS_Cooldown:
 				case EInteractableStateV2::EIS_Completed:
 				case EInteractableStateV2::EIS_Disabled:
@@ -272,6 +278,7 @@ void UActorInteractableComponentBase::SetState(const EInteractableStateV2 NewSta
 			{
 				case EInteractableStateV2::EIS_Active:
 				case EInteractableStateV2::EIS_Asleep:
+				case EInteractableStateV2::EIS_Suppressed:
 				case EInteractableStateV2::EIS_Cooldown:
 				case EInteractableStateV2::EIS_Disabled:
 					InteractableState = NewState;
@@ -288,6 +295,7 @@ void UActorInteractableComponentBase::SetState(const EInteractableStateV2 NewSta
 			{
 				case EInteractableStateV2::EIS_Active:
 				case EInteractableStateV2::EIS_Awake:
+				case EInteractableStateV2::EIS_Suppressed:
 				case EInteractableStateV2::EIS_Cooldown:
 				case EInteractableStateV2::EIS_Disabled:
 					InteractableState = NewState;
@@ -307,6 +315,7 @@ void UActorInteractableComponentBase::SetState(const EInteractableStateV2 NewSta
 					OnInteractableStateChanged.Broadcast(InteractableState);
 					break;
 				case EInteractableStateV2::EIS_Awake:
+				case EInteractableStateV2::EIS_Suppressed:
 				case EInteractableStateV2::EIS_Cooldown:
 				case EInteractableStateV2::EIS_Disabled:
 				case EInteractableStateV2::EIS_Completed:
@@ -323,6 +332,7 @@ void UActorInteractableComponentBase::SetState(const EInteractableStateV2 NewSta
 					OnInteractableStateChanged.Broadcast(InteractableState);
 					break;
 				case EInteractableStateV2::EIS_Completed:
+				case EInteractableStateV2::EIS_Suppressed:
 				case EInteractableStateV2::EIS_Awake:
 				case EInteractableStateV2::EIS_Cooldown:
 				case EInteractableStateV2::EIS_Disabled:
@@ -337,6 +347,7 @@ void UActorInteractableComponentBase::SetState(const EInteractableStateV2 NewSta
 				case EInteractableStateV2::EIS_Active:
 				case EInteractableStateV2::EIS_Completed:
 				case EInteractableStateV2::EIS_Awake:
+				case EInteractableStateV2::EIS_Suppressed:
 				case EInteractableStateV2::EIS_Cooldown:
 				case EInteractableStateV2::EIS_Asleep:
 					InteractableState = NewState;
@@ -344,6 +355,23 @@ void UActorInteractableComponentBase::SetState(const EInteractableStateV2 NewSta
 					break;
 				case EInteractableStateV2::EIS_Disabled:
 				case EInteractableStateV2::Default: 
+				default: break;
+			}
+			break;
+		case EInteractableStateV2::EIS_Suppressed:
+			switch (InteractableState)
+			{
+				case EInteractableStateV2::EIS_Active:
+				case EInteractableStateV2::EIS_Awake:
+				case EInteractableStateV2::EIS_Asleep:
+				case EInteractableStateV2::EIS_Disabled:
+					InteractableState = NewState;
+					OnInteractableStateChanged.Broadcast(InteractableState);
+					break;
+				case EInteractableStateV2::EIS_Cooldown:
+				case EInteractableStateV2::EIS_Completed:
+				case EInteractableStateV2::EIS_Suppressed:
+				case EInteractableStateV2::Default:
 				default: break;
 			}
 			break;
@@ -400,6 +428,33 @@ void UActorInteractableComponentBase::RemoveIgnoredClasses(TArray<TSoftClassPtr<
 	{
 		RemoveIgnoredClass(Itr);
 	}
+}
+
+void UActorInteractableComponentBase::AddInteractionDependency(const TScriptInterface<IActorInteractableInterface> InteractionDependency)
+{
+	if (InteractionDependencies.Contains(InteractionDependency)) return;
+
+	InteractionDependencies.Add(InteractionDependency);
+}
+
+void UActorInteractableComponentBase::RemoveInteractionDependency(const TScriptInterface<IActorInteractableInterface> InteractionDependency)
+{
+	if (!InteractionDependencies.Contains(InteractionDependency)) return;
+
+	InteractionDependencies.Remove(InteractionDependency);
+}
+
+TArray<TScriptInterface<IActorInteractableInterface>> UActorInteractableComponentBase::GetInteractionDependencies() const
+{
+	return InteractionDependencies;
+}
+
+void UActorInteractableComponentBase::ProcessDependencies()
+{
+	/**
+	 * TODO
+	 * Based on state process all dependencies and set them state
+	 */
 }
 
 TScriptInterface<IActorInteractorInterface> UActorInteractableComponentBase::GetInteractor() const
