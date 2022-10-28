@@ -195,7 +195,7 @@ bool UActorInteractableComponentBase::CompleteInteractable(FString& ErrorMessage
 {
 	const EInteractableStateV2 CachedState = GetState();
 
-	SetState(EInteractableStateV2::EIS_Asleep);
+	SetState(EInteractableStateV2::EIS_Completed);
 
 	switch (CachedState)
 	{
