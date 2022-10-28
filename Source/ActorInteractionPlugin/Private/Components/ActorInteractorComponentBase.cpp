@@ -18,11 +18,6 @@ UActorInteractorComponentBase::UActorInteractorComponentBase()
 
 	InteractorState = EInteractorStateV2::EIS_Asleep;
 	DefaultInteractorState = EInteractorStateV2::EIS_Asleep;
-
-	InteractionKeyPerPlatform.Add((TEXT("Windows")), FKey("E"));
-	InteractionKeyPerPlatform.Add((TEXT("Mac")), FKey("E"));
-	InteractionKeyPerPlatform.Add((TEXT("PS4")), FKey("Gamepad Face Button Down"));
-	InteractionKeyPerPlatform.Add((TEXT("XboxOne")), FKey("Gamepad Face Button Down"));
 }
 
 void UActorInteractorComponentBase::BeginPlay()
@@ -90,18 +85,12 @@ void UActorInteractorComponentBase::OnInteractableLostEvent_Implementation(const
 
 void UActorInteractorComponentBase::OnInteractionKeyPressedEvent_Implementation(const float TimeKeyPressed, const FKey& PressedKey)
 {
-	if (FindKey(PressedKey))
-	{
-		StartInteraction();
-	}
+	StartInteraction();
 }
 
 void UActorInteractorComponentBase::OnInteractionKeyReleasedEvent_Implementation(const float TimeKeyReleased, const FKey& ReleasedKey)
 {
-	if (FindKey(ReleasedKey))
-	{
-		StopInteraction();
-	}
+	StopInteraction();
 }
 
 void UActorInteractorComponentBase::CompareInteractable(const TScriptInterface<IActorInteractableInterface>& FoundInteractable)
@@ -413,41 +402,6 @@ void UActorInteractorComponentBase::ToggleAutoActivate(const bool bNewAutoActiva
 	bDoesAutoActivate = bNewAutoActivate;
 
 	OnAutoActivateChanged.Broadcast(bDoesAutoActivate);
-}
-
-FKey UActorInteractorComponentBase::GetInteractionKey(const FString& RequestedPlatform) const
-{
-	if(InteractionKeyPerPlatform.Find(RequestedPlatform))
-	{
-		return *InteractionKeyPerPlatform.Find(RequestedPlatform);
-	}
-	else
-	{
-		return FKey();
-	}
-}
-
-void UActorInteractorComponentBase::SetInteractionKey(const FString& Platform, const FKey NewInteractorKey)
-{
-	InteractionKeyPerPlatform.Add(Platform, NewInteractorKey);
-}
-
-TMap<FString, FKey> UActorInteractorComponentBase::GetInteractionKeys() const
-{
-	return InteractionKeyPerPlatform;
-}
-
-bool UActorInteractorComponentBase::FindKey(const FKey& RequestedKey) const
-{
-	for (const auto& Itr : InteractionKeyPerPlatform)
-	{
-		if (Itr.Value == RequestedKey)
-		{
-			return true;
-		}
-	}
-
-	return false;
 }
 
 void UActorInteractorComponentBase::SetActiveInteractable(const TScriptInterface<IActorInteractableInterface> NewInteractable)

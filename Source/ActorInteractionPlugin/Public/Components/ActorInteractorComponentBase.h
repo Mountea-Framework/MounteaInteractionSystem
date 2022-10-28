@@ -289,36 +289,6 @@ protected:
 
 
 	/**
-	 * Returns Interaction Key for specified Platform.
-	 * @param RequestedPlatform Name of platform you want to know the Interaction Key
-	 */
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
-	virtual FKey GetInteractionKey(const FString& RequestedPlatform) const override;
-	
-	/**
-	 * Sets or Updates Interaction Key for specified Platform.
-	 * There is no validation for Keys validation! Nothing stops you from setting Keyboard keys for Consoles. Please, be careful with this variable!
-	 * @param Platform Name of platform you want to set or update the Interaction Key
-	 * @param NewInteractorKey The interaction key to setup.
-	 */
-	UFUNCTION(BlueprintCallable, Category="Interaction")
-	virtual void SetInteractionKey(const FString& Platform, const FKey NewInteractorKey) override;
-
-	/**
-	 * Returns all Interaction Keys.
-	 */
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
-	virtual TMap<FString, FKey> GetInteractionKeys() const override;
-
-	/**
-	 * Checks for Key in the list of Interaction keys.
-	 * Returns true if defined, otherwise returns false.
-	 */
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
-	virtual bool FindKey(const FKey& RequestedKey) const override;
-
-
-	/**
 	 * Sets specified or nul Interactable to be Active Interactable.
 	 */
 	UFUNCTION(Category="Interaction")
@@ -422,13 +392,6 @@ protected:
 	 */
 	UPROPERTY(EditAnywhere, Category="Interaction|Required", meta=(NoResetToDefault))
 	TEnumAsByte<ECollisionChannel> CollisionChannel;
-
-	/**
-	 * List of Interaction Keys for each platform.
-	 * There is no validation for Keys validation! Nothing stops you from setting Keyboard keys for Consoles. Please, be careful with this variable!
-	 */
-	UPROPERTY(EditAnywhere, Category="Interaction|Required", meta=(NoResetToDefault))
-	TMap<FString, FKey> InteractionKeyPerPlatform;
 	
 	/**
 	 * New and easier way to set Default State.
