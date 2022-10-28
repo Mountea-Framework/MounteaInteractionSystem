@@ -4,7 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "Components/WidgetComponent.h"
+
 #include "Interfaces/ActorInteractableInterface.h"
+#include "Helpers/InteractionHelpers.h"
+
 #include "ActorInteractableComponentBase.generated.h"
 
 USTRUCT(BlueprintType)
@@ -107,8 +110,14 @@ protected:
 	virtual void RemoveInteractionDependency(const TScriptInterface<IActorInteractableInterface> InteractionDependency) override;
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual TArray<TScriptInterface<IActorInteractableInterface>> GetInteractionDependencies() const override;
+	/**
+	 * Function responsible for updating Interaction Dependencies.
+	 * Does process all hooked up Interactables in predefined manner.
+	 * Is called once State is updated.
+	 */
 	UFUNCTION(Category="Interaction")
 	virtual void ProcessDependencies() override;
+
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual TScriptInterface<IActorInteractorInterface> GetInteractor() const override;
@@ -146,6 +155,35 @@ protected:
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void SetCooldownPeriod(const float NewCooldownPeriod) override;
 
+
+	/**
+	 * Returns Interaction Key for specified Platform.
+	 * @param RequestedPlatform Name of platform you want to know the Interaction Key
+	 */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
+	virtual FKey GetInteractionKey(const FString& RequestedPlatform) const override;
+	
+	/**
+	 * Sets or Updates Interaction Key for specified Platform.
+	 * There is no validation for Keys validation! Nothing stops you from setting Keyboard keys for Consoles. Please, be careful with this variable!
+	 * @param Platform Name of platform you want to set or update the Interaction Key
+	 * @param NewInteractorKey The interaction key to setup.
+	 */
+	UFUNCTION(BlueprintCallable, Category="Interaction")
+	virtual void SetInteractionKey(const FString& Platform, const FKey NewInteractorKey) override;
+
+	/**
+	 * Returns all Interaction Keys.
+	 */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
+	virtual TMap<FString, FInteractionKeySetup> GetInteractionKeys() const override;
+
+	/**
+	 * Checks for Key in the list of Interaction keys.
+	 * Returns true if defined, otherwise returns false.
+	 */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
+	virtual bool FindKey(const FKey& RequestedKey, const FString& Platform) const override;
 	
 	
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
@@ -938,6 +976,13 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Interaction|Required", meta=(NoResetToDefault))
 	TEnumAsByte<ECollisionChannel> CollisionChannel;
 
+	/**
+	* List of Interaction Keys for each platform.
+	* There is no validation for Keys validation! Nothing stops you from setting Keyboard keys for Consoles. Please, be careful with this variable!
+	*/
+	UPROPERTY(EditAnywhere, Category="Interaction|Required", meta=(NoResetToDefault))
+	TMap<FString, FInteractionKeySetup> InteractionKeysPerPlatform;
+	
 	/**
 	 * Weight of this Interactable.
 	 * Useful with multiple overlapping Interactables withing the same Actor. Interactor will always prefer the one with highest Weight value.

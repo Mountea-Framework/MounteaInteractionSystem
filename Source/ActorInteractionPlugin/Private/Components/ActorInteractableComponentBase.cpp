@@ -29,6 +29,15 @@ UActorInteractableComponentBase::UActorInteractableComponentBase()
 	CooldownPeriod = 3.f;
 
 	InteractionOwner = GetOwner();
+
+	const FInteractionKeySetup GamepadKeys = FKey("Gamepad Face Button Down");
+	FInteractionKeySetup KeyboardKeys = GamepadKeys;
+	KeyboardKeys.Keys.Add("E");
+		
+	InteractionKeysPerPlatform.Add((TEXT("Windows")), KeyboardKeys);
+	InteractionKeysPerPlatform.Add((TEXT("Mac")), KeyboardKeys);
+	InteractionKeysPerPlatform.Add((TEXT("PS4")), GamepadKeys);
+	InteractionKeysPerPlatform.Add((TEXT("XboxOne")), GamepadKeys);
 }
 
 void UActorInteractableComponentBase::BeginPlay()
@@ -596,6 +605,43 @@ void UActorInteractableComponentBase::SetCooldownPeriod(const float NewCooldownP
 	}
 }
 
+FKey UActorInteractableComponentBase::GetInteractionKey(const FString& RequestedPlatform) const
+{
+	if(const FInteractionKeySetup* KeySet = InteractionKeysPerPlatform.Find(RequestedPlatform))
+	{
+		if (KeySet->Keys.Num() == 0) return FKey();
+
+		return KeySet->Keys[0];
+	}
+	
+	return FKey();
+}
+
+void UActorInteractableComponentBase::SetInteractionKey(const FString& Platform, const FKey NewInteractorKey)
+{
+	if (const auto KeySet = InteractionKeysPerPlatform.Find(Platform))
+	{
+		if (KeySet->Keys.Contains(NewInteractorKey)) return;
+
+		KeySet->Keys.Add(NewInteractorKey);
+	}
+}
+
+TMap<FString, FInteractionKeySetup> UActorInteractableComponentBase::GetInteractionKeys() const
+{
+	return InteractionKeysPerPlatform;
+}
+
+bool UActorInteractableComponentBase::FindKey(const FKey& RequestedKey, const FString& Platform) const
+{
+	if (const auto KeySet = InteractionKeysPerPlatform.Find(Platform))
+	{
+		return KeySet->Keys.Contains(RequestedKey);
+	}
+	
+	return false;
+}
+
 void UActorInteractableComponentBase::AddCollisionComponent(UPrimitiveComponent* CollisionComp)
 {
 	if (CollisionComp == nullptr) return;
@@ -840,12 +886,6 @@ void UActorInteractableComponentBase::InteractionCooldownCompleted()
 
 void UActorInteractableComponentBase::OnInteractableBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	/**
-	 * TODO
-	 * Validation
-	 * If Valid, then Broadcast
-	 */
-
 	if (!OtherActor) return;
 
 	TArray<UActorComponent*> InteractorComponents = OtherActor->GetComponentsByInterface(UActorInteractorInterface::StaticClass());

@@ -109,6 +109,11 @@ public:
 	virtual void SetCooldownPeriod(const float NewCooldownPeriod) = 0;
 
 
+	virtual FKey GetInteractionKey(const FString& RequestedPlatform) const = 0;
+	virtual void SetInteractionKey(const FString& Platform, const FKey NewInteractorKey) = 0;
+	virtual TMap<FString, struct FInteractionKeySetup> GetInteractionKeys() const = 0;
+	virtual bool FindKey(const FKey& RequestedKey, const FString& Platform) const = 0;
+
 	virtual void AddInteractionDependency(const TScriptInterface<IActorInteractableInterface> InteractionDependency) = 0;
 	virtual void RemoveInteractionDependency(const TScriptInterface<IActorInteractableInterface> InteractionDependency) = 0;
 	virtual TArray<TScriptInterface<IActorInteractableInterface>> GetInteractionDependencies() const = 0;
