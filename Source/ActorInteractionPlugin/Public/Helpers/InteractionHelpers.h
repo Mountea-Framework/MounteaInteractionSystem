@@ -2,6 +2,9 @@
 
 #pragma once
 
+#include "CoreMinimal.h"
+#include "InteractionHelpers.generated.h"
+
 #define INTERACTOR_TAG_NAME   TEXT("Interactor")
 #define INTERACTABLE_TAG_NAME TEXT("Interactable")
 
@@ -131,6 +134,29 @@ enum class EInteractorStateV2 : uint8
  EIS_Disabled   UMETA(DisplayName = "Disabled",    Tooltip = "Interactor is disabled. Can be awaken."),
 
  Default      UMETA(Hidden)
+};
+
+#pragma endregion
+
+#pragma region InteractionKeySetup
+
+USTRUCT(BlueprintType)
+struct FInteractionKeySetup
+{
+     GENERATED_BODY()
+     
+     FInteractionKeySetup(){};
+     FInteractionKeySetup(const TArray<FKey> NewKeys)
+     {
+         Keys = NewKeys;
+     }
+     FInteractionKeySetup(const FKey NewKey)
+     {
+         Keys.Add(NewKey);
+     }
+
+     UPROPERTY(VisibleAnywhere, meta=(NoElementDuplicate))
+     TArray<FKey> Keys;
 };
 
 #pragma endregion 
