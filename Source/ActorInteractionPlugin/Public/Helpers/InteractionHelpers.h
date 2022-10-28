@@ -133,7 +133,7 @@ enum class EInteractorStateV2 : uint8
  EIS_Active     UMETA(DisplayName = "Interacting", Tooltip = "Interactor is in use"),
  EIS_Disabled   UMETA(DisplayName = "Disabled",    Tooltip = "Interactor is disabled. Can be awaken."),
 
- Default      UMETA(Hidden)
+ Default        UMETA(Hidden)
 };
 
 #pragma endregion
