@@ -49,10 +49,6 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCollisionComponentAdded, const UPri
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FHighlightableComponentRemoved, const UMeshComponent*, RemovedHighlightableComp);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCollisionComponentRemoved, const UPrimitiveComponent*, RemovedCollisionComp);
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FHighlightableOverrideAdded, const FName, NewTag);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCollisionOverrideAdded, const FName, NewTag);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FHighlightableOverrideRemoved, const FName, RemovedTag);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCollisionOverrideRemoved, const FName, RemovedTag);
 
 /**
  * 
@@ -105,6 +101,8 @@ public:
 	virtual int32 GetLifecycleCount() const = 0;
 	virtual void SetLifecycleCount(const int32 NewLifecycleCount) = 0;
 
+	virtual int32 GetRemainingLifecycleCount() const = 0;
+
 	virtual float GetCooldownPeriod() const = 0;
 	virtual void SetCooldownPeriod(const float NewCooldownPeriod) = 0;
 
@@ -118,7 +116,9 @@ public:
 	virtual void RemoveInteractionDependency(const TScriptInterface<IActorInteractableInterface> InteractionDependency) = 0;
 	virtual TArray<TScriptInterface<IActorInteractableInterface>> GetInteractionDependencies() const = 0;
 	virtual void ProcessDependencies() = 0;
-	
+
+
+	virtual void TriggerCooldown() = 0;
 	
 	virtual TArray<TSoftClassPtr<UObject>> GetIgnoredClasses() const = 0;
 	virtual void SetIgnoredClasses(const TArray<TSoftClassPtr<UObject>> NewIgnoredClasses) = 0;
@@ -140,22 +140,13 @@ public:
 	virtual void RemoveHighlightableComponent(UMeshComponent* HighlightableComp) = 0;
 	virtual void RemoveHighlightableComponents(const TArray<UMeshComponent*> HighlightableComponents) = 0;
 	
-
 	
 	virtual UMeshComponent* FindMeshByTag(const FName Tag) const = 0;
 	virtual UPrimitiveComponent* FindPrimitiveByTag(const FName Tag) const = 0;
 
 	virtual TArray<FName> GetCollisionOverrides() const = 0;
-	virtual void AddCollisionOverride(const FName Tag) = 0;
-	virtual void AddCollisionOverrides(const TArray<FName> Tags) = 0;
-	virtual void RemoveCollisionOverride(const FName Tag) = 0;
-	virtual void RemoveCollisionOverrides(const TArray<FName> Tags) = 0;
-
 	virtual TArray<FName> GetHighlightableOverrides() const = 0;
-	virtual void AddHighlightableOverride(const FName Tag) = 0;
-	virtual void AddHighlightableOverrides(const TArray<FName> Tags) = 0;
-	virtual void RemoveHighlightableOverride(const FName Tag) = 0;
-	virtual void RemoveHighlightableOverrides(const TArray<FName> Tags) = 0;
+
 
 	virtual void ToggleDebug() = 0;
 
@@ -176,4 +167,6 @@ public:
 	virtual FInteractionCompleted& GetOnInteractionCompletedHandle() = 0;
 	virtual FInteractionStarted& GetOnInteractionStartedHandle() = 0;
 	virtual FInteractionStopped& GetOnInteractionStoppedHandle() = 0;
+
+	virtual FTimerHandle& GetCooldownHandle() = 0;
 };

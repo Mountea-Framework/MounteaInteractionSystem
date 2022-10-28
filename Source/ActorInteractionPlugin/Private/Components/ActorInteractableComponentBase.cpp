@@ -78,14 +78,10 @@ void UActorInteractableComponentBase::BeginPlay()
 	// Highlight Events
 	OnHighlightableComponentAdded.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnHighlightableComponentAddedEvent);
 	OnHighlightableComponentRemoved.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnHighlightableComponentRemovedEvent);
-	OnHighlightableOverrideAdded.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnHighlightableOverrideAddedEvent);
-	OnHighlightableOverrideRemoved.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnHighlightableOverrideRemovedEvent);
 	
 	// Collision Events
 	OnCollisionComponentAdded.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnCollisionComponentAddedEvent);
 	OnCollisionComponentRemoved.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnCollisionComponentRemovedEvent);
-	OnCollisionOverrideAdded.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnCollisionOverrideAddedEvent);
-	OnCollisionOverrideRemoved.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnCollisionOverrideRemovedEvent);
 	
 	SetState(DefaultInteractableState);
 
@@ -95,9 +91,7 @@ void UActorInteractableComponentBase::BeginPlay()
 #pragma region InteractionImplementations
 
 bool UActorInteractableComponentBase::DoesAutoSetup() const
-{
-	return bInteractableAutoSetup;
-}
+{ return bInteractableAutoSetup; }
 
 void UActorInteractableComponentBase::ToggleAutoSetup(const bool NewValue)
 {
@@ -257,9 +251,7 @@ bool UActorInteractableComponentBase::CanInteract() const
 }
 
 EInteractableStateV2 UActorInteractableComponentBase::GetState() const
-{
-	return InteractableState;
-}
+{ return InteractableState; }
 
 void UActorInteractableComponentBase::SetState(const EInteractableStateV2 NewState)
 {
@@ -337,8 +329,12 @@ void UActorInteractableComponentBase::SetState(const EInteractableStateV2 NewSta
 			switch (InteractableState)
 			{
 				case EInteractableStateV2::EIS_Active:
-					InteractableState = NewState;
-					OnInteractableStateChanged.Broadcast(InteractableState);
+					{
+						InteractableState = NewState;
+						OnInteractableStateChanged.Broadcast(InteractableState);
+						if (GetWorld()) GetWorld()->GetTimerManager().ClearAllTimersForObject(this);
+						SetInteractor(nullptr);
+					}
 					break;
 				case EInteractableStateV2::EIS_Completed:
 				case EInteractableStateV2::EIS_Suppressed:
@@ -392,9 +388,7 @@ void UActorInteractableComponentBase::SetState(const EInteractableStateV2 NewSta
 }
 
 TArray<TSoftClassPtr<UObject>> UActorInteractableComponentBase::GetIgnoredClasses() const
-{
-	return IgnoredClasses;
-}
+{ return IgnoredClasses; }
 
 void UActorInteractableComponentBase::SetIgnoredClasses(const TArray<TSoftClassPtr<UObject>> NewIgnoredClasses)
 {
@@ -456,9 +450,7 @@ void UActorInteractableComponentBase::RemoveInteractionDependency(const TScriptI
 }
 
 TArray<TScriptInterface<IActorInteractableInterface>> UActorInteractableComponentBase::GetInteractionDependencies() const
-{
-	return InteractionDependencies;
-}
+{ return InteractionDependencies; }
 
 void UActorInteractableComponentBase::ProcessDependencies()
 {
@@ -490,9 +482,7 @@ void UActorInteractableComponentBase::ProcessDependencies()
 }
 
 TScriptInterface<IActorInteractorInterface> UActorInteractableComponentBase::GetInteractor() const
-{
-	return Interactor;
-}
+{ return Interactor; }
 
 void UActorInteractableComponentBase::SetInteractor(const TScriptInterface<IActorInteractorInterface> NewInteractor)
 {
@@ -502,9 +492,7 @@ void UActorInteractableComponentBase::SetInteractor(const TScriptInterface<IActo
 }
 
 int32 UActorInteractableComponentBase::GetInteractableWeight() const
-{
-	return InteractionWeight;
-}
+{ return InteractionWeight; }
 
 void UActorInteractableComponentBase::SetInteractableWeight(const int32 NewWeight)
 {
@@ -514,9 +502,7 @@ void UActorInteractableComponentBase::SetInteractableWeight(const int32 NewWeigh
 }
 
 AActor* UActorInteractableComponentBase::GetInteractableOwner() const
-{
-	return InteractionOwner;
-}
+{ return InteractionOwner; }
 
 void UActorInteractableComponentBase::SetInteractableOwner(AActor* NewOwner)
 {
@@ -526,9 +512,7 @@ void UActorInteractableComponentBase::SetInteractableOwner(AActor* NewOwner)
 }
 
 ECollisionChannel UActorInteractableComponentBase::GetCollisionChannel() const
-{
-	return CollisionChannel;
-}
+{ return CollisionChannel; }
 
 void UActorInteractableComponentBase::SetCollisionChannel(const ECollisionChannel& NewChannel)
 {
@@ -538,14 +522,10 @@ void UActorInteractableComponentBase::SetCollisionChannel(const ECollisionChanne
 }
 
 TArray<UPrimitiveComponent*> UActorInteractableComponentBase::GetCollisionComponents() const
-{
-	return CollisionComponents;
-}
+{	return CollisionComponents;}
 
 EInteractableLifecycle UActorInteractableComponentBase::GetLifecycleMode() const
-{
-	return LifecycleMode;
-}
+{	return LifecycleMode;}
 
 void UActorInteractableComponentBase::SetLifecycleMode(const EInteractableLifecycle& NewMode)
 {
@@ -555,9 +535,7 @@ void UActorInteractableComponentBase::SetLifecycleMode(const EInteractableLifecy
 }
 
 int32 UActorInteractableComponentBase::GetLifecycleCount() const
-{
-	return LifecycleCount;
-}
+{	return LifecycleCount;}
 
 void UActorInteractableComponentBase::SetLifecycleCount(const int32 NewLifecycleCount)
 {
@@ -586,10 +564,11 @@ void UActorInteractableComponentBase::SetLifecycleCount(const int32 NewLifecycle
 	}
 }
 
+int32 UActorInteractableComponentBase::GetRemainingLifecycleCount() const
+{ return RemainingLifecycleCount; }
+
 float UActorInteractableComponentBase::GetCooldownPeriod() const
-{
-	return CooldownPeriod;
-}
+{ return CooldownPeriod; }
 
 void UActorInteractableComponentBase::SetCooldownPeriod(const float NewCooldownPeriod)
 {
@@ -628,9 +607,7 @@ void UActorInteractableComponentBase::SetInteractionKey(const FString& Platform,
 }
 
 TMap<FString, FInteractionKeySetup> UActorInteractableComponentBase::GetInteractionKeys() const
-{
-	return InteractionKeysPerPlatform;
-}
+{	return InteractionKeysPerPlatform;}
 
 bool UActorInteractableComponentBase::FindKey(const FKey& RequestedKey, const FString& Platform) const
 {
@@ -683,9 +660,7 @@ void UActorInteractableComponentBase::RemoveCollisionComponents(const TArray<UPr
 }
 
 TArray<UMeshComponent*> UActorInteractableComponentBase::GetHighlightableComponents() const
-{
-	return HighlightableComponents;
-}
+{	return HighlightableComponents;}
 
 void UActorInteractableComponentBase::AddHighlightableComponent(UMeshComponent* MeshComponent)
 {
@@ -764,46 +739,10 @@ UPrimitiveComponent* UActorInteractableComponentBase::FindPrimitiveByTag(const F
 }
 
 TArray<FName> UActorInteractableComponentBase::GetCollisionOverrides() const
-{
-	return CollisionOverrides;
-}
-
-void UActorInteractableComponentBase::AddCollisionOverride(const FName Tag)
-{
-}
-
-void UActorInteractableComponentBase::AddCollisionOverrides(const TArray<FName> Tags)
-{
-}
-
-void UActorInteractableComponentBase::RemoveCollisionOverride(const FName Tag)
-{
-}
-
-void UActorInteractableComponentBase::RemoveCollisionOverrides(const TArray<FName> Tags)
-{
-}
+{	return CollisionOverrides;}
 
 TArray<FName> UActorInteractableComponentBase::GetHighlightableOverrides() const
-{
-	return HighlightableOverrides;
-}
-
-void UActorInteractableComponentBase::AddHighlightableOverride(const FName Tag)
-{
-}
-
-void UActorInteractableComponentBase::AddHighlightableOverrides(const TArray<FName> Tags)
-{
-}
-
-void UActorInteractableComponentBase::RemoveHighlightableOverride(const FName Tag)
-{
-}
-
-void UActorInteractableComponentBase::RemoveHighlightableOverrides(const TArray<FName> Tags)
-{
-}
+{	return HighlightableOverrides;}
 
 void UActorInteractableComponentBase::InteractorFound(const TScriptInterface<IActorInteractorInterface>& FoundInteractor)
 {
@@ -837,6 +776,11 @@ void UActorInteractableComponentBase::InteractionCompleted(const float& TimeComp
 	 * If Valid, then Broadcast
 	 */
 
+	if (LifecycleMode == EInteractableLifecycle::EIL_Cycled)
+	{
+		TriggerCooldown();
+	}
+
 	OnInteractionCompletedEvent(TimeCompleted);
 }
 
@@ -858,17 +802,14 @@ void UActorInteractableComponentBase::InteractionStopped()
 	 * Validation
 	 * If Valid, then Broadcast
 	 */
+	
 
 	OnInteractionStoppedEvent();
 }
 
 void UActorInteractableComponentBase::InteractionLifecycleCompleted()
 {
-	/**
-	 * TODO
-	 * Validation
-	 * If Valid, then Broadcast
-	 */
+	SetState(EInteractableStateV2::EIS_Completed);
 
 	OnLifecycleCompletedEvent();
 }
@@ -987,6 +928,30 @@ void UActorInteractableComponentBase::FindAndAddHighlightableMeshes()
 		{
 			AIntP_LOG(Error, TEXT("[Actor Interactable Component] Mesh Component with %s tag not found!"), *Itr.ToString())
 		}
+	}
+}
+
+void UActorInteractableComponentBase::TriggerCooldown()
+{
+	const int32 TempRemainingLifecycleCount = RemainingLifecycleCount - 1;
+	RemainingLifecycleCount = FMath::Max(0, TempRemainingLifecycleCount);
+
+	if (GetWorld())
+	{
+		if (RemainingLifecycleCount <= 0)
+		{
+			SetState(EInteractableStateV2::EIS_Completed);
+			return;
+		}
+
+		SetState(EInteractableStateV2::EIS_Cooldown);
+		GetWorld()->GetTimerManager().SetTimer
+		(
+			CooldownHandle,
+			this,
+			&UActorInteractableComponentBase::OnCooldownCompletedEvent,
+			CooldownPeriod
+		);
 	}
 }
 

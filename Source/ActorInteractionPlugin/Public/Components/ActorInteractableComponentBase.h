@@ -149,6 +149,8 @@ protected:
 	virtual int32 GetLifecycleCount() const override;
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void SetLifecycleCount(const int32 NewLifecycleCount) override;
+	UFUNCTION(BlueprintCallable, Category="Interaction")
+	virtual int32 GetRemainingLifecycleCount() const override;
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual float GetCooldownPeriod() const override;
@@ -218,25 +220,9 @@ protected:
 	
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual TArray<FName> GetCollisionOverrides() const override;
-	UFUNCTION(BlueprintCallable, Category="Interaction")
-	virtual void AddCollisionOverride(const FName Tag) override;
-	UFUNCTION(BlueprintCallable, Category="Interaction")
-	virtual void AddCollisionOverrides(const TArray<FName> Tags) override;
-	UFUNCTION(BlueprintCallable, Category="Interaction")
-	virtual void RemoveCollisionOverride(const FName Tag) override;
-	UFUNCTION(BlueprintCallable, Category="Interaction")
-	virtual void RemoveCollisionOverrides(const TArray<FName> Tags) override;
-
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual TArray<FName> GetHighlightableOverrides() const override;
-	UFUNCTION(BlueprintCallable, Category="Interaction")
-	virtual void AddHighlightableOverride(const FName Tag) override;
-	UFUNCTION(BlueprintCallable, Category="Interaction")
-	virtual void AddHighlightableOverrides(const TArray<FName> Tags) override;
-	UFUNCTION(BlueprintCallable, Category="Interaction")
-	virtual void RemoveHighlightableOverride(const FName Tag) override;
-	UFUNCTION(BlueprintCallable, Category="Interaction")
-	virtual void RemoveHighlightableOverrides(const TArray<FName> Tags) override;
+
 
 #pragma endregion
 
@@ -597,6 +583,8 @@ protected:
 	virtual void FindAndAddCollisionShapes() override;
 	virtual void FindAndAddHighlightableMeshes() override;
 
+	virtual void TriggerCooldown() override;
+
 	/**
 	 * Binds Collision Events for specified Primitive Component.
 	 * Caches Primitive Component collision settings.
@@ -861,42 +849,6 @@ protected:
 	UPROPERTY(BlueprintAssignable, Category="Interaction")
 	FInteractorChanged OnInteractorChanged;
 
-	/**
-	 * Event called once new Highlightable Override has been added.
-	 * Expected to be more a debugging event rather than in-game event.
-	 * Highlightable Override is not meant to be updated in-game as the setup is not well optimized.
-	 * Currently there is not implemented any function to update Highlightable Meshes from Highlightable Override in-game.
-	 */
-	UPROPERTY(BlueprintAssignable, Category="Interaction")
-	FHighlightableOverrideAdded OnHighlightableOverrideAdded;
-	
-	/**
-	 * Event called once Highlightable Override has been removed.
-	 * Expected to be more a debugging event rather than in-game event.
-	 * Highlightable Override is not meant to be updated in-game as the setup is not well optimized.
-	 * Currently there is not implemented any function to update Highlightable Meshes from Highlightable Override in-game.
-	 */
-	UPROPERTY(BlueprintAssignable, Category="Interaction")
-	FHighlightableOverrideRemoved OnHighlightableOverrideRemoved;
-
-	/**
-	 * Event called once new Collision Override has been added.
-	 * Expected to be more a debugging event rather than in-game event.
-	 * Collision Override is not meant to be updated in-game as the setup is not well optimized.
-	 * Currently there is not implemented any function to update Collision Shapes from Collision Override in-game.
-	 */
-	UPROPERTY(BlueprintAssignable, Category="Interaction")
-	FCollisionOverrideAdded OnCollisionOverrideAdded;
-
-	/**
-	 * Event called once Collision Override has been removed.
-	 * Expected to be more a debugging event rather than in-game event.
-	 * Collision Override is not meant to be updated in-game as the setup is not well optimized.
-	 * Currently there is not implemented any function to update Collision Shapes from Collision Override in-game.
-	 */
-	UPROPERTY(BlueprintAssignable, Category="Interaction")
-	FCollisionOverrideRemoved OnCollisionOverrideRemoved;
-
 #pragma endregion 
 
 #pragma region Handles
@@ -917,6 +869,9 @@ protected:
 	{ return OnInteractionStarted; };
 	virtual FInteractionStopped& GetOnInteractionStoppedHandle() override
 	{ return OnInteractionStopped; };
+
+	virtual FTimerHandle& GetCooldownHandle() override
+	{ return CooldownHandle; }
 
 #pragma endregion 
 
@@ -1095,6 +1050,9 @@ protected:
 	EInteractableStateV2 InteractableState;
 
 	UPROPERTY(VisibleAnywhere, Category="Interaction|Read Only")
+	int32 RemainingLifecycleCount;
+
+	UPROPERTY(VisibleAnywhere, Category="Interaction|Read Only")
 	TArray<TScriptInterface<IActorInteractableInterface>> InteractionDependencies;
 	
 	/**
@@ -1115,6 +1073,8 @@ protected:
 	TArray<UPrimitiveComponent*> CollisionComponents;
 
 private:
+
+	FTimerHandle CooldownHandle;
 
 	/**
 	 * Owning Actor of this Interactable.
