@@ -251,10 +251,27 @@ TArray<TScriptInterface<IActorInteractorInterface>> UActorInteractorComponentBas
 
 void UActorInteractorComponentBase::ProcessDependencies()
 {
-	/**
-	 * TODO
-	 * Based on state process all dependencies and set them state
-	 */
+	if (InteractionDependencies.Num() == 0) return;
+	
+	for (const auto Itr : InteractionDependencies)
+	{
+		switch (InteractorState)
+		{
+			case EInteractorStateV2::EIS_Active:
+			case EInteractorStateV2::EIS_Suppressed:
+				Itr->SetState(EInteractorStateV2::EIS_Suppressed);
+				break;
+			case EInteractorStateV2::EIS_Disabled:
+			case EInteractorStateV2::EIS_Awake:
+			case EInteractorStateV2::EIS_Asleep:
+				Itr->SetState(EInteractorStateV2::EIS_Awake);
+				RemoveInteractionDependency(Itr);
+				break;
+			case EInteractorStateV2::Default:
+			default:
+				break;
+		}
+	}
 }
 
 bool UActorInteractorComponentBase::CanInteractEvent_Implementation() const
