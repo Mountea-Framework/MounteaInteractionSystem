@@ -29,7 +29,35 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
+#pragma region Handles
+
+public:
+
+	virtual FInteractableSelected& GetOnInteractableSelectedHandle() override
+	{ return OnInteractableSelected; };
+	virtual FInteractableFound& GetOnInteractableFoundHandle() override
+	{ return OnInteractableFound; };
+	virtual FInteractableLost& GetOnInteractableLostHandle() override
+	{ return OnInteractableLost; };
+	virtual FInteractionKeyPressed& OnInteractionKeyPressedHandle() override
+	{ return OnInteractionKeyPressed; };
+	virtual FInteractionKeyReleased& OnInteractionKeyReleasedHandle() override
+	{ return OnInteractionKeyReleased; };
+
+#pragma endregion
+	
 protected:
+
+#pragma region NativeFunctions
+
+	UFUNCTION()
+	virtual void InteractableSelected(const TScriptInterface<IActorInteractableInterface>& SelectedInteractable) override;
+	UFUNCTION()
+	virtual void InteractableFound(const TScriptInterface<IActorInteractableInterface>& FoundInteractable) override;
+	UFUNCTION()
+	virtual void InteractableLost(const TScriptInterface<IActorInteractableInterface>& LostInteractable) override;
+
+#pragma endregion 
 
 #pragma region Events
 	
@@ -50,7 +78,7 @@ protected:
 	 * 
 	 * @param FoundInteractable Interactable Component which is found
 	 */
-	UFUNCTION(BlueprintNativeEvent, Category="Interaction")
+	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
 	void OnInteractableFoundEvent(const TScriptInterface<IActorInteractableInterface>& FoundInteractable);
 	
 	/**
@@ -60,7 +88,7 @@ protected:
 	 * 
 	 * @param LostInteractable Interactable Component which is lost
 	 */
-	UFUNCTION(BlueprintNativeEvent, Category="Interaction")
+	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
 	void OnInteractableLostEvent(const TScriptInterface<IActorInteractableInterface>& LostInteractable);
 
 	/**
@@ -117,20 +145,7 @@ protected:
 
 #pragma endregion
 
-#pragma region Handles
-
-	virtual FInteractableSelected& GetOnInteractableSelectedHandle() override
-	{ return OnInteractableSelected; };
-	virtual FInteractableFound& GetOnInteractableFoundHandle() override
-	{ return OnInteractableFound; };
-	virtual FInteractableLost& GetOnInteractableLostHandle() override
-	{ return OnInteractableLost; };
-	virtual FInteractionKeyPressed& OnInteractionKeyPressedHandle() override
-	{ return OnInteractionKeyPressed; };
-	virtual FInteractionKeyReleased& OnInteractionKeyReleasedHandle() override
-	{ return OnInteractionKeyReleased; };
-
-#pragma endregion 
+protected:
 	
 	/**
 	 * Compares Interactables.

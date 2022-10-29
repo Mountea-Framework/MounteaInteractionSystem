@@ -44,6 +44,10 @@ public:
 	virtual bool SuppressInteractor(FString& ErrorMessage) = 0;
 	virtual void DeactivateInteractor() = 0;
 
+	virtual void InteractableFound(const TScriptInterface<IActorInteractableInterface>& FoundInteractable) = 0;
+	virtual void InteractableLost(const TScriptInterface<IActorInteractableInterface>& LostInteractable) = 0;
+	virtual void InteractableSelected(const TScriptInterface<IActorInteractableInterface>& SelectedInteractable) = 0;
+
 	virtual void AddInteractionDependency(const TScriptInterface<IActorInteractorInterface> InteractionDependency) = 0;
 	virtual void RemoveInteractionDependency(const TScriptInterface<IActorInteractorInterface> InteractionDependency) = 0;
 	virtual TArray<TScriptInterface<IActorInteractorInterface>> GetInteractionDependencies() const = 0;

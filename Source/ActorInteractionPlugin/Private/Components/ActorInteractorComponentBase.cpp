@@ -24,9 +24,9 @@ void UActorInteractorComponentBase::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	OnInteractableSelected.AddUniqueDynamic(this, &UActorInteractorComponentBase::OnInteractableSelectedEvent);
-	OnInteractableFound.AddUniqueDynamic(this, &UActorInteractorComponentBase::OnInteractableFoundEvent);
-	OnInteractableLost.AddUniqueDynamic(this, &UActorInteractorComponentBase::OnInteractableLostEvent);
+	OnInteractableSelected.AddUniqueDynamic(this, &UActorInteractorComponentBase::InteractableSelected);
+	OnInteractableFound.AddUniqueDynamic(this, &UActorInteractorComponentBase::InteractableFound);
+	OnInteractableLost.AddUniqueDynamic(this, &UActorInteractorComponentBase::InteractableLost);
 	
 	OnInteractionKeyPressed.AddUniqueDynamic(this, &UActorInteractorComponentBase::OnInteractionKeyPressedEvent);
 	OnInteractionKeyReleased.AddUniqueDynamic(this, &UActorInteractorComponentBase::OnInteractionKeyReleasedEvent);
@@ -52,7 +52,12 @@ void UActorInteractorComponentBase::TickComponent(float DeltaTime, ELevelTick Ti
 	TickInteraction(DeltaTime);
 }
 
-void UActorInteractorComponentBase::OnInteractableFoundEvent_Implementation(const TScriptInterface<IActorInteractableInterface>& FoundInteractable)
+void UActorInteractorComponentBase::InteractableSelected(const TScriptInterface<IActorInteractableInterface>& SelectedInteractable)
+{
+	OnInteractableSelectedEvent(SelectedInteractable);
+}
+
+void UActorInteractorComponentBase::InteractableFound(const TScriptInterface<IActorInteractableInterface>& FoundInteractable)
 {
 	for (const auto Itr : InteractionDependencies)
 	{
@@ -63,12 +68,12 @@ void UActorInteractorComponentBase::OnInteractableFoundEvent_Implementation(cons
 	}
 	
 	CompareInteractable(FoundInteractable);
+
+	OnInteractableFoundEvent(FoundInteractable);
 }
 
-void UActorInteractorComponentBase::OnInteractableLostEvent_Implementation(const TScriptInterface<IActorInteractableInterface>& LostInteractable)
+void UActorInteractorComponentBase::InteractableLost(const TScriptInterface<IActorInteractableInterface>& LostInteractable)
 {
-
-	
 	if (LostInteractable == ActiveInteractable)
 	{
 		SetActiveInteractable(nullptr);
@@ -81,6 +86,8 @@ void UActorInteractorComponentBase::OnInteractableLostEvent_Implementation(const
 			}
 		}
 	}
+
+	OnInteractableLostEvent(LostInteractable);
 }
 
 void UActorInteractorComponentBase::OnInteractionKeyPressedEvent_Implementation(const float TimeKeyPressed, const FKey& PressedKey)
@@ -107,6 +114,8 @@ void UActorInteractorComponentBase::CompareInteractable(const TScriptInterface<I
 		 * Compare weights
 		 * Set the one with highest
 		 */
+		SetActiveInteractable(FoundInteractable);
+		OnInteractableSelected.Broadcast(FoundInteractable);
 	}
 }
 
