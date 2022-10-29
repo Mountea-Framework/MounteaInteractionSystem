@@ -316,7 +316,7 @@ protected:
 	 * * Interactor Interface does have same CollisionChannel as Interactable
 	 */
 	UFUNCTION(Category="Interaction")
-	void OnInteractableBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
+	virtual void OnInteractableBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
 
 	/**
 	 * Event called once any of Collision Shapes stops overlapping.
@@ -328,7 +328,7 @@ protected:
 	 * * Interactor Interface does have same CollisionChannel as Interactable
 	 */
 	UFUNCTION(Category="Interaction")
-	void OnInteractableStopOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+	virtual void OnInteractableStopOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
 	/**
 	 * Event called once any of Collision Shapes is hit by trace.
@@ -340,7 +340,7 @@ protected:
 	 * * Interactor Interface does have same CollisionChannel as Interactable
 	 */
 	UFUNCTION(Category="Interaction")
-	void OnInteractableTraced(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+	virtual void OnInteractableTraced(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
 #pragma endregion
 

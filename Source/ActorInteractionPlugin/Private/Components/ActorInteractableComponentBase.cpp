@@ -12,7 +12,7 @@
 
 UActorInteractableComponentBase::UActorInteractableComponentBase()
 {
-	PrimaryComponentTick.bCanEverTick = true;
+	PrimaryComponentTick.bCanEverTick = false;
 
 	bToggleDebug = false;
 	bInteractableAutoSetup = false;
@@ -51,9 +51,10 @@ void UActorInteractableComponentBase::BeginPlay()
 	OnInteractorFound.AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractorFound);
 	OnInteractorLost.AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractorLost);
 
-	OnInteractorOverlapped.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableBeginOverlapEvent);
-	OnInteractorStopOverlap.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableStopOverlapEvent);
-	OnInteractorTraced.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableTracedEvent);
+	// Child Classes will Implement those
+	//OnInteractorOverlapped.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableBeginOverlapEvent);
+	//OnInteractorStopOverlap.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableStopOverlapEvent);
+	//OnInteractorTraced.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableTracedEvent);
 
 	OnInteractionCompleted.AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractionCompleted);
 	OnInteractionStarted.AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractionStarted);
@@ -848,97 +849,17 @@ void UActorInteractableComponentBase::InteractionCooldownCompleted()
 
 void UActorInteractableComponentBase::OnInteractableBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (IsInteracting()) return;
-	if (!OtherActor) return;
-
-	TArray<UActorComponent*> InteractorComponents = OtherActor->GetComponentsByInterface(UActorInteractorInterface::StaticClass());
-
-	if (InteractorComponents.Num() == 0) return;
-	
-	for (const auto Itr : InteractorComponents)
-	{
-		TScriptInterface<IActorInteractorInterface> FoundInteractor;
-		if (IgnoredClasses.Contains(Itr->StaticClass())) continue;
-		
-		FoundInteractor = Itr;
-		FoundInteractor.SetObject(Itr);
-		FoundInteractor.SetInterface(Cast<IActorInteractorInterface>(Itr));
-
-		switch (FoundInteractor->GetState())
-		{
-			case EInteractorStateV2::EIS_Active:
-			case EInteractorStateV2::EIS_Awake:
-				if (FoundInteractor->GetResponseChannel() != GetCollisionChannel()) continue;
-				OnInteractorOverlapped.Broadcast(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
-				OnInteractorFound.Broadcast(FoundInteractor);
-				break;
-			case EInteractorStateV2::EIS_Asleep:
-			case EInteractorStateV2::EIS_Suppressed:
-			case EInteractorStateV2::EIS_Disabled:
-			case EInteractorStateV2::Default:
-				break;
-		}
-	}
+	// Implement in Child Classes
 }
 
 void UActorInteractableComponentBase::OnInteractableStopOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	if (!OtherActor) return;
-
-	TArray<UActorComponent*> InteractorComponents = OtherActor->GetComponentsByInterface(UActorInteractorInterface::StaticClass());
-
-	if (InteractorComponents.Num() == 0) return;
-
-	for (const auto Itr : InteractorComponents)
-	{
-		if (Itr == GetInteractor().GetObject())
-		{
-			GetInteractor()->GetOnInteractableLostHandle().Broadcast(this);
-			
-			OnInteractorLost.Broadcast(GetInteractor());
-			
-			SetInteractor(nullptr);
-			
-			OnInteractorStopOverlap.Broadcast(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex);
-			
-			return;
-		}
-	}
+	// Implement in Child Classes
 }
 
 void UActorInteractableComponentBase::OnInteractableTraced(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-	if (IsInteracting()) return;
-	if (!OtherActor) return;
 
-	TArray<UActorComponent*> InteractorComponents = OtherActor->GetComponentsByInterface(UActorInteractorInterface::StaticClass());
-
-	if (InteractorComponents.Num() == 0) return;
-	
-	for (const auto Itr : InteractorComponents)
-	{
-		TScriptInterface<IActorInteractorInterface> FoundInteractor;
-		if (IgnoredClasses.Contains(Itr->StaticClass())) continue;
-		
-		FoundInteractor = Itr;
-		FoundInteractor.SetObject(Itr);
-		FoundInteractor.SetInterface(Cast<IActorInteractorInterface>(Itr));
-
-		switch (FoundInteractor->GetState())
-		{
-			case EInteractorStateV2::EIS_Active:
-			case EInteractorStateV2::EIS_Awake:
-				if (FoundInteractor->GetResponseChannel() != GetCollisionChannel()) continue;
-				OnInteractorTraced.Broadcast(HitComponent, OtherActor, OtherComp, NormalImpulse, Hit);
-				OnInteractorFound.Broadcast(FoundInteractor);
-				break;
-			case EInteractorStateV2::EIS_Asleep:
-			case EInteractorStateV2::EIS_Suppressed:
-			case EInteractorStateV2::EIS_Disabled:
-			case EInteractorStateV2::Default:
-				break;
-		}
-	}
 }
 
 void UActorInteractableComponentBase::InteractableSelected(const TScriptInterface<IActorInteractableInterface>& Interactable)
@@ -1009,9 +930,10 @@ void UActorInteractableComponentBase::BindCollisionShape(UPrimitiveComponent* Pr
 {
 	if (!PrimitiveComponent) return;
 
-	PrimitiveComponent->OnComponentBeginOverlap.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableBeginOverlap);
-	PrimitiveComponent->OnComponentEndOverlap.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableStopOverlap);
-	PrimitiveComponent->OnComponentHit.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableTraced);
+	// Binding will be implemented in Child Classes
+	//PrimitiveComponent->OnComponentBeginOverlap.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableBeginOverlap);
+	//PrimitiveComponent->OnComponentEndOverlap.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableStopOverlap);
+	//PrimitiveComponent->OnComponentHit.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableTraced);
 
 	FCollisionShapeCache CachedValues;
 	CachedValues.bGenerateOverlapEvents = PrimitiveComponent->GetGenerateOverlapEvents();
@@ -1039,9 +961,10 @@ void UActorInteractableComponentBase::UnbindCollisionShape(UPrimitiveComponent* 
 {
 	if(!PrimitiveComponent) return;
 
-	PrimitiveComponent->OnComponentBeginOverlap.RemoveDynamic(this, &UActorInteractableComponentBase::OnInteractableBeginOverlap);
-	PrimitiveComponent->OnComponentEndOverlap.RemoveDynamic(this, &UActorInteractableComponentBase::OnInteractableStopOverlap);
-	PrimitiveComponent->OnComponentHit.RemoveDynamic(this, &UActorInteractableComponentBase::OnInteractableTraced);
+	// Unbinding will be implemented in Child Classes
+	//PrimitiveComponent->OnComponentBeginOverlap.RemoveDynamic(this, &UActorInteractableComponentBase::OnInteractableBeginOverlap);
+	//PrimitiveComponent->OnComponentEndOverlap.RemoveDynamic(this, &UActorInteractableComponentBase::OnInteractableStopOverlap);
+	//PrimitiveComponent->OnComponentHit.RemoveDynamic(this, &UActorInteractableComponentBase::OnInteractableTraced);
 
 	if (CachedCollisionShapesSettings.Find(PrimitiveComponent))
 	{
