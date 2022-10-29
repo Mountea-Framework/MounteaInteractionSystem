@@ -861,6 +861,8 @@ void UActorInteractableComponentBase::OnInteractableBeginOverlap(UPrimitiveCompo
 		OnInteractorOverlapped.Broadcast(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
 
 		OnInteractorFound.Broadcast(FoundInteractor);
+
+		FoundInteractor->GetOnInteractableFoundHandle().Broadcast(this);
 		break;
 	}
 }
@@ -878,6 +880,8 @@ void UActorInteractableComponentBase::OnInteractableStopOverlap(UPrimitiveCompon
 		if (Itr == GetInteractor().GetObject())
 		{
 			OnInteractorLost.Broadcast(GetInteractor());
+
+			GetInteractor()->GetOnInteractableLostHandle().Broadcast(this);
 			
 			SetInteractor(nullptr);
 			
@@ -890,13 +894,45 @@ void UActorInteractableComponentBase::OnInteractableStopOverlap(UPrimitiveCompon
 
 void UActorInteractableComponentBase::OnInteractableTraced(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-	/**
-	 * TODO
-	 * Validation
-	 * If Valid, then Broadcast
-	 */
+	if(!OtherActor) return;
 
-	OnInteractorTraced.Broadcast(HitComponent, OtherActor, OtherComp, NormalImpulse, Hit);
+	TArray<UActorComponent*> InteractorComponents = OtherActor->GetComponentsByInterface(UActorInteractorInterface::StaticClass());
+
+	if (InteractorComponents.Num() == 0) return;
+	
+	for (const auto Itr : InteractorComponents)
+	{
+		TScriptInterface<IActorInteractorInterface> FoundInteractor;
+		if (IgnoredClasses.Contains(Itr->StaticClass())) continue;
+		
+		FoundInteractor = Itr;
+		FoundInteractor.SetObject(Itr);
+		FoundInteractor.SetInterface(Cast<IActorInteractorInterface>(Itr));
+
+		switch (FoundInteractor->GetState())
+		{
+			case EInteractorStateV2::EIS_Active:
+			case EInteractorStateV2::EIS_Awake:
+				break;
+			case EInteractorStateV2::EIS_Asleep:
+			case EInteractorStateV2::EIS_Suppressed:
+			case EInteractorStateV2::EIS_Disabled:
+			case EInteractorStateV2::Default:
+				continue;
+		}
+
+		if (FoundInteractor->GetResponseChannel() != GetCollisionChannel()) continue;
+
+		SetInteractor(FoundInteractor);
+		
+		OnInteractorTraced.Broadcast(HitComponent, OtherActor, OtherComp, NormalImpulse, Hit);
+
+		OnInteractorFound.Broadcast(FoundInteractor);
+
+		FoundInteractor->GetOnInteractableFoundHandle().Broadcast(this);
+		
+		break;
+	}
 }
 
 void UActorInteractableComponentBase::FindAndAddCollisionShapes()
