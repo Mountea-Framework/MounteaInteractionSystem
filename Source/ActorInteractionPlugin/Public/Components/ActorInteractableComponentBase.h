@@ -82,8 +82,12 @@ protected:
 	 * Optimized request for Interactables.
 	 * Can be overriden in C++ for specific class needs.
 	 */
-	UFUNCTION(Category="Interaction")
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual bool CanInteract() const override;
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
+	virtual bool CanBeTriggered() const override;
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
+	virtual bool IsInteracting() const override;
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual EInteractableStateV2 GetState() const override;
@@ -230,6 +234,12 @@ protected:
 
 #pragma region NativeFunctions
 
+	/**
+	 * Event bound to Interactor's OnInteractableSelected.
+	 * If Interactor selects any Interactable, this Event is called and selected Interactable is Activated, while others are set back to Awaken state.
+	 */
+	UFUNCTION(Category="Interaction")
+	virtual void InteractableSelected(const TScriptInterface<IActorInteractableInterface>& Interactable) override;
 	
 	/**
 	 * Event called once Interactor is found.
@@ -270,6 +280,14 @@ protected:
 	 */
 	UFUNCTION(Category="Interaction")
 	virtual void InteractionStopped() override;
+
+	/**
+	 * Event called once Interaction is Canceled.
+	 * Called by OnInteractionCanceled
+	 * Calls OnInteractionCanceledEvent
+	 */
+	UFUNCTION(Category="Interaction")
+	virtual void InteractionCanceled() override;
 
 	/**
 	 * Event called once Interaction Lifecycles is Completed.
@@ -327,6 +345,12 @@ protected:
 #pragma endregion
 
 #pragma region InteractionEvents
+		
+	/**
+	 * Event bound to OnInteractableSelected.
+	 */
+	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	void OnInteractableSelectedEvent(const TScriptInterface<IActorInteractableInterface>& Interactable);
 	
 	/**
 	 * Event bound to OnInteractorFound.
@@ -376,6 +400,12 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
 	void OnInteractionStoppedEvent();
 
+	/**
+	 * Event bound to OnInteractionCanceled.
+	 */
+	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	void OnInteractionCanceledEvent();
+	
 	/**
 	 * Event bound to OnLifecycleCompleted.
 	 */
@@ -702,6 +732,14 @@ protected:
 #pragma region InteractionEvents
 
 	/**
+	 * Event called once Interactor is selected.
+	 * Has native C++ implementation.
+	 * Calls OnInteractableSelectedEvent.
+	 */
+	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Interaction")
+	FOnInteractableSelected OnInteractableSelected;
+
+	/**
 	 * Event called once Interactor is found.
 	 * Called by OnInteractorFound
 	 */
@@ -735,6 +773,13 @@ protected:
 	 */
 	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Interaction")
 	FInteractionStopped OnInteractionStopped;
+
+	/**
+	 * Event called once Interaction is Canceled.
+	 * Called by OnInteractionCanceled
+	 */
+	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Interaction")
+	FInteractionCanceled OnInteractionCanceled;
 
 	/**
 	 * Event called once Interaction Lifecycles is Completed.
@@ -853,6 +898,8 @@ protected:
 
 #pragma region Handles
 
+	virtual FOnInteractableSelected& GetOnInteractableSelectedHandle() override
+	{ return OnInteractableSelected; };
 	virtual FInteractorFound& GetOnInteractorFoundHandle() override
 	{ return OnInteractorFound; };
 	virtual FInteractorLost& GetOnInteractorLostHandle() override
@@ -869,6 +916,8 @@ protected:
 	{ return OnInteractionStarted; };
 	virtual FInteractionStopped& GetOnInteractionStoppedHandle() override
 	{ return OnInteractionStopped; };
+	virtual FInteractionCanceled& GetOnInteractionCanceledHandle() override
+	{ return OnInteractionCanceled; };
 
 	virtual FTimerHandle& GetCooldownHandle() override
 	{ return CooldownHandle; }
@@ -1074,6 +1123,7 @@ protected:
 
 private:
 
+	UPROPERTY()
 	FTimerHandle CooldownHandle;
 
 	/**

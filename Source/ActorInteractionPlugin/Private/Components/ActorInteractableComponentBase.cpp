@@ -47,6 +47,7 @@ void UActorInteractableComponentBase::BeginPlay()
 	InteractionOwner = GetOwner();
 
 	// Interaction Events
+	OnInteractableSelected.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableSelectedEvent);
 	OnInteractorFound.AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractorFound);
 	OnInteractorLost.AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractorLost);
 
@@ -57,6 +58,7 @@ void UActorInteractableComponentBase::BeginPlay()
 	OnInteractionCompleted.AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractionCompleted);
 	OnInteractionStarted.AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractionStarted);
 	OnInteractionStopped.AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractionStopped);
+	OnInteractionCanceled.AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractionCanceled);
 	OnLifecycleCompleted.AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractionLifecycleCompleted);
 	OnCooldownCompleted.AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractionCooldownCompleted);
 	
@@ -249,6 +251,12 @@ bool UActorInteractableComponentBase::CanInteract() const
 
 	return false;
 }
+
+bool UActorInteractableComponentBase::CanBeTriggered() const
+{ return InteractableState == EInteractableStateV2::EIS_Awake && Interactor.GetInterface() == nullptr; }
+
+bool UActorInteractableComponentBase::IsInteracting() const
+{ return InteractableState == EInteractableStateV2::EIS_Active; }
 
 EInteractableStateV2 UActorInteractableComponentBase::GetState() const
 { return InteractableState; }
@@ -486,8 +494,21 @@ TScriptInterface<IActorInteractorInterface> UActorInteractableComponentBase::Get
 
 void UActorInteractableComponentBase::SetInteractor(const TScriptInterface<IActorInteractorInterface> NewInteractor)
 {
-	Interactor = NewInteractor;
+	if (NewInteractor.GetInterface() != nullptr)
+	{
+		NewInteractor->GetOnInteractableSelectedHandle().AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractableSelected);
+		NewInteractor->GetOnInteractableFoundHandle().Broadcast(this);
+	}
+	else
+	{
+		if (Interactor.GetInterface() != nullptr)
+		{
+			NewInteractor->GetOnInteractableSelectedHandle().AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractableSelected);
+			NewInteractor->GetOnInteractableFoundHandle().Broadcast(this);
+		}
+	}
 
+	Interactor = NewInteractor;
 	OnInteractorChanged.Broadcast(Interactor);
 }
 
@@ -746,26 +767,21 @@ TArray<FName> UActorInteractableComponentBase::GetHighlightableOverrides() const
 
 void UActorInteractableComponentBase::InteractorFound(const TScriptInterface<IActorInteractorInterface>& FoundInteractor)
 {
-	/**
-	 * TODO
-	 * Validation
-	 * If Valid, then Broadcast
-	 */
-
-	SetInteractor(FoundInteractor);
-	OnInteractorFoundEvent(FoundInteractor);
+	if (CanBeTriggered())
+	{
+		SetInteractor(FoundInteractor);
+		
+		OnInteractorFoundEvent(FoundInteractor);
+	}
 }
 
 void UActorInteractableComponentBase::InteractorLost(const TScriptInterface<IActorInteractorInterface>& LostInteractor)
 {
-	/**
-	 * TODO
-	 * Validation
-	 * If Valid, then Broadcast
-	 */
-
-	SetInteractor(nullptr);
-	OnInteractorLostEvent(LostInteractor);
+	if (LostInteractor == Interactor)
+	{
+		SetInteractor(nullptr);
+		OnInteractorLostEvent(LostInteractor);
+	}
 }
 
 void UActorInteractableComponentBase::InteractionCompleted(const float& TimeCompleted)
@@ -807,6 +823,14 @@ void UActorInteractableComponentBase::InteractionStopped()
 	OnInteractionStoppedEvent();
 }
 
+void UActorInteractableComponentBase::InteractionCanceled()
+{
+	if (IsInteracting())
+	{
+		OnInteractionCanceledEvent();
+	}
+}
+
 void UActorInteractableComponentBase::InteractionLifecycleCompleted()
 {
 	SetState(EInteractableStateV2::EIS_Completed);
@@ -816,17 +840,15 @@ void UActorInteractableComponentBase::InteractionLifecycleCompleted()
 
 void UActorInteractableComponentBase::InteractionCooldownCompleted()
 {
-	/**
-	 * TODO
-	 * Validation
-	 * If Valid, then Broadcast
-	 */
-
+	if (CanInteract())	SetState(EInteractableStateV2::EIS_Awake);
+	else SetState(EInteractableStateV2::EIS_Asleep);
+	
 	OnCooldownCompletedEvent();
 }
 
 void UActorInteractableComponentBase::OnInteractableBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
+	if (IsInteracting()) return;
 	if (!OtherActor) return;
 
 	TArray<UActorComponent*> InteractorComponents = OtherActor->GetComponentsByInterface(UActorInteractorInterface::StaticClass());
@@ -846,24 +868,16 @@ void UActorInteractableComponentBase::OnInteractableBeginOverlap(UPrimitiveCompo
 		{
 			case EInteractorStateV2::EIS_Active:
 			case EInteractorStateV2::EIS_Awake:
+				if (FoundInteractor->GetResponseChannel() != GetCollisionChannel()) continue;
+				OnInteractorOverlapped.Broadcast(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
+				OnInteractorFound.Broadcast(FoundInteractor);
 				break;
 			case EInteractorStateV2::EIS_Asleep:
 			case EInteractorStateV2::EIS_Suppressed:
 			case EInteractorStateV2::EIS_Disabled:
 			case EInteractorStateV2::Default:
-				continue;
+				break;
 		}
-
-		if (FoundInteractor->GetResponseChannel() != GetCollisionChannel()) continue;
-
-		SetInteractor(FoundInteractor);
-		
-		OnInteractorOverlapped.Broadcast(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
-
-		OnInteractorFound.Broadcast(FoundInteractor);
-
-		FoundInteractor->GetOnInteractableFoundHandle().Broadcast(this);
-		break;
 	}
 }
 
@@ -879,9 +893,9 @@ void UActorInteractableComponentBase::OnInteractableStopOverlap(UPrimitiveCompon
 	{
 		if (Itr == GetInteractor().GetObject())
 		{
-			OnInteractorLost.Broadcast(GetInteractor());
-
 			GetInteractor()->GetOnInteractableLostHandle().Broadcast(this);
+			
+			OnInteractorLost.Broadcast(GetInteractor());
 			
 			SetInteractor(nullptr);
 			
@@ -894,7 +908,8 @@ void UActorInteractableComponentBase::OnInteractableStopOverlap(UPrimitiveCompon
 
 void UActorInteractableComponentBase::OnInteractableTraced(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-	if(!OtherActor) return;
+	if (IsInteracting()) return;
+	if (!OtherActor) return;
 
 	TArray<UActorComponent*> InteractorComponents = OtherActor->GetComponentsByInterface(UActorInteractorInterface::StaticClass());
 
@@ -913,26 +928,25 @@ void UActorInteractableComponentBase::OnInteractableTraced(UPrimitiveComponent* 
 		{
 			case EInteractorStateV2::EIS_Active:
 			case EInteractorStateV2::EIS_Awake:
+				if (FoundInteractor->GetResponseChannel() != GetCollisionChannel()) continue;
+				OnInteractorTraced.Broadcast(HitComponent, OtherActor, OtherComp, NormalImpulse, Hit);
+				OnInteractorFound.Broadcast(FoundInteractor);
 				break;
 			case EInteractorStateV2::EIS_Asleep:
 			case EInteractorStateV2::EIS_Suppressed:
 			case EInteractorStateV2::EIS_Disabled:
 			case EInteractorStateV2::Default:
-				continue;
+				break;
 		}
-
-		if (FoundInteractor->GetResponseChannel() != GetCollisionChannel()) continue;
-
-		SetInteractor(FoundInteractor);
-		
-		OnInteractorTraced.Broadcast(HitComponent, OtherActor, OtherComp, NormalImpulse, Hit);
-
-		OnInteractorFound.Broadcast(FoundInteractor);
-
-		FoundInteractor->GetOnInteractableFoundHandle().Broadcast(this);
-		
-		break;
 	}
+}
+
+void UActorInteractableComponentBase::InteractableSelected(const TScriptInterface<IActorInteractableInterface>& Interactable)
+{
+ 	if (Interactable == this) SetState(EInteractableStateV2::EIS_Active);
+	else SetState(EInteractableStateV2::EIS_Awake);
+
+	OnInteractableSelected.Broadcast(Interactable);
 }
 
 void UActorInteractableComponentBase::FindAndAddCollisionShapes()

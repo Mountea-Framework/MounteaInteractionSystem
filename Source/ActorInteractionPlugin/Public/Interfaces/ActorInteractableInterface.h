@@ -13,12 +13,15 @@ class UActorInteractableInterface : public UInterface
 	GENERATED_BODY()
 };
 
+class IActorInteractableInterface;
 class IActorInteractorInterface;
 enum class EInteractableStateV2 : uint8;
 enum class EInteractableLifecycle : uint8;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractorFound, const TScriptInterface<IActorInteractorInterface>&, FoundInteractor);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractorLost, const TScriptInterface<IActorInteractorInterface>&, LostInteractor);
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInteractableSelected, const TScriptInterface<IActorInteractableInterface>&, SelectedInteractable);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_FiveParams(FInteractorTraced, UPrimitiveComponent*, HitComponent, AActor*, OtherActor, UPrimitiveComponent*, OtherComp, FVector, NormalImpulse, const FHitResult&, Hit);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_SixParams(FInteractorOverlapped, UPrimitiveComponent*, OverlappedComponent, AActor*, OtherActor, UPrimitiveComponent*, OtherComp, int32, OtherBodyIndex, bool, bFromSweep, const FHitResult &, SweepResult);
@@ -27,6 +30,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(FInteractorStopOverlap, UPrimitive
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractionCompleted, const float&, FinishTime);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractionStarted, const float&, StartTime);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FInteractionStopped);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FInteractionCanceled);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FLifecycleCompleted);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FCooldownCompleted);
@@ -68,17 +72,21 @@ public:
 	virtual bool CompleteInteractable(FString& ErrorMessage) = 0;
 	virtual void DeactivateInteractable() = 0;
 
+	virtual void InteractableSelected(const TScriptInterface<IActorInteractableInterface>& Interactable) = 0;
 	virtual void InteractorFound(const TScriptInterface<IActorInteractorInterface>& FoundInteractor) = 0;
 	virtual void InteractorLost(const TScriptInterface<IActorInteractorInterface>& LostInteractor) = 0;
 
 	virtual void InteractionCompleted(const float& TimeCompleted) = 0;
 	virtual void InteractionStarted(const float& TimeStarted) = 0;
 	virtual void InteractionStopped() = 0;
+	virtual void InteractionCanceled() = 0;
 	virtual void InteractionLifecycleCompleted() = 0;
 	virtual void InteractionCooldownCompleted() = 0;
 
 
 	virtual bool CanInteract() const = 0;
+	virtual bool CanBeTriggered() const = 0;
+	virtual bool IsInteracting() const = 0;
 	
 	virtual EInteractableStateV2 GetState() const = 0;
 	virtual void SetState(const EInteractableStateV2 NewState) = 0;
@@ -159,6 +167,7 @@ public:
 	virtual void BindHighlightableMesh(UMeshComponent* MeshComponent) const = 0;
 	virtual void UnbindHighlightableMesh(UMeshComponent* MeshComponent) const = 0;
 
+	virtual FOnInteractableSelected& GetOnInteractableSelectedHandle() = 0;
 	virtual FInteractorFound& GetOnInteractorFoundHandle() = 0;
 	virtual FInteractorLost& GetOnInteractorLostHandle() = 0;
 	virtual FInteractorTraced& GetOnInteractorTracedHandle() = 0;
@@ -167,6 +176,7 @@ public:
 	virtual FInteractionCompleted& GetOnInteractionCompletedHandle() = 0;
 	virtual FInteractionStarted& GetOnInteractionStartedHandle() = 0;
 	virtual FInteractionStopped& GetOnInteractionStoppedHandle() = 0;
+	virtual FInteractionCanceled& GetOnInteractionCanceledHandle() = 0;
 
 	virtual FTimerHandle& GetCooldownHandle() = 0;
 };
