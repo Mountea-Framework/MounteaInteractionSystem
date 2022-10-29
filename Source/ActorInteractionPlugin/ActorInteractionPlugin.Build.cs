@@ -44,7 +44,8 @@ public class ActorInteractionPlugin : ModuleRules
 				"Slate",
 				"SlateCore",
 				"Projects",
-				"InputCore"
+				"InputCore",
+				"ActorInteractionPluginEditor"
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);

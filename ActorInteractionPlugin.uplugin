@@ -1,7 +1,7 @@
 {
 	"FileVersion": 3,
 	"Version": 1,
-	"VersionName": "2.1.0.0",
+	"VersionName": "3.0.0.0",
 	"FriendlyName": "Actor Interaction Plugin",
 	"Description": "Component utilities for smart Actor Interaction with other Actors. Developed with Designers in mind to allow you as easy as possible implementation while maintaining high scalability and diverse options to tweak everything to your liking.",
 	"Category": "Mountea Framework",
@@ -28,6 +28,11 @@
 				"PS4",
 				"XboxOne"
 			]
+		},
+		{
+			"Name": "ActorInteractionPluginEditor",
+			"Type": "Editor",
+			"LoadingPhase": "Default"
 		}
 	]
 }
