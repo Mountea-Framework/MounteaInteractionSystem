@@ -15,7 +15,7 @@
  *
  * @see https://github.com/Mountea-Framework/ActorInteractionPlugin/wiki/Actor-Interactor-Component-Base
  */
-UCLASS(ClassGroup=(Interaction), Blueprintable, hideCategories=(Collision, AssetUserData, Cooking, ComponentTick, Activation, Rendering), meta=(BlueprintSpawnableComponent, DisplayName = "Interactor Component"))
+UCLASS(Abstract, ClassGroup=(Interaction), Blueprintable, hideCategories=(Collision, AssetUserData, Cooking, ComponentTick, Activation, Rendering), meta=(BlueprintSpawnableComponent, DisplayName = "Interactor Component"))
 class ACTORINTERACTIONPLUGIN_API UActorInteractorComponentBase : public UActorComponent, public IActorInteractorInterface
 {
 	GENERATED_BODY()
@@ -152,7 +152,7 @@ protected:
 	 * If with the same Owner, then by Weight.
 	 */
 	UFUNCTION()
-	virtual void CompareInteractable(const TScriptInterface<IActorInteractableInterface>& FoundInteractable) override;
+	virtual void EvaluateInteractable(const TScriptInterface<IActorInteractableInterface>& FoundInteractable) override;
 
 
 	/**

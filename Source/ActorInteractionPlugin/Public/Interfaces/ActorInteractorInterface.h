@@ -53,7 +53,7 @@ public:
 	virtual TArray<TScriptInterface<IActorInteractorInterface>> GetInteractionDependencies() const = 0;
 	virtual void ProcessDependencies() = 0;
 
-	virtual void CompareInteractable(const TScriptInterface<IActorInteractableInterface>& FoundInteractable) = 0;
+	virtual void EvaluateInteractable(const TScriptInterface<IActorInteractableInterface>& FoundInteractable) = 0;
 
 	virtual bool CanInteract() const = 0;
 

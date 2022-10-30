@@ -67,7 +67,7 @@ void UActorInteractorComponentBase::InteractableFound(const TScriptInterface<IAc
 		}
 	}
 	
-	CompareInteractable(FoundInteractable);
+	EvaluateInteractable(FoundInteractable);
 
 	OnInteractableFoundEvent(FoundInteractable);
 }
@@ -100,7 +100,7 @@ void UActorInteractorComponentBase::OnInteractionKeyReleasedEvent_Implementation
 	StopInteraction();
 }
 
-void UActorInteractorComponentBase::CompareInteractable(const TScriptInterface<IActorInteractableInterface>& FoundInteractable)
+void UActorInteractorComponentBase::EvaluateInteractable(const TScriptInterface<IActorInteractableInterface>& FoundInteractable)
 {
 	if (ActiveInteractable == FoundInteractable)
 	{
