@@ -7,6 +7,8 @@
 
 class FSlateStyleSet;
 
+DECLARE_LOG_CATEGORY_EXTERN(ActorInteractionPluginEditor, All, All);
+
 class FActorInteractionPluginEditor : public IModuleInterface
 {
 public:
@@ -15,6 +17,10 @@ public:
 	virtual void StartupModule() override;
 	virtual void ShutdownModule() override;
 
+	// Handle Blueprint Events
+	//void HandleNewInteractorBlueprintCreated(UBlueprint* Blueprint);
+	//void HandleNewInteractableBlueprintCreated(UBlueprint* Blueprint);
+	
 private:
 
 	TSharedPtr<FSlateStyleSet> InteractorComponentSet;

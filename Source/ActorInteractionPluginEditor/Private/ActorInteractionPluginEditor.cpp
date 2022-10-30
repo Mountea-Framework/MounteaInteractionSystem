@@ -6,10 +6,15 @@
 #include "Styling/SlateStyle.h"
 #include "Modules/ModuleManager.h"
 
+DEFINE_LOG_CATEGORY(ActorInteractionPluginEditor);
+
 #define LOCTEXT_NAMESPACE "FActorInteractionPluginEditor"
 
 void FActorInteractionPluginEditor::StartupModule()
 {
+	UE_LOG(ActorInteractionPluginEditor, Warning, TEXT("ActorInteractionPluginEditor module has been loaded"));
+
+	// Thumbnails and Icons
 	{
 		InteractorComponentSet = MakeShareable(new FSlateStyleSet("InteractorComponent Style"));
 		InteractableComponentSet = MakeShareable(new FSlateStyleSet("InteractableComponent Style"));
@@ -57,10 +62,13 @@ void FActorInteractionPluginEditor::StartupModule()
 
 void FActorInteractionPluginEditor::ShutdownModule()
 {
+	// Thumbnails and Icons
 	{
 		FSlateStyleRegistry::UnRegisterSlateStyle(InteractorComponentSet->GetStyleSetName());
 		FSlateStyleRegistry::UnRegisterSlateStyle(InteractableComponentSet->GetStyleSetName());
 	}
+
+	UE_LOG(ActorInteractionPluginEditor, Warning, TEXT("ActorInteractionPluginEditor module has been unloaded"));
 }
 
 #undef LOCTEXT_NAMESPACE
