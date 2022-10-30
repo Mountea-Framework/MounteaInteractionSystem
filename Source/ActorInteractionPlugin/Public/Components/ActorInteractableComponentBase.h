@@ -37,7 +37,7 @@ struct FCollisionShapeCache
 	
 };
 
-UCLASS(ClassGroup=(Interaction), Blueprintable, hideCategories=(Collision, AssetUserData, Cooking, ComponentTick, Activation), meta=(BlueprintSpawnableComponent, DisplayName = "Interactable Component"))
+UCLASS(Abstract, ClassGroup=(Interaction), Blueprintable, hideCategories=(Collision, AssetUserData, Cooking, ComponentTick, Activation), meta=(BlueprintSpawnableComponent, DisplayName = "Interactable Component"))
 class ACTORINTERACTIONPLUGIN_API UActorInteractableComponentBase : public UWidgetComponent, public IActorInteractableInterface
 {
 	GENERATED_BODY()
@@ -94,7 +94,7 @@ protected:
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void SetState(const EInteractableStateV2 NewState) override;
 
-
+	
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual TArray<TSoftClassPtr<UObject>> GetIgnoredClasses() const override;
 	UFUNCTION(BlueprintCallable, Category="Interaction")
@@ -127,6 +127,13 @@ protected:
 	virtual TScriptInterface<IActorInteractorInterface> GetInteractor() const override;
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void SetInteractor(const TScriptInterface<IActorInteractorInterface> NewInteractor) override;
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
+	virtual float GetInteractionProgress() const override;
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
+	virtual float GetInteractionPeriod() const override;
+	UFUNCTION(BlueprintCallable, Category="Interaction")
+	virtual void SetInteractionPeriod(const float NewPeriod) override;
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual int32 GetInteractableWeight() const override;
@@ -613,7 +620,7 @@ protected:
 	virtual void FindAndAddCollisionShapes() override;
 	virtual void FindAndAddHighlightableMeshes() override;
 
-	virtual void TriggerCooldown() override;
+	virtual bool TriggerCooldown() override;
 
 	/**
 	 * Binds Collision Events for specified Primitive Component.
@@ -668,6 +675,7 @@ protected:
 	 */
 	UFUNCTION()
 	void AutoSetup();
+
 
 #pragma endregion
 
@@ -920,7 +928,7 @@ protected:
 	{ return OnInteractionCanceled; };
 
 	virtual FTimerHandle& GetCooldownHandle() override
-	{ return CooldownHandle; }
+	{ return Timer_Cooldown; }
 
 #pragma endregion 
 
@@ -953,6 +961,14 @@ protected:
 #pragma region Required
 
 protected:
+
+	/**
+	 * Defines how long does Interaction take.
+	 * -1 = immediate
+	 * 0  = 0.1s
+	 */
+	UPROPERTY(EditAnywhere, Category="Interaction|Required", meta=(UIMin=-1, ClampMin=-1, Units="s"))
+	float InteractionPeriod;
 
 	/**
 	 * Default state of the Interactable to be set in BeginPlay.
@@ -1120,12 +1136,15 @@ protected:
 	 */
 	UPROPERTY(VisibleAnywhere, Category="Interaction|Read Only")
 	TArray<UPrimitiveComponent*> CollisionComponents;
-
-private:
+	
+	UPROPERTY()
+	FTimerHandle Timer_Interaction;
 
 	UPROPERTY()
-	FTimerHandle CooldownHandle;
-
+	FTimerHandle Timer_Cooldown;
+	
+private:
+	
 	/**
 	 * Owning Actor of this Interactable.
 	 * By default its set to Owner.
@@ -1141,6 +1160,16 @@ private:
 	TScriptInterface<IActorInteractorInterface> Interactor;
 
 #pragma endregion
+
+#pragma endregion
+
+#pragma region Editor
+	
+protected:
+	
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+
+	virtual EDataValidationResult IsDataValid(TArray<FText>& ValidationErrors) override;
 
 #pragma endregion 
 };

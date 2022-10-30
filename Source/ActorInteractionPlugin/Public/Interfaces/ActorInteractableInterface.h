@@ -82,7 +82,7 @@ public:
 	virtual void InteractionCanceled() = 0;
 	virtual void InteractionLifecycleCompleted() = 0;
 	virtual void InteractionCooldownCompleted() = 0;
-
+	
 
 	virtual bool CanInteract() const = 0;
 	virtual bool CanBeTriggered() const = 0;
@@ -90,6 +90,10 @@ public:
 	
 	virtual EInteractableStateV2 GetState() const = 0;
 	virtual void SetState(const EInteractableStateV2 NewState) = 0;
+
+	virtual float GetInteractionProgress() const = 0;
+	virtual float GetInteractionPeriod() const = 0;
+	virtual void SetInteractionPeriod(const float NewPeriod) = 0;
 	
 	virtual TScriptInterface<IActorInteractorInterface> GetInteractor() const = 0;
 	virtual void SetInteractor(const TScriptInterface<IActorInteractorInterface> NewInteractor) = 0;
@@ -126,7 +130,7 @@ public:
 	virtual void ProcessDependencies() = 0;
 
 
-	virtual void TriggerCooldown() = 0;
+	virtual bool TriggerCooldown() = 0;
 	
 	virtual TArray<TSoftClassPtr<UObject>> GetIgnoredClasses() const = 0;
 	virtual void SetIgnoredClasses(const TArray<TSoftClassPtr<UObject>> NewIgnoredClasses) = 0;

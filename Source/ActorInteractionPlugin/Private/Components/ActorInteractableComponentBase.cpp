@@ -4,6 +4,7 @@
 
 #if WITH_EDITOR
 #include "Helpers/ActorInteractionPluginLog.h"
+#include "ActorInteractionPluginEditor/Public/EditorHelper.h"
 #endif
 
 #include "Helpers/InteractionHelpers.h"
@@ -51,10 +52,9 @@ void UActorInteractableComponentBase::BeginPlay()
 	OnInteractorFound.AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractorFound);
 	OnInteractorLost.AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractorLost);
 
-	// Child Classes will Implement those
-	//OnInteractorOverlapped.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableBeginOverlapEvent);
-	//OnInteractorStopOverlap.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableStopOverlapEvent);
-	//OnInteractorTraced.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableTracedEvent);
+	OnInteractorOverlapped.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableBeginOverlapEvent);
+	OnInteractorStopOverlap.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableStopOverlapEvent);
+	OnInteractorTraced.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableTracedEvent);
 
 	OnInteractionCompleted.AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractionCompleted);
 	OnInteractionStarted.AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractionStarted);
@@ -504,13 +504,27 @@ void UActorInteractableComponentBase::SetInteractor(const TScriptInterface<IActo
 	{
 		if (Interactor.GetInterface() != nullptr)
 		{
-			NewInteractor->GetOnInteractableSelectedHandle().AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractableSelected);
-			NewInteractor->GetOnInteractableFoundHandle().Broadcast(this);
+			Interactor->GetOnInteractableSelectedHandle().AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractableSelected);
+			Interactor->GetOnInteractableFoundHandle().Broadcast(this);
 		}
 	}
 
 	Interactor = NewInteractor;
 	OnInteractorChanged.Broadcast(Interactor);
+}
+
+float UActorInteractableComponentBase::GetInteractionProgress() const
+{
+	if (!GetWorld()) return -1;
+	return GetWorld()->GetTimerManager().GetTimerElapsed(Timer_Interaction) / InteractionPeriod;
+}
+
+float UActorInteractableComponentBase::GetInteractionPeriod() const
+{ return InteractionPeriod; }
+
+void UActorInteractableComponentBase::SetInteractionPeriod(const float NewPeriod)
+{
+	InteractionPeriod = FMath::Max(-1.f, NewPeriod);
 }
 
 int32 UActorInteractableComponentBase::GetInteractableWeight() const
@@ -793,10 +807,16 @@ void UActorInteractableComponentBase::InteractionCompleted(const float& TimeComp
 	 * If Valid, then Broadcast
 	 */
 
+	
 	if (LifecycleMode == EInteractableLifecycle::EIL_Cycled)
 	{
-		TriggerCooldown();
+		if (TriggerCooldown()) return;
 	}
+	
+	FString ErrorMessage;
+	CompleteInteractable(ErrorMessage);
+
+	AIntP_LOG(Display, TEXT("%s"), *ErrorMessage);
 
 	OnInteractionCompletedEvent(TimeCompleted);
 }
@@ -809,7 +829,14 @@ void UActorInteractableComponentBase::InteractionStarted(const float& TimeStarte
 	 * If Valid, then Broadcast
 	 */
 
-	OnInteractionStartedEvent(TimeStarted);
+	if (CanInteract())
+	{
+		OnInteractionStartedEvent(TimeStarted);
+	}
+	else
+	{
+		return;
+	}
 }
 
 void UActorInteractableComponentBase::InteractionStopped()
@@ -828,6 +855,8 @@ void UActorInteractableComponentBase::InteractionCanceled()
 {
 	if (IsInteracting())
 	{
+		GetWorld()->GetTimerManager().ClearTimer(Timer_Interaction);
+		
 		OnInteractionCanceledEvent();
 	}
 }
@@ -849,24 +878,108 @@ void UActorInteractableComponentBase::InteractionCooldownCompleted()
 
 void UActorInteractableComponentBase::OnInteractableBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	// Implement in Child Classes
+	if (IsInteracting()) return;
+	if (!OtherActor) return;
+
+	TArray<UActorComponent*> InteractorComponents = OtherActor->GetComponentsByInterface(UActorInteractorInterface::StaticClass());
+
+	if (InteractorComponents.Num() == 0) return;
+	
+	for (const auto Itr : InteractorComponents)
+	{
+		TScriptInterface<IActorInteractorInterface> FoundInteractor;
+		if (IgnoredClasses.Contains(Itr->StaticClass())) continue;
+		
+		FoundInteractor = Itr;
+		FoundInteractor.SetObject(Itr);
+		FoundInteractor.SetInterface(Cast<IActorInteractorInterface>(Itr));
+
+		switch (FoundInteractor->GetState())
+		{
+		case EInteractorStateV2::EIS_Active:
+		case EInteractorStateV2::EIS_Awake:
+			if (FoundInteractor->GetResponseChannel() != GetCollisionChannel()) continue;
+			OnInteractorOverlapped.Broadcast(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
+			OnInteractorFound.Broadcast(FoundInteractor);
+			break;
+		case EInteractorStateV2::EIS_Asleep:
+		case EInteractorStateV2::EIS_Suppressed:
+		case EInteractorStateV2::EIS_Disabled:
+		case EInteractorStateV2::Default:
+			break;
+		}
+	}
 }
 
 void UActorInteractableComponentBase::OnInteractableStopOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	// Implement in Child Classes
+	if (!OtherActor) return;
+
+	TArray<UActorComponent*> InteractorComponents = OtherActor->GetComponentsByInterface(UActorInteractorInterface::StaticClass());
+
+	if (InteractorComponents.Num() == 0) return;
+
+	for (const auto Itr : InteractorComponents)
+	{
+		if (Itr == GetInteractor().GetObject())
+		{
+			GetInteractor()->GetOnInteractableLostHandle().Broadcast(this);
+			
+			OnInteractorLost.Broadcast(GetInteractor());
+			
+			SetInteractor(nullptr);
+			
+			OnInteractorStopOverlap.Broadcast(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex);
+			
+			return;
+		}
+	}
 }
 
 void UActorInteractableComponentBase::OnInteractableTraced(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
+	if (IsInteracting()) return;
+	if (!OtherActor) return;
 
+	TArray<UActorComponent*> InteractorComponents = OtherActor->GetComponentsByInterface(UActorInteractorInterface::StaticClass());
+
+	if (InteractorComponents.Num() == 0) return;
+	
+	for (const auto Itr : InteractorComponents)
+	{
+		TScriptInterface<IActorInteractorInterface> FoundInteractor;
+		if (IgnoredClasses.Contains(Itr->StaticClass())) continue;
+		
+		FoundInteractor = Itr;
+		FoundInteractor.SetObject(Itr);
+		FoundInteractor.SetInterface(Cast<IActorInteractorInterface>(Itr));
+
+		switch (FoundInteractor->GetState())
+		{
+		case EInteractorStateV2::EIS_Active:
+		case EInteractorStateV2::EIS_Awake:
+			if (FoundInteractor->GetResponseChannel() != GetCollisionChannel()) continue;
+			OnInteractorTraced.Broadcast(HitComponent, OtherActor, OtherComp, NormalImpulse, Hit);
+			OnInteractorFound.Broadcast(FoundInteractor);
+			break;
+		case EInteractorStateV2::EIS_Asleep:
+		case EInteractorStateV2::EIS_Suppressed:
+		case EInteractorStateV2::EIS_Disabled:
+		case EInteractorStateV2::Default:
+			break;
+		}
+	}
 }
 
 void UActorInteractableComponentBase::InteractableSelected(const TScriptInterface<IActorInteractableInterface>& Interactable)
 {
- 	if (Interactable == this) SetState(EInteractableStateV2::EIS_Active);
+ 	if (Interactable == this)
+ 	{ 		
+ 		SetState(EInteractableStateV2::EIS_Active);
+ 	}
 	else SetState(EInteractableStateV2::EIS_Awake);
 
+	OnInteractionStarted.Broadcast(GetWorld()->GetTimeSeconds());
 	OnInteractableSelected.Broadcast(Interactable);
 }
 
@@ -902,38 +1015,37 @@ void UActorInteractableComponentBase::FindAndAddHighlightableMeshes()
 	}
 }
 
-void UActorInteractableComponentBase::TriggerCooldown()
+bool UActorInteractableComponentBase::TriggerCooldown()
 {
 	const int32 TempRemainingLifecycleCount = RemainingLifecycleCount - 1;
 	RemainingLifecycleCount = FMath::Max(0, TempRemainingLifecycleCount);
-
+	
 	if (GetWorld())
 	{
-		if (RemainingLifecycleCount <= 0)
-		{
-			SetState(EInteractableStateV2::EIS_Completed);
-			return;
-		}
+		if (RemainingLifecycleCount <= 0) return false;
 
 		SetState(EInteractableStateV2::EIS_Cooldown);
 		GetWorld()->GetTimerManager().SetTimer
 		(
-			CooldownHandle,
+			Timer_Cooldown,
 			this,
 			&UActorInteractableComponentBase::OnCooldownCompletedEvent,
 			CooldownPeriod
 		);
+
+		return true;
 	}
+
+	return false;
 }
 
 void UActorInteractableComponentBase::BindCollisionShape(UPrimitiveComponent* PrimitiveComponent) const
 {
 	if (!PrimitiveComponent) return;
-
-	// Binding will be implemented in Child Classes
-	//PrimitiveComponent->OnComponentBeginOverlap.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableBeginOverlap);
-	//PrimitiveComponent->OnComponentEndOverlap.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableStopOverlap);
-	//PrimitiveComponent->OnComponentHit.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableTraced);
+	
+	PrimitiveComponent->OnComponentBeginOverlap.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableBeginOverlap);
+	PrimitiveComponent->OnComponentEndOverlap.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableStopOverlap);
+	PrimitiveComponent->OnComponentHit.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableTraced);
 
 	FCollisionShapeCache CachedValues;
 	CachedValues.bGenerateOverlapEvents = PrimitiveComponent->GetGenerateOverlapEvents();
@@ -960,11 +1072,10 @@ void UActorInteractableComponentBase::BindCollisionShape(UPrimitiveComponent* Pr
 void UActorInteractableComponentBase::UnbindCollisionShape(UPrimitiveComponent* PrimitiveComponent) const
 {
 	if(!PrimitiveComponent) return;
-
-	// Unbinding will be implemented in Child Classes
-	//PrimitiveComponent->OnComponentBeginOverlap.RemoveDynamic(this, &UActorInteractableComponentBase::OnInteractableBeginOverlap);
-	//PrimitiveComponent->OnComponentEndOverlap.RemoveDynamic(this, &UActorInteractableComponentBase::OnInteractableStopOverlap);
-	//PrimitiveComponent->OnComponentHit.RemoveDynamic(this, &UActorInteractableComponentBase::OnInteractableTraced);
+	
+	PrimitiveComponent->OnComponentBeginOverlap.RemoveDynamic(this, &UActorInteractableComponentBase::OnInteractableBeginOverlap);
+	PrimitiveComponent->OnComponentEndOverlap.RemoveDynamic(this, &UActorInteractableComponentBase::OnInteractableStopOverlap);
+	PrimitiveComponent->OnComponentHit.RemoveDynamic(this, &UActorInteractableComponentBase::OnInteractableTraced);
 
 	if (CachedCollisionShapesSettings.Find(PrimitiveComponent))
 	{
@@ -1024,4 +1135,86 @@ void UActorInteractableComponentBase::AutoSetup()
 	FindAndAddHighlightableMeshes();
 }
 
+#if WITH_EDITOR
+
+void UActorInteractableComponentBase::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{
+	const FName PropertyName = (PropertyChangedEvent.MemberProperty != nullptr) ? PropertyChangedEvent.GetPropertyName() : NAME_None;
+
+	if (PropertyName == "DefaultInteractableState")
+	{
+		if
+		(
+			DefaultInteractableState == EInteractableStateV2::EIS_Active ||
+			DefaultInteractableState == EInteractableStateV2::EIS_Completed ||
+			DefaultInteractableState == EInteractableStateV2::EIS_Cooldown
+		)
+		{
+			const FText ErrorMessage = FText::FromString
+			(
+				FString("Interactable Component:").Append(TEXT(" DefaultInteractableState cannot be")).Append(GetEnumValueAsString("EInteractableStateV2", DefaultInteractableState)).Append(TEXT("!"))
+			);
+			FEditorHelper::DisplayEditorNotification(ErrorMessage, SNotificationItem::CS_Fail, 5.f, 2.f, TEXT("Icons.Error"));
+
+			DefaultInteractableState = EInteractableStateV2::EIS_Awake;
+		}
+	}
+
+	if (PropertyName == "InteractionPeriod")
+	{
+		if (InteractionPeriod < -1.f)
+		{
+			const FText ErrorMessage = FText::FromString
+			(
+				FString("Interactable Component:").Append(TEXT(" DefaultInteractableState cannot be lesser than -1!"))
+			);
+			FEditorHelper::DisplayEditorNotification(ErrorMessage, SNotificationItem::CS_Fail, 5.f, 2.f, TEXT("Icons.Error"));
+
+			InteractionPeriod = -1.f;
+		}
+	}
+
+	Super::PostEditChangeProperty(PropertyChangedEvent);
+}
+
+EDataValidationResult UActorInteractableComponentBase::IsDataValid(TArray<FText>& ValidationErrors)
+{
+	const auto DefaultValue = Super::IsDataValid(ValidationErrors);
+	bool bAnyError = false;
+	
+	if
+	(
+		DefaultInteractableState == EInteractableStateV2::EIS_Active ||
+		DefaultInteractableState == EInteractableStateV2::EIS_Completed ||
+		DefaultInteractableState == EInteractableStateV2::EIS_Cooldown
+	)
+	{
+		const FText ErrorMessage = FText::FromString
+		(
+			FString("Interactable Component:").Append(TEXT(" DefaultInteractableState cannot be")).Append(GetEnumValueAsString("EInteractableStateV2", DefaultInteractableState)).Append(TEXT("!"))
+		);
+
+		DefaultInteractableState = EInteractableStateV2::EIS_Awake;
+		
+		ValidationErrors.Add(ErrorMessage);
+		bAnyError = true;
+	}
+
+	if (InteractionPeriod < -1.f)
+	{
+		const FText ErrorMessage = FText::FromString
+		(
+			FString("Interactable Component: DefaultInteractableState cannot be lesser than -1!")
+		);
+
+		InteractionPeriod = -1.f;
+		
+		ValidationErrors.Add(ErrorMessage);
+		bAnyError = true;
+	}
+	
+	return bAnyError ? EDataValidationResult::Invalid : DefaultValue;
+}
+
+#endif
 #pragma endregion
