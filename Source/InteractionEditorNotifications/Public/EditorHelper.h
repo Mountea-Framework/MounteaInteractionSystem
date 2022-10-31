@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "Widgets/Notifications/SNotificationList.h"
 
-struct ACTORINTERACTIONPLUGINEDITOR_API FEditorHelper
+struct INTERACTIONEDITORNOTIFICATIONS_API FEditorHelper
 {
 	/** Displays editor notification. */
 	static void DisplayEditorNotification(FText DisplayText, SNotificationItem::ECompletionState State, float ExpireDuration = 5.0f, float FadeOutDuration = 2.0f , const FName ImagePropertyName = TEXT("MessageLog.Warning"));

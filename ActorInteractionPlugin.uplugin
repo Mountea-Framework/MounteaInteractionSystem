@@ -33,6 +33,11 @@
 			"Name": "ActorInteractionPluginEditor",
 			"Type": "Editor",
 			"LoadingPhase": "Default"
+		},
+		{
+			"Name": "InteractionEditorNotifications",
+			"Type": "Editor",
+			"LoadingPhase": "Default"
 		}
 	]
 }

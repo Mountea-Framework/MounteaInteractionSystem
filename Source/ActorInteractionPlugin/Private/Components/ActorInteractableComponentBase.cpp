@@ -4,7 +4,7 @@
 
 #if WITH_EDITOR
 #include "Helpers/ActorInteractionPluginLog.h"
-#include "ActorInteractionPluginEditor/Public/EditorHelper.h"
+#include "InteractionEditorNotifications/Public/EditorHelper.h"
 #endif
 
 #include "Helpers/InteractionHelpers.h"
