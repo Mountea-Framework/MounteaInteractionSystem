@@ -13,9 +13,7 @@
 #include "AssetActions/InteractableComponentAssetActions.h"
 
 #include "AssetToolsModule.h"
-#include "Kismet2/KismetEditorUtilities.h"
 
-#include "Utilities/ActorInteractionEditorUtilities.h"
 
 DEFINE_LOG_CATEGORY(ActorInteractionPluginEditor);
 
