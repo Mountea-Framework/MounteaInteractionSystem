@@ -1,10 +1,20 @@
 // All rights reserved Dominik Pavlicek 2022.
 
 #include "ActorInteractionPluginEditor.h"
+
 #include "Interfaces/IPluginManager.h"
+
 #include "Styling/SlateStyleRegistry.h"
 #include "Styling/SlateStyle.h"
+
 #include "Modules/ModuleManager.h"
+
+#include "AssetActions/InteractorComponentAssetActions.h"
+#include "AssetActions/InteractableComponentAssetActions.h"
+
+#include "Kismet2/KismetEditorUtilities.h"
+
+#include "Utilities/ActorInteractionEditorUtilities.h"
 
 DEFINE_LOG_CATEGORY(ActorInteractionPluginEditor);
 
@@ -13,6 +23,11 @@ DEFINE_LOG_CATEGORY(ActorInteractionPluginEditor);
 void FActorInteractionPluginEditor::StartupModule()
 {
 	UE_LOG(ActorInteractionPluginEditor, Warning, TEXT("ActorInteractionPluginEditor module has been loaded"));
+
+	// Register Category
+	{
+		FAssetToolsModule::GetModule().Get().RegisterAdvancedAssetCategory(FName("Interaction"), FText::FromString("Interaction"));
+	}
 
 	// Thumbnails and Icons
 	{
@@ -58,6 +73,21 @@ void FActorInteractionPluginEditor::StartupModule()
 			}
 		}
 	}
+
+	// Asset Types
+	{
+		// Register Interactor Component Base
+		{
+			InteractorComponentAssetActions = MakeShared<FInteractorComponentAssetActions>();
+			FAssetToolsModule::GetModule().Get().RegisterAssetTypeActions(InteractorComponentAssetActions.ToSharedRef());
+		}
+
+		// Register Interactable Component Base
+		{
+			InteractableComponentAssetActions = MakeShared<FInteractableComponentAssetActions>();
+			FAssetToolsModule::GetModule().Get().RegisterAssetTypeActions(InteractableComponentAssetActions.ToSharedRef());
+		}
+	}
 }
 
 void FActorInteractionPluginEditor::ShutdownModule()
@@ -66,6 +96,15 @@ void FActorInteractionPluginEditor::ShutdownModule()
 	{
 		FSlateStyleRegistry::UnRegisterSlateStyle(InteractorComponentSet->GetStyleSetName());
 		FSlateStyleRegistry::UnRegisterSlateStyle(InteractableComponentSet->GetStyleSetName());
+	}
+
+	// Asset Types Cleanup
+	if (FModuleManager::Get().IsModuleLoaded("AssetTools"))
+	{
+		{
+			FAssetToolsModule::GetModule().Get().UnregisterAssetTypeActions(InteractorComponentAssetActions.ToSharedRef());
+			FAssetToolsModule::GetModule().Get().UnregisterAssetTypeActions(InteractableComponentAssetActions.ToSharedRef());
+		}
 	}
 
 	UE_LOG(ActorInteractionPluginEditor, Warning, TEXT("ActorInteractionPluginEditor module has been unloaded"));
