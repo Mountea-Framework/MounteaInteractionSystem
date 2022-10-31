@@ -12,6 +12,7 @@
 #include "AssetActions/InteractorComponentAssetActions.h"
 #include "AssetActions/InteractableComponentAssetActions.h"
 
+#include "AssetToolsModule.h"
 #include "Kismet2/KismetEditorUtilities.h"
 
 #include "Utilities/ActorInteractionEditorUtilities.h"
