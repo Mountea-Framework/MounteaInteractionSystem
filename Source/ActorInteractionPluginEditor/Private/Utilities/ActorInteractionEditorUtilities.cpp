@@ -4,7 +4,7 @@
 #include "ActorInteractionEditorUtilities.h"
 
 #include "K2Node_Event.h"
-#include "Factories/ActorInventoryClassViewerFilter.h"
+#include "Factories/ActorInteractionClassViewerFilter.h"
 #include "Kismet2/BlueprintEditorUtils.h"
 #include "Kismet2/KismetEditorUtilities.h"
 #include "Kismet2/SClassPickerDialog.h"
@@ -12,7 +12,7 @@
 bool FActorInteractionEditorUtilities::PickChildrenOfClass(const FText& TitleText, UClass*& OutChosenClass, UClass* Class)
 {
 	// Create filter
-	TSharedPtr<FActorInventoryClassViewerFilter> Filter = MakeShareable(new FActorInventoryClassViewerFilter);
+	TSharedPtr<FActorInteractionClassViewerFilter> Filter = MakeShareable(new FActorInteractionClassViewerFilter);
 	Filter->AllowedChildrenOfClasses.Add(Class);
 
 	// Fill in options
