@@ -145,7 +145,7 @@ protected:
 
 #pragma endregion
 
-protected:
+public:
 	
 	/**
 	 * Compares Interactables.
