@@ -18,8 +18,8 @@ public:
 	virtual void ShutdownModule() override;
 
 	// Handle Blueprint Events
-	//void HandleNewInteractorBlueprintCreated(UBlueprint* Blueprint);
-	//void HandleNewInteractableBlueprintCreated(UBlueprint* Blueprint);
+	void HandleNewInteractorBlueprintCreated(UBlueprint* Blueprint);
+	void HandleNewInteractableBlueprintCreated(UBlueprint* Blueprint);
 	
 private:
 

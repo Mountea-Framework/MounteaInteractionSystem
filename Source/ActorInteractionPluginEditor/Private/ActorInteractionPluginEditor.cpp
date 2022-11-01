@@ -13,6 +13,8 @@
 #include "AssetActions/InteractableComponentAssetActions.h"
 
 #include "AssetToolsModule.h"
+#include "Kismet2/KismetEditorUtilities.h"
+#include "Utilities/ActorInteractionEditorUtilities.h"
 
 
 DEFINE_LOG_CATEGORY(ActorInteractionPluginEditor);
@@ -87,6 +89,25 @@ void FActorInteractionPluginEditor::StartupModule()
 			FAssetToolsModule::GetModule().Get().RegisterAssetTypeActions(InteractableComponentAssetActions.ToSharedRef());
 		}
 	}
+
+	// Register pre-made Events
+	{
+		// New Interactable
+		FKismetEditorUtilities::RegisterOnBlueprintCreatedCallback
+		(
+			this,
+			UActorInteractableComponentBase::StaticClass(),
+			FKismetEditorUtilities::FOnBlueprintCreated::CreateRaw(this, &FActorInteractionPluginEditor::HandleNewInteractableBlueprintCreated)
+		);
+
+		// New Interactor
+		FKismetEditorUtilities::RegisterOnBlueprintCreatedCallback
+		(
+			this,
+			UActorInteractorComponentBase::StaticClass(),
+			FKismetEditorUtilities::FOnBlueprintCreated::CreateRaw(this, &FActorInteractionPluginEditor::HandleNewInteractorBlueprintCreated)
+		);
+	}
 }
 
 void FActorInteractionPluginEditor::ShutdownModule()
@@ -107,6 +128,46 @@ void FActorInteractionPluginEditor::ShutdownModule()
 	}
 
 	UE_LOG(ActorInteractionPluginEditor, Warning, TEXT("ActorInteractionPluginEditor module has been unloaded"));
+}
+
+void FActorInteractionPluginEditor::HandleNewInteractorBlueprintCreated(UBlueprint* Blueprint)
+{
+	if (!Blueprint || Blueprint->BlueprintType != BPTYPE_Normal)
+	{
+		return;
+	}
+
+	Blueprint->bForceFullEditor = true;
+	UEdGraph* FunctionGraph = FActorInteractionEditorUtilities::BlueprintGetOrAddFunction
+	(
+		Blueprint,
+		GET_FUNCTION_NAME_CHECKED(UActorInteractorComponentBase, CanInteractEvent),
+		UActorInteractorComponentBase::StaticClass()
+	);
+	if (FunctionGraph)
+	{
+		Blueprint->LastEditedDocuments.Add(FunctionGraph);
+	}
+}
+
+void FActorInteractionPluginEditor::HandleNewInteractableBlueprintCreated(UBlueprint* Blueprint)
+{
+	if (!Blueprint || Blueprint->BlueprintType != BPTYPE_Normal)
+	{
+		return;
+	}
+
+	Blueprint->bForceFullEditor = true;
+	UEdGraph* FunctionGraph = FActorInteractionEditorUtilities::BlueprintGetOrAddFunction
+	(
+		Blueprint,
+		GET_FUNCTION_NAME_CHECKED(UActorInteractableComponentBase, CanInteractEvent),
+		UActorInteractableComponentBase::StaticClass()
+	);
+	if (FunctionGraph)
+	{
+		Blueprint->LastEditedDocuments.Add(FunctionGraph);
+	}
 }
 
 #undef LOCTEXT_NAMESPACE
