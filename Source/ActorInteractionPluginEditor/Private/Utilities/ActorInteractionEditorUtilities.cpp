@@ -18,9 +18,12 @@ bool FActorInteractionEditorUtilities::PickChildrenOfClass(const FText& TitleTex
 	// Fill in options
 	FClassViewerInitializationOptions Options;
 	Options.Mode = EClassViewerMode::ClassPicker;
+	Options.DisplayMode = EClassViewerDisplayMode::ListView;
 	Options.ClassFilter = Filter;
+	
 	Options.bShowUnloadedBlueprints = true;
-	Options.bExpandRootNodes = true;
+	Options.bExpandRootNodes = false;
+	
 	Options.NameTypeToDisplay = EClassViewerNameTypeToDisplay::Dynamic;
 	
 	return SClassPickerDialog::PickClass(TitleText, Options, OutChosenClass, Class);
