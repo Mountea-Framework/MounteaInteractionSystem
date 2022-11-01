@@ -52,7 +52,7 @@ protected:
 
 #pragma region InteractableFunctions
 	
-protected:
+public:
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual bool DoesAutoSetup() const override;
@@ -241,6 +241,8 @@ protected:
 
 #pragma region NativeFunctions
 
+protected:
+
 	/**
 	 * Event bound to Interactor's OnInteractableSelected.
 	 * If Interactor selects any Interactable, this Event is called and selected Interactable is Activated, while others are set back to Awaken state.
@@ -352,6 +354,8 @@ protected:
 #pragma endregion
 
 #pragma region InteractionEvents
+
+protected:
 		
 	/**
 	 * Event bound to OnInteractableSelected.
@@ -428,7 +432,9 @@ protected:
 #pragma endregion
 
 #pragma region SetupHelpers
-	
+
+protected:
+		
 	/**
 	 * Event bound to OnHighlightableOverrideAdded event.
 	 * Once OnHighlightableOverrideAdded is called this event is, too.
@@ -473,6 +479,8 @@ protected:
 
 #pragma region IgnoredClassesEvents
 
+protected:
+
 	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
 	void OnIgnoredClassAdded(const TSoftClassPtr<UObject>& IgnoredClass);
 
@@ -482,6 +490,8 @@ protected:
 #pragma endregion 
 
 #pragma region AttributesEvents
+
+protected:
 
 	/**
 	 * Event bound to OnInteractableAutoSetupChanged event.
@@ -616,6 +626,8 @@ protected:
 #pragma endregion 
 
 #pragma region InteractionHelpers
+
+protected:
 
 	virtual void FindAndAddCollisionShapes() override;
 	virtual void FindAndAddHighlightableMeshes() override;
