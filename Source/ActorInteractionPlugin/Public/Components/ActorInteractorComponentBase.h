@@ -100,7 +100,7 @@ protected:
 	 * @param PressedKey Key which was pressed
 	 */
 	UFUNCTION(BlueprintNativeEvent, Category="Interaction")
-	void OnInteractionKeyPressedEvent(const float TimeKeyPressed, const FKey& PressedKey);
+	void OnInteractionKeyPressedEvent(const float& TimeKeyPressed, const FKey& PressedKey);
 
 	/**
 	 * Event bound to OnInteractionKeyReleased event.
@@ -111,7 +111,7 @@ protected:
 	 * @param ReleasedKey Key which was released
 	 */
 	UFUNCTION(BlueprintNativeEvent, Category="Interaction")
-	void OnInteractionKeyReleasedEvent(const float TimeKeyReleased, const FKey& ReleasedKey);
+	void OnInteractionKeyReleasedEvent(const float& TimeKeyReleased, const FKey& ReleasedKey);
 
 	/**
 	 * Event bound to OnStateChanged event.

@@ -90,12 +90,12 @@ void UActorInteractorComponentBase::InteractableLost(const TScriptInterface<IAct
 	OnInteractableLostEvent(LostInteractable);
 }
 
-void UActorInteractorComponentBase::OnInteractionKeyPressedEvent_Implementation(const float TimeKeyPressed, const FKey& PressedKey)
+void UActorInteractorComponentBase::OnInteractionKeyPressedEvent_Implementation(const float& TimeKeyPressed, const FKey& PressedKey)
 {
 	StartInteraction();
 }
 
-void UActorInteractorComponentBase::OnInteractionKeyReleasedEvent_Implementation(const float TimeKeyReleased, const FKey& ReleasedKey)
+void UActorInteractorComponentBase::OnInteractionKeyReleasedEvent_Implementation(const float& TimeKeyReleased, const FKey& ReleasedKey)
 {
 	StopInteraction();
 }
