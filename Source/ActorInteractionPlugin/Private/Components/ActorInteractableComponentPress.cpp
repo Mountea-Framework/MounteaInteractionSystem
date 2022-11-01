@@ -21,9 +21,9 @@ void UActorInteractableComponentPress::BeginPlay()
 	Timer_Interaction.Invalidate();
 }
 
-void UActorInteractableComponentPress::InteractionStarted(const float& TimeStarted)
+void UActorInteractableComponentPress::InteractionStarted(const float& TimeStarted, const FKey& PressedKey)
 {
-	Super::InteractionStarted(TimeStarted);
+	Super::InteractionStarted(TimeStarted, PressedKey);
 
 	OnInteractionCompleted.Broadcast(TimeStarted);
 }

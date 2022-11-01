@@ -6,7 +6,9 @@
 #include "ActorInteractableComponentBase.h"
 #include "ActorInteractableComponentPress.generated.h"
 
-
+/**
+* 
+*/
 UCLASS(ClassGroup=(Interaction), Blueprintable, hideCategories=(Collision, AssetUserData, Cooking, ComponentTick, Activation), meta=(BlueprintSpawnableComponent, DisplayName = "Interactable Component Press"))
 class ACTORINTERACTIONPLUGIN_API UActorInteractableComponentPress : public UActorInteractableComponentBase
 {
@@ -20,5 +22,5 @@ protected:
 
 	virtual void BeginPlay() override;
 
-	virtual void InteractionStarted(const float& TimeStarted) override;
+	virtual void InteractionStarted(const float& TimeStarted, const FKey& PressedKey) override;
 };
