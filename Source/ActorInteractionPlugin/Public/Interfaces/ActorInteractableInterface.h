@@ -28,7 +28,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_SixParams(FInteractorOverlapped, UPrimitiveCo
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(FInteractorStopOverlap, UPrimitiveComponent*, OverlappedComponent, AActor*, OtherActor, UPrimitiveComponent*, OtherComp, int32, OtherBodyIndex);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractionCompleted, const float&, FinishTime);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractionStarted, const float&, StartTime);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FInteractionStarted, const float&, StartTime, const FKey&, PressedKey);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FInteractionStopped);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FInteractionCanceled);
 
@@ -77,7 +77,7 @@ public:
 	virtual void InteractorLost(const TScriptInterface<IActorInteractorInterface>& LostInteractor) = 0;
 
 	virtual void InteractionCompleted(const float& TimeCompleted) = 0;
-	virtual void InteractionStarted(const float& TimeStarted) = 0;
+	virtual void InteractionStarted(const float& TimeStarted, const FKey& PressedKey) = 0;
 	virtual void InteractionStopped() = 0;
 	virtual void InteractionCanceled() = 0;
 	virtual void InteractionLifecycleCompleted() = 0;

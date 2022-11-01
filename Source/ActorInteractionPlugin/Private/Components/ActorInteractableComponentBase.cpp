@@ -821,7 +821,7 @@ void UActorInteractableComponentBase::InteractionCompleted(const float& TimeComp
 	OnInteractionCompletedEvent(TimeCompleted);
 }
 
-void UActorInteractableComponentBase::InteractionStarted(const float& TimeStarted)
+void UActorInteractableComponentBase::InteractionStarted(const float& TimeStarted, const FKey& PressedKey)
 {
 	/**
 	 * TODO
@@ -831,7 +831,7 @@ void UActorInteractableComponentBase::InteractionStarted(const float& TimeStarte
 
 	if (CanInteract())
 	{
-		OnInteractionStartedEvent(TimeStarted);
+		OnInteractionStartedEvent(TimeStarted, PressedKey);
 	}
 	else
 	{
@@ -847,6 +847,9 @@ void UActorInteractableComponentBase::InteractionStopped()
 	 * If Valid, then Broadcast
 	 */
 	
+	if (!GetWorld()) return;
+
+	GetWorld()->GetTimerManager().ClearTimer(Timer_Interaction);
 
 	OnInteractionStoppedEvent();
 }
@@ -979,7 +982,7 @@ void UActorInteractableComponentBase::InteractableSelected(const TScriptInterfac
  	}
 	else SetState(EInteractableStateV2::EIS_Awake);
 
-	OnInteractionStarted.Broadcast(GetWorld()->GetTimeSeconds());
+	//OnInteractionStarted.Broadcast(GetWorld()->GetTimeSeconds());
 	OnInteractableSelected.Broadcast(Interactable);
 }
 

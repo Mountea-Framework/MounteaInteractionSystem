@@ -280,7 +280,7 @@ protected:
 	 * Calls OnInteractionStartedEvent
 	 */
 	UFUNCTION(Category="Interaction")
-	virtual void InteractionStarted(const float& TimeStarted) override;
+	virtual void InteractionStarted(const float& TimeStarted, const FKey& PressedKey) override;
 
 	/**
 	 * Event called once Interaction Stops.
@@ -403,7 +403,7 @@ protected:
 	 * Event bound to OnInteractionStarted.
 	 */
 	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
-	void OnInteractionStartedEvent(const float& StartTime);
+	void OnInteractionStartedEvent(const float& StartTime, const FKey& PressedKey);
 
 	/**
 	 * Event bound to OnInteractionStopped.
