@@ -3,6 +3,8 @@
 
 #include "Components/ActorInteractableComponentHold.h"
 
+#include "Interfaces/ActorInteractorInterface.h"
+
 #if WITH_EDITOR
 #include "Helpers/ActorInteractionPluginLog.h"
 #endif
@@ -20,9 +22,9 @@ void UActorInteractableComponentHold::BeginPlay()
 	Super::BeginPlay();
 }
 
-void UActorInteractableComponentHold::InteractionStarted(const float& TimeStarted)
+void UActorInteractableComponentHold::InteractionStarted(const float& TimeStarted, const FKey& PressedKey)
 {
-	Super::InteractionStarted(TimeStarted);
+	Super::InteractionStarted(TimeStarted, PressedKey);
 
 	// Force Interaction Period to be at least 0.1s
 	InteractionPeriod = FMath::Max(0.1f, InteractionPeriod);
@@ -50,4 +52,26 @@ void UActorInteractableComponentHold::InteractionStarted(const float& TimeStarte
 	});
 	
 	GetWorld()->GetTimerManager().SetTimer(Timer_Interaction, Delegate, InteractionPeriod, false);
+}
+
+void UActorInteractableComponentHold::InteractionStopped()
+{
+	Super::InteractionStopped();
+
+
+}
+
+void UActorInteractableComponentHold::InteractionCanceled()
+{
+	Super::InteractionCanceled();
+}
+
+void UActorInteractableComponentHold::InteractorFound(const TScriptInterface<IActorInteractorInterface>& FoundInteractor)
+{
+	Super::InteractorFound(FoundInteractor);
+
+	if (GetInteractor().GetInterface())
+	{
+		GetInteractor()->OnInteractionKeyPressedHandle().AddUniqueDynamic(this, &UActorInteractableComponentHold::InteractionStarted);
+	}
 }
