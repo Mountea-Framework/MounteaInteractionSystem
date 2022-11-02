@@ -394,7 +394,7 @@ protected:
 	/**
 	 * If auto activation is true, component will start as Awake and can start immediately interact.
 	 */
-	UPROPERTY(EditAnywhere, Category="Interaction|Required", meta=(DisplayName="Auto Activate", NoResetToDefault))
+	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Required", meta=(DisplayName="Auto Activate", NoResetToDefault))
 	uint8 bDoesAutoActivate : 1;
 	
 	/**
@@ -405,7 +405,7 @@ protected:
 	 * * Interaction Hover
 	 * * etc.
 	 */
-	UPROPERTY(EditAnywhere, Category="Interaction|Required", meta=(NoResetToDefault))
+	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Required", meta=(NoResetToDefault))
 	TEnumAsByte<ECollisionChannel> CollisionChannel;
 	
 	/**
@@ -420,7 +420,7 @@ private:
 	/**
 	 * Current read-only State of this Interactor.
 	 */
-	UPROPERTY(VisibleAnywhere, Category="Interaction|Read Only", meta=(NoResetToDefault))
+	UPROPERTY(SaveGame, VisibleAnywhere, Category="Interaction|Read Only", meta=(NoResetToDefault))
 	EInteractorStateV2 InteractorState;
 	
 	// This is Interactable which is set as Active
@@ -428,6 +428,6 @@ private:
 	TScriptInterface<IActorInteractableInterface> ActiveInteractable;
 	
 	// List of interactors suppressed by this one
-	UPROPERTY(VisibleAnywhere, Category="Interaction|Read Only")
+	UPROPERTY(SaveGame, VisibleAnywhere, Category="Interaction|Read Only")
 	TArray<TScriptInterface<IActorInteractorInterface>> InteractionDependencies;
 };
