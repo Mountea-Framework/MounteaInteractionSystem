@@ -23,6 +23,9 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractableLost, const TScriptInte
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FInteractionKeyPressed, const float&, TimeKeyPressed, const FKey&, PressedKey);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FInteractionKeyReleased, const float&, TimeKeyReleased, const FKey&, ReleasedKey);
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FIgnoredActorAdded, const AActor*, AddedActor);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FIgnoredActorRemoved, const AActor*, RemovedActor);
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FStateChanged, const EInteractorStateV2&, NewState);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCollisionChanged, const TEnumAsByte<ECollisionChannel>&, NewCollisionChannel);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FAutoActivateChanged, const bool, NewAutoActivate);
@@ -50,6 +53,12 @@ public:
 	virtual void InteractableLost(const TScriptInterface<IActorInteractableInterface>& LostInteractable) = 0;
 	virtual void InteractableSelected(const TScriptInterface<IActorInteractableInterface>& SelectedInteractable) = 0;
 
+	virtual void AddIgnoredActor(AActor* IgnoredActor) = 0;
+	virtual void AddIgnoredActors(const TArray<AActor*> IgnoredActors) = 0;
+	virtual void RemoveIgnoredActor(AActor* UnignoredActor) = 0;
+	virtual void RemoveIgnoredActors(const TArray<AActor*> UnignoredActors) = 0;
+	virtual TArray<AActor*> GetIgnoredActors() const = 0;
+	
 	virtual void AddInteractionDependency(const TScriptInterface<IActorInteractorInterface> InteractionDependency) = 0;
 	virtual void RemoveInteractionDependency(const TScriptInterface<IActorInteractorInterface> InteractionDependency) = 0;
 	virtual TArray<TScriptInterface<IActorInteractorInterface>> GetInteractionDependencies() const = 0;

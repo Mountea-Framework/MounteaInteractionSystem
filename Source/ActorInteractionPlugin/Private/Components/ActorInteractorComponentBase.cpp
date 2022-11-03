@@ -24,13 +24,18 @@ UActorInteractorComponentBase::UActorInteractorComponentBase()
 void UActorInteractorComponentBase::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (GetOwner())
+	{
+		AddIgnoredActor(GetOwner());
+	}
 	
 	OnInteractableSelected.AddUniqueDynamic(this, &UActorInteractorComponentBase::InteractableSelected);
 	OnInteractableFound.AddUniqueDynamic(this, &UActorInteractorComponentBase::InteractableFound);
 	OnInteractableLost.AddUniqueDynamic(this, &UActorInteractorComponentBase::InteractableLost);
 	
-	//OnInteractionKeyPressed.AddUniqueDynamic(this, &UActorInteractorComponentBase::OnInteractionKeyPressedEvent);
-	//OnInteractionKeyReleased.AddUniqueDynamic(this, &UActorInteractorComponentBase::OnInteractionKeyReleasedEvent);
+	OnInteractionKeyPressed.AddUniqueDynamic(this, &UActorInteractorComponentBase::OnInteractionKeyPressedEvent);
+	OnInteractionKeyReleased.AddUniqueDynamic(this, &UActorInteractorComponentBase::OnInteractionKeyReleasedEvent);
 	
 	OnStateChanged.AddUniqueDynamic(this, &UActorInteractorComponentBase::OnInteractorStateChanged);
 	OnCollisionChanged.AddUniqueDynamic(this, &UActorInteractorComponentBase::OnInteractorCollisionChanged);
@@ -263,6 +268,44 @@ void UActorInteractorComponentBase::DeactivateInteractor()
 {
 	SetState(EInteractorStateV2::EIS_Disabled);
 }
+
+void UActorInteractorComponentBase::AddIgnoredActor(AActor* IgnoredActor)
+{
+	if (ListOfIgnoredActors.Contains(IgnoredActor)) return;
+
+	ListOfIgnoredActors.Add(IgnoredActor);
+
+	OnIgnoredActorAdded.Broadcast(IgnoredActor);
+}
+
+void UActorInteractorComponentBase::AddIgnoredActors(const TArray<AActor*> IgnoredActors)
+{
+	for (const auto Itr : IgnoredActors)
+	{
+		AddIgnoredActor(Itr);
+	}
+}
+
+void UActorInteractorComponentBase::RemoveIgnoredActor(AActor* UnignoredActor)
+{
+	if (ListOfIgnoredActors.Contains(UnignoredActor))
+	{
+		ListOfIgnoredActors.Remove(UnignoredActor);
+
+		OnIgnoredActorRemoved.Broadcast(UnignoredActor);
+	}
+}
+
+void UActorInteractorComponentBase::RemoveIgnoredActors(const TArray<AActor*> UnignoredActors)
+{
+	for (const auto Itr : UnignoredActors)
+	{
+		RemoveIgnoredActor(Itr);
+	}
+}
+
+TArray<AActor*> UActorInteractorComponentBase::GetIgnoredActors() const
+{ return ListOfIgnoredActors; }
 
 void UActorInteractorComponentBase::AddInteractionDependency(const TScriptInterface<IActorInteractorInterface> InteractionDependency)
 {

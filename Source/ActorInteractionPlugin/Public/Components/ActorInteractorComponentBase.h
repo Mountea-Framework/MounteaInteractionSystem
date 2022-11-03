@@ -203,6 +203,18 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void DeactivateInteractor() override;
 
+	
+	UFUNCTION(BlueprintCallable, Category="Interaction")
+	virtual void AddIgnoredActor(AActor* IgnoredActor) override;
+	UFUNCTION(BlueprintCallable, Category="Interaction")
+	virtual void AddIgnoredActors(const TArray<AActor*> IgnoredActors) override;
+	UFUNCTION(BlueprintCallable, Category="Interaction")
+	virtual void RemoveIgnoredActor(AActor* UnignoredActor) override;
+	UFUNCTION(BlueprintCallable, Category="Interaction")
+	virtual void RemoveIgnoredActors(const TArray<AActor*> UnignoredActors) override;
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
+	virtual TArray<AActor*> GetIgnoredActors() const override;
+
 
 	/**
 	 * Adds unique Interaction Dependency.
@@ -384,6 +396,18 @@ protected:
 	UPROPERTY(BlueprintAssignable, Category="Interaction")
 	FAutoActivateChanged OnAutoActivateChanged;
 
+	/**
+	 * This event is called once Ignored Actor is successfully added to List of Ignored Actors. 
+	 */
+	UPROPERTY(BlueprintAssignable, Category="Interaction")
+	FIgnoredActorAdded OnIgnoredActorAdded;
+
+	/**
+	 * This event is called once Ignored Actor is successfully removed from List of Ignored Actors. 
+	 */
+	UPROPERTY(BlueprintAssignable, Category="Interaction")
+	FIgnoredActorRemoved OnIgnoredActorRemoved;
+
 protected:
 
 	/**
@@ -417,6 +441,14 @@ protected:
 	 */
 	UPROPERTY(EditAnywhere, Category="Interaction|Optional", meta=(NoResetToDefault))
 	EInteractorStateV2 DefaultInteractorState;
+
+	/**
+	 * A list of Actors that won't be taken in count when tracing.
+	 * If left empty, only Owner Actor is ignored.
+	 * If using multiple Actors (a gun, for instance), all those child/attached Actors should be ignored.
+	 */
+	UPROPERTY(EditAnywhere, Category="Interaction|Optional", meta=(NoResetToDefault, DisplayThumbnail=false))
+	TArray<AActor*> ListOfIgnoredActors;
 
 private:
 
