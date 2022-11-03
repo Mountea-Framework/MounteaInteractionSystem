@@ -792,33 +792,25 @@ void UActorInteractableComponentBase::InteractorFound(const TScriptInterface<IAc
 
 void UActorInteractableComponentBase::InteractorLost(const TScriptInterface<IActorInteractorInterface>& LostInteractor)
 {
-	if (LostInteractor == Interactor)
-	{
-		SetInteractor(nullptr);
-		OnInteractorLostEvent(LostInteractor);
-	}
+	SetState(EInteractableStateV2::EIS_Awake);
+	
+	SetInteractor(nullptr);
+	OnInteractorLostEvent(LostInteractor);
 }
 
 void UActorInteractableComponentBase::InteractionCompleted(const float& TimeCompleted)
 {
-	/**
-	 * TODO
-	 * Validation
-	 * If Valid, then Broadcast
-	 */
-
-	
 	if (LifecycleMode == EInteractableLifecycle::EIL_Cycled)
 	{
 		if (TriggerCooldown()) return;
 	}
 	
 	FString ErrorMessage;
-	CompleteInteractable(ErrorMessage);
-
-	AIntP_LOG(Display, TEXT("%s"), *ErrorMessage);
-
-	OnInteractionCompletedEvent(TimeCompleted);
+	if( CompleteInteractable(ErrorMessage))
+	{
+		OnInteractionCompletedEvent(TimeCompleted);
+	}
+	else AIntP_LOG(Display, TEXT("%s"), *ErrorMessage);
 }
 
 void UActorInteractableComponentBase::InteractionStarted(const float& TimeStarted, const FKey& PressedKey)
@@ -832,10 +824,6 @@ void UActorInteractableComponentBase::InteractionStarted(const float& TimeStarte
 	if (CanInteract())
 	{
 		OnInteractionStartedEvent(TimeStarted, PressedKey);
-	}
-	else
-	{
-		return;
 	}
 }
 
@@ -859,6 +847,8 @@ void UActorInteractableComponentBase::InteractionCanceled()
 	if (IsInteracting())
 	{
 		GetWorld()->GetTimerManager().ClearTimer(Timer_Interaction);
+
+		SetState(EInteractableStateV2::EIS_Awake);
 		
 		OnInteractionCanceledEvent();
 	}
