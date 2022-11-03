@@ -35,8 +35,10 @@ class ACTORINTERACTIONPLUGIN_API IActorInteractorInterface
 	GENERATED_BODY()
 
 public:
+
+	virtual bool IsValidInteractor() const = 0;
 		
-	virtual void StartInteraction() = 0;
+	virtual void StartInteraction(const float StartTime, FKey InputKey) = 0;
 	virtual void StopInteraction() = 0;
 	
 	virtual bool ActivateInteractor(FString& ErrorMessage) = 0;

@@ -8,6 +8,7 @@
 #endif
 
 #include "Helpers/InteractionHelpers.h"
+#include "Interfaces/ActorInteractableInterface.h"
 
 UActorInteractorComponentBase::UActorInteractorComponentBase()
 {
@@ -28,8 +29,8 @@ void UActorInteractorComponentBase::BeginPlay()
 	OnInteractableFound.AddUniqueDynamic(this, &UActorInteractorComponentBase::InteractableFound);
 	OnInteractableLost.AddUniqueDynamic(this, &UActorInteractorComponentBase::InteractableLost);
 	
-	OnInteractionKeyPressed.AddUniqueDynamic(this, &UActorInteractorComponentBase::OnInteractionKeyPressedEvent);
-	OnInteractionKeyReleased.AddUniqueDynamic(this, &UActorInteractorComponentBase::OnInteractionKeyReleasedEvent);
+	//OnInteractionKeyPressed.AddUniqueDynamic(this, &UActorInteractorComponentBase::OnInteractionKeyPressedEvent);
+	//OnInteractionKeyReleased.AddUniqueDynamic(this, &UActorInteractorComponentBase::OnInteractionKeyReleasedEvent);
 	
 	OnStateChanged.AddUniqueDynamic(this, &UActorInteractorComponentBase::OnInteractorStateChanged);
 	OnCollisionChanged.AddUniqueDynamic(this, &UActorInteractorComponentBase::OnInteractorCollisionChanged);
@@ -76,6 +77,8 @@ void UActorInteractorComponentBase::InteractableLost(const TScriptInterface<IAct
 {
 	if (LostInteractable == ActiveInteractable)
 	{
+		SetState(EInteractorStateV2::EIS_Awake);
+		
 		SetActiveInteractable(nullptr);
 
 		for (const auto Itr : InteractionDependencies)
@@ -92,7 +95,7 @@ void UActorInteractorComponentBase::InteractableLost(const TScriptInterface<IAct
 
 void UActorInteractorComponentBase::OnInteractionKeyPressedEvent_Implementation(const float& TimeKeyPressed, const FKey& PressedKey)
 {
-	StartInteraction();
+	StartInteraction(TimeKeyPressed, PressedKey);
 }
 
 void UActorInteractorComponentBase::OnInteractionKeyReleasedEvent_Implementation(const float& TimeKeyReleased, const FKey& ReleasedKey)
@@ -100,39 +103,62 @@ void UActorInteractorComponentBase::OnInteractionKeyReleasedEvent_Implementation
 	StopInteraction();
 }
 
-void UActorInteractorComponentBase::EvaluateInteractable(const TScriptInterface<IActorInteractableInterface>& FoundInteractable)
+bool UActorInteractorComponentBase::IsValidInteractor() const
 {
-	if (ActiveInteractable == FoundInteractable)
+	switch (InteractorState)
 	{
-		SetActiveInteractable(FoundInteractable);
-		OnInteractableSelected.Broadcast(FoundInteractable);
-	}
-	else
-	{
-		/**
-		 * TODO:
-		 * Compare weights
-		 * Set the one with highest
-		 */
-		SetActiveInteractable(FoundInteractable);
-		OnInteractableSelected.Broadcast(FoundInteractable);
+		case EInteractorStateV2::EIS_Awake:
+		case EInteractorStateV2::EIS_Asleep:
+		case EInteractorStateV2::EIS_Active:
+			return true;
+		case EInteractorStateV2::EIS_Suppressed:
+		case EInteractorStateV2::EIS_Disabled:
+		case EInteractorStateV2::Default:
+		default:
+			return false;
 	}
 }
 
-void UActorInteractorComponentBase::StartInteraction()
+void UActorInteractorComponentBase::EvaluateInteractable(const TScriptInterface<IActorInteractableInterface>& FoundInteractable)
 {
-	if (CanInteract())
+	if (!IsValidInteractor()) return;
+	
+	if (FoundInteractable.GetInterface() == nullptr)
 	{
-		/**
-		 * TODO
-		 * Interaction can start here
-		 */
+		InteractableLost(ActiveInteractable);
+		return;
+	}
+	
+	if (ActiveInteractable.GetInterface() == nullptr)
+	{
+		SetActiveInteractable(FoundInteractable);
+		OnInteractableSelected.Broadcast(FoundInteractable);
 
-		//ActiveInteractable->OnInteractionStarted();
+		return;
+	}
+	
+	if (ActiveInteractable != FoundInteractable)
+	{
+		if (FoundInteractable->GetInteractableWeight() > ActiveInteractable->GetInteractableWeight())
+		{
+			SetActiveInteractable(FoundInteractable);
+			OnInteractableSelected.Broadcast(FoundInteractable);
+
+			return;
+		}
 	}
 	else
 	{
-		return;
+		//SetActiveInteractable(FoundInteractable);
+		//OnInteractableSelected.Broadcast(FoundInteractable);
+	}
+}
+
+void UActorInteractorComponentBase::StartInteraction(const float StartTime, FKey InputKey)
+{
+	if (CanInteract())
+	{
+		ActiveInteractable->GetOnInteractionStartedHandle().Broadcast(StartTime, InputKey);
 	}
 }
 
@@ -143,7 +169,10 @@ void UActorInteractorComponentBase::StopInteraction()
 	 * Interaction must stop here
 	 */
 
-	//ActiveInteractable->OnInteractionStopped();
+	if (CanInteract())
+	{
+		//ActiveInteractable->OnInteractionStopped();
+	}
 }
 
 bool UActorInteractorComponentBase::ActivateInteractor(FString& ErrorMessage)
@@ -288,11 +317,6 @@ bool UActorInteractorComponentBase::CanInteractEvent_Implementation() const
 	return CanInteract();
 }
 
-void UActorInteractorComponentBase::TickInteractionEvent_Implementation(const float DeltaTime)
-{
-	TickInteraction(DeltaTime);
-}
-
 bool UActorInteractorComponentBase::CanInteract() const
 {
 	switch (InteractorState)
@@ -311,10 +335,7 @@ bool UActorInteractorComponentBase::CanInteract() const
 
 void UActorInteractorComponentBase::TickInteraction(const float DeltaTime)
 {
-	/*
-	 * In Base class there is nothing
-	 * all logic will be implemented in child classes
-	 */
+	TickInteractionEvent(DeltaTime);
 }
 
 ECollisionChannel UActorInteractorComponentBase::GetResponseChannel() const
