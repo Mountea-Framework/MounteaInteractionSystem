@@ -1048,7 +1048,7 @@ void UActorInteractableComponentBase::BindCollisionShape(UPrimitiveComponent* Pr
 	CachedCollisionShapesSettings.Add(PrimitiveComponent, CachedValues);
 
 	PrimitiveComponent->SetGenerateOverlapEvents(true);
-	PrimitiveComponent->SetCollisionResponseToChannel(CollisionChannel, ECollisionResponse::ECR_Overlap);
+	PrimitiveComponent->SetCollisionResponseToChannel(CollisionChannel, ECollisionResponse::ECR_Block);
 
 	switch (PrimitiveComponent->GetCollisionEnabled())
 	{
