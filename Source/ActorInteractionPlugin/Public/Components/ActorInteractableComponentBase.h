@@ -10,6 +10,12 @@
 
 #include "ActorInteractableComponentBase.generated.h"
 
+/**
+ * Collision Shape Cache data.
+ * 
+ * Holds data for each Collision Shape before interaction setup has been applied.
+ * Used for resetting Collision Shapes to pre-interaction state.
+ */
 USTRUCT(BlueprintType)
 struct FCollisionShapeCache
 {
@@ -37,6 +43,14 @@ struct FCollisionShapeCache
 	
 };
 
+/**
+ * Actor Interactable Base Component
+ *
+ * Implements ActorInteractableInterface.
+ * Networking is not implemented.
+ *
+ * @see https://github.com/Mountea-Framework/ActorInteractionPlugin/wiki/Actor-Interactable-Component-Base
+ */
 UCLASS(Abstract, ClassGroup=(Interaction), Blueprintable, hideCategories=(Collision, AssetUserData, Cooking, ComponentTick, Activation), meta=(BlueprintSpawnableComponent, DisplayName = "Interactable Component"))
 class ACTORINTERACTIONPLUGIN_API UActorInteractableComponentBase : public UWidgetComponent, public IActorInteractableInterface
 {
@@ -54,21 +68,51 @@ protected:
 	
 public:
 
+	/**
+	 * Returns whether this Interactable is being autosetup or not. 
+	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual bool DoesAutoSetup() const override;
+
+	/**
+	 * Sets whether this Interactable will be Autosetup.
+	 * Auto setup is variable exposed in Interaction|Required panel.
+	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void ToggleAutoSetup(const bool NewValue) override;
 
+
+	/**
+	 * Tries to set state of this Interactable to Active. 
+	 * If fails, returns False and updates ErrorMessage with short explanation.
+	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual bool ActivateInteractable(FString& ErrorMessage) override;
+	/**
+	 * Tries to set state of this Interactable to Awake. 
+	 * If fails, returns False and updates ErrorMessage with short explanation.
+	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual bool WakeUpInteractable(FString& ErrorMessage) override;
+	/**
+	 * Tries to set state of this Interactable to Asleep. 
+	 * If fails, returns False and updates ErrorMessage with short explanation.
+	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual bool SnoozeInteractable(FString& ErrorMessage) override;
+	/**
+	 * Tries to set state of this Interactable to Completed. 
+	 * If fails, returns False and updates ErrorMessage with short explanation.
+	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual bool CompleteInteractable(FString& ErrorMessage) override;
+	/**
+	 * Tries to set state of this Interactable to Disabled. 
+	 * If fails, returns False and updates ErrorMessage with short explanation.
+	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void DeactivateInteractable() override;
+
 
 	/**
 	 * Returns whether this Interactable can interacted with or not.
@@ -84,17 +128,38 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual bool CanInteract() const override;
+	/**
+	 * Returns whether Interaction can be processed.
+	 * Return True if is Awaken and does not have any Interactor yet.
+	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual bool CanBeTriggered() const override;
+	/**
+	 * Returns whether Interaction is in process.
+	 * Return True if is Active.
+	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual bool IsInteracting() const override;
 
+
+	/**
+	 * Returns State of Interactable.
+	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual EInteractableStateV2 GetState() const override;
+	/**
+	 * Sets State of Interactable.
+	 * SetState is driven by StateMachine. StateMachine is available on Wiki:
+	 * * https://github.com/Mountea-Framework/ActorInteractionPlugin/wiki/Actor-Interactable-Component-Validations#state-machine
+	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void SetState(const EInteractableStateV2 NewState) override;
 
 	
+	/**
+	 * Returns list of ignored classes.
+	 * Those are classes which will be ignored for interaction events and won't trigger them.
+	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual TArray<TSoftClassPtr<UObject>> GetIgnoredClasses() const override;
 	UFUNCTION(BlueprintCallable, Category="Interaction")
