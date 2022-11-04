@@ -364,13 +364,15 @@ bool UActorInteractorComponentBase::CanInteract() const
 {
 	switch (InteractorState)
 	{
-		case EInteractorStateV2::EIS_Awake: return ActiveInteractable.GetInterface() != nullptr;;
+		case EInteractorStateV2::EIS_Active:
+		case EInteractorStateV2::EIS_Awake:
+			return true;
 		case EInteractorStateV2::EIS_Asleep:
 		case EInteractorStateV2::EIS_Suppressed:
-		case EInteractorStateV2::EIS_Active:
 		case EInteractorStateV2::EIS_Disabled:
 		case EInteractorStateV2::Default:
-		default: break;
+		default:
+			return false;
 	}
 
 	return false;
