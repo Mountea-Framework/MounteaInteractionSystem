@@ -2,6 +2,8 @@
 
 
 #include "Components/ActorInteractorComponentTrace.h"
+
+#include "Interfaces/ActorInteractableInterface.h"
 #include "Kismet/KismetMathLibrary.h"
 
 #if WITH_EDITOR
@@ -22,40 +24,6 @@ void UActorInteractorComponentTrace::BeginPlay()
 	OnTraceTypeChanged.AddUniqueDynamic(this, &UActorInteractorComponentTrace::OnTraceTypeChangedEvent);
 
 	Super::BeginPlay();
-}
-
-void UActorInteractorComponentTrace::DrawTracingDebugStart(FInteractionTraceDataV2& InteractionTraceData) const
-{
-#if WITH_EDITOR
-	if(bToggleDebug)
-	{
-		DrawDebugString(GetWorld(), InteractionTraceData.StartLocation, TEXT("Tracing Start Location"), nullptr, FColor::Blue, TraceInterval);
-		
-		switch (TraceType)
-		{
-			case ETraceType::ETT_Precise:
-				DrawDebugLine(GetWorld(), InteractionTraceData.StartLocation, InteractionTraceData.EndLocation, FColor::Blue, false, TraceInterval, 0, 0.25f);
-				break;
-			case ETraceType::ETT_Loose:
-				DrawDebugSphere(GetWorld(), InteractionTraceData.StartLocation, 10.f, 6, FColor::Blue, false, TraceInterval, 0, 0.25f);
-				break;
-		}
-		
-		DrawDebugString(GetWorld(), InteractionTraceData.EndLocation, TEXT("Tracing Expected End"), nullptr, FColor::Red, TraceInterval);
-		DrawDebugSphere(GetWorld(), InteractionTraceData.EndLocation, 10.f, 6, FColor::Red, false, TraceInterval, 0, 0.25f);
-	}
-#endif
-}
-
-void UActorInteractorComponentTrace::DrawTracingDebugEnd(FInteractionTraceDataV2& InteractionTraceData) const
-{
-#if WITH_EDITOR
-	if(bToggleDebug && InteractionTraceData.HitResult.bBlockingHit)
-	{
-		DrawDebugString(GetWorld(), InteractionTraceData.HitResult.ImpactPoint, TEXT("Tracing Hit"),nullptr, FColor::Green, TraceInterval);
-		DrawDebugSphere(GetWorld(), InteractionTraceData.HitResult.ImpactPoint, 10.f, 6, FColor::Green, false, TraceInterval, 0, 0.25f);
-	}
-#endif
 }
 
 void UActorInteractorComponentTrace::DisableTracing()
@@ -150,6 +118,18 @@ void UActorInteractorComponentTrace::ProcessTrace()
 		default: break;
 	}
 
+	for (FHitResult& HitResult : TraceData.HitResults)
+	{
+		if (const auto HitComp = HitResult.GetComponent())
+		{
+			if (HitComp->Implements<UActorInteractableInterface>() == false)
+			{
+				HitComp->OnComponentHit.Broadcast(HitResult.GetComponent(), GetOwner(), nullptr, HitResult.Location, HitResult);
+			}
+		}
+	}
+	
+
 #if WITH_EDITOR
 	if (bToggleDebug)
 	{
@@ -164,9 +144,9 @@ void UActorInteractorComponentTrace::ProcessTrace()
 
 void UActorInteractorComponentTrace::ProcessTrace_Precise(FInteractionTraceDataV2& InteractionTraceData)
 {
-	GetWorld()->LineTraceSingleByChannel
+	GetWorld()->LineTraceMultiByChannel
 	(
-		InteractionTraceData.HitResult,
+		InteractionTraceData.HitResults,
 		InteractionTraceData.StartLocation,
 		InteractionTraceData.EndLocation,
 		InteractionTraceData.CollisionChannel,
@@ -178,9 +158,9 @@ void UActorInteractorComponentTrace::ProcessTrace_Loose(FInteractionTraceDataV2&
 {
 	const FCollisionShape CollisionShape = FCollisionShape::MakeBox(FVector(TraceShapeHalfSize));
 
-	GetWorld()->SweepSingleByChannel
+	GetWorld()->SweepMultiByChannel
 	(
-		InteractionTraceData.HitResult,
+		InteractionTraceData.HitResults,
 		InteractionTraceData.StartLocation,
 		InteractionTraceData.EndLocation,
 		InteractionTraceData.TraceRotation.Quaternion(),
@@ -192,31 +172,12 @@ void UActorInteractorComponentTrace::ProcessTrace_Loose(FInteractionTraceDataV2&
 
 bool UActorInteractorComponentTrace::CanTrace() const
 {
-	switch (GetState())
-	{
-		case EInteractorStateV2::EIS_Asleep:
-		case EInteractorStateV2::EIS_Disabled:
-		case EInteractorStateV2::EIS_Suppressed:
-		case EInteractorStateV2::Default:
-		default:
-			return false;
-		case EInteractorStateV2::EIS_Awake:
-		case EInteractorStateV2::EIS_Active:
-			return true;
-	}
+	return CanInteract();
 }
 
 bool UActorInteractorComponentTrace::CanInteract() const
 {
-	if (GetWorld() && Super::CanInteract())
-	{
-		if (GetWorld()->GetTimerManager().IsTimerActive(Timer_Ticking))
-		{
-			return GetWorld()->GetTimerManager().GetTimerElapsed(Timer_Ticking) >= TraceInterval;
-		}
-	}
-
-	return false;
+	return Super::CanInteract();
 }
 
 void UActorInteractorComponentTrace::SetState(const EInteractorStateV2 NewState)
@@ -245,5 +206,37 @@ void UActorInteractorComponentTrace::SetState(const EInteractorStateV2 NewState)
 	}
 }
 
+#if WITH_EDITOR
+void UActorInteractorComponentTrace::DrawTracingDebugStart(FInteractionTraceDataV2& InteractionTraceData) const
+{
+	if(bToggleDebug)
+	{
+		DrawDebugString(GetWorld(), InteractionTraceData.StartLocation, TEXT("Tracing Start Location"), nullptr, FColor::Blue, TraceInterval);
+		
+		switch (TraceType)
+		{
+		case ETraceType::ETT_Precise:
+			DrawDebugLine(GetWorld(), InteractionTraceData.StartLocation, InteractionTraceData.EndLocation, FColor::Blue, false, TraceInterval, 0, 0.25f);
+			break;
+		case ETraceType::ETT_Loose:
+			DrawDebugSphere(GetWorld(), InteractionTraceData.StartLocation, 10.f, 6, FColor::Blue, false, TraceInterval, 0, 0.25f);
+			break;
+		}
+		
+		DrawDebugString(GetWorld(), InteractionTraceData.EndLocation, TEXT("Tracing Expected End"), nullptr, FColor::Red, TraceInterval);
+		DrawDebugSphere(GetWorld(), InteractionTraceData.EndLocation, 10.f, 6, FColor::Red, false, TraceInterval, 0, 0.25f);
+	}
+}
 
-
+void UActorInteractorComponentTrace::DrawTracingDebugEnd(FInteractionTraceDataV2& InteractionTraceData) const
+{
+	for (FHitResult& HitResult : InteractionTraceData.HitResults)
+	{
+		if(bToggleDebug && HitResult.GetComponent())
+		{
+			DrawDebugString(GetWorld(), HitResult.ImpactPoint, TEXT("Tracing Hit"),nullptr, FColor::Green, TraceInterval);
+			DrawDebugSphere(GetWorld(), HitResult.ImpactPoint, 10.f, 6, FColor::Green, false, TraceInterval, 0, 0.25f);
+		}
+	}
+}
+#endif

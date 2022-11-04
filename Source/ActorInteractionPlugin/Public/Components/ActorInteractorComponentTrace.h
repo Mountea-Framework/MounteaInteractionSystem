@@ -26,7 +26,7 @@ struct FInteractionTraceDataV2
 	FVector StartLocation;
 	FVector EndLocation;
 	FRotator TraceRotation;
-	FHitResult HitResult;
+	TArray<FHitResult> HitResults;
 	FCollisionQueryParams CollisionParams;
 	ECollisionChannel CollisionChannel;
 
@@ -36,17 +36,15 @@ struct FInteractionTraceDataV2
 		StartLocation = FVector();
 		EndLocation = FVector();
 		TraceRotation = FRotator();
-		HitResult = FHitResult();
 		CollisionParams = FCollisionQueryParams();
 		CollisionChannel = ECC_Visibility;
 	};
 	
-	FInteractionTraceDataV2(const FVector& Start, const FVector& End, const FRotator Rotation, const FHitResult& Hit, const FCollisionQueryParams& Params, const ECollisionChannel& Channel)
+	FInteractionTraceDataV2(const FVector& Start, const FVector& End, const FRotator Rotation, const FCollisionQueryParams& Params, const ECollisionChannel& Channel)
 	{
 		StartLocation = Start;
 		EndLocation = End;
 		TraceRotation = Rotation;
-		HitResult = Hit;
 		CollisionParams = Params;
 		CollisionChannel = Channel;
 	};
