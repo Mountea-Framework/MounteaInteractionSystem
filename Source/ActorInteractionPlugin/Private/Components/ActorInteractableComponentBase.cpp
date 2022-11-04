@@ -949,17 +949,18 @@ void UActorInteractableComponentBase::OnInteractableTraced(UPrimitiveComponent* 
 
 		switch (FoundInteractor->GetState())
 		{
-		case EInteractorStateV2::EIS_Active:
-		case EInteractorStateV2::EIS_Awake:
-			if (FoundInteractor->GetResponseChannel() != GetCollisionChannel()) continue;
-			OnInteractorTraced.Broadcast(HitComponent, OtherActor, OtherComp, NormalImpulse, Hit);
-			OnInteractorFound.Broadcast(FoundInteractor);
-			break;
-		case EInteractorStateV2::EIS_Asleep:
-		case EInteractorStateV2::EIS_Suppressed:
-		case EInteractorStateV2::EIS_Disabled:
-		case EInteractorStateV2::Default:
-			break;
+			case EInteractorStateV2::EIS_Active:
+			case EInteractorStateV2::EIS_Awake:
+				if (FoundInteractor->CanInteract() == false) return;
+				if (FoundInteractor->GetResponseChannel() != GetCollisionChannel()) continue;
+				OnInteractorTraced.Broadcast(HitComponent, OtherActor, OtherComp, NormalImpulse, Hit);
+				OnInteractorFound.Broadcast(FoundInteractor);
+				break;
+			case EInteractorStateV2::EIS_Asleep:
+			case EInteractorStateV2::EIS_Suppressed:
+			case EInteractorStateV2::EIS_Disabled:
+			case EInteractorStateV2::Default:
+				break;
 		}
 	}
 }
@@ -1048,7 +1049,7 @@ void UActorInteractableComponentBase::BindCollisionShape(UPrimitiveComponent* Pr
 	CachedCollisionShapesSettings.Add(PrimitiveComponent, CachedValues);
 
 	PrimitiveComponent->SetGenerateOverlapEvents(true);
-	PrimitiveComponent->SetCollisionResponseToChannel(CollisionChannel, ECollisionResponse::ECR_Block);
+	PrimitiveComponent->SetCollisionResponseToChannel(CollisionChannel, ECollisionResponse::ECR_Overlap);
 
 	switch (PrimitiveComponent->GetCollisionEnabled())
 	{
