@@ -264,16 +264,21 @@ EInteractableStateV2 UActorInteractableComponentBase::GetState() const
 
 void UActorInteractableComponentBase::SetState(const EInteractableStateV2 NewState)
 {
+	StopHighlight();
+	
 	switch (NewState)
 	{
 		case EInteractableStateV2::EIS_Active:
 			switch (InteractableState)
 			{
 				case EInteractableStateV2::EIS_Awake:
+					StartHighlight();
 					InteractableState = NewState;
 					OnInteractableStateChanged.Broadcast(InteractableState);
 					break;
 				case EInteractableStateV2::EIS_Active:
+					StartHighlight();
+					break;
 				case EInteractableStateV2::EIS_Asleep:
 				case EInteractableStateV2::EIS_Suppressed:
 				case EInteractableStateV2::EIS_Cooldown:
@@ -392,8 +397,26 @@ void UActorInteractableComponentBase::SetState(const EInteractableStateV2 NewSta
 		case EInteractableStateV2::Default: 
 		default: break;
 	}
-
+	
 	ProcessDependencies();
+}
+
+void UActorInteractableComponentBase::StartHighlight() const
+{
+	for (const auto Itr : HighlightableComponents)
+	{
+		Itr->SetRenderCustomDepth(bInteractionHighlight);
+		Itr->SetCustomDepthStencilValue(StencilID);
+	}
+}
+
+void UActorInteractableComponentBase::StopHighlight() const
+{
+	for (const auto Itr : HighlightableComponents)
+	{
+		Itr->SetRenderCustomDepth(false);
+		Itr->SetCustomDepthStencilValue(0);
+	}
 }
 
 TArray<TSoftClassPtr<UObject>> UActorInteractableComponentBase::GetIgnoredClasses() const
@@ -953,6 +976,7 @@ void UActorInteractableComponentBase::OnInteractableTraced(UPrimitiveComponent* 
 			case EInteractorStateV2::EIS_Awake:
 				if (FoundInteractor->CanInteract() == false) return;
 				if (FoundInteractor->GetResponseChannel() != GetCollisionChannel()) continue;
+				FoundInteractor->GetOnInteractableLostHandle().AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractableLost);
 				OnInteractorTraced.Broadcast(HitComponent, OtherActor, OtherComp, NormalImpulse, Hit);
 				OnInteractorFound.Broadcast(FoundInteractor);
 				break;
@@ -972,9 +996,19 @@ void UActorInteractableComponentBase::InteractableSelected(const TScriptInterfac
  		SetState(EInteractableStateV2::EIS_Active);
  	}
 	else SetState(EInteractableStateV2::EIS_Awake);
-
-	//OnInteractionStarted.Broadcast(GetWorld()->GetTimeSeconds());
+	
 	OnInteractableSelected.Broadcast(Interactable);
+}
+
+
+void UActorInteractableComponentBase::InteractableLost(const TScriptInterface<IActorInteractableInterface>& Interactable)
+{
+	if (Interactable == this)
+	{
+		SetState(EInteractableStateV2::EIS_Awake);
+		
+		OnInteractorLost.Broadcast(GetInteractor());
+	}
 }
 
 void UActorInteractableComponentBase::FindAndAddCollisionShapes()

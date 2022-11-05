@@ -155,6 +155,20 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void SetState(const EInteractableStateV2 NewState) override;
 
+
+	/**
+	 * Starts Highlight for all Highlightable Components.
+	 * Requires Rendering Custom depth in Project Settings.
+	 */
+	UFUNCTION(BlueprintCallable, Category="Interaction")
+	virtual void StartHighlight() const override;
+	/**
+	 * Stops Highlight for all Highlightable Components.
+	 * Requires Rendering Custom depth in Project Settings.
+	 */
+	UFUNCTION(BlueprintCallable, Category="Interaction")
+	virtual void StopHighlight() const override;
+	
 	
 	/**
 	 * Returns list of ignored classes.
@@ -314,6 +328,12 @@ protected:
 	 */
 	UFUNCTION(Category="Interaction")
 	virtual void InteractableSelected(const TScriptInterface<IActorInteractableInterface>& Interactable) override;
+
+	/**
+	 * 
+	 */
+	UFUNCTION(Category="Interaction")
+	virtual void InteractableLost(const TScriptInterface<IActorInteractableInterface>& Interactable) override;
 	
 	/**
 	 * Event called once Interactor is found.
@@ -403,7 +423,7 @@ protected:
 	 */
 	UFUNCTION(Category="Interaction")
 	virtual void OnInteractableStopOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
-
+		
 	/**
 	 * Event called once any of Collision Shapes is hit by trace.
 	 * Called by OnInteractorTraced

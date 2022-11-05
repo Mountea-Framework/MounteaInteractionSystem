@@ -73,6 +73,7 @@ public:
 	virtual void DeactivateInteractable() = 0;
 
 	virtual void InteractableSelected(const TScriptInterface<IActorInteractableInterface>& Interactable) = 0;
+	virtual void InteractableLost(const TScriptInterface<IActorInteractableInterface>& LostInteractable) = 0;
 	virtual void InteractorFound(const TScriptInterface<IActorInteractorInterface>& FoundInteractor) = 0;
 	virtual void InteractorLost(const TScriptInterface<IActorInteractorInterface>& LostInteractor) = 0;
 
@@ -90,6 +91,9 @@ public:
 	
 	virtual EInteractableStateV2 GetState() const = 0;
 	virtual void SetState(const EInteractableStateV2 NewState) = 0;
+
+	virtual void StartHighlight() const = 0;
+	virtual void StopHighlight() const = 0;
 
 	virtual float GetInteractionProgress() const = 0;
 	virtual float GetInteractionPeriod() const = 0;
