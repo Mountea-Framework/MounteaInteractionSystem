@@ -118,6 +118,7 @@ void UActorInteractorComponentTrace::ProcessTrace()
 		default: break;
 	}
 
+	bool bAnyInteractable = false;
 	for (FHitResult& HitResult : TraceData.HitResults)
 	{
 		if (const auto HitComp = HitResult.GetComponent())
@@ -125,10 +126,15 @@ void UActorInteractorComponentTrace::ProcessTrace()
 			if (HitComp->Implements<UActorInteractableInterface>() == false)
 			{
 				HitComp->OnComponentHit.Broadcast(HitResult.GetComponent(), GetOwner(), nullptr, HitResult.Location, HitResult);
+				bAnyInteractable = true;
 			}
 		}
 	}
-	
+
+	if (bAnyInteractable == false && GetActiveInteractable().GetInterface() != nullptr)
+	{
+		OnInteractableLost.Broadcast(GetActiveInteractable());
+	}
 
 #if WITH_EDITOR
 	if (bToggleDebug)
