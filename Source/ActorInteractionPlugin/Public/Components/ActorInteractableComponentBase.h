@@ -10,6 +10,8 @@
 
 #include "ActorInteractableComponentBase.generated.h"
 
+#pragma region CollisionCache
+
 /**
  * Collision Shape Cache data.
  * 
@@ -19,29 +21,31 @@
 USTRUCT(BlueprintType)
 struct FCollisionShapeCache
 {
-	GENERATED_BODY()
-
-	FCollisionShapeCache()
-	{
-		bGenerateOverlapEvents = false;
-		CollisionEnabled = ECollisionEnabled::QueryOnly;
-		CollisionResponse = ECR_Overlap;
-	};
-
-	FCollisionShapeCache(bool GeneratesOverlaps, TEnumAsByte<ECollisionEnabled::Type> collisionEnabled, TEnumAsByte<ECollisionResponse> collisionResponse) :
-	bGenerateOverlapEvents(GeneratesOverlaps),
-	CollisionEnabled(collisionEnabled),
-	CollisionResponse(collisionResponse)
-	{};
-
-	UPROPERTY(VisibleAnywhere)
-	uint8 bGenerateOverlapEvents : 1;
-	UPROPERTY(VisibleAnywhere)
-	TEnumAsByte<ECollisionEnabled::Type> CollisionEnabled;
-	UPROPERTY(VisibleAnywhere)
-	TEnumAsByte<ECollisionResponse> CollisionResponse;
+	 GENERATED_BODY()
+	
+	 FCollisionShapeCache()
+	 {
+		  bGenerateOverlapEvents = false;
+		  CollisionEnabled = ECollisionEnabled::QueryOnly;
+		  CollisionResponse = ECR_Overlap;
+	 };
+	
+	 FCollisionShapeCache(bool GeneratesOverlaps, TEnumAsByte<ECollisionEnabled::Type> collisionEnabled, TEnumAsByte<ECollisionResponse> collisionResponse) :
+		bGenerateOverlapEvents(GeneratesOverlaps),
+		 CollisionEnabled(collisionEnabled),
+		 CollisionResponse(collisionResponse)
+	 {};
+	
+	 UPROPERTY(VisibleAnywhere)
+	 uint8 bGenerateOverlapEvents : 1;
+	 UPROPERTY(VisibleAnywhere)
+	 TEnumAsByte<ECollisionEnabled::Type> CollisionEnabled;
+	 UPROPERTY(VisibleAnywhere)
+	 TEnumAsByte<ECollisionResponse> CollisionResponse;
 	
 };
+
+#pragma endregion 
 
 /**
  * Actor Interactable Base Component
@@ -1286,6 +1290,8 @@ protected:
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 
 	virtual EDataValidationResult IsDataValid(TArray<FText>& ValidationErrors) override;
+
+	virtual void DrawDebug();
 
 #pragma endregion 
 };

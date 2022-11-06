@@ -8,8 +8,6 @@
 #include "InteractionEditorNotifications/Public/EditorHelper.h"
 #endif
 
-#include "Helpers/InteractionHelpers.h"
-
 #include "Interfaces/ActorInteractorInterface.h"
 
 UActorInteractableComponentBase::UActorInteractableComponentBase()
@@ -94,6 +92,12 @@ void UActorInteractableComponentBase::BeginPlay()
 	AutoSetup();
 
 	RemainingLifecycleCount = LifecycleCount;
+
+#if WITH_EDITOR
+	
+	DrawDebug();
+
+#endif
 }
 
 #pragma region InteractionImplementations
@@ -942,6 +946,9 @@ void UActorInteractableComponentBase::OnInteractableBeginOverlap(UPrimitiveCompo
 {
 	if (IsInteracting()) return;
 	if (!OtherActor) return;
+	if (!OtherComp) return;
+
+	if (OtherComp->GetCollisionResponseToChannel(CollisionChannel) == ECollisionResponse::ECR_Ignore) return;
 
 	TArray<UActorComponent*> InteractorComponents = OtherActor->GetComponentsByInterface(UActorInteractorInterface::StaticClass());
 
@@ -961,6 +968,7 @@ void UActorInteractableComponentBase::OnInteractableBeginOverlap(UPrimitiveCompo
 		case EInteractorStateV2::EIS_Active:
 		case EInteractorStateV2::EIS_Awake:
 			if (FoundInteractor->GetResponseChannel() != GetCollisionChannel()) continue;
+			FoundInteractor->GetOnInteractableLostHandle().AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractableLost);
 			OnInteractorOverlapped.Broadcast(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
 			OnInteractorFound.Broadcast(FoundInteractor);
 			break;
@@ -983,8 +991,9 @@ void UActorInteractableComponentBase::OnInteractableStopOverlap(UPrimitiveCompon
 
 	for (const auto Itr : InteractorComponents)
 	{
-		if (Itr == GetInteractor().GetObject())
+		if (Itr == GetInteractor().GetInterface())
 		{
+			GetInteractor()->GetOnInteractableLostHandle().RemoveDynamic(this, &UActorInteractableComponentBase::InteractableLost);
 			GetInteractor()->GetOnInteractableLostHandle().Broadcast(this);
 			
 			OnInteractorLost.Broadcast(GetInteractor());
@@ -1134,10 +1143,10 @@ void UActorInteractableComponentBase::BindCollisionShape(UPrimitiveComponent* Pr
 	switch (PrimitiveComponent->GetCollisionEnabled())
 	{
 		case ECollisionEnabled::NoCollision:
-			PrimitiveComponent->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-			break;
 		case ECollisionEnabled::QueryOnly:
 		case ECollisionEnabled::PhysicsOnly:
+			PrimitiveComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+			break;
 		case ECollisionEnabled::QueryAndPhysics:
 		default: break;
 	}
@@ -1318,6 +1327,17 @@ EDataValidationResult UActorInteractableComponentBase::IsDataValid(TArray<FText>
 	}
 	
 	return bAnyError ? EDataValidationResult::Invalid : DefaultValue;
+}
+
+void UActorInteractableComponentBase::DrawDebug()
+{
+	if (bToggleDebug)
+	{
+		for (const auto Itr : CollisionComponents)
+		{
+			Itr->SetHiddenInGame(false);
+		}
+	}
 }
 
 #endif
