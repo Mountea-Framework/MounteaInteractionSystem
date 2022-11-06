@@ -161,7 +161,7 @@ void UActorInteractorComponentBase::EvaluateInteractable(const TScriptInterface<
 
 void UActorInteractorComponentBase::StartInteraction(const float StartTime, FKey InputKey)
 {
-	if (CanInteract())
+	if (CanInteract() && ActiveInteractable.GetInterface())
 	{
 		ActiveInteractable->GetOnInteractionStartedHandle().Broadcast(StartTime, InputKey);
 	}
@@ -174,9 +174,9 @@ void UActorInteractorComponentBase::StopInteraction()
 	 * Interaction must stop here
 	 */
 
-	if (CanInteract())
+	if (CanInteract() && ActiveInteractable.GetInterface())
 	{
-		//ActiveInteractable->OnInteractionStopped();
+		ActiveInteractable->GetOnInteractionStoppedHandle().Broadcast();
 	}
 }
 

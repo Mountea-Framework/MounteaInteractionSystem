@@ -582,6 +582,14 @@ protected:
 protected:
 
 	/**
+	 * Event bound to OnInteractableDependencyChanged.
+	 * Once OnInteractableDependencyChanged is called this event is, too.
+	 * Be sure to call Parent event to access all C++ implementation!
+	 */
+	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	void OnInteractableDependencyChangedEvent(const TScriptInterface<IActorInteractableInterface>& Dependency);
+
+	/**
 	 * Event bound to OnInteractableAutoSetupChanged event.
 	 * Once OnInteractableAutoSetupChanged is called this event is, too.
 	 * Be sure to call Parent event to access all C++ implementation!
@@ -903,6 +911,12 @@ protected:
 	UPROPERTY(BlueprintAssignable, Category="Interaction")
 	FCooldownCompleted OnCooldownCompleted;
 
+	/**
+	 * Event called once any Interaction Dependency is changed, no matter if removed or added.
+	 */
+	UPROPERTY(BlueprintAssignable, Category="Interaction")
+	FInteractableDependencyChanged OnInteractableDependencyChanged;
+
 #pragma endregion
 
 #pragma region InteractionComponents
@@ -1026,6 +1040,8 @@ protected:
 	{ return OnInteractionStopped; };
 	virtual FInteractionCanceled& GetOnInteractionCanceledHandle() override
 	{ return OnInteractionCanceled; };
+	virtual FInteractableDependencyChanged& GetInteractableDependencyChangedHandle() override
+	{ return OnInteractableDependencyChanged; };
 
 	virtual FTimerHandle& GetCooldownHandle() override
 	{ return Timer_Cooldown; }
@@ -1064,8 +1080,8 @@ protected:
 
 	/**
 	 * Defines how long does Interaction take.
-	 * -1 = immediate
-	 * 0  = 0.1s
+	 * - -1 = immediate
+	 * - 0  = 0.1s
 	 */
 	UPROPERTY(EditAnywhere, Category="Interaction|Required", meta=(UIMin=-1, ClampMin=-1, Units="s"))
 	float InteractionPeriod;

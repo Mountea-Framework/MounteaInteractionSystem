@@ -35,6 +35,8 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FInteractionCanceled);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FLifecycleCompleted);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FCooldownCompleted);
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractableDependencyChanged, const TScriptInterface<IActorInteractableInterface>&, ChagnedDependency);
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractableAutoSetupChanged, const bool, NewValue);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractableWeightChanged, const int32&, NewWeight);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractableStateChanged, const EInteractableStateV2&, NewState);
@@ -187,6 +189,7 @@ public:
 	virtual FInteractionStarted& GetOnInteractionStartedHandle() = 0;
 	virtual FInteractionStopped& GetOnInteractionStoppedHandle() = 0;
 	virtual FInteractionCanceled& GetOnInteractionCanceledHandle() = 0;
+	virtual FInteractableDependencyChanged& GetInteractableDependencyChangedHandle() = 0;
 
 	virtual FTimerHandle& GetCooldownHandle() = 0;
 };
