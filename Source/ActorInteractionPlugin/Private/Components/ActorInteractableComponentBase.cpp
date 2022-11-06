@@ -2,8 +2,9 @@
 
 #include "Components/ActorInteractableComponentBase.h"
 
-#if WITH_EDITOR
 #include "Helpers/ActorInteractionPluginLog.h"
+
+#if WITH_EDITOR
 #include "InteractionEditorNotifications/Public/EditorHelper.h"
 #endif
 
@@ -28,6 +29,7 @@ UActorInteractableComponentBase::UActorInteractableComponentBase()
 	LifecycleMode = EInteractableLifecycle::EIL_Cycled;
 	LifecycleCount = 2;
 	CooldownPeriod = 3.f;
+	RemainingLifecycleCount = LifecycleCount;
 
 	InteractionOwner = GetOwner();
 
@@ -64,6 +66,7 @@ void UActorInteractableComponentBase::BeginPlay()
 	OnCooldownCompleted.AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractionCooldownCompleted);
 	
 	// Attributes Events
+	OnInteractableDependencyChanged.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableDependencyChangedEvent);
 	OnInteractableAutoSetupChanged.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableAutoSetupChangedEvent);
 	OnInteractableWeightChanged.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableWeightChangedEvent);
 	OnInteractableStateChanged.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableStateChangedEvent);
@@ -89,6 +92,8 @@ void UActorInteractableComponentBase::BeginPlay()
 	SetState(DefaultInteractableState);
 
 	AutoSetup();
+
+	RemainingLifecycleCount = LifecycleCount;
 }
 
 #pragma region InteractionImplementations
@@ -471,12 +476,16 @@ void UActorInteractableComponentBase::AddInteractionDependency(const TScriptInte
 {
 	if (InteractionDependencies.Contains(InteractionDependency)) return;
 
+	OnInteractableDependencyChanged.Broadcast(InteractionDependency);
+
 	InteractionDependencies.Add(InteractionDependency);
 }
 
 void UActorInteractableComponentBase::RemoveInteractionDependency(const TScriptInterface<IActorInteractableInterface> InteractionDependency)
 {
 	if (!InteractionDependencies.Contains(InteractionDependency)) return;
+
+	OnInteractableDependencyChanged.Broadcast(InteractionDependency);
 
 	InteractionDependencies.Remove(InteractionDependency);
 }
@@ -487,8 +496,9 @@ TArray<TScriptInterface<IActorInteractableInterface>> UActorInteractableComponen
 void UActorInteractableComponentBase::ProcessDependencies()
 {
 	if (InteractionDependencies.Num() == 0) return;
-	
-	for (const auto Itr : InteractionDependencies)
+
+	auto Dependencies = InteractionDependencies;
+	for (const auto Itr : Dependencies)
 	{
 		switch (InteractableState)
 		{
@@ -1224,6 +1234,22 @@ void UActorInteractableComponentBase::PostEditChangeProperty(FPropertyChangedEve
 		}
 	}
 
+	if (PropertyName == "LifecycleCount" && LifecycleMode == EInteractableLifecycle::EIL_Cycled)
+	{
+		if (LifecycleCount == 0 || LifecycleCount == 1)
+		{
+			const FText ErrorMessage = FText::FromString
+			(
+				FString("Interactable Component:").Append(TEXT(" Cycled LifecycleCount cannot be: ")).Append(FString::FromInt(LifecycleCount)).Append(TEXT("!"))
+			);
+			
+			FEditorHelper::DisplayEditorNotification(ErrorMessage, SNotificationItem::CS_Fail, 5.f, 2.f, TEXT("Icons.Error"));
+
+			LifecycleCount = 2.f;
+			RemainingLifecycleCount = LifecycleCount;
+		}
+	}
+
 	if (PropertyName == "InteractionPeriod")
 	{
 		if (InteractionPeriod < -1.f)
@@ -1272,6 +1298,20 @@ EDataValidationResult UActorInteractableComponentBase::IsDataValid(TArray<FText>
 		);
 
 		InteractionPeriod = -1.f;
+		
+		ValidationErrors.Add(ErrorMessage);
+		bAnyError = true;
+	}
+	
+	if (LifecycleMode == EInteractableLifecycle::EIL_Cycled && (LifecycleCount == 0 || LifecycleCount == 1))
+	{
+		const FText ErrorMessage = FText::FromString
+		(
+			FString("Interactable Component:").Append(TEXT(" LifecycleCount cannot be %d!"), LifecycleCount)
+		);
+			
+		LifecycleCount = 2.f;
+		RemainingLifecycleCount = LifecycleCount;
 		
 		ValidationErrors.Add(ErrorMessage);
 		bAnyError = true;
