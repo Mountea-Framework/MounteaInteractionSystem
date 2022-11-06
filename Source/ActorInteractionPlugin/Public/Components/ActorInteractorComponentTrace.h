@@ -99,6 +99,9 @@ protected:
 
 protected:
 
+	UPROPERTY(VisibleAnywhere, Category="Interaction|Debug")
+	FTimerHandle Timer_Ticking;
+
 	/**
 	 * Defines how precise the interaction is.
 	 * - Loose Tracing is using BoxTrace and does not require precision.
@@ -150,9 +153,6 @@ protected:
 	 */
 	UPROPERTY(VisibleAnywhere, Category="Interaction|Read Only", AdvancedDisplay, meta=(DisplayName="Trace Start (World Space Transform)"))
 	FTransform CustomTraceTransform;
-	
-	UPROPERTY(VisibleAnywhere, Category="Interaction|Debug")
-	FTimerHandle Timer_Ticking;
 
 protected:
 	
