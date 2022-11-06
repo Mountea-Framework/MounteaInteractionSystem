@@ -24,11 +24,6 @@ UActorInteractorComponentBase::UActorInteractorComponentBase()
 void UActorInteractorComponentBase::BeginPlay()
 {
 	Super::BeginPlay();
-
-	if (GetOwner())
-	{
-		AddIgnoredActor(GetOwner());
-	}
 	
 	OnInteractableSelected.AddUniqueDynamic(this, &UActorInteractorComponentBase::InteractableSelected);
 	OnInteractableFound.AddUniqueDynamic(this, &UActorInteractorComponentBase::InteractableFound);
@@ -48,6 +43,11 @@ void UActorInteractorComponentBase::BeginPlay()
 	else
 	{
 		SetState(DefaultInteractorState);
+	}
+
+	if (GetOwner())
+	{
+		AddIgnoredActor(GetOwner());
 	}
 }
 
