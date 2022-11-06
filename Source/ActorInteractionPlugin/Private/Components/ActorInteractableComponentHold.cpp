@@ -56,13 +56,13 @@ void UActorInteractableComponentHold::InteractionStarted(const float& TimeStarte
 
 void UActorInteractableComponentHold::InteractionStopped()
 {
+	GetWorld()->GetTimerManager().ClearTimer(Timer_Interaction);
 	Super::InteractionStopped();
-
-
 }
 
 void UActorInteractableComponentHold::InteractionCanceled()
 {
+	GetWorld()->GetTimerManager().ClearTimer(Timer_Interaction);
 	Super::InteractionCanceled();
 }
 
