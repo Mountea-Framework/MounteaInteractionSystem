@@ -58,7 +58,7 @@ public:
 	virtual void RemoveIgnoredActor(AActor* UnignoredActor) = 0;
 	virtual void RemoveIgnoredActors(const TArray<AActor*> UnignoredActors) = 0;
 	virtual TArray<AActor*> GetIgnoredActors() const = 0;
-	
+		
 	virtual void AddInteractionDependency(const TScriptInterface<IActorInteractorInterface> InteractionDependency) = 0;
 	virtual void RemoveInteractionDependency(const TScriptInterface<IActorInteractorInterface> InteractionDependency) = 0;
 	virtual TArray<TScriptInterface<IActorInteractorInterface>> GetInteractionDependencies() const = 0;
