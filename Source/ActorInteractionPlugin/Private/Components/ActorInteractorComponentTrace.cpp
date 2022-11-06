@@ -217,19 +217,16 @@ void UActorInteractorComponentTrace::DrawTracingDebugStart(FInteractionTraceData
 {
 	if(bToggleDebug)
 	{
-		DrawDebugString(GetWorld(), InteractionTraceData.StartLocation, TEXT("Tracing Start Location"), nullptr, FColor::Blue, TraceInterval);
-		
 		switch (TraceType)
 		{
-		case ETraceType::ETT_Precise:
-			DrawDebugLine(GetWorld(), InteractionTraceData.StartLocation, InteractionTraceData.EndLocation, FColor::Blue, false, TraceInterval, 0, 0.25f);
-			break;
-		case ETraceType::ETT_Loose:
-			DrawDebugSphere(GetWorld(), InteractionTraceData.StartLocation, 10.f, 6, FColor::Blue, false, TraceInterval, 0, 0.25f);
-			break;
+			case ETraceType::ETT_Precise:
+				DrawDebugLine(GetWorld(), InteractionTraceData.StartLocation, InteractionTraceData.EndLocation, FColor::Blue, false, TraceInterval, 0, 0.25f);
+				break;
+			case ETraceType::ETT_Loose:
+				DrawDebugSphere(GetWorld(), InteractionTraceData.StartLocation, 10.f, 6, FColor::Blue, false, TraceInterval, 0, 0.25f);
+				break;
 		}
 		
-		DrawDebugString(GetWorld(), InteractionTraceData.EndLocation, TEXT("Tracing Expected End"), nullptr, FColor::Red, TraceInterval);
 		DrawDebugSphere(GetWorld(), InteractionTraceData.EndLocation, 10.f, 6, FColor::Red, false, TraceInterval, 0, 0.25f);
 	}
 }
@@ -240,7 +237,6 @@ void UActorInteractorComponentTrace::DrawTracingDebugEnd(FInteractionTraceDataV2
 	{
 		if(bToggleDebug && HitResult.GetComponent())
 		{
-			DrawDebugString(GetWorld(), HitResult.ImpactPoint, TEXT("Tracing Hit"),nullptr, FColor::Green, TraceInterval);
 			DrawDebugSphere(GetWorld(), HitResult.ImpactPoint, 10.f, 6, FColor::Green, false, TraceInterval, 0, 0.25f);
 		}
 	}
