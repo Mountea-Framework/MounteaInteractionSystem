@@ -158,7 +158,9 @@ public:
 	
 	
 	virtual UMeshComponent* FindMeshByTag(const FName Tag) const = 0;
+	virtual UMeshComponent* FindMeshByName(const FName Name) const = 0;
 	virtual UPrimitiveComponent* FindPrimitiveByTag(const FName Tag) const = 0;
+	virtual UPrimitiveComponent* FindPrimitiveByName(const FName Name) const = 0;
 
 	virtual TArray<FName> GetCollisionOverrides() const = 0;
 	virtual TArray<FName> GetHighlightableOverrides() const = 0;

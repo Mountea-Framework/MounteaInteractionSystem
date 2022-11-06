@@ -301,9 +301,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void RemoveHighlightableComponents(const TArray<UMeshComponent*> RemoveMeshComponents) override;
 
-	
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
+	virtual UMeshComponent* FindMeshByName(const FName Name) const override;
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual UMeshComponent* FindMeshByTag(const FName Tag) const override;
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
+	virtual UPrimitiveComponent* FindPrimitiveByName(const FName Name) const override;
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual UPrimitiveComponent* FindPrimitiveByTag(const FName Tag) const override;
 

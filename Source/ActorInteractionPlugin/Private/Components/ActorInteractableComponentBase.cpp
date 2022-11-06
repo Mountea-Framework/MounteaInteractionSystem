@@ -761,16 +761,52 @@ void UActorInteractableComponentBase::RemoveHighlightableComponents(const TArray
 	}
 }
 
+UMeshComponent* UActorInteractableComponentBase::FindMeshByName(const FName Name) const
+{
+	if (!GetOwner()) return nullptr;
+
+	TArray<UMeshComponent*> MeshComponents;
+	GetOwner()->GetComponents(MeshComponents);
+
+	for (const auto Itr : MeshComponents)
+	{
+		if (Itr && Itr->GetName().Equals(Name.ToString()))
+		{
+			return Itr;
+		}
+	}
+
+	return nullptr;
+}
+
 UMeshComponent* UActorInteractableComponentBase::FindMeshByTag(const FName Tag) const
 {
 	if (!GetOwner()) return nullptr;
 
-	TArray<UMeshComponent*> PrimitiveComponents;
+	TArray<UMeshComponent*> MeshComponents;
+	GetOwner()->GetComponents(MeshComponents);
+
+	for (const auto Itr : MeshComponents)
+	{
+		if (Itr && Itr->ComponentHasTag(Tag))
+		{
+			return Itr;
+		}
+	}
+	
+	return nullptr;
+}
+
+UPrimitiveComponent* UActorInteractableComponentBase::FindPrimitiveByName(const FName Name) const
+{
+	if (!GetOwner()) return nullptr;
+
+	TArray<UPrimitiveComponent*> PrimitiveComponents;
 	GetOwner()->GetComponents(PrimitiveComponents);
 
 	for (const auto Itr : PrimitiveComponents)
 	{
-		if (Itr && Itr->ComponentHasTag(Tag))
+		if (Itr && Itr->GetName().Equals(Name.ToString()))
 		{
 			return Itr;
 		}
@@ -1015,14 +1051,14 @@ void UActorInteractableComponentBase::FindAndAddCollisionShapes()
 {
 	for (const auto Itr : CollisionOverrides)
 	{
-		if (const auto NewCollision = FindPrimitiveByTag(Itr))
+		if (const auto NewCollision = FindPrimitiveByName(Itr))
 		{
 			AddCollisionComponent(NewCollision);
 			BindCollisionShape(NewCollision);
 		}
 		else
 		{
-			AIntP_LOG(Error, TEXT("[Actor Interactable Component] Primitive Component with %s tag not found!"), *Itr.ToString())
+			AIntP_LOG(Error, TEXT("[Actor Interactable Component] Primitive Component '%s' not found!"), *Itr.ToString())
 		}
 	}
 }
@@ -1031,14 +1067,14 @@ void UActorInteractableComponentBase::FindAndAddHighlightableMeshes()
 {
 	for (const auto Itr : HighlightableOverrides)
 	{
-		if (const auto NewMesh = FindMeshByTag(Itr))
+		if (const auto NewMesh = FindMeshByName(Itr))
 		{
 			AddHighlightableComponent(NewMesh);
 			BindHighlightableMesh(NewMesh);
 		}
 		else
 		{
-			AIntP_LOG(Error, TEXT("[Actor Interactable Component] Mesh Component with %s tag not found!"), *Itr.ToString())
+			AIntP_LOG(Error, TEXT("[Actor Interactable Component] Mesh Component '%s' not found!"), *Itr.ToString())
 		}
 	}
 }
@@ -1081,7 +1117,7 @@ void UActorInteractableComponentBase::BindCollisionShape(UPrimitiveComponent* Pr
 	CachedValues.CollisionResponse = GetCollisionResponseToChannel(CollisionChannel);
 	
 	CachedCollisionShapesSettings.Add(PrimitiveComponent, CachedValues);
-
+	
 	PrimitiveComponent->SetGenerateOverlapEvents(true);
 	PrimitiveComponent->SetCollisionResponseToChannel(CollisionChannel, ECollisionResponse::ECR_Overlap);
 
@@ -1194,7 +1230,7 @@ void UActorInteractableComponentBase::PostEditChangeProperty(FPropertyChangedEve
 		{
 			const FText ErrorMessage = FText::FromString
 			(
-				FString("Interactable Component:").Append(TEXT(" DefaultInteractableState cannot be lesser than -1!"))
+				FString("Interactable Component:").Append(TEXT(" InteractionPeriod cannot be less than -1!"))
 			);
 			FEditorHelper::DisplayEditorNotification(ErrorMessage, SNotificationItem::CS_Fail, 5.f, 2.f, TEXT("Icons.Error"));
 
