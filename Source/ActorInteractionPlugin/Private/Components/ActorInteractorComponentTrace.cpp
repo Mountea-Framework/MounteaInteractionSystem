@@ -6,6 +6,7 @@
 #include "Interfaces/ActorInteractableInterface.h"
 #include "Kismet/KismetMathLibrary.h"
 
+#include "Components/ShapeComponent.h"
 #if WITH_EDITOR
 #include "DrawDebugHelpers.h"
 #endif
@@ -24,6 +25,17 @@ void UActorInteractorComponentTrace::BeginPlay()
 	OnTraceTypeChanged.AddUniqueDynamic(this, &UActorInteractorComponentTrace::OnTraceTypeChangedEvent);
 
 	Super::BeginPlay();
+
+	if (GetOwner())
+	{
+		TArray<UShapeComponent*> OwnerCollisionComponents;
+		GetOwner()->GetComponents(OwnerCollisionComponents);
+
+		for (const auto Itr : OwnerCollisionComponents)
+		{
+			Itr->SetCollisionResponseToChannel(CollisionChannel, ECollisionResponse::ECR_Ignore);
+		}
+	}
 }
 
 void UActorInteractorComponentTrace::DisableTracing()
