@@ -15,7 +15,7 @@ UActorInteractableComponentBase::UActorInteractableComponentBase()
 	PrimaryComponentTick.bCanEverTick = false;
 
 	bToggleDebug = false;
-	bInteractableAutoSetup = false;
+	SetupType = ESetupType::EST_Quick;
 
 	InteractableState = EInteractableStateV2::EIS_Asleep;
 	DefaultInteractableState = EInteractableStateV2::EIS_Asleep;
@@ -103,11 +103,11 @@ void UActorInteractableComponentBase::BeginPlay()
 #pragma region InteractionImplementations
 
 bool UActorInteractableComponentBase::DoesAutoSetup() const
-{ return bInteractableAutoSetup; }
+{ return SetupType != ESetupType::EST_None; }
 
-void UActorInteractableComponentBase::ToggleAutoSetup(const bool NewValue)
+void UActorInteractableComponentBase::ToggleAutoSetup(const ESetupType& NewValue)
 {
-	bInteractableAutoSetup = NewValue;
+	SetupType = NewValue;
 }
 
 bool UActorInteractableComponentBase::ActivateInteractable(FString& ErrorMessage)
@@ -561,7 +561,17 @@ float UActorInteractableComponentBase::GetInteractionPeriod() const
 
 void UActorInteractableComponentBase::SetInteractionPeriod(const float NewPeriod)
 {
-	InteractionPeriod = FMath::Max(-1.f, NewPeriod);
+	float TempPeriod = NewPeriod;
+	if (TempPeriod > -1.f && TempPeriod < 0.1f)
+	{
+		TempPeriod = 0.1f;
+	}
+	if (FMath::IsNearlyZero(TempPeriod, 0.001f))
+	{
+		TempPeriod = 0.1f;
+	}
+
+	InteractionPeriod = FMath::Max(-1.f, TempPeriod);
 }
 
 int32 UActorInteractableComponentBase::GetInteractableWeight() const
@@ -579,6 +589,7 @@ AActor* UActorInteractableComponentBase::GetInteractableOwner() const
 
 void UActorInteractableComponentBase::SetInteractableOwner(AActor* NewOwner)
 {
+	if (NewOwner == nullptr) return;
 	InteractionOwner = NewOwner;
 	
 	OnInteractableOwnerChanged.Broadcast(InteractionOwner);
@@ -1190,18 +1201,34 @@ void UActorInteractableComponentBase::UnbindHighlightableMesh(UMeshComponent* Me
 
 void UActorInteractableComponentBase::AutoSetup()
 {
-	if (DoesAutoSetup())
+	switch (SetupType)
 	{
-		// Get all Parent Components
-		TArray<USceneComponent*> ParentComponents;
-		GetParentComponents(ParentComponents);
+		case ESetupType::EST_Full:
+			// Get all Parent Components
+			TArray<USceneComponent*> ParentComponents;
+			GetParentComponents(ParentComponents);
 
-		// Iterate over them and assign them properly
-		if (ParentComponents.Num() > 0)
-		{
-			for (const auto Itr : ParentComponents)
+			// Iterate over them and assign them properly
+			if (ParentComponents.Num() > 0)
 			{
-				if (UPrimitiveComponent* PrimitiveComp = Cast<UPrimitiveComponent>(Itr))
+				for (const auto Itr : ParentComponents)
+				{
+					if (UPrimitiveComponent* PrimitiveComp = Cast<UPrimitiveComponent>(Itr))
+					{
+						AddCollisionComponent(PrimitiveComp);
+
+						if (UMeshComponent* MeshComp = Cast<UMeshComponent>(PrimitiveComp))
+						{
+							AddHighlightableComponent(MeshComp);
+						}
+					}
+				}
+			}
+			break;
+		case ESetupType::EST_Quick:
+			if (USceneComponent* ParentComponent = GetAttachParent())
+			{
+				if (UPrimitiveComponent* PrimitiveComp = Cast<UPrimitiveComponent>(ParentComponent))
 				{
 					AddCollisionComponent(PrimitiveComp);
 
@@ -1211,7 +1238,9 @@ void UActorInteractableComponentBase::AutoSetup()
 					}
 				}
 			}
-		}
+			break;
+		default:
+			break;
 	}
 	
 	FindAndAddCollisionShapes();
@@ -1270,6 +1299,32 @@ void UActorInteractableComponentBase::PostEditChangeProperty(FPropertyChangedEve
 			FEditorHelper::DisplayEditorNotification(ErrorMessage, SNotificationItem::CS_Fail, 5.f, 2.f, TEXT("Icons.Error"));
 
 			InteractionPeriod = -1.f;
+		}
+
+		if (InteractionPeriod > -1.f && InteractionPeriod < 0.1f)
+		{
+			/*
+			const FText ErrorMessage = FText::FromString
+			(
+				FString("Interactable Component:").Append(TEXT(" InteractionPeriod cannot be negative value different than -1!"))
+			);
+			FEditorHelper::DisplayEditorNotification(ErrorMessage, SNotificationItem::CS_Fail, 5.f, 2.f, TEXT("Icons.Error"));
+			*/
+
+			InteractionPeriod = 0.1f;
+		}
+
+		if (FMath::IsNearlyZero(InteractionPeriod, 0.001f))
+		{
+			/*
+			const FText ErrorMessage = FText::FromString
+			(
+				FString("Interactable Component:").Append(TEXT(" InteractionPeriod cannot be 0!"))
+			);
+			FEditorHelper::DisplayEditorNotification(ErrorMessage, SNotificationItem::CS_Fail, 5.f, 2.f, TEXT("Icons.Error"));
+			*/
+
+			InteractionPeriod = 0.1f;
 		}
 	}
 

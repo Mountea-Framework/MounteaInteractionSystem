@@ -80,39 +80,45 @@ public:
 
 	/**
 	 * Sets whether this Interactable will be Autosetup.
-	 * Auto setup is variable exposed in Interaction|Required panel.
+	 * Setup Type is variable exposed in Interaction|Required panel.
+	 * @param NewValue This value will be used as SetupType value.
 	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
-	virtual void ToggleAutoSetup(const bool NewValue) override;
+	virtual void ToggleAutoSetup(const ESetupType& NewValue) override;
 
 
 	/**
 	 * Tries to set state of this Interactable to Active. 
-	 * If fails, returns False and updates ErrorMessage with short explanation.
+	 * If fails, returns False and updates ErrorMessage
+	 * @param ErrorMessage Short explanation.
 	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual bool ActivateInteractable(FString& ErrorMessage) override;
 	/**
 	 * Tries to set state of this Interactable to Awake. 
-	 * If fails, returns False and updates ErrorMessage with short explanation.
+	 * If fails, returns False and updates ErrorMessage
+	 * @param ErrorMessage Short explanation.
 	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual bool WakeUpInteractable(FString& ErrorMessage) override;
 	/**
 	 * Tries to set state of this Interactable to Asleep. 
-	 * If fails, returns False and updates ErrorMessage with short explanation.
+	 * If fails, returns False and updates ErrorMessage
+	 * @param ErrorMessage Short explanation.
 	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual bool SnoozeInteractable(FString& ErrorMessage) override;
 	/**
 	 * Tries to set state of this Interactable to Completed. 
-	 * If fails, returns False and updates ErrorMessage with short explanation.
+	 * If fails, returns False and updates ErrorMessage
+	 * @param ErrorMessage Short explanation.
 	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual bool CompleteInteractable(FString& ErrorMessage) override;
 	/**
 	 * Tries to set state of this Interactable to Disabled. 
-	 * If fails, returns False and updates ErrorMessage with short explanation.
+	 * If fails, returns False and updates ErrorMessage
+	 * @param ErrorMessage Short explanation.
 	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void DeactivateInteractable() override;
@@ -153,7 +159,10 @@ public:
 	virtual EInteractableStateV2 GetState() const override;
 	/**
 	 * Sets State of Interactable.
-	 * SetState is driven by StateMachine. StateMachine is available on Wiki:
+	 * @param NewState Value of the State to be set
+	 * 
+	 * SetState is driven by StateMachine. 
+	 * StateMachine is available on Wiki:
 	 * * https://github.com/Mountea-Framework/ActorInteractionPlugin/wiki/Actor-Interactable-Component-Validations#state-machine
 	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
@@ -180,21 +189,55 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual TArray<TSoftClassPtr<UObject>> GetIgnoredClasses() const override;
+	/**
+	 * Force set Ignored Classes. Can be given empty array.
+	*/
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void SetIgnoredClasses(const TArray<TSoftClassPtr<UObject>> NewIgnoredClasses) override;
+	/**
+	* Will add a class to Ignored Class List.
+	* Only objects implementing ActorInteractorInterface will be affected!
+	*/
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void AddIgnoredClass(TSoftClassPtr<UObject> AddIgnoredClass) override;
+	/**
+	* Will add classes to Ignored Class List.
+	* Only objects implementing ActorInteractorInterface will be affected!
+	*/
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void AddIgnoredClasses(TArray<TSoftClassPtr<UObject>> AddIgnoredClasses) override;
+	/**
+	 * Will remove a class from Ignored Class List.
+	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void RemoveIgnoredClass(TSoftClassPtr<UObject> RemoveIgnoredClass) override;
+	/**
+	 * Will remove classes from Ignored Class List.
+	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void RemoveIgnoredClasses(TArray<TSoftClassPtr<UObject>> RemoveIgnoredClasses) override;
 
+	/**
+	 * Will add Interaction Dependency to List of Dependencies. 
+	 * All dependencies are affected by Interaction State of this Interactable. 
+	 * Interaction Dependency is Suppressed while its Master is Active.
+	 * Duplicates are not allowed and will be filtered out.
+	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void AddInteractionDependency(const TScriptInterface<IActorInteractableInterface> InteractionDependency) override;
+	/**
+	 * Will remove Interaction Dependency from List of Dependencies.
+	 * All dependencies are affected by Interaction State of this Interactable. 
+	 * Interaction Dependency is Suppressed while its Master is Active.
+	 * If Dependency is not present, nothing happens.
+	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void RemoveInteractionDependency(const TScriptInterface<IActorInteractableInterface> InteractionDependency) override;
+	/**
+	 * Return List of Dependencies.
+	 * All dependencies are affected by Interaction State of this Interactable. 
+	 * Interaction Dependency is Suppressed while its Master is Active.
+	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual TArray<TScriptInterface<IActorInteractableInterface>> GetInteractionDependencies() const override;
 	/**
@@ -206,36 +249,92 @@ public:
 	virtual void ProcessDependencies() override;
 
 
+	/**
+	 * Returns Interactor which is interacting with this Interactable.
+	 * If no Interactor, will return nullptr.
+	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual TScriptInterface<IActorInteractorInterface> GetInteractor() const override;
+	/**
+	 * Sets Interactor as Active Interactor.
+	 * OnInteractorChanged is called upon successful change.
+	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void SetInteractor(const TScriptInterface<IActorInteractorInterface> NewInteractor) override;
 
+	/**
+	 * Returns Interaction Progress.
+	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual float GetInteractionProgress() const override;
+	/**
+	 * Returns Interaction Period.
+	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual float GetInteractionPeriod() const override;
+	/**
+	 * Sets Interaction Period.
+	 * Values are clamped and verified:
+	 * 
+	 * - -1 = immediate
+	 * - values less than 0 and larger than -1 are 0.1
+	 * - 0  = 0.1s
+	 */	
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void SetInteractionPeriod(const float NewPeriod) override;
 
+	/**
+	 * Returns Interactable Weight. 
+	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual int32 GetInteractableWeight() const override;
+	/**
+	 * Sets new Interactable Weight value.
+	 * Min value is 0.
+	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void SetInteractableWeight(const int32 NewWeight) override;
 
+	/**
+	 * Return Interactable Owner.
+	 * This will be most likely same as the GetOwner, however, there is a way to override this default value.
+	 * Useful for very complex interactions.
+	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual AActor* GetInteractableOwner() const override;
+	/**
+	 * Sets new InteractableOwner.
+	 * Nullptr is not allowed and will not be applied.
+	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void SetInteractableOwner(AActor* NewOwner) override;
 
+	/**
+	 * Returns Collision Channel.
+	 * Both Object and Trace Channels are allowed.
+	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual ECollisionChannel GetCollisionChannel() const override;
+	/**
+	 * Sets new Collision Channel.
+	 * Both Object and Trace Channels are allowed.
+	 * @param NewChannel New Collision Channel to be used for this Interactable.
+	 * 
+	 * Interaction specific channel are our strong recommendation.
+	 * For usage and setup, take a look at 'Examples' project from Mountea Framework GitHub page.
+	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void SetCollisionChannel(const ECollisionChannel& NewChannel) override;
 
 
+	/**
+	 * Returns Lifecycle Mode. 
+	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual EInteractableLifecycle GetLifecycleMode() const override;
+	/**
+	 * Set new Lifecycle Mode.
+	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void SetLifecycleMode(const EInteractableLifecycle& NewMode) override;
 
@@ -1105,7 +1204,7 @@ protected:
 	 * This setup might be useful for simple Actors, might cause issues with more complex ones.
 	 */
 	UPROPERTY(EditAnywhere, Category="Interaction|Required")
-	uint8 bInteractableAutoSetup : 1;
+	ESetupType SetupType;
 
 	/**
 	 * Collision Channel which will be forced to all Collision Shapes as Overlap.
