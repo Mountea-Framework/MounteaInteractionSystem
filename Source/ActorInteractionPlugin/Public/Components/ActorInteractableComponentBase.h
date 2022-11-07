@@ -229,6 +229,8 @@ public:
 	 * All dependencies are affected by Interaction State of this Interactable. 
 	 * Interaction Dependency is Suppressed while its Master is Active.
 	 * Duplicates are not allowed and will be filtered out.
+	 * 
+	 * @param InteractionDependency Dependecy which will be added. Null or duplicates are not allowed.
 	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void AddInteractionDependency(const TScriptInterface<IActorInteractableInterface> InteractionDependency) override;
@@ -237,6 +239,8 @@ public:
 	 * All dependencies are affected by Interaction State of this Interactable. 
 	 * Interaction Dependency is Suppressed while its Master is Active.
 	 * If Dependency is not present, nothing happens.
+	 * 
+	 * @param InteractionDependency Dependency which will be removed.
 	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void RemoveInteractionDependency(const TScriptInterface<IActorInteractableInterface> InteractionDependency) override;
@@ -265,6 +269,8 @@ public:
 	/**
 	 * Sets Interactor as Active Interactor.
 	 * OnInteractorChanged is called upon successful change.
+	 * 
+	 * @param NewInteractor Value to be set as a new Interactor. Can be null.
 	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void SetInteractor(const TScriptInterface<IActorInteractorInterface> NewInteractor) override;
@@ -283,6 +289,7 @@ public:
 	 * Sets Interaction Period.
 	 * Values are clamped and verified:
 	 * 
+	 * @param NewPeriod Value to be set as new Interaction Period. Is validated:
 	 * - -1 = immediate
 	 * - values less than 0 and larger than -1 are 0.1
 	 * - 0  = 0.1s
@@ -297,6 +304,8 @@ public:
 	virtual int32 GetInteractableWeight() const override;
 	/**
 	 * Sets new Interactable Weight value.
+	 * 
+	 * @param NewWeight Value to be set as new Interactable Weight. Is validated:
 	 * Min value is 0.
 	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
@@ -311,6 +320,8 @@ public:
 	virtual AActor* GetInteractableOwner() const override;
 	/**
 	 * Sets new InteractableOwner.
+	 * 
+	 * @param NewOwner Value to be set as Interactable Owner. Is validated:
 	 * Nullptr is not allowed and will not be applied.
 	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
@@ -341,19 +352,39 @@ public:
 	virtual EInteractableLifecycle GetLifecycleMode() const override;
 	/**
 	 * Set new Lifecycle Mode.
+	 * @param NewMode New Lifecycle Mode to be used for this Interactable. 
 	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void SetLifecycleMode(const EInteractableLifecycle& NewMode) override;
 
+
+	/**
+	 * Returns Lifecycle Count of this Interactable.
+	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual int32 GetLifecycleCount() const override;
+	/**
+	 * Set new Lifecycle Count.
+	 * @param NewLifecycleCount New Lifecycle Count to be used for this Interactable.
+	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void SetLifecycleCount(const int32 NewLifecycleCount) override;
+	/**
+	 * Returns how many Lifecycles remain.
+	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual int32 GetRemainingLifecycleCount() const override;
 
+
+	/**
+	 * Returns Cooldown Period in seconds.
+	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual float GetCooldownPeriod() const override;
+	/**
+	 * Sets new Cooldown Period.
+	 * @param NewCooldownPeriod Value in seconds to be used as Coolddown Period.
+	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void SetCooldownPeriod(const float NewCooldownPeriod) override;
 
@@ -364,7 +395,6 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual FKey GetInteractionKey(const FString& RequestedPlatform) const override;
-	
 	/**
 	 * Sets or Updates Interaction Key for specified Platform.
 	 * There is no validation for Keys validation! Nothing stops you from setting Keyboard keys for Consoles. Please, be careful with this variable!
@@ -373,16 +403,16 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void SetInteractionKey(const FString& Platform, const FKey NewInteractorKey) override;
-
 	/**
 	 * Returns all Interaction Keys.
 	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual TMap<FString, FInteractionKeySetup> GetInteractionKeys() const override;
-
 	/**
 	 * Checks for Key in the list of Interaction keys.
-	 * Returns true if defined, otherwise returns false.
+	 * Returns true if defined for specified platform, otherwise returns false.
+	 * @param RequestedKey Key which you are looking fod.
+	 * @param Platform Name of the platfom which should use this Key.
 	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual bool FindKey(const FKey& RequestedKey, const FString& Platform) const override;
