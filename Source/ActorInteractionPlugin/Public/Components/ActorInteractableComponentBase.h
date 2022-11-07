@@ -190,29 +190,36 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual TArray<TSoftClassPtr<UObject>> GetIgnoredClasses() const override;
 	/**
-	 * Force set Ignored Classes. Can be given empty array.
+	 * Force set Ignored Classes. 
+	 * @param NewIgnoredClasses New array of Ignored Classes. Can be given empty array.
 	*/
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void SetIgnoredClasses(const TArray<TSoftClassPtr<UObject>> NewIgnoredClasses) override;
 	/**
 	* Will add a class to Ignored Class List.
+	* @param AddIgnoredClass Class to be ignored.
+	*
 	* Only objects implementing ActorInteractorInterface will be affected!
 	*/
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void AddIgnoredClass(TSoftClassPtr<UObject> AddIgnoredClass) override;
 	/**
 	* Will add classes to Ignored Class List.
+	* @param AddIgnoredClasses Array of classes to be ignored.
+	* 
 	* Only objects implementing ActorInteractorInterface will be affected!
 	*/
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void AddIgnoredClasses(TArray<TSoftClassPtr<UObject>> AddIgnoredClasses) override;
 	/**
 	 * Will remove a class from Ignored Class List.
+	 * @param RemoveIgnoredClass Class to be accepted.
 	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void RemoveIgnoredClass(TSoftClassPtr<UObject> RemoveIgnoredClass) override;
 	/**
 	 * Will remove classes from Ignored Class List.
+	 * @param RemoveIgnoredClasses Array of classes to be accepted.
 	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void RemoveIgnoredClasses(TArray<TSoftClassPtr<UObject>> RemoveIgnoredClasses) override;
