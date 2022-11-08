@@ -417,42 +417,117 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual bool FindKey(const FKey& RequestedKey, const FString& Platform) const override;
 	
-	
+	/**
+	 * Returns all Collision Components.
+	 * Collision Components might be both Shape Components (Box Collision etc.) or Mesh Components (Static Mesh etc.).
+	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual TArray<UPrimitiveComponent*> GetCollisionComponents() const override;
+	/**
+	 * Tries to add new Collision Component. No duplicates allowed. Null is not accepted.
+	 * Calls OnCollisionComponentAddedEvent.
+	 * @param CollisionComp Component to be added into list of Collision Components.
+	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void AddCollisionComponent(UPrimitiveComponent* CollisionComp) override;
+	/**
+	 * Tries to add Collision Components. Calls AddCollisionComponent for each component.
+	 * OnCollisionComponentAddedEvent is called for each component added.  No duplicates allowed. Nulls are not accepted.
+	 * @param NewCollisionComponents List of components to be added into list of Collision Components.
+	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void AddCollisionComponents(const TArray<UPrimitiveComponent*> NewCollisionComponents) override;
+	/**
+	 * Tries to remove Collision Component if registered. Null is not accepted.
+	 * Calls OnCollisionComponentRemovedEvent.
+	 * @param CollisionComp Component to be removed from list of Collision Components.
+	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void RemoveCollisionComponent(UPrimitiveComponent* CollisionComp) override;
+	/** 
+	 * Tries to remove Collision Components. Calls RemoveCollisionComponent for each component.
+	 * OnCollisionComponentRemovedEvent is called for each component removed. Nulls are not accepted.
+	 * @param RemoveCollisionComponents List of components to be removed from list of Collision Components.
+	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void RemoveCollisionComponents(const TArray<UPrimitiveComponent*> RemoveCollisionComponents) override;
 
 	
+	/**
+	 * Returns array of Highlightable Components.
+	 * Collision Components are Mesh Components.
+	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual TArray<UMeshComponent*> GetHighlightableComponents() const override;
+	/**
+	 * Tries to add new Highlightable Component.
+	 * Calls OnHighlightableComponentAdded.
+	 * Duplicates or null not allowed.
+	 * @param MeshComponent Mesh Component to be added to List of Highlightable Components
+	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void AddHighlightableComponent(UMeshComponent* MeshComponent) override;
+	/**
+	 * Tries to add new Highlightable Componentes. Calls AddHighlightableComponent for each Component.
+	 * Calls OnHighlightableComponentAdded.
+	 * @param AddMeshComponents List of Mesh Components to be added to List of Highlightable Components
+	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void AddHighlightableComponents(const TArray<UMeshComponent*> AddMeshComponents) override;
+	/**
+	 * Tries to remove Highlightable Component.
+	 * Calls OnHighlightableComponentRemoved.
+	 * Null not allowed.
+	 * @param MeshComponent Mesh Component to be removed from List of Highlightable Components
+	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void RemoveHighlightableComponent(UMeshComponent* MeshComponent) override;
+	/**
+	 * Tries to remove Highlightable Componentes. Calls RemoveHighlightableComponent for each Component.
+	 * Calls OnHighlightableComponentRemoved.
+	 * @param AddMeshComponents List of Mesh Components to be removed from List of Highlightable Components
+	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void RemoveHighlightableComponents(const TArray<UMeshComponent*> RemoveMeshComponents) override;
 
+	/**
+	 * Tries to find MeshComponent by Name.
+	 * Returns null if finds nothing.
+	 * @param Name Name of searched component
+	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual UMeshComponent* FindMeshByName(const FName Name) const override;
+	/**
+	 * Tries to find MeshComponent by Tag.
+	 * Returns null if finds nothing.
+	 * @param Tag Tag of searched component
+	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual UMeshComponent* FindMeshByTag(const FName Tag) const override;
+	/**
+	 * Tries to find PrimitiveComponent by Name.
+	 * Returns null if finds nothing.
+	 * @param Name Name of searched component
+	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual UPrimitiveComponent* FindPrimitiveByName(const FName Name) const override;
+	/**
+	 * Tries to find PrimitiveComponent by Tag.
+	 * Returns null if finds nothing.
+	 * @param Tag Tag of searched component
+	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual UPrimitiveComponent* FindPrimitiveByTag(const FName Tag) const override;
 
 	
+	/**
+	 * Returns all Collision Overrides.
+	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual TArray<FName> GetCollisionOverrides() const override;
+	/**
+	 * Returns all Highlightable Overrides.
+	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual TArray<FName> GetHighlightableOverrides() const override;
 
