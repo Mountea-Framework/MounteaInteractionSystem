@@ -1204,16 +1204,34 @@ void UActorInteractableComponentBase::AutoSetup()
 	switch (SetupType)
 	{
 		case ESetupType::EST_Full:
-			// Get all Parent Components
-			TArray<USceneComponent*> ParentComponents;
-			GetParentComponents(ParentComponents);
-
-			// Iterate over them and assign them properly
-			if (ParentComponents.Num() > 0)
 			{
-				for (const auto Itr : ParentComponents)
+				// Get all Parent Components
+				TArray<USceneComponent*> ParentComponents;
+				GetParentComponents(ParentComponents);
+
+				// Iterate over them and assign them properly
+				if (ParentComponents.Num() > 0)
 				{
-					if (UPrimitiveComponent* PrimitiveComp = Cast<UPrimitiveComponent>(Itr))
+					for (const auto Itr : ParentComponents)
+					{
+						if (UPrimitiveComponent* PrimitiveComp = Cast<UPrimitiveComponent>(Itr))
+						{
+							AddCollisionComponent(PrimitiveComp);
+
+							if (UMeshComponent* MeshComp = Cast<UMeshComponent>(PrimitiveComp))
+							{
+								AddHighlightableComponent(MeshComp);
+							}
+						}
+					}
+				}
+			}
+			break;
+		case ESetupType::EST_Quick:
+			{
+				if (USceneComponent* ParentComponent = GetAttachParent())
+				{
+					if (UPrimitiveComponent* PrimitiveComp = Cast<UPrimitiveComponent>(ParentComponent))
 					{
 						AddCollisionComponent(PrimitiveComp);
 
@@ -1221,20 +1239,6 @@ void UActorInteractableComponentBase::AutoSetup()
 						{
 							AddHighlightableComponent(MeshComp);
 						}
-					}
-				}
-			}
-			break;
-		case ESetupType::EST_Quick:
-			if (USceneComponent* ParentComponent = GetAttachParent())
-			{
-				if (UPrimitiveComponent* PrimitiveComp = Cast<UPrimitiveComponent>(ParentComponent))
-				{
-					AddCollisionComponent(PrimitiveComp);
-
-					if (UMeshComponent* MeshComp = Cast<UMeshComponent>(PrimitiveComp))
-					{
-						AddHighlightableComponent(MeshComp);
 					}
 				}
 			}

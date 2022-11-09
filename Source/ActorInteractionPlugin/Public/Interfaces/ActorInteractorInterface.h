@@ -41,7 +41,7 @@ public:
 
 	virtual bool IsValidInteractor() const = 0;
 		
-	virtual void StartInteraction(const float StartTime, FKey InputKey = FKey("")) = 0;
+	virtual void StartInteraction(const float StartTime, const FKey& InputKey) = 0;
 	virtual void StopInteraction() = 0;
 	
 	virtual bool ActivateInteractor(FString& ErrorMessage) = 0;

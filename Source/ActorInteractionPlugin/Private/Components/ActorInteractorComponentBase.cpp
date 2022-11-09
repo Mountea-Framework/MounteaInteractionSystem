@@ -159,7 +159,7 @@ void UActorInteractorComponentBase::EvaluateInteractable(const TScriptInterface<
 	}
 }
 
-void UActorInteractorComponentBase::StartInteraction(const float StartTime, FKey InputKey = FKey(""))
+void UActorInteractorComponentBase::StartInteraction(const float StartTime, const FKey& InputKey)
 {
 	if (CanInteract() && ActiveInteractable.GetInterface())
 	{

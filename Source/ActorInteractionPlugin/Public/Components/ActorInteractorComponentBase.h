@@ -184,7 +184,7 @@ public:
 	 * @param InputKey Optional Key. Some Interactions might require this value to perform checks.
 	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
-	virtual void StartInteraction(const float StartTime, FKey InputKey = FKey("")) override;
+	virtual void StartInteraction(const float StartTime, const FKey& InputKey) override;
 
 	/**
 	 * Function to stop interaction.
