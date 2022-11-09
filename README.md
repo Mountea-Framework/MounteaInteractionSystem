@@ -1,3 +1,7 @@
+# Notice
+All assets in **Content** folder are now broken, because 4.26_dev has been merged into 4.25_dev.
+This will be solved.
+
 # Actor Interaction Plugin
 
 Actor Interaction Plugin is an Open-source Mountea Framework components-based simple framework providing utilities for smart Actor Interaction with other Actors.
