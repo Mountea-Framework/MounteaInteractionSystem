@@ -50,10 +50,28 @@ protected:
 
 #pragma region NativeFunctions
 
+	/**
+	 * Function called by OnInteractableSelected.
+	 * Calls OnInteractableSelectedEvent.
+	 * @param SelectedInteractable Interactable which was selected as new Active Interactable
+	 */
 	UFUNCTION()
 	virtual void InteractableSelected(const TScriptInterface<IActorInteractableInterface>& SelectedInteractable) override;
+	/**
+	 * Function called by OnInteractableFound.
+	 * Suppress all Dependencies.
+	 * Calls OnInteractableFoundEvent.
+	 * Class EvaluateInteractable with Found Interactable, resulting in possible call to InteractableSelected with this Found Interactable.
+	 * @param FoundInteractable Interactable which was found, not necessarily will be set as Active!
+	 */
 	UFUNCTION()
 	virtual void InteractableFound(const TScriptInterface<IActorInteractableInterface>& FoundInteractable) override;
+	/**
+	 * Function called by OnInteractableLost. If Lost Interactable is not Active Interactable, then nothing happens.
+	 * Resets Active Interactable to null. Sets all Dependencies to same State as this Interactor has.
+	 * Calls OnInteractableLostEvent.
+	 * @param LostInteractable Interactable which was Lost.
+	 */
 	UFUNCTION()
 	virtual void InteractableLost(const TScriptInterface<IActorInteractableInterface>& LostInteractable) override;
 
@@ -152,7 +170,8 @@ public:
 	
 	/**
 	 * Compares Interactables.
-	 * If with the same Owner, then by Weight.
+	 * For details of Evaulation visit GitGub Wiki: https://github.com/Mountea-Framework/ActorInteractionPlugin/wiki/Interactor-Evaulation
+	 * @param FoundInteractable Interactable which was found
 	 */
 	UFUNCTION()
 	virtual void EvaluateInteractable(const TScriptInterface<IActorInteractableInterface>& FoundInteractable) override;
@@ -161,9 +180,11 @@ public:
 	/**
 	 * Function to start interaction.
 	 * Interaction will start only if CanInteract function evaluates true.
+	 * @param StartTime Time Interaction has started. 
+	 * @param InputKey Optional Key. Some Interactions might require this value to perform checks.
 	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
-	virtual void StartInteraction(const float StartTime, FKey InputKey) override;
+	virtual void StartInteraction(const float StartTime, FKey InputKey = FKey("")) override;
 
 	/**
 	 * Function to stop interaction.
@@ -177,6 +198,7 @@ public:
 	 * Tries to Active Interactor by setting Interactor state to Active.
 	 * Returns whether it was successful or not.
 	 * Either way, Error Message contains useful information what possibly went wrong.
+	 * @param ErrorMessage Short explanation.
 	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual bool ActivateInteractor(FString& ErrorMessage) override;
@@ -185,6 +207,7 @@ public:
 	 * Tries to Wake Up Interactor by setting Interactor state to Stand By.
 	 * Returns whether it was successful or not.
 	 * Either way, Error Message contains useful information what possibly went wrong.
+	 * @param ErrorMessage Short explanation.
 	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual bool WakeUpInteractor(FString& ErrorMessage) override;
@@ -193,6 +216,7 @@ public:
 	 * Tries to Suppress Interactor by setting Interactor state to Suppressed.
 	 * Returns whether it was successful or not.
 	 * Either way, Error Message contains useful information what possibly went wrong.
+	 * @param ErrorMessage Short explanation.
 	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual bool SuppressInteractor(FString& ErrorMessage) override;
