@@ -4,37 +4,58 @@
 
 #include "CoreMinimal.h"
 #include "Components/WidgetComponent.h"
+
 #include "Interfaces/ActorInteractableInterface.h"
+#include "Helpers/InteractionHelpers.h"
+
 #include "ActorInteractableComponentBase.generated.h"
 
-USTRUCT()
+#pragma region CollisionCache
+
+/**
+ * Collision Shape Cache data.
+ * 
+ * Holds data for each Collision Shape before interaction setup has been applied.
+ * Used for resetting Collision Shapes to pre-interaction state.
+ */
+USTRUCT(BlueprintType)
 struct FCollisionShapeCache
 {
-	GENERATED_BODY()
-
-	FCollisionShapeCache()
-	{
-		bGenerateOverlapEvents = false;
-		CollisionEnabled = ECollisionEnabled::QueryOnly;
-		CollisionResponse = ECR_Overlap;
-	};
-
-	FCollisionShapeCache(bool GeneratesOverlaps, TEnumAsByte<ECollisionEnabled::Type> collisionEnabled, TEnumAsByte<ECollisionResponse> collisionResponse) :
-	bGenerateOverlapEvents(GeneratesOverlaps),
-	CollisionEnabled(collisionEnabled),
-	CollisionResponse(collisionResponse)
-	{};
-
-	UPROPERTY()
-	uint8 bGenerateOverlapEvents : 1;
-	UPROPERTY()
-	TEnumAsByte<ECollisionEnabled::Type> CollisionEnabled;
-	UPROPERTY()
-	TEnumAsByte<ECollisionResponse> CollisionResponse;
+	 GENERATED_BODY()
+	
+	 FCollisionShapeCache()
+	 {
+		  bGenerateOverlapEvents = false;
+		  CollisionEnabled = ECollisionEnabled::QueryOnly;
+		  CollisionResponse = ECR_Overlap;
+	 };
+	
+	 FCollisionShapeCache(bool GeneratesOverlaps, TEnumAsByte<ECollisionEnabled::Type> collisionEnabled, TEnumAsByte<ECollisionResponse> collisionResponse) :
+		bGenerateOverlapEvents(GeneratesOverlaps),
+		 CollisionEnabled(collisionEnabled),
+		 CollisionResponse(collisionResponse)
+	 {};
+	
+	 UPROPERTY(VisibleAnywhere)
+	 uint8 bGenerateOverlapEvents : 1;
+	 UPROPERTY(VisibleAnywhere)
+	 TEnumAsByte<ECollisionEnabled::Type> CollisionEnabled;
+	 UPROPERTY(VisibleAnywhere)
+	 TEnumAsByte<ECollisionResponse> CollisionResponse;
 	
 };
 
-UCLASS(ClassGroup=(Interaction), Blueprintable, hideCategories=(Collision, AssetUserData, Cooking, ComponentTick, Activation), meta=(BlueprintSpawnableComponent, DisplayName = "Interactable Component"))
+#pragma endregion 
+
+/**
+ * Actor Interactable Base Component
+ *
+ * Implements ActorInteractableInterface.
+ * Networking is not implemented.
+ *
+ * @see https://github.com/Mountea-Framework/ActorInteractionPlugin/wiki/Actor-Interactable-Component-Base
+ */
+UCLASS(Abstract, ClassGroup=(Interaction), Blueprintable, hideCategories=(Collision, AssetUserData, Cooking, ComponentTick, Activation), meta=(BlueprintSpawnableComponent, DisplayName = "Interactable Component"))
 class ACTORINTERACTIONPLUGIN_API UActorInteractableComponentBase : public UWidgetComponent, public IActorInteractableInterface
 {
 	GENERATED_BODY()
@@ -49,118 +70,467 @@ protected:
 
 #pragma region InteractableFunctions
 	
-protected:
+public:
 
+	/**
+	 * Returns whether this Interactable is being autosetup or not. 
+	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual bool DoesAutoSetup() const override;
-	UFUNCTION(BlueprintCallable, Category="Interaction")
-	virtual void ToggleAutoSetup(const bool NewValue) override;
 
+	/**
+	 * Sets whether this Interactable will be Autosetup.
+	 * Setup Type is variable exposed in Interaction|Required panel.
+	 * @param NewValue This value will be used as SetupType value.
+	 */
+	UFUNCTION(BlueprintCallable, Category="Interaction")
+	virtual void ToggleAutoSetup(const ESetupType& NewValue) override;
+
+
+	/**
+	 * Tries to set state of this Interactable to Active. 
+	 * If fails, returns False and updates ErrorMessage
+	 * @param ErrorMessage Short explanation.
+	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual bool ActivateInteractable(FString& ErrorMessage) override;
+	/**
+	 * Tries to set state of this Interactable to Awake. 
+	 * If fails, returns False and updates ErrorMessage
+	 * @param ErrorMessage Short explanation.
+	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual bool WakeUpInteractable(FString& ErrorMessage) override;
+	/**
+	 * Tries to set state of this Interactable to Asleep. 
+	 * If fails, returns False and updates ErrorMessage
+	 * @param ErrorMessage Short explanation.
+	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual bool SnoozeInteractable(FString& ErrorMessage) override;
+	/**
+	 * Tries to set state of this Interactable to Completed. 
+	 * If fails, returns False and updates ErrorMessage
+	 * @param ErrorMessage Short explanation.
+	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual bool CompleteInteractable(FString& ErrorMessage) override;
+	/**
+	 * Tries to set state of this Interactable to Disabled. 
+	 * If fails, returns False and updates ErrorMessage
+	 * @param ErrorMessage Short explanation.
+	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void DeactivateInteractable() override;
 
+
+	/**
+	 * Returns whether this Interactable can interacted with or not.
+	 * Calls Internal CanInteract which is implemented in C++.
+	 * Be sure to call Parent Event!
+	 */
+	UFUNCTION(BlueprintNativeEvent, BlueprintPure, Category="Interaction", meta=(DisplayName = "Can Interact"))
+	bool CanInteractEvent() const;
+
+	/**
+	 * Optimized request for Interactables.
+	 * Can be overriden in C++ for specific class needs.
+	 */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
+	virtual bool CanInteract() const override;
+	/**
+	 * Returns whether Interaction can be processed.
+	 * Return True if is Awaken and does not have any Interactor yet.
+	 */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
+	virtual bool CanBeTriggered() const override;
+	/**
+	 * Returns whether Interaction is in process.
+	 * Return True if is Active.
+	 */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
+	virtual bool IsInteracting() const override;
+
+
+	/**
+	 * Returns State of Interactable.
+	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual EInteractableStateV2 GetState() const override;
+	/**
+	 * Sets State of Interactable.
+	 * @param NewState Value of the State to be set
+	 * 
+	 * SetState is driven by StateMachine. 
+	 * StateMachine is available on Wiki:
+	 * * https://github.com/Mountea-Framework/ActorInteractionPlugin/wiki/Actor-Interactable-Component-Validations#state-machine
+	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void SetState(const EInteractableStateV2 NewState) override;
 
+
+	/**
+	 * Starts Highlight for all Highlightable Components.
+	 * Requires Rendering Custom depth in Project Settings.
+	 */
+	UFUNCTION(BlueprintCallable, Category="Interaction")
+	virtual void StartHighlight() const override;
+	/**
+	 * Stops Highlight for all Highlightable Components.
+	 * Requires Rendering Custom depth in Project Settings.
+	 */
+	UFUNCTION(BlueprintCallable, Category="Interaction")
+	virtual void StopHighlight() const override;
+	
+	
+	/**
+	 * Returns list of ignored classes.
+	 * Those are classes which will be ignored for interaction events and won't trigger them.
+	 */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
+	virtual TArray<TSoftClassPtr<UObject>> GetIgnoredClasses() const override;
+	/**
+	 * Force set Ignored Classes. 
+	 * @param NewIgnoredClasses New array of Ignored Classes. Can be given empty array.
+	*/
+	UFUNCTION(BlueprintCallable, Category="Interaction")
+	virtual void SetIgnoredClasses(const TArray<TSoftClassPtr<UObject>> NewIgnoredClasses) override;
+	/**
+	* Will add a class to Ignored Class List.
+	* @param AddIgnoredClass Class to be ignored.
+	*
+	* Only objects implementing ActorInteractorInterface will be affected!
+	*/
+	UFUNCTION(BlueprintCallable, Category="Interaction")
+	virtual void AddIgnoredClass(TSoftClassPtr<UObject> AddIgnoredClass) override;
+	/**
+	* Will add classes to Ignored Class List.
+	* @param AddIgnoredClasses Array of classes to be ignored.
+	* 
+	* Only objects implementing ActorInteractorInterface will be affected!
+	*/
+	UFUNCTION(BlueprintCallable, Category="Interaction")
+	virtual void AddIgnoredClasses(TArray<TSoftClassPtr<UObject>> AddIgnoredClasses) override;
+	/**
+	 * Will remove a class from Ignored Class List.
+	 * @param RemoveIgnoredClass Class to be accepted.
+	 */
+	UFUNCTION(BlueprintCallable, Category="Interaction")
+	virtual void RemoveIgnoredClass(TSoftClassPtr<UObject> RemoveIgnoredClass) override;
+	/**
+	 * Will remove classes from Ignored Class List.
+	 * @param RemoveIgnoredClasses Array of classes to be accepted.
+	 */
+	UFUNCTION(BlueprintCallable, Category="Interaction")
+	virtual void RemoveIgnoredClasses(TArray<TSoftClassPtr<UObject>> RemoveIgnoredClasses) override;
+
+	/**
+	 * Will add Interaction Dependency to List of Dependencies. 
+	 * All dependencies are affected by Interaction State of this Interactable. 
+	 * Interaction Dependency is Suppressed while its Master is Active.
+	 * Duplicates are not allowed and will be filtered out.
+	 * 
+	 * @param InteractionDependency Dependecy which will be added. Null or duplicates are not allowed.
+	 */
+	UFUNCTION(BlueprintCallable, Category="Interaction")
+	virtual void AddInteractionDependency(const TScriptInterface<IActorInteractableInterface> InteractionDependency) override;
+	/**
+	 * Will remove Interaction Dependency from List of Dependencies.
+	 * All dependencies are affected by Interaction State of this Interactable. 
+	 * Interaction Dependency is Suppressed while its Master is Active.
+	 * If Dependency is not present, nothing happens.
+	 * 
+	 * @param InteractionDependency Dependency which will be removed.
+	 */
+	UFUNCTION(BlueprintCallable, Category="Interaction")
+	virtual void RemoveInteractionDependency(const TScriptInterface<IActorInteractableInterface> InteractionDependency) override;
+	/**
+	 * Return List of Dependencies.
+	 * All dependencies are affected by Interaction State of this Interactable. 
+	 * Interaction Dependency is Suppressed while its Master is Active.
+	 */
+	UFUNCTION(BlueprintCallable, Category="Interaction")
+	virtual TArray<TScriptInterface<IActorInteractableInterface>> GetInteractionDependencies() const override;
+	/**
+	 * Function responsible for updating Interaction Dependencies.
+	 * Does process all hooked up Interactables in predefined manner.
+	 * Is called once State is updated.
+	 */
+	UFUNCTION(Category="Interaction")
+	virtual void ProcessDependencies() override;
+
+
+	/**
+	 * Returns Interactor which is interacting with this Interactable.
+	 * If no Interactor, will return nullptr.
+	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual TScriptInterface<IActorInteractorInterface> GetInteractor() const override;
+	/**
+	 * Sets Interactor as Active Interactor.
+	 * OnInteractorChanged is called upon successful change.
+	 * 
+	 * @param NewInteractor Value to be set as a new Interactor. Can be null.
+	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void SetInteractor(const TScriptInterface<IActorInteractorInterface> NewInteractor) override;
 
+	/**
+	 * Returns Interaction Progress.
+	 */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
+	virtual float GetInteractionProgress() const override;
+	/**
+	 * Returns Interaction Period.
+	 */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
+	virtual float GetInteractionPeriod() const override;
+	/**
+	 * Sets Interaction Period.
+	 * Values are clamped and verified:
+	 * 
+	 * @param NewPeriod Value to be set as new Interaction Period. Is validated:
+	 * - -1 = immediate
+	 * - values less than 0 and larger than -1 are 0.1
+	 * - 0  = 0.1s
+	 */	
+	UFUNCTION(BlueprintCallable, Category="Interaction")
+	virtual void SetInteractionPeriod(const float NewPeriod) override;
+
+	/**
+	 * Returns Interactable Weight. 
+	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual int32 GetInteractableWeight() const override;
+	/**
+	 * Sets new Interactable Weight value.
+	 * 
+	 * @param NewWeight Value to be set as new Interactable Weight. Is validated:
+	 * Min value is 0.
+	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void SetInteractableWeight(const int32 NewWeight) override;
 
+	/**
+	 * Return Interactable Owner.
+	 * This will be most likely same as the GetOwner, however, there is a way to override this default value.
+	 * Useful for very complex interactions.
+	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual AActor* GetInteractableOwner() const override;
+	/**
+	 * Sets new InteractableOwner.
+	 * 
+	 * @param NewOwner Value to be set as Interactable Owner. Is validated:
+	 * Nullptr is not allowed and will not be applied.
+	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void SetInteractableOwner(AActor* NewOwner) override;
 
+	/**
+	 * Returns Collision Channel.
+	 * Both Object and Trace Channels are allowed.
+	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual ECollisionChannel GetCollisionChannel() const override;
+	/**
+	 * Sets new Collision Channel.
+	 * Both Object and Trace Channels are allowed.
+	 * @param NewChannel New Collision Channel to be used for this Interactable.
+	 * 
+	 * Interaction specific channel are our strong recommendation.
+	 * For usage and setup, take a look at 'Examples' project from Mountea Framework GitHub page.
+	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void SetCollisionChannel(const ECollisionChannel& NewChannel) override;
 
 
+	/**
+	 * Returns Lifecycle Mode. 
+	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual EInteractableLifecycle GetLifecycleMode() const override;
+	/**
+	 * Set new Lifecycle Mode.
+	 * @param NewMode New Lifecycle Mode to be used for this Interactable. 
+	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void SetLifecycleMode(const EInteractableLifecycle& NewMode) override;
 
+
+	/**
+	 * Returns Lifecycle Count of this Interactable.
+	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual int32 GetLifecycleCount() const override;
+	/**
+	 * Set new Lifecycle Count.
+	 * @param NewLifecycleCount New Lifecycle Count to be used for this Interactable.
+	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void SetLifecycleCount(const int32 NewLifecycleCount) override;
+	/**
+	 * Returns how many Lifecycles remain.
+	 */
+	UFUNCTION(BlueprintCallable, Category="Interaction")
+	virtual int32 GetRemainingLifecycleCount() const override;
 
+
+	/**
+	 * Returns Cooldown Period in seconds.
+	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual float GetCooldownPeriod() const override;
+	/**
+	 * Sets new Cooldown Period.
+	 * @param NewCooldownPeriod Value in seconds to be used as Coolddown Period.
+	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void SetCooldownPeriod(const float NewCooldownPeriod) override;
 
+
+	/**
+	 * Returns Interaction Key for specified Platform.
+	 * @param RequestedPlatform Name of platform you want to know the Interaction Key
+	 */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
+	virtual FKey GetInteractionKey(const FString& RequestedPlatform) const override;
+	/**
+	 * Sets or Updates Interaction Key for specified Platform.
+	 * There is no validation for Keys validation! Nothing stops you from setting Keyboard keys for Consoles. Please, be careful with this variable!
+	 * @param Platform Name of platform you want to set or update the Interaction Key
+	 * @param NewInteractorKey The interaction key to setup.
+	 */
+	UFUNCTION(BlueprintCallable, Category="Interaction")
+	virtual void SetInteractionKey(const FString& Platform, const FKey NewInteractorKey) override;
+	/**
+	 * Returns all Interaction Keys.
+	 */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
+	virtual TMap<FString, FInteractionKeySetup> GetInteractionKeys() const override;
+	/**
+	 * Checks for Key in the list of Interaction keys.
+	 * Returns true if defined for specified platform, otherwise returns false.
+	 * @param RequestedKey Key which you are looking fod.
+	 * @param Platform Name of the platfom which should use this Key.
+	 */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
+	virtual bool FindKey(const FKey& RequestedKey, const FString& Platform) const override;
 	
-	
+	/**
+	 * Returns all Collision Components.
+	 * Collision Components might be both Shape Components (Box Collision etc.) or Mesh Components (Static Mesh etc.).
+	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual TArray<UPrimitiveComponent*> GetCollisionComponents() const override;
+	/**
+	 * Tries to add new Collision Component. No duplicates allowed. Null is not accepted.
+	 * Calls OnCollisionComponentAddedEvent.
+	 * @param CollisionComp Component to be added into list of Collision Components.
+	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void AddCollisionComponent(UPrimitiveComponent* CollisionComp) override;
+	/**
+	 * Tries to add Collision Components. Calls AddCollisionComponent for each component.
+	 * OnCollisionComponentAddedEvent is called for each component added.  No duplicates allowed. Nulls are not accepted.
+	 * @param NewCollisionComponents List of components to be added into list of Collision Components.
+	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void AddCollisionComponents(const TArray<UPrimitiveComponent*> NewCollisionComponents) override;
+	/**
+	 * Tries to remove Collision Component if registered. Null is not accepted.
+	 * Calls OnCollisionComponentRemovedEvent.
+	 * @param CollisionComp Component to be removed from list of Collision Components.
+	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void RemoveCollisionComponent(UPrimitiveComponent* CollisionComp) override;
+	/** 
+	 * Tries to remove Collision Components. Calls RemoveCollisionComponent for each component.
+	 * OnCollisionComponentRemovedEvent is called for each component removed. Nulls are not accepted.
+	 * @param RemoveCollisionComponents List of components to be removed from list of Collision Components.
+	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void RemoveCollisionComponents(const TArray<UPrimitiveComponent*> RemoveCollisionComponents) override;
 
 	
+	/**
+	 * Returns array of Highlightable Components.
+	 * Collision Components are Mesh Components.
+	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual TArray<UMeshComponent*> GetHighlightableComponents() const override;
+	/**
+	 * Tries to add new Highlightable Component.
+	 * Calls OnHighlightableComponentAdded.
+	 * Duplicates or null not allowed.
+	 * @param MeshComponent Mesh Component to be added to List of Highlightable Components
+	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void AddHighlightableComponent(UMeshComponent* MeshComponent) override;
+	/**
+	 * Tries to add new Highlightable Componentes. Calls AddHighlightableComponent for each Component.
+	 * Calls OnHighlightableComponentAdded.
+	 * @param AddMeshComponents List of Mesh Components to be added to List of Highlightable Components
+	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void AddHighlightableComponents(const TArray<UMeshComponent*> AddMeshComponents) override;
+	/**
+	 * Tries to remove Highlightable Component.
+	 * Calls OnHighlightableComponentRemoved.
+	 * Null not allowed.
+	 * @param MeshComponent Mesh Component to be removed from List of Highlightable Components
+	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void RemoveHighlightableComponent(UMeshComponent* MeshComponent) override;
+	/**
+	 * Tries to remove Highlightable Componentes. Calls RemoveHighlightableComponent for each Component.
+	 * Calls OnHighlightableComponentRemoved.
+	 * @param AddMeshComponents List of Mesh Components to be removed from List of Highlightable Components
+	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void RemoveHighlightableComponents(const TArray<UMeshComponent*> RemoveMeshComponents) override;
 
-	
+	/**
+	 * Tries to find MeshComponent by Name.
+	 * Returns null if finds nothing.
+	 * @param Name Name of searched component
+	 */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
+	virtual UMeshComponent* FindMeshByName(const FName Name) const override;
+	/**
+	 * Tries to find MeshComponent by Tag.
+	 * Returns null if finds nothing.
+	 * @param Tag Tag of searched component
+	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual UMeshComponent* FindMeshByTag(const FName Tag) const override;
+	/**
+	 * Tries to find PrimitiveComponent by Name.
+	 * Returns null if finds nothing.
+	 * @param Name Name of searched component
+	 */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
+	virtual UPrimitiveComponent* FindPrimitiveByName(const FName Name) const override;
+	/**
+	 * Tries to find PrimitiveComponent by Tag.
+	 * Returns null if finds nothing.
+	 * @param Tag Tag of searched component
+	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual UPrimitiveComponent* FindPrimitiveByTag(const FName Tag) const override;
 
 	
+	/**
+	 * Returns all Collision Overrides.
+	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual TArray<FName> GetCollisionOverrides() const override;
-	UFUNCTION(BlueprintCallable, Category="Interaction")
-	virtual void AddCollisionOverride(const FName Tag) override;
-	UFUNCTION(BlueprintCallable, Category="Interaction")
-	virtual void AddCollisionOverrides(const TArray<FName> Tags) override;
-	UFUNCTION(BlueprintCallable, Category="Interaction")
-	virtual void RemoveCollisionOverride(const FName Tag) override;
-	UFUNCTION(BlueprintCallable, Category="Interaction")
-	virtual void RemoveCollisionOverrides(const TArray<FName> Tags) override;
-
+	/**
+	 * Returns all Highlightable Overrides.
+	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual TArray<FName> GetHighlightableOverrides() const override;
-	UFUNCTION(BlueprintCallable, Category="Interaction")
-	virtual void AddHighlightableOverride(const FName Tag) override;
-	UFUNCTION(BlueprintCallable, Category="Interaction")
-	virtual void AddHighlightableOverrides(const TArray<FName> Tags) override;
-	UFUNCTION(BlueprintCallable, Category="Interaction")
-	virtual void RemoveHighlightableOverride(const FName Tag) override;
-	UFUNCTION(BlueprintCallable, Category="Interaction")
-	virtual void RemoveHighlightableOverrides(const TArray<FName> Tags) override;
+
 
 #pragma endregion
 
@@ -168,6 +538,20 @@ protected:
 
 #pragma region NativeFunctions
 
+protected:
+
+	/**
+	 * Event bound to Interactor's OnInteractableSelected.
+	 * If Interactor selects any Interactable, this Event is called and selected Interactable is Activated, while others are set back to Awaken state.
+	 */
+	UFUNCTION(Category="Interaction")
+	virtual void InteractableSelected(const TScriptInterface<IActorInteractableInterface>& Interactable) override;
+
+	/**
+	 * 
+	 */
+	UFUNCTION(Category="Interaction")
+	virtual void InteractableLost(const TScriptInterface<IActorInteractableInterface>& Interactable) override;
 	
 	/**
 	 * Event called once Interactor is found.
@@ -199,7 +583,7 @@ protected:
 	 * Calls OnInteractionStartedEvent
 	 */
 	UFUNCTION(Category="Interaction")
-	virtual void InteractionStarted(const float& TimeStarted) override;
+	virtual void InteractionStarted(const float& TimeStarted, const FKey& PressedKey) override;
 
 	/**
 	 * Event called once Interaction Stops.
@@ -208,6 +592,14 @@ protected:
 	 */
 	UFUNCTION(Category="Interaction")
 	virtual void InteractionStopped() override;
+
+	/**
+	 * Event called once Interaction is Canceled.
+	 * Called by OnInteractionCanceled
+	 * Calls OnInteractionCanceledEvent
+	 */
+	UFUNCTION(Category="Interaction")
+	virtual void InteractionCanceled() override;
 
 	/**
 	 * Event called once Interaction Lifecycles is Completed.
@@ -236,7 +628,7 @@ protected:
 	 * * Interactor Interface does have same CollisionChannel as Interactable
 	 */
 	UFUNCTION(Category="Interaction")
-	void OnInteractableBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
+	virtual void OnInteractableBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
 
 	/**
 	 * Event called once any of Collision Shapes stops overlapping.
@@ -248,8 +640,8 @@ protected:
 	 * * Interactor Interface does have same CollisionChannel as Interactable
 	 */
 	UFUNCTION(Category="Interaction")
-	void OnInteractableStopOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
-
+	virtual void OnInteractableStopOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+		
 	/**
 	 * Event called once any of Collision Shapes is hit by trace.
 	 * Called by OnInteractorTraced
@@ -260,11 +652,19 @@ protected:
 	 * * Interactor Interface does have same CollisionChannel as Interactable
 	 */
 	UFUNCTION(Category="Interaction")
-	void OnInteractableTraced(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+	virtual void OnInteractableTraced(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
 #pragma endregion
 
 #pragma region InteractionEvents
+
+protected:
+		
+	/**
+	 * Event bound to OnInteractableSelected.
+	 */
+	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	void OnInteractableSelectedEvent(const TScriptInterface<IActorInteractableInterface>& Interactable);
 	
 	/**
 	 * Event bound to OnInteractorFound.
@@ -306,7 +706,7 @@ protected:
 	 * Event bound to OnInteractionStarted.
 	 */
 	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
-	void OnInteractionStartedEvent(const float& StartTime);
+	void OnInteractionStartedEvent(const float& StartTime, const FKey& PressedKey);
 
 	/**
 	 * Event bound to OnInteractionStopped.
@@ -314,6 +714,12 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
 	void OnInteractionStoppedEvent();
 
+	/**
+	 * Event bound to OnInteractionCanceled.
+	 */
+	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	void OnInteractionCanceledEvent();
+	
 	/**
 	 * Event bound to OnLifecycleCompleted.
 	 */
@@ -329,7 +735,9 @@ protected:
 #pragma endregion
 
 #pragma region SetupHelpers
-	
+
+protected:
+		
 	/**
 	 * Event bound to OnHighlightableOverrideAdded event.
 	 * Once OnHighlightableOverrideAdded is called this event is, too.
@@ -370,9 +778,31 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
 	void OnCollisionOverrideRemovedEvent(const FName RemovedTag);
 
+#pragma endregion
+
+#pragma region IgnoredClassesEvents
+
+protected:
+
+	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	void OnIgnoredClassAdded(const TSoftClassPtr<UObject>& IgnoredClass);
+
+	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	void OnIgnoredClassRemoved(const TSoftClassPtr<UObject>& IgnoredClass);
+
 #pragma endregion 
 
 #pragma region AttributesEvents
+
+protected:
+
+	/**
+	 * Event bound to OnInteractableDependencyChanged.
+	 * Once OnInteractableDependencyChanged is called this event is, too.
+	 * Be sure to call Parent event to access all C++ implementation!
+	 */
+	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	void OnInteractableDependencyChangedEvent(const TScriptInterface<IActorInteractableInterface>& Dependency);
 
 	/**
 	 * Event bound to OnInteractableAutoSetupChanged event.
@@ -508,8 +938,12 @@ protected:
 
 #pragma region InteractionHelpers
 
+protected:
+
 	virtual void FindAndAddCollisionShapes() override;
 	virtual void FindAndAddHighlightableMeshes() override;
+
+	virtual bool TriggerCooldown() override;
 
 	/**
 	 * Binds Collision Events for specified Primitive Component.
@@ -565,6 +999,7 @@ protected:
 	UFUNCTION()
 	void AutoSetup();
 
+
 #pragma endregion
 
 #pragma endregion
@@ -605,9 +1040,35 @@ protected:
 	UPROPERTY(BlueprintAssignable, Category="Interaction")
 	FInteractorStopOverlap OnInteractorStopOverlap;
 
+#pragma endregion
+
+#pragma region IgnoredClasses
+
+	/**
+	 * Event called once Ignored Interactor Class is successfully added.
+	 * Called by OnIgnoredInteractorClassAdded.
+	 */
+	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category="Interaction")
+	FIgnoredInteractorClassAdded OnIgnoredInteractorClassAdded;
+
+	/**
+	 * Event called once Ignored Interactor Class is successfully removed.
+	 * Called by OnIgnoredInteractorClassRemoved.
+	 */
+	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category="Interaction")
+	FIgnoredInteractorClassRemoved OnIgnoredInteractorClassRemoved;
+
 #pragma endregion 
 
 #pragma region InteractionEvents
+
+	/**
+	 * Event called once Interactor is selected.
+	 * Has native C++ implementation.
+	 * Calls OnInteractableSelectedEvent.
+	 */
+	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Interaction")
+	FOnInteractableSelected OnInteractableSelected;
 
 	/**
 	 * Event called once Interactor is found.
@@ -645,6 +1106,13 @@ protected:
 	FInteractionStopped OnInteractionStopped;
 
 	/**
+	 * Event called once Interaction is Canceled.
+	 * Called by OnInteractionCanceled
+	 */
+	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Interaction")
+	FInteractionCanceled OnInteractionCanceled;
+
+	/**
 	 * Event called once Interaction Lifecycles is Completed.
 	 * Called by OnLifecycleCompleted
 	 */	
@@ -657,6 +1125,12 @@ protected:
 	 */
 	UPROPERTY(BlueprintAssignable, Category="Interaction")
 	FCooldownCompleted OnCooldownCompleted;
+
+	/**
+	 * Event called once any Interaction Dependency is changed, no matter if removed or added.
+	 */
+	UPROPERTY(BlueprintAssignable, Category="Interaction")
+	FInteractableDependencyChanged OnInteractableDependencyChanged;
 
 #pragma endregion
 
@@ -757,41 +1231,35 @@ protected:
 	UPROPERTY(BlueprintAssignable, Category="Interaction")
 	FInteractorChanged OnInteractorChanged;
 
-	/**
-	 * Event called once new Highlightable Override has been added.
-	 * Expected to be more a debugging event rather than in-game event.
-	 * Highlightable Override is not meant to be updated in-game as the setup is not well optimized.
-	 * Currently there is not implemented any function to update Highlightable Meshes from Highlightable Override in-game.
-	 */
-	UPROPERTY(BlueprintAssignable, Category="Interaction")
-	FHighlightableOverrideAdded OnHighlightableOverrideAdded;
-	
-	/**
-	 * Event called once Highlightable Override has been removed.
-	 * Expected to be more a debugging event rather than in-game event.
-	 * Highlightable Override is not meant to be updated in-game as the setup is not well optimized.
-	 * Currently there is not implemented any function to update Highlightable Meshes from Highlightable Override in-game.
-	 */
-	UPROPERTY(BlueprintAssignable, Category="Interaction")
-	FHighlightableOverrideRemoved OnHighlightableOverrideRemoved;
+#pragma endregion 
 
-	/**
-	 * Event called once new Collision Override has been added.
-	 * Expected to be more a debugging event rather than in-game event.
-	 * Collision Override is not meant to be updated in-game as the setup is not well optimized.
-	 * Currently there is not implemented any function to update Collision Shapes from Collision Override in-game.
-	 */
-	UPROPERTY(BlueprintAssignable, Category="Interaction")
-	FCollisionOverrideAdded OnCollisionOverrideAdded;
+#pragma region Handles
 
-	/**
-	 * Event called once Collision Override has been removed.
-	 * Expected to be more a debugging event rather than in-game event.
-	 * Collision Override is not meant to be updated in-game as the setup is not well optimized.
-	 * Currently there is not implemented any function to update Collision Shapes from Collision Override in-game.
-	 */
-	UPROPERTY(BlueprintAssignable, Category="Interaction")
-	FCollisionOverrideRemoved OnCollisionOverrideRemoved;
+	virtual FOnInteractableSelected& GetOnInteractableSelectedHandle() override
+	{ return OnInteractableSelected; };
+	virtual FInteractorFound& GetOnInteractorFoundHandle() override
+	{ return OnInteractorFound; };
+	virtual FInteractorLost& GetOnInteractorLostHandle() override
+	{ return OnInteractorLost; };
+	virtual FInteractorTraced& GetOnInteractorTracedHandle() override
+	{ return OnInteractorTraced; };
+	virtual FInteractorOverlapped& GetOnInteractorOverlappedHandle() override
+	{ return OnInteractorOverlapped; };
+	virtual FInteractorStopOverlap& GetOnInteractorStopOverlapHandle() override
+	{ return OnInteractorStopOverlap; };
+	virtual FInteractionCompleted& GetOnInteractionCompletedHandle() override
+	{ return OnInteractionCompleted; };
+	virtual FInteractionStarted& GetOnInteractionStartedHandle() override
+	{ return OnInteractionStarted; };
+	virtual FInteractionStopped& GetOnInteractionStoppedHandle() override
+	{ return OnInteractionStopped; };
+	virtual FInteractionCanceled& GetOnInteractionCanceledHandle() override
+	{ return OnInteractionCanceled; };
+	virtual FInteractableDependencyChanged& GetInteractableDependencyChangedHandle() override
+	{ return OnInteractableDependencyChanged; };
+
+	virtual FTimerHandle& GetCooldownHandle() override
+	{ return Timer_Cooldown; }
 
 #pragma endregion 
 
@@ -816,7 +1284,7 @@ protected:
 	 * Filled when Collision Shapes are registered.
 	 * Once Collision Shape is unregistered, it reads its cached settings and returns to pre-interaction Collision Settings.
 	 */
-	UPROPERTY(VisibleAnywhere, Category="Interaction|Debug")
+	UPROPERTY(VisibleAnywhere, Category="Interaction|Debug", meta=(DisplayThumbnail = false, ShowOnlyInnerProperties))
 	mutable TMap<UPrimitiveComponent*, FCollisionShapeCache> CachedCollisionShapesSettings;
 
 #pragma endregion
@@ -824,6 +1292,14 @@ protected:
 #pragma region Required
 
 protected:
+
+	/**
+	 * Defines how long does Interaction take.
+	 * - -1 = immediate
+	 * - 0  = 0.1s
+	 */
+	UPROPERTY(EditAnywhere, Category="Interaction|Required", meta=(UIMin=-1, ClampMin=-1, Units="s"))
+	float InteractionPeriod;
 
 	/**
 	 * Default state of the Interactable to be set in BeginPlay.
@@ -840,7 +1316,7 @@ protected:
 	 * This setup might be useful for simple Actors, might cause issues with more complex ones.
 	 */
 	UPROPERTY(EditAnywhere, Category="Interaction|Required")
-	uint8 bInteractableAutoSetup : 1;
+	ESetupType SetupType;
 
 	/**
 	 * Collision Channel which will be forced to all Collision Shapes as Overlap.
@@ -851,6 +1327,13 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Interaction|Required", meta=(NoResetToDefault))
 	TEnumAsByte<ECollisionChannel> CollisionChannel;
 
+	/**
+	* List of Interaction Keys for each platform.
+	* There is no validation for Keys validation! Nothing stops you from setting Keyboard keys for Consoles. Please, be careful with this variable!
+	*/
+	UPROPERTY(EditAnywhere, Category="Interaction|Required", meta=(NoResetToDefault))
+	TMap<FString, FInteractionKeySetup> InteractionKeysPerPlatform;
+	
 	/**
 	 * Weight of this Interactable.
 	 * Useful with multiple overlapping Interactables withing the same Actor. Interactor will always prefer the one with highest Weight value.
@@ -899,6 +1382,13 @@ protected:
 #pragma region Optional
 
 protected:
+
+	
+	/**
+	 * List of Interactable Classes which are ignored
+	 */
+	UPROPERTY(EditAnywhere, Category="Interaction|Optional", meta=(NoResetToDefault, AllowAbstract=false, MustImplement="ActorInteractorInterface", BlueprintBaseOnly))
+	TArray<TSoftClassPtr<UObject>> IgnoredClasses;
 	
 	/**
 	 * Expects: Actor Tags
@@ -952,15 +1442,21 @@ protected:
 	 * Is subject to State Machine.
 	 * @see [State Machine] https://github.com/Mountea-Framework/ActorInteractionPlugin/wiki/Actor-Interactable-Component-Validations#state-machine
 	 */
-	UPROPERTY(VisibleAnywhere, Category="Interaction|Read Only", meta=(NoResetToDefault))
+	UPROPERTY(VisibleAnywhere, Category="Interaction|Read Only")
 	EInteractableStateV2 InteractableState;
+
+	UPROPERTY(VisibleAnywhere, Category="Interaction|Read Only")
+	int32 RemainingLifecycleCount;
+
+	UPROPERTY(VisibleAnywhere, Category="Interaction|Read Only")
+	TArray<TScriptInterface<IActorInteractableInterface>> InteractionDependencies;
 	
 	/**
 	 * List of Highlightable Components.
 	 * * Set Overlap Events to true
 	 * * Response to Collision Channel to overlap
 	 */
-	UPROPERTY(VisibleAnywhere, Category="Interaction|Read Only", meta=(NoResetToDefault))
+	UPROPERTY(VisibleAnywhere, Category="Interaction|Read Only")
 	TArray<UMeshComponent*> HighlightableComponents;
 	
 	/**
@@ -969,26 +1465,44 @@ protected:
 	 * * Allow Render Custom Depth
 	 * * Use specific StencilID
 	 */
-	UPROPERTY(VisibleAnywhere, Category="Interaction|Read Only", meta=(NoResetToDefault))
+	UPROPERTY(VisibleAnywhere, Category="Interaction|Read Only")
 	TArray<UPrimitiveComponent*> CollisionComponents;
+	
+	UPROPERTY()
+	FTimerHandle Timer_Interaction;
 
+	UPROPERTY()
+	FTimerHandle Timer_Cooldown;
+	
 private:
-
+	
 	/**
 	 * Owning Actor of this Interactable.
 	 * By default its set to Owner.
 	 * Can be overriden.
 	 */
-	UPROPERTY(VisibleAnywhere, Category="Interaction|Read Only", meta=(NoResetToDefault, DisplayThumbnail = false))
+	UPROPERTY(VisibleAnywhere, Category="Interaction|Read Only", meta=(DisplayThumbnail = false))
 	AActor* InteractionOwner;
 
 	/**
 	 * Interactor which is using this Interactable.
 	 */
-	UPROPERTY(VisibleAnywhere, Category="Interaction|Read Only", meta=(NoResetToDefault, DisplayThumbnail = false))
+	UPROPERTY(VisibleAnywhere, Category="Interaction|Read Only", meta=(DisplayThumbnail = false))
 	TScriptInterface<IActorInteractorInterface> Interactor;
 
 #pragma endregion
+
+#pragma endregion
+
+#pragma region Editor
+	
+protected:
+	
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+
+	virtual EDataValidationResult IsDataValid(TArray<FText>& ValidationErrors) override;
+
+	virtual void DrawDebug();
 
 #pragma endregion 
 };

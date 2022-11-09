@@ -3,7 +3,12 @@
 
 #include "Components/ActorInteractorComponentBase.h"
 
+#if WITH_EDITOR
+#include "Helpers/ActorInteractionPluginLog.h"
+#endif
+
 #include "Helpers/InteractionHelpers.h"
+#include "Interfaces/ActorInteractableInterface.h"
 
 UActorInteractorComponentBase::UActorInteractorComponentBase()
 {
@@ -14,20 +19,15 @@ UActorInteractorComponentBase::UActorInteractorComponentBase()
 
 	InteractorState = EInteractorStateV2::EIS_Asleep;
 	DefaultInteractorState = EInteractorStateV2::EIS_Asleep;
-
-	InteractionKeyPerPlatform.Add((TEXT("Windows")), FKey("E"));
-	InteractionKeyPerPlatform.Add((TEXT("Mac")), FKey("E"));
-	InteractionKeyPerPlatform.Add((TEXT("PS4")), FKey("Gamepad Face Button Down"));
-	InteractionKeyPerPlatform.Add((TEXT("XboxOne")), FKey("Gamepad Face Button Down"));
 }
 
 void UActorInteractorComponentBase::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	OnInteractableSelected.AddUniqueDynamic(this, &UActorInteractorComponentBase::OnInteractableSelectedEvent);
-	OnInteractableFound.AddUniqueDynamic(this, &UActorInteractorComponentBase::OnInteractableFoundEvent);
-	OnInteractableLost.AddUniqueDynamic(this, &UActorInteractorComponentBase::OnInteractableLostEvent);
+	OnInteractableSelected.AddUniqueDynamic(this, &UActorInteractorComponentBase::InteractableSelected);
+	OnInteractableFound.AddUniqueDynamic(this, &UActorInteractorComponentBase::InteractableFound);
+	OnInteractableLost.AddUniqueDynamic(this, &UActorInteractorComponentBase::InteractableLost);
 	
 	OnInteractionKeyPressed.AddUniqueDynamic(this, &UActorInteractorComponentBase::OnInteractionKeyPressedEvent);
 	OnInteractionKeyReleased.AddUniqueDynamic(this, &UActorInteractorComponentBase::OnInteractionKeyReleasedEvent);
@@ -36,7 +36,19 @@ void UActorInteractorComponentBase::BeginPlay()
 	OnCollisionChanged.AddUniqueDynamic(this, &UActorInteractorComponentBase::OnInteractorCollisionChanged);
 	OnAutoActivateChanged.AddUniqueDynamic(this, &UActorInteractorComponentBase::OnInteractorAutoActivateChanged);
 
-	SetState(DefaultInteractorState);
+	if (bDoesAutoActivate)
+	{
+		SetState(EInteractorStateV2::EIS_Awake);
+	}
+	else
+	{
+		SetState(DefaultInteractorState);
+	}
+
+	if (GetOwner())
+	{
+		AddIgnoredActor(GetOwner());
+	}
 }
 
 void UActorInteractorComponentBase::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -46,7 +58,12 @@ void UActorInteractorComponentBase::TickComponent(float DeltaTime, ELevelTick Ti
 	TickInteraction(DeltaTime);
 }
 
-void UActorInteractorComponentBase::OnInteractableFoundEvent_Implementation(const TScriptInterface<IActorInteractableInterface>& FoundInteractable)
+void UActorInteractorComponentBase::InteractableSelected(const TScriptInterface<IActorInteractableInterface>& SelectedInteractable)
+{
+	OnInteractableSelectedEvent(SelectedInteractable);
+}
+
+void UActorInteractorComponentBase::InteractableFound(const TScriptInterface<IActorInteractableInterface>& FoundInteractable)
 {
 	for (const auto Itr : InteractionDependencies)
 	{
@@ -56,15 +73,17 @@ void UActorInteractorComponentBase::OnInteractableFoundEvent_Implementation(cons
 		}
 	}
 	
-	CompareInteractable(FoundInteractable);
+	EvaluateInteractable(FoundInteractable);
+
+	OnInteractableFoundEvent(FoundInteractable);
 }
 
-void UActorInteractorComponentBase::OnInteractableLostEvent_Implementation(const TScriptInterface<IActorInteractableInterface>& LostInteractable)
+void UActorInteractorComponentBase::InteractableLost(const TScriptInterface<IActorInteractableInterface>& LostInteractable)
 {
-
-	
 	if (LostInteractable == ActiveInteractable)
 	{
+		SetState(EInteractorStateV2::EIS_Awake);
+		
 		SetActiveInteractable(nullptr);
 
 		for (const auto Itr : InteractionDependencies)
@@ -75,55 +94,76 @@ void UActorInteractorComponentBase::OnInteractableLostEvent_Implementation(const
 			}
 		}
 	}
+
+	OnInteractableLostEvent(LostInteractable);
 }
 
-void UActorInteractorComponentBase::OnInteractionKeyPressedEvent_Implementation(const float TimeKeyPressed, const FKey& PressedKey)
+void UActorInteractorComponentBase::OnInteractionKeyPressedEvent_Implementation(const float& TimeKeyPressed, const FKey& PressedKey)
 {
-	if (FindKey(PressedKey))
+	StartInteraction(TimeKeyPressed, PressedKey);
+}
+
+void UActorInteractorComponentBase::OnInteractionKeyReleasedEvent_Implementation(const float& TimeKeyReleased, const FKey& ReleasedKey)
+{
+	StopInteraction();
+}
+
+bool UActorInteractorComponentBase::IsValidInteractor() const
+{
+	switch (InteractorState)
 	{
-		StartInteraction();
+		case EInteractorStateV2::EIS_Awake:
+		case EInteractorStateV2::EIS_Asleep:
+		case EInteractorStateV2::EIS_Active:
+			return true;
+		case EInteractorStateV2::EIS_Suppressed:
+		case EInteractorStateV2::EIS_Disabled:
+		case EInteractorStateV2::Default:
+		default:
+			return false;
 	}
 }
 
-void UActorInteractorComponentBase::OnInteractionKeyReleasedEvent_Implementation(const float TimeKeyReleased, const FKey& ReleasedKey)
+void UActorInteractorComponentBase::EvaluateInteractable(const TScriptInterface<IActorInteractableInterface>& FoundInteractable)
 {
-	if (FindKey(ReleasedKey))
+	if (!IsValidInteractor()) return;
+	
+	if (FoundInteractable.GetInterface() == nullptr)
 	{
-		StopInteraction();
+		InteractableLost(ActiveInteractable);
+		return;
 	}
-}
-
-void UActorInteractorComponentBase::CompareInteractable(const TScriptInterface<IActorInteractableInterface>& FoundInteractable)
-{
-	if (ActiveInteractable == FoundInteractable)
+	
+	if (ActiveInteractable.GetInterface() == nullptr)
 	{
 		SetActiveInteractable(FoundInteractable);
 		OnInteractableSelected.Broadcast(FoundInteractable);
+
+		return;
+	}
+	
+	if (ActiveInteractable != FoundInteractable)
+	{
+		if (FoundInteractable->GetInteractableWeight() > ActiveInteractable->GetInteractableWeight())
+		{
+			SetActiveInteractable(FoundInteractable);
+			OnInteractableSelected.Broadcast(FoundInteractable);
+
+			return;
+		}
 	}
 	else
 	{
-		/**
-		 * TODO:
-		 * Compare weights
-		 * Set the one with highest
-		 */
+		//SetActiveInteractable(FoundInteractable);
+		//OnInteractableSelected.Broadcast(FoundInteractable);
 	}
 }
 
-void UActorInteractorComponentBase::StartInteraction()
+void UActorInteractorComponentBase::StartInteraction(const float StartTime, FKey InputKey = FKey(""))
 {
-	if (CanInteract())
+	if (CanInteract() && ActiveInteractable.GetInterface())
 	{
-		/**
-		 * TODO
-		 * Interaction can start here
-		 */
-
-		//ActiveInteractable->OnInteractionStarted();
-	}
-	else
-	{
-		return;
+		ActiveInteractable->GetOnInteractionStartedHandle().Broadcast(StartTime, InputKey);
 	}
 }
 
@@ -134,7 +174,10 @@ void UActorInteractorComponentBase::StopInteraction()
 	 * Interaction must stop here
 	 */
 
-	//ActiveInteractable->OnInteractionStopped();
+	if (CanInteract() && ActiveInteractable.GetInterface())
+	{
+		ActiveInteractable->GetOnInteractionStoppedHandle().Broadcast();
+	}
 }
 
 bool UActorInteractorComponentBase::ActivateInteractor(FString& ErrorMessage)
@@ -226,8 +269,49 @@ void UActorInteractorComponentBase::DeactivateInteractor()
 	SetState(EInteractorStateV2::EIS_Disabled);
 }
 
+void UActorInteractorComponentBase::AddIgnoredActor(AActor* IgnoredActor)
+{
+	if (ListOfIgnoredActors.Contains(IgnoredActor)) return;
+	if (IgnoredActor == nullptr) return;
+
+	ListOfIgnoredActors.Add(IgnoredActor);
+
+	OnIgnoredActorAdded.Broadcast(IgnoredActor);
+}
+
+void UActorInteractorComponentBase::AddIgnoredActors(const TArray<AActor*> IgnoredActors)
+{
+	for (const auto Itr : IgnoredActors)
+	{
+		AddIgnoredActor(Itr);
+	}
+}
+
+void UActorInteractorComponentBase::RemoveIgnoredActor(AActor* UnignoredActor)
+{
+	if (UnignoredActor == nullptr) return;
+	if (ListOfIgnoredActors.Contains(UnignoredActor))
+	{
+		ListOfIgnoredActors.Remove(UnignoredActor);
+
+		OnIgnoredActorRemoved.Broadcast(UnignoredActor);
+	}
+}
+
+void UActorInteractorComponentBase::RemoveIgnoredActors(const TArray<AActor*> UnignoredActors)
+{
+	for (const auto Itr : UnignoredActors)
+	{
+		RemoveIgnoredActor(Itr);
+	}
+}
+
+TArray<AActor*> UActorInteractorComponentBase::GetIgnoredActors() const
+{ return ListOfIgnoredActors; }
+
 void UActorInteractorComponentBase::AddInteractionDependency(const TScriptInterface<IActorInteractorInterface> InteractionDependency)
 {
+	if (InteractionDependency.GetInterface() == nullptr) return;
 	if (InteractionDependencies.Contains(InteractionDependency))
 	{
 		return;
@@ -238,6 +322,7 @@ void UActorInteractorComponentBase::AddInteractionDependency(const TScriptInterf
 
 void UActorInteractorComponentBase::RemoveInteractionDependency(const TScriptInterface<IActorInteractorInterface> InteractionDependency)
 {
+	if (InteractionDependency.GetInterface() == nullptr) return;
 	if (InteractionDependencies.Contains(InteractionDependency))
 	{
 		InteractionDependencies.Remove(InteractionDependency);
@@ -249,27 +334,49 @@ TArray<TScriptInterface<IActorInteractorInterface>> UActorInteractorComponentBas
 	return InteractionDependencies;
 }
 
+void UActorInteractorComponentBase::ProcessDependencies()
+{
+	if (InteractionDependencies.Num() == 0) return;
+	
+	for (const auto Itr : InteractionDependencies)
+	{
+		switch (InteractorState)
+		{
+			case EInteractorStateV2::EIS_Active:
+			case EInteractorStateV2::EIS_Suppressed:
+				Itr->SetState(EInteractorStateV2::EIS_Suppressed);
+				break;
+			case EInteractorStateV2::EIS_Disabled:
+			case EInteractorStateV2::EIS_Awake:
+			case EInteractorStateV2::EIS_Asleep:
+				Itr->SetState(EInteractorStateV2::EIS_Awake);
+				RemoveInteractionDependency(Itr);
+				break;
+			case EInteractorStateV2::Default:
+			default:
+				break;
+		}
+	}
+}
+
 bool UActorInteractorComponentBase::CanInteractEvent_Implementation() const
 {
 	return CanInteract();
-}
-
-void UActorInteractorComponentBase::TickInteractionEvent_Implementation(const float DeltaTime)
-{
-	TickInteraction(DeltaTime);
 }
 
 bool UActorInteractorComponentBase::CanInteract() const
 {
 	switch (InteractorState)
 	{
-		case EInteractorStateV2::EIS_Awake: return ActiveInteractable.GetInterface() != nullptr;;
+		case EInteractorStateV2::EIS_Active:
+		case EInteractorStateV2::EIS_Awake:
+			return true;
 		case EInteractorStateV2::EIS_Asleep:
 		case EInteractorStateV2::EIS_Suppressed:
-		case EInteractorStateV2::EIS_Active:
 		case EInteractorStateV2::EIS_Disabled:
 		case EInteractorStateV2::Default:
-		default: break;
+		default:
+			return false;
 	}
 
 	return false;
@@ -277,10 +384,7 @@ bool UActorInteractorComponentBase::CanInteract() const
 
 void UActorInteractorComponentBase::TickInteraction(const float DeltaTime)
 {
-	/*
-	 * In Base class there is nothing
-	 * all logic will be implemented in child classes
-	 */
+	TickInteractionEvent(DeltaTime);
 }
 
 ECollisionChannel UActorInteractorComponentBase::GetResponseChannel() const
@@ -394,41 +498,6 @@ void UActorInteractorComponentBase::ToggleAutoActivate(const bool bNewAutoActiva
 	bDoesAutoActivate = bNewAutoActivate;
 
 	OnAutoActivateChanged.Broadcast(bDoesAutoActivate);
-}
-
-FKey UActorInteractorComponentBase::GetInteractionKey(const FString& RequestedPlatform) const
-{
-	if(InteractionKeyPerPlatform.Find(RequestedPlatform))
-	{
-		return *InteractionKeyPerPlatform.Find(RequestedPlatform);
-	}
-	else
-	{
-		return FKey();
-	}
-}
-
-void UActorInteractorComponentBase::SetInteractionKey(const FString& Platform, const FKey NewInteractorKey)
-{
-	InteractionKeyPerPlatform.Add(Platform, NewInteractorKey);
-}
-
-TMap<FString, FKey> UActorInteractorComponentBase::GetInteractionKeys() const
-{
-	return InteractionKeyPerPlatform;
-}
-
-bool UActorInteractorComponentBase::FindKey(const FKey& RequestedKey) const
-{
-	for (const auto& Itr : InteractionKeyPerPlatform)
-	{
-		if (Itr.Value == RequestedKey)
-		{
-			return true;
-		}
-	}
-
-	return false;
 }
 
 void UActorInteractorComponentBase::SetActiveInteractable(const TScriptInterface<IActorInteractableInterface> NewInteractable)

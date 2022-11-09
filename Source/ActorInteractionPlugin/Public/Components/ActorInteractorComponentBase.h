@@ -15,7 +15,7 @@
  *
  * @see https://github.com/Mountea-Framework/ActorInteractionPlugin/wiki/Actor-Interactor-Component-Base
  */
-UCLASS(ClassGroup=(Interaction), Blueprintable, hideCategories=(Collision, AssetUserData, Cooking, ComponentTick, Activation, Rendering), meta=(BlueprintSpawnableComponent, DisplayName = "Interactor Component"))
+UCLASS(Abstract, ClassGroup=(Interaction), Blueprintable, hideCategories=(Collision, AssetUserData, Cooking, ComponentTick, Activation, Rendering), meta=(BlueprintSpawnableComponent, DisplayName = "Interactor Component"))
 class ACTORINTERACTIONPLUGIN_API UActorInteractorComponentBase : public UActorComponent, public IActorInteractorInterface
 {
 	GENERATED_BODY()
@@ -29,7 +29,53 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
+#pragma region Handles
+
+public:
+
+	virtual FInteractableSelected& GetOnInteractableSelectedHandle() override
+	{ return OnInteractableSelected; };
+	virtual FInteractableFound& GetOnInteractableFoundHandle() override
+	{ return OnInteractableFound; };
+	virtual FInteractableLost& GetOnInteractableLostHandle() override
+	{ return OnInteractableLost; };
+	virtual FInteractionKeyPressed& OnInteractionKeyPressedHandle() override
+	{ return OnInteractionKeyPressed; };
+	virtual FInteractionKeyReleased& OnInteractionKeyReleasedHandle() override
+	{ return OnInteractionKeyReleased; };
+
+#pragma endregion
+	
 protected:
+
+#pragma region NativeFunctions
+
+	/**
+	 * Function called by OnInteractableSelected.
+	 * Calls OnInteractableSelectedEvent.
+	 * @param SelectedInteractable Interactable which was selected as new Active Interactable
+	 */
+	UFUNCTION()
+	virtual void InteractableSelected(const TScriptInterface<IActorInteractableInterface>& SelectedInteractable) override;
+	/**
+	 * Function called by OnInteractableFound.
+	 * Suppress all Dependencies.
+	 * Calls OnInteractableFoundEvent.
+	 * Class EvaluateInteractable with Found Interactable, resulting in possible call to InteractableSelected with this Found Interactable.
+	 * @param FoundInteractable Interactable which was found, not necessarily will be set as Active!
+	 */
+	UFUNCTION()
+	virtual void InteractableFound(const TScriptInterface<IActorInteractableInterface>& FoundInteractable) override;
+	/**
+	 * Function called by OnInteractableLost. If Lost Interactable is not Active Interactable, then nothing happens.
+	 * Resets Active Interactable to null. Sets all Dependencies to same State as this Interactor has.
+	 * Calls OnInteractableLostEvent.
+	 * @param LostInteractable Interactable which was Lost.
+	 */
+	UFUNCTION()
+	virtual void InteractableLost(const TScriptInterface<IActorInteractableInterface>& LostInteractable) override;
+
+#pragma endregion 
 
 #pragma region Events
 	
@@ -50,7 +96,7 @@ protected:
 	 * 
 	 * @param FoundInteractable Interactable Component which is found
 	 */
-	UFUNCTION(BlueprintNativeEvent, Category="Interaction")
+	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
 	void OnInteractableFoundEvent(const TScriptInterface<IActorInteractableInterface>& FoundInteractable);
 	
 	/**
@@ -60,7 +106,7 @@ protected:
 	 * 
 	 * @param LostInteractable Interactable Component which is lost
 	 */
-	UFUNCTION(BlueprintNativeEvent, Category="Interaction")
+	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
 	void OnInteractableLostEvent(const TScriptInterface<IActorInteractableInterface>& LostInteractable);
 
 	/**
@@ -72,7 +118,7 @@ protected:
 	 * @param PressedKey Key which was pressed
 	 */
 	UFUNCTION(BlueprintNativeEvent, Category="Interaction")
-	void OnInteractionKeyPressedEvent(const float TimeKeyPressed, const FKey& PressedKey);
+	void OnInteractionKeyPressedEvent(const float& TimeKeyPressed, const FKey& PressedKey);
 
 	/**
 	 * Event bound to OnInteractionKeyReleased event.
@@ -83,7 +129,7 @@ protected:
 	 * @param ReleasedKey Key which was released
 	 */
 	UFUNCTION(BlueprintNativeEvent, Category="Interaction")
-	void OnInteractionKeyReleasedEvent(const float TimeKeyReleased, const FKey& ReleasedKey);
+	void OnInteractionKeyReleasedEvent(const float& TimeKeyReleased, const FKey& ReleasedKey);
 
 	/**
 	 * Event bound to OnStateChanged event.
@@ -115,22 +161,30 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
 	void OnInteractorAutoActivateChanged(const bool NewAutoActivate);
 
-#pragma endregion 
+#pragma endregion
+
+public:
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
+	virtual bool IsValidInteractor() const override;
 	
 	/**
 	 * Compares Interactables.
-	 * If with the same Owner, then by Weight.
+	 * For details of Evaulation visit GitGub Wiki: https://github.com/Mountea-Framework/ActorInteractionPlugin/wiki/Interactor-Evaulation
+	 * @param FoundInteractable Interactable which was found
 	 */
 	UFUNCTION()
-	virtual void CompareInteractable(const TScriptInterface<IActorInteractableInterface>& FoundInteractable) override;
+	virtual void EvaluateInteractable(const TScriptInterface<IActorInteractableInterface>& FoundInteractable) override;
 
 
 	/**
 	 * Function to start interaction.
 	 * Interaction will start only if CanInteract function evaluates true.
+	 * @param StartTime Time Interaction has started. 
+	 * @param InputKey Optional Key. Some Interactions might require this value to perform checks.
 	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
-	virtual void StartInteraction() override;
+	virtual void StartInteraction(const float StartTime, FKey InputKey = FKey("")) override;
 
 	/**
 	 * Function to stop interaction.
@@ -144,6 +198,7 @@ protected:
 	 * Tries to Active Interactor by setting Interactor state to Active.
 	 * Returns whether it was successful or not.
 	 * Either way, Error Message contains useful information what possibly went wrong.
+	 * @param ErrorMessage Short explanation.
 	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual bool ActivateInteractor(FString& ErrorMessage) override;
@@ -152,6 +207,7 @@ protected:
 	 * Tries to Wake Up Interactor by setting Interactor state to Stand By.
 	 * Returns whether it was successful or not.
 	 * Either way, Error Message contains useful information what possibly went wrong.
+	 * @param ErrorMessage Short explanation.
 	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual bool WakeUpInteractor(FString& ErrorMessage) override;
@@ -160,6 +216,7 @@ protected:
 	 * Tries to Suppress Interactor by setting Interactor state to Suppressed.
 	 * Returns whether it was successful or not.
 	 * Either way, Error Message contains useful information what possibly went wrong.
+	 * @param ErrorMessage Short explanation.
 	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual bool SuppressInteractor(FString& ErrorMessage) override;
@@ -170,21 +227,60 @@ protected:
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void DeactivateInteractor() override;
 
+	
+	/**
+	 * Tries to add Actor to Ignored Actors.
+	 * Duplicates and null not allowed.
+	 * @param IgnoredActor Actor to be ignored.
+	 */
+	UFUNCTION(BlueprintCallable, Category="Interaction")
+	virtual void AddIgnoredActor(AActor* IgnoredActor) override;
+	/**
+	 * Tries to add Actors to Ignored Actors.
+	 * Duplicates and null not allowed.
+	 * Calls AddIgnoredActor for each.
+	 * @param IgnoredActors Array of Actors to be ignored.
+	 */
+	UFUNCTION(BlueprintCallable, Category="Interaction")
+	virtual void AddIgnoredActors(const TArray<AActor*> IgnoredActors) override;
+	/**
+	 * Tries to remove Actor from Ignored Actors.
+	 * Null not allowed.
+	 * @param UnignoredActor Actor to be un-ignored.
+	 */
+	UFUNCTION(BlueprintCallable, Category="Interaction")
+	virtual void RemoveIgnoredActor(AActor* UnignoredActor) override;
+	/**
+	 * Tries to remove Actors from Ignored Actors.
+	 * Null not allowed.
+	 * Calls RemoveIgnoredActor for each.
+	 * @param UnignoredActors Array of Actors to be un-ignored.
+	 */
+	UFUNCTION(BlueprintCallable, Category="Interaction")
+	virtual void RemoveIgnoredActors(const TArray<AActor*> UnignoredActors) override;
+	/**
+	 * Returns list of Ignored Actors.
+	 */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
+	virtual TArray<AActor*> GetIgnoredActors() const override;
+
 
 	/**
 	 * Adds unique Interaction Dependency.
 	 * Those Interactors will be suppressed until this one is not interacting anymore.
+	 * Duplicates or null not allowed.
+	 * @param InteractionDependency Other Interactor to be added to List of Dependencies.
 	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void AddInteractionDependency(const TScriptInterface<IActorInteractorInterface> InteractionDependency) override;
-
 	/**
 	 * Removes unique Interaction Dependency.
 	 * Removed Dependencies won't be suppressed and can interrupt with this Interactor.
+	 * Null not allowed.
+	 * @param InteractionDependency Other Interactor to be removed from List of Dependencies.
 	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void RemoveInteractionDependency(const TScriptInterface<IActorInteractorInterface> InteractionDependency) override;
-
 	/**
 	 * Returns all Interaction Dependencies.
 	 * Those Interactors will be suppressed until this one is not interacting anymore.
@@ -193,8 +289,16 @@ protected:
 	virtual TArray<TScriptInterface<IActorInteractorInterface>> GetInteractionDependencies() const override;
 	
 	/**
+	 * Tries to process all dependencies according to current State.
+	 * For more information, visit GitHub Wiki: https://github.com/Mountea-Framework/ActorInteractionPlugin/wiki/Process-Interactor-Dependencies
+	 */
+	UFUNCTION(Category="Interaction")
+	virtual void ProcessDependencies() override;
+
+	/**
 	 * Returns whether this Interactor can interact or not.
-	 * Calls Internal CanInteract which is implemented in C++.
+	 * Parent Calls 'CanInteract' function which is implemented in C++.
+	 * For more information, visit GitHub Wiki: https://github.com/Mountea-Framework/ActorInteractionPlugin/wiki/Can-Interactor-Interact 
 	 */
 	UFUNCTION(BlueprintNativeEvent, BlueprintPure, Category="Interaction")
 	bool CanInteractEvent() const;
@@ -210,13 +314,15 @@ protected:
 	 * Interactor specific Tick.
 	 * Calls Internal TickInteraction which is implemented in C++.
 	 * All Interaction logic should be processed in this function instead of regular Tick!
+	 * @param DeltaTime Should be always passed down from Tick!
 	 */
-	UFUNCTION(BlueprintNativeEvent, Category="Interaction")
+	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
 	void TickInteractionEvent(const float DeltaTime);
 
 	/**
 	 * Optimized Tick for Interactor.
 	 * Can be overriden in C++ for specific class needs.
+	 * @param DeltaTime Should be always passed down from Tick!
 	 */
 	UFUNCTION()
 	virtual void TickInteraction(const float DeltaTime) override;
@@ -235,6 +341,7 @@ protected:
 	 * * Interaction Trace
 	 * * Interaction Hover
 	 * * etc.
+	 * @param NewResponseChannel Channel to be used as Response Channel
 	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void SetResponseChannel(const ECollisionChannel NewResponseChannel) override;
@@ -249,62 +356,38 @@ protected:
 	/**
 	 * Tries to set Interactor State.
 	 * State machine apply!
+	 * For more information, visit GitHub Wiki: https://github.com/Mountea-Framework/ActorInteractionPlugin/wiki/Actor-Interactor-Component-Validations#state-machine
+	 * @param NewState Interactor State to be used as Interactor State
 	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void SetState(const EInteractorStateV2 NewState) override;
 
 
 	/**
+	 * !DEPRECEATED
 	 * Returns whether Interactor auto activates or not.
 	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure,Category="Interaction")
 	virtual bool DoesAutoActivate() const override;
 
 	/**
+	 * !DEPRECEATED
 	 * Set Interactor to be auto activated.
+	 * @param bNewAutoActivate Defines whether the Interactor does AutoActivate or not.
 	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction", meta=(DisplayName="Set Auto Activate"))
 	virtual void ToggleAutoActivate(const bool bNewAutoActivate) override;
 
 
 	/**
-	 * Returns Interaction Key for specified Platform.
-	 * @param RequestedPlatform Name of platform you want to know the Interaction Key
-	 */
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
-	virtual FKey GetInteractionKey(const FString& RequestedPlatform) const override;
-	
-	/**
-	 * Sets or Updates Interaction Key for specified Platform.
-	 * There is no validation for Keys validation! Nothing stops you from setting Keyboard keys for Consoles. Please, be careful with this variable!
-	 * @param Platform Name of platform you want to set or update the Interaction Key
-	 * @param NewInteractorKey The interaction key to setup.
-	 */
-	UFUNCTION(BlueprintCallable, Category="Interaction")
-	virtual void SetInteractionKey(const FString& Platform, const FKey NewInteractorKey) override;
-
-	/**
-	 * Returns all Interaction Keys.
-	 */
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
-	virtual TMap<FString, FKey> GetInteractionKeys() const override;
-
-	/**
-	 * Checks for Key in the list of Interaction keys.
-	 * Returns true if defined, otherwise returns false.
-	 */
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
-	virtual bool FindKey(const FKey& RequestedKey) const override;
-
-
-	/**
 	 * Sets specified or nul Interactable to be Active Interactable.
+	 * @param NewInteractable Interactable Interface to be used as Active Interactable
 	 */
 	UFUNCTION(Category="Interaction")
 	virtual void SetActiveInteractable(const TScriptInterface<IActorInteractableInterface> NewInteractable) override;
 
 	/**
-	 * Returns Active Interactable if there is any. Otherwise nullptr.
+	 * Returns Active Interactable if there is any. Otherwise null.
 	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual TScriptInterface<IActorInteractableInterface> GetActiveInteractable() const override;
@@ -375,6 +458,18 @@ protected:
 	UPROPERTY(BlueprintAssignable, Category="Interaction")
 	FAutoActivateChanged OnAutoActivateChanged;
 
+	/**
+	 * This event is called once Ignored Actor is successfully added to List of Ignored Actors. 
+	 */
+	UPROPERTY(BlueprintAssignable, Category="Interaction")
+	FIgnoredActorAdded OnIgnoredActorAdded;
+
+	/**
+	 * This event is called once Ignored Actor is successfully removed from List of Ignored Actors. 
+	 */
+	UPROPERTY(BlueprintAssignable, Category="Interaction")
+	FIgnoredActorRemoved OnIgnoredActorRemoved;
+
 protected:
 
 	/**
@@ -382,16 +477,17 @@ protected:
 	 * Serves a general purpose as a flag.
 	 * Does not affect Shipping builds by default C++ implementation.
 	 */
-	UPROPERTY(EditAnywhere, Category="Interaction|Required")
+	UPROPERTY(EditAnywhere, Category="Interaction|Debug")
 	uint8 bToggleDebug : 1;
 
 	/**
-	 * If auto activation is true, component will start as Stand By and can start immediately interact.
+	 * !DEPRECEATED
+	 * Replaced by 'DefaultInteractorState'!
+	 * If auto activation is true, component will start as Awake and can start immediately interact.
 	 */
 	UPROPERTY(EditAnywhere, Category="Interaction|Required", meta=(DisplayName="Auto Activate", NoResetToDefault))
 	uint8 bDoesAutoActivate : 1;
-
-
+	
 	/**
 	 * Response Collision Channel this Interactor is interacting against.
 	 * Tip: Use custom Collision Channel for Interaction types.
@@ -402,16 +498,7 @@ protected:
 	 */
 	UPROPERTY(EditAnywhere, Category="Interaction|Required", meta=(NoResetToDefault))
 	TEnumAsByte<ECollisionChannel> CollisionChannel;
-
-	/**
-	 * List of Interaction Keys for each platform.
-	 * There is no validation for Keys validation! Nothing stops you from setting Keyboard keys for Consoles. Please, be careful with this variable!
-	 */
-	UPROPERTY(EditAnywhere, Category="Interaction|Required", meta=(NoResetToDefault))
-	TMap<FString, FKey> InteractionKeyPerPlatform;
-
 	
-
 	/**
 	 * New and easier way to set Default State.
 	 * This state will be propagated to Interactor State.
@@ -419,6 +506,13 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Interaction|Optional", meta=(NoResetToDefault))
 	EInteractorStateV2 DefaultInteractorState;
 
+	/**
+	 * A list of Actors that won't be taken in count when tracing.
+	 * If left empty, only Owner Actor is ignored.
+	 * If using multiple Actors (a gun, for instance), all those child/attached Actors should be ignored.
+	 */
+	UPROPERTY(EditAnywhere, Category="Interaction|Optional", meta=(NoResetToDefault, DisplayThumbnail=false))
+	TArray<AActor*> ListOfIgnoredActors;
 
 private:
 

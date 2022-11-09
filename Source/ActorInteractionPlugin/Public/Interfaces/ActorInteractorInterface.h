@@ -20,8 +20,11 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractableSelected, const TScript
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractableFound, const TScriptInterface<IActorInteractableInterface>&, FoundInteractable);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractableLost, const TScriptInterface<IActorInteractableInterface>&, LostInteractable);
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FInteractionKeyPressed, const float, TimeKeyPressed, const FKey&, PressedKey);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FInteractionKeyReleased, const float, TimeKeyReleased, const FKey&, ReleasedKey);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FInteractionKeyPressed, const float&, TimeKeyPressed, const FKey&, PressedKey);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FInteractionKeyReleased, const float&, TimeKeyReleased, const FKey&, ReleasedKey);
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FIgnoredActorAdded, const AActor*, AddedActor);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FIgnoredActorRemoved, const AActor*, RemovedActor);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FStateChanged, const EInteractorStateV2&, NewState);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCollisionChanged, const TEnumAsByte<ECollisionChannel>&, NewCollisionChannel);
@@ -35,8 +38,10 @@ class ACTORINTERACTIONPLUGIN_API IActorInteractorInterface
 	GENERATED_BODY()
 
 public:
+
+	virtual bool IsValidInteractor() const = 0;
 		
-	virtual void StartInteraction() = 0;
+	virtual void StartInteraction(const float StartTime, FKey InputKey = FKey("")) = 0;
 	virtual void StopInteraction() = 0;
 	
 	virtual bool ActivateInteractor(FString& ErrorMessage) = 0;
@@ -44,11 +49,22 @@ public:
 	virtual bool SuppressInteractor(FString& ErrorMessage) = 0;
 	virtual void DeactivateInteractor() = 0;
 
+	virtual void InteractableFound(const TScriptInterface<IActorInteractableInterface>& FoundInteractable) = 0;
+	virtual void InteractableLost(const TScriptInterface<IActorInteractableInterface>& LostInteractable) = 0;
+	virtual void InteractableSelected(const TScriptInterface<IActorInteractableInterface>& SelectedInteractable) = 0;
+
+	virtual void AddIgnoredActor(AActor* IgnoredActor) = 0;
+	virtual void AddIgnoredActors(const TArray<AActor*> IgnoredActors) = 0;
+	virtual void RemoveIgnoredActor(AActor* UnignoredActor) = 0;
+	virtual void RemoveIgnoredActors(const TArray<AActor*> UnignoredActors) = 0;
+	virtual TArray<AActor*> GetIgnoredActors() const = 0;
+		
 	virtual void AddInteractionDependency(const TScriptInterface<IActorInteractorInterface> InteractionDependency) = 0;
 	virtual void RemoveInteractionDependency(const TScriptInterface<IActorInteractorInterface> InteractionDependency) = 0;
 	virtual TArray<TScriptInterface<IActorInteractorInterface>> GetInteractionDependencies() const = 0;
+	virtual void ProcessDependencies() = 0;
 
-	virtual void CompareInteractable(const TScriptInterface<IActorInteractableInterface>& FoundInteractable) = 0;
+	virtual void EvaluateInteractable(const TScriptInterface<IActorInteractableInterface>& FoundInteractable) = 0;
 
 	virtual bool CanInteract() const = 0;
 
@@ -62,14 +78,16 @@ public:
 
 	virtual bool DoesAutoActivate() const = 0;
 	virtual void ToggleAutoActivate(const bool bNewAutoActivate) = 0;
-
-	virtual FKey GetInteractionKey(const FString& RequestedPlatform) const = 0;
-	virtual void SetInteractionKey(const FString& Platform, const FKey NewInteractorKey) = 0;
-	virtual TMap<FString, FKey> GetInteractionKeys() const = 0;
-	virtual bool FindKey(const FKey& RequestedKey) const = 0;
+	
 
 	virtual TScriptInterface<IActorInteractableInterface> GetActiveInteractable() const = 0;
 	virtual void SetActiveInteractable(const TScriptInterface<IActorInteractableInterface> NewInteractable) = 0;
 
 	virtual void ToggleDebug() = 0;
+
+	virtual FInteractableSelected& GetOnInteractableSelectedHandle() = 0;
+	virtual FInteractableFound& GetOnInteractableFoundHandle() = 0;
+	virtual FInteractableLost& GetOnInteractableLostHandle() = 0;
+	virtual FInteractionKeyPressed& OnInteractionKeyPressedHandle() = 0;
+	virtual FInteractionKeyReleased& OnInteractionKeyReleasedHandle() = 0;
 };
