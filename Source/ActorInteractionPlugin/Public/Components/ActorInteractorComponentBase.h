@@ -482,6 +482,7 @@ protected:
 
 	/**
 	 * !DEPRECEATED
+	 * Replaced by 'DefaultInteractorState'!
 	 * If auto activation is true, component will start as Awake and can start immediately interact.
 	 */
 	UPROPERTY(EditAnywhere, Category="Interaction|Required", meta=(DisplayName="Auto Activate", NoResetToDefault))
