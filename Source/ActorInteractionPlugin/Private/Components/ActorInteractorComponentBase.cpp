@@ -272,6 +272,7 @@ void UActorInteractorComponentBase::DeactivateInteractor()
 void UActorInteractorComponentBase::AddIgnoredActor(AActor* IgnoredActor)
 {
 	if (ListOfIgnoredActors.Contains(IgnoredActor)) return;
+	if (IgnoredActor == nullptr) return;
 
 	ListOfIgnoredActors.Add(IgnoredActor);
 
@@ -288,6 +289,7 @@ void UActorInteractorComponentBase::AddIgnoredActors(const TArray<AActor*> Ignor
 
 void UActorInteractorComponentBase::RemoveIgnoredActor(AActor* UnignoredActor)
 {
+	if (UnignoredActor == nullptr) return;
 	if (ListOfIgnoredActors.Contains(UnignoredActor))
 	{
 		ListOfIgnoredActors.Remove(UnignoredActor);
@@ -309,6 +311,7 @@ TArray<AActor*> UActorInteractorComponentBase::GetIgnoredActors() const
 
 void UActorInteractorComponentBase::AddInteractionDependency(const TScriptInterface<IActorInteractorInterface> InteractionDependency)
 {
+	if (InteractionDependency.GetInterface() == nullptr) return;
 	if (InteractionDependencies.Contains(InteractionDependency))
 	{
 		return;
@@ -319,6 +322,7 @@ void UActorInteractorComponentBase::AddInteractionDependency(const TScriptInterf
 
 void UActorInteractorComponentBase::RemoveInteractionDependency(const TScriptInterface<IActorInteractorInterface> InteractionDependency)
 {
+	if (InteractionDependency.GetInterface() == nullptr) return;
 	if (InteractionDependencies.Contains(InteractionDependency))
 	{
 		InteractionDependencies.Remove(InteractionDependency);
