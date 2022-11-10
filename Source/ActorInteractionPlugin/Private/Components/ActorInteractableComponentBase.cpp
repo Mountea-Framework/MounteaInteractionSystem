@@ -8,7 +8,9 @@
 #include "InteractionEditorNotifications/Public/EditorHelper.h"
 #endif
 
+#include "Interfaces/ActorInteractionWidget.h"
 #include "Interfaces/ActorInteractorInterface.h"
+#include "Widgets/ActorInteractableWidget.h"
 
 UActorInteractableComponentBase::UActorInteractableComponentBase()
 {
@@ -1256,11 +1258,14 @@ void UActorInteractableComponentBase::AutoSetup()
 
 #if WITH_EDITOR
 
-void UActorInteractableComponentBase::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+void UActorInteractableComponentBase::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent)
 {
 	const FName PropertyName = (PropertyChangedEvent.MemberProperty != nullptr) ? PropertyChangedEvent.GetPropertyName() : NAME_None;
 
-	if (PropertyName == "DefaultInteractableState")
+	FString InteractableName = GetName();
+	InteractableName.ReplaceInline(TEXT("_GEN_VARIABLE"), TEXT(""));
+	
+	if (PropertyName == GET_MEMBER_NAME_CHECKED(UActorInteractableComponentBase, DefaultInteractableState))
 	{
 		if
 		(
@@ -1271,7 +1276,7 @@ void UActorInteractableComponentBase::PostEditChangeProperty(FPropertyChangedEve
 		{
 			const FText ErrorMessage = FText::FromString
 			(
-				FString("Interactable Component:").Append(TEXT(" DefaultInteractableState cannot be")).Append(GetEnumValueAsString("EInteractableStateV2", DefaultInteractableState)).Append(TEXT("!"))
+				InteractableName.Append(TEXT(": DefaultInteractableState cannot be ")).Append(GetEnumValueAsString("EInteractableStateV2", DefaultInteractableState)).Append(TEXT("!"))
 			);
 			FEditorHelper::DisplayEditorNotification(ErrorMessage, SNotificationItem::CS_Fail, 5.f, 2.f, TEXT("Icons.Error"));
 
@@ -1279,29 +1284,32 @@ void UActorInteractableComponentBase::PostEditChangeProperty(FPropertyChangedEve
 		}
 	}
 
-	if (PropertyName == "LifecycleCount" && LifecycleMode == EInteractableLifecycle::EIL_Cycled)
+	if (PropertyName == GET_MEMBER_NAME_CHECKED(UActorInteractableComponentBase, LifecycleCount))
 	{
-		if (LifecycleCount == 0 || LifecycleCount == 1)
+		if (LifecycleMode == EInteractableLifecycle::EIL_Cycled)
 		{
-			const FText ErrorMessage = FText::FromString
-			(
-				FString("Interactable Component:").Append(TEXT(" Cycled LifecycleCount cannot be: ")).Append(FString::FromInt(LifecycleCount)).Append(TEXT("!"))
-			);
-			
-			FEditorHelper::DisplayEditorNotification(ErrorMessage, SNotificationItem::CS_Fail, 5.f, 2.f, TEXT("Icons.Error"));
+			if (LifecycleCount == 0 || LifecycleCount == 1)
+			{
+				const FText ErrorMessage = FText::FromString
+				(
+					InteractableName.Append(TEXT(": Cycled LifecycleCount cannot be: ")).Append(FString::FromInt(LifecycleCount)).Append(TEXT("!"))
+				);
+				
+				FEditorHelper::DisplayEditorNotification(ErrorMessage, SNotificationItem::CS_Fail, 5.f, 2.f, TEXT("Icons.Error"));
 
-			LifecycleCount = 2.f;
-			RemainingLifecycleCount = LifecycleCount;
+				LifecycleCount = 2.f;
+				RemainingLifecycleCount = LifecycleCount;
+			}
 		}
 	}
-
-	if (PropertyName == "InteractionPeriod")
+	
+	if (PropertyName == GET_MEMBER_NAME_CHECKED(UActorInteractableComponentBase, InteractionPeriod))
 	{
 		if (InteractionPeriod < -1.f)
 		{
 			const FText ErrorMessage = FText::FromString
 			(
-				FString("Interactable Component:").Append(TEXT(" InteractionPeriod cannot be less than -1!"))
+				InteractableName.Append(TEXT(": InteractionPeriod cannot be less than -1!"))
 			);
 			FEditorHelper::DisplayEditorNotification(ErrorMessage, SNotificationItem::CS_Fail, 5.f, 2.f, TEXT("Icons.Error"));
 
@@ -1310,31 +1318,43 @@ void UActorInteractableComponentBase::PostEditChangeProperty(FPropertyChangedEve
 
 		if (InteractionPeriod > -1.f && InteractionPeriod < 0.1f)
 		{
-			/*
-			const FText ErrorMessage = FText::FromString
-			(
-				FString("Interactable Component:").Append(TEXT(" InteractionPeriod cannot be negative value different than -1!"))
-			);
-			FEditorHelper::DisplayEditorNotification(ErrorMessage, SNotificationItem::CS_Fail, 5.f, 2.f, TEXT("Icons.Error"));
-			*/
-
 			InteractionPeriod = 0.1f;
 		}
 
 		if (FMath::IsNearlyZero(InteractionPeriod, 0.001f))
 		{
-			/*
-			const FText ErrorMessage = FText::FromString
-			(
-				FString("Interactable Component:").Append(TEXT(" InteractionPeriod cannot be 0!"))
-			);
-			FEditorHelper::DisplayEditorNotification(ErrorMessage, SNotificationItem::CS_Fail, 5.f, 2.f, TEXT("Icons.Error"));
-			*/
-
 			InteractionPeriod = 0.1f;
 		}
 	}
-
+		
+	if (PropertyName == GET_MEMBER_NAME_CHECKED(UActorInteractableComponentBase, WidgetClass))
+	{
+		if (GetWidgetClass() == nullptr)
+		{
+			const FText ErrorMessage = FText::FromString
+			(
+				InteractableName.Append(TEXT(": Widget Class is NULL!"))
+			);
+			FEditorHelper::DisplayEditorNotification(ErrorMessage, SNotificationItem::CS_Fail, 5.f, 2.f, TEXT("Icons.Error"));
+		}
+		else
+		{
+			if (GetWidgetClass() != UActorInteractableWidget::StaticClass())
+			{
+				if (GetWidgetClass()->ImplementsInterface(UActorInteractionWidget::StaticClass()) == false)
+				{
+					const FText ErrorMessage = FText::FromString
+					(
+						InteractableName.Append(TEXT(": Widget Class must either implement 'ActorInteractionWidget Interface' or inherit from 'ActorInteractableWidget' class!"))
+					);
+					
+					SetWidgetClass(nullptr);
+					FEditorHelper::DisplayEditorNotification(ErrorMessage, SNotificationItem::CS_Fail, 5.f, 2.f, TEXT("Icons.Error"));
+				}
+			}
+		}
+	}
+	
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
 
@@ -1342,6 +1362,9 @@ EDataValidationResult UActorInteractableComponentBase::IsDataValid(TArray<FText>
 {
 	const auto DefaultValue = Super::IsDataValid(ValidationErrors);
 	bool bAnyError = false;
+
+	FString InteractableName = GetName();
+	InteractableName.ReplaceInline(TEXT("_GEN_VARIABLE"), TEXT(""));
 	
 	if
 	(
@@ -1352,7 +1375,7 @@ EDataValidationResult UActorInteractableComponentBase::IsDataValid(TArray<FText>
 	{
 		const FText ErrorMessage = FText::FromString
 		(
-			FString("Interactable Component:").Append(TEXT(" DefaultInteractableState cannot be")).Append(GetEnumValueAsString("EInteractableStateV2", DefaultInteractableState)).Append(TEXT("!"))
+			InteractableName.Append(TEXT(": DefaultInteractableState cannot be")).Append(GetEnumValueAsString("EInteractableStateV2", DefaultInteractableState)).Append(TEXT("!"))
 		);
 
 		DefaultInteractableState = EInteractableStateV2::EIS_Awake;
@@ -1365,7 +1388,7 @@ EDataValidationResult UActorInteractableComponentBase::IsDataValid(TArray<FText>
 	{
 		const FText ErrorMessage = FText::FromString
 		(
-			FString("Interactable Component: DefaultInteractableState cannot be lesser than -1!")
+			InteractableName.Append(TEXT(": DefaultInteractableState cannot be lesser than -1!"))
 		);
 
 		InteractionPeriod = -1.f;
@@ -1378,7 +1401,7 @@ EDataValidationResult UActorInteractableComponentBase::IsDataValid(TArray<FText>
 	{
 		const FText ErrorMessage = FText::FromString
 		(
-			FString("Interactable Component:").Append(TEXT(" LifecycleCount cannot be %d!"), LifecycleCount)
+			InteractableName.Append(TEXT(":")).Append(TEXT(" LifecycleCount cannot be %d!"), LifecycleCount)
 		);
 			
 		LifecycleCount = 2.f;
@@ -1386,6 +1409,34 @@ EDataValidationResult UActorInteractableComponentBase::IsDataValid(TArray<FText>
 		
 		ValidationErrors.Add(ErrorMessage);
 		bAnyError = true;
+	}
+
+	if (GetWidgetClass() == nullptr)
+	{
+		const FText ErrorMessage = FText::FromString
+		(
+			InteractableName.Append(TEXT(": Widget Class is NULL!"))
+		);
+
+		ValidationErrors.Add(ErrorMessage);
+		bAnyError = true;
+	}
+	else
+	{
+		if (GetWidgetClass() != UActorInteractableWidget::StaticClass())
+		{
+			if (GetWidgetClass()->ImplementsInterface(UActorInteractionWidget::StaticClass()) == false)
+			{
+				const FText ErrorMessage = FText::FromString
+				(
+					InteractableName.Append(TEXT(" : Widget Class must either implement 'ActorInteractionWidget Interface' or inherit from 'ActorInteractableWidget' class!"))
+				);
+
+				SetWidgetClass(nullptr);
+				ValidationErrors.Add(ErrorMessage);
+				bAnyError = true;
+			}
+		}
 	}
 	
 	return bAnyError ? EDataValidationResult::Invalid : DefaultValue;
