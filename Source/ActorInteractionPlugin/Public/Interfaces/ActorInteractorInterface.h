@@ -7,7 +7,7 @@
 #include "ActorInteractorInterface.generated.h"
 
 // This class does not need to be modified.
-UINTERFACE(MinimalAPI, BlueprintType)
+UINTERFACE(BlueprintType, Blueprintable)
 class UActorInteractorInterface : public UInterface
 {
 	GENERATED_BODY()
@@ -37,6 +37,102 @@ class ACTORINTERACTIONPLUGIN_API IActorInteractorInterface
 {
 	GENERATED_BODY()
 
+#pragma region Events
+
+public:
+	
+	/**
+	 * Event bound to OnInteractableSelected event.
+	 * Once OnInteractableSelected is called this event is, too.
+	 * Be sure to call Parent event to access all C++ implementation!
+	 * 
+	 * @param SelectedInteractable Interactable Component which is being interacted with
+	 */
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category="Interaction")
+	void OnInteractableSelectedEvent(const TScriptInterface<IActorInteractableInterface>& SelectedInteractable);
+
+	/**
+	 * Event bound to OnInteractableFound event.
+	 * Once OnInteractableFound is called this event is, too.
+	 * Be sure to call Parent event to access all C++ implementation!
+	 * 
+	 * @param FoundInteractable Interactable Component which is found
+	 */
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category="Interaction")
+	void OnInteractableFoundEvent(const TScriptInterface<IActorInteractableInterface>& FoundInteractable);
+	
+	/**
+	 * Event bound to OnInteractableLost event.
+	 * Once OnInteractableLost is called this event is, too.
+	 * Be sure to call Parent event to access all C++ implementation!
+	 * 
+	 * @param LostInteractable Interactable Component which is lost
+	 */
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category="Interaction")
+	void OnInteractableLostEvent(const TScriptInterface<IActorInteractableInterface>& LostInteractable);
+
+	/**
+	 * Event bound to OnInteractionKeyPressed event.
+	 * Once OnInteractionKeyPressed is called this event is, too.
+	 * Be sure to call Parent event to access all C++ implementation!
+	 * 
+	 * @param TimeKeyPressed Time Key was pressed
+	 * @param PressedKey Key which was pressed
+	 */
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Interaction")
+	void OnInteractionKeyPressedEvent(const float& TimeKeyPressed, const FKey& PressedKey);
+	void OnInteractionKeyPressedEvent_Implementation(const float& TimeKeyPressed, const FKey& PressedKey)
+	{
+		StartInteraction(TimeKeyPressed, PressedKey);
+	};
+
+	/**
+	 * Event bound to OnInteractionKeyReleased event.
+	 * Once OnInteractionKeyReleased is called this event is, too.
+	 * Be sure to call Parent event to access all C++ implementation!
+	 * 
+	 * @param TimeKeyReleased Time Key was released
+	 * @param ReleasedKey Key which was released
+	 */
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Interaction")
+	void OnInteractionKeyReleasedEvent(const float& TimeKeyReleased, const FKey& ReleasedKey);
+	void OnInteractionKeyReleasedEvent_Implementation(const float& TimeKeyReleased, const FKey& ReleasedKey)
+	{
+		StopInteraction();
+	};
+	
+	/**
+	 * Event bound to OnStateChanged event.
+	 * Once OnStateChanged is called this event is, too.
+	 * Be sure to call Parent event to access all C++ implementation!
+	 * 
+	 * @param NewState New State if this Interactor
+	 */
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category="Interaction")
+	void OnInteractorStateChanged(const EInteractorStateV2& NewState);
+
+	/**
+	 * Event bound to OnCollisionChanged event.
+	 * Once OnCollisionChanged is called this event is, too.
+	 * Be sure to call Parent event to access all C++ implementation!
+	 * 
+	 * @param NewCollisionChannel New Collision Channel set as Response Channel
+	 */
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category="Interaction")
+	void OnInteractorCollisionChanged(const TEnumAsByte<ECollisionChannel>& NewCollisionChannel);
+
+	/**
+	 * Event bound to OnAutoActivateChanged event.
+	 * Once OnAutoActivateChanged is called this event is, too.
+	 * Be sure to call Parent event to access all C++ implementation!
+	 * 
+	 * @param NewAutoActivate Whether this Interactor is Auto Activated or not
+	 */
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category="Interaction")
+	void OnInteractorAutoActivateChanged(const bool NewAutoActivate);
+
+#pragma endregion
+	
 public:
 
 	virtual bool IsValidInteractor() const = 0;
@@ -68,8 +164,6 @@ public:
 
 	virtual bool CanInteract() const = 0;
 
-	virtual void TickInteraction(const float DeltaTime) = 0;
-
 	virtual ECollisionChannel GetResponseChannel() const = 0;
 	virtual void SetResponseChannel(const ECollisionChannel NewResponseChannel) = 0;
 
@@ -77,8 +171,6 @@ public:
 	virtual void SetState(const EInteractorStateV2 NewState) = 0;
 
 	virtual bool DoesAutoActivate() const = 0;
-	virtual void ToggleAutoActivate(const bool bNewAutoActivate) = 0;
-	
 
 	virtual TScriptInterface<IActorInteractableInterface> GetActiveInteractable() const = 0;
 	virtual void SetActiveInteractable(const TScriptInterface<IActorInteractableInterface> NewInteractable) = 0;

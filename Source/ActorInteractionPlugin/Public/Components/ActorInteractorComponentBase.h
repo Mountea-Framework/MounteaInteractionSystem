@@ -27,7 +27,6 @@ public:
 protected:
 
 	virtual void BeginPlay() override;
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 #pragma region Handles
 
@@ -76,92 +75,6 @@ protected:
 	virtual void InteractableLost(const TScriptInterface<IActorInteractableInterface>& LostInteractable) override;
 
 #pragma endregion 
-
-#pragma region Events
-	
-	/**
-	 * Event bound to OnInteractableSelected event.
-	 * Once OnInteractableSelected is called this event is, too.
-	 * Be sure to call Parent event to access all C++ implementation!
-	 * 
-	 * @param SelectedInteractable Interactable Component which is being interacted with
-	 */
-	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
-	void OnInteractableSelectedEvent(const TScriptInterface<IActorInteractableInterface>& SelectedInteractable);
-
-	/**
-	 * Event bound to OnInteractableFound event.
-	 * Once OnInteractableFound is called this event is, too.
-	 * Be sure to call Parent event to access all C++ implementation!
-	 * 
-	 * @param FoundInteractable Interactable Component which is found
-	 */
-	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
-	void OnInteractableFoundEvent(const TScriptInterface<IActorInteractableInterface>& FoundInteractable);
-	
-	/**
-	 * Event bound to OnInteractableLost event.
-	 * Once OnInteractableLost is called this event is, too.
-	 * Be sure to call Parent event to access all C++ implementation!
-	 * 
-	 * @param LostInteractable Interactable Component which is lost
-	 */
-	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
-	void OnInteractableLostEvent(const TScriptInterface<IActorInteractableInterface>& LostInteractable);
-
-	/**
-	 * Event bound to OnInteractionKeyPressed event.
-	 * Once OnInteractionKeyPressed is called this event is, too.
-	 * Be sure to call Parent event to access all C++ implementation!
-	 * 
-	 * @param TimeKeyPressed Time Key was pressed
-	 * @param PressedKey Key which was pressed
-	 */
-	UFUNCTION(BlueprintNativeEvent, Category="Interaction")
-	void OnInteractionKeyPressedEvent(const float& TimeKeyPressed, const FKey& PressedKey);
-
-	/**
-	 * Event bound to OnInteractionKeyReleased event.
-	 * Once OnInteractionKeyReleased is called this event is, too.
-	 * Be sure to call Parent event to access all C++ implementation!
-	 * 
-	 * @param TimeKeyReleased Time Key was released
-	 * @param ReleasedKey Key which was released
-	 */
-	UFUNCTION(BlueprintNativeEvent, Category="Interaction")
-	void OnInteractionKeyReleasedEvent(const float& TimeKeyReleased, const FKey& ReleasedKey);
-
-	/**
-	 * Event bound to OnStateChanged event.
-	 * Once OnStateChanged is called this event is, too.
-	 * Be sure to call Parent event to access all C++ implementation!
-	 * 
-	 * @param NewState New State if this Interactor
-	 */
-	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
-	void OnInteractorStateChanged(const EInteractorStateV2& NewState);
-
-	/**
-	 * Event bound to OnCollisionChanged event.
-	 * Once OnCollisionChanged is called this event is, too.
-	 * Be sure to call Parent event to access all C++ implementation!
-	 * 
-	 * @param NewCollisionChannel New Collision Channel set as Response Channel
-	 */
-	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
-	void OnInteractorCollisionChanged(const TEnumAsByte<ECollisionChannel>& NewCollisionChannel);
-
-	/**
-	 * Event bound to OnAutoActivateChanged event.
-	 * Once OnAutoActivateChanged is called this event is, too.
-	 * Be sure to call Parent event to access all C++ implementation!
-	 * 
-	 * @param NewAutoActivate Whether this Interactor is Auto Activated or not
-	 */
-	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
-	void OnInteractorAutoActivateChanged(const bool NewAutoActivate);
-
-#pragma endregion
 
 public:
 
@@ -309,23 +222,6 @@ public:
 	 */
 	UFUNCTION()
 	virtual bool CanInteract() const override;
-	
-	/**
-	 * Interactor specific Tick.
-	 * Calls Internal TickInteraction which is implemented in C++.
-	 * All Interaction logic should be processed in this function instead of regular Tick!
-	 * @param DeltaTime Should be always passed down from Tick!
-	 */
-	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
-	void TickInteractionEvent(const float DeltaTime);
-
-	/**
-	 * Optimized Tick for Interactor.
-	 * Can be overriden in C++ for specific class needs.
-	 * @param DeltaTime Should be always passed down from Tick!
-	 */
-	UFUNCTION()
-	virtual void TickInteraction(const float DeltaTime) override;
 
 	/**
 	 * Returns Interactor Response Channel.
@@ -364,19 +260,10 @@ public:
 
 
 	/**
-	 * !DEPRECEATED
 	 * Returns whether Interactor auto activates or not.
 	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure,Category="Interaction")
 	virtual bool DoesAutoActivate() const override;
-
-	/**
-	 * !DEPRECEATED
-	 * Set Interactor to be auto activated.
-	 * @param bNewAutoActivate Defines whether the Interactor does AutoActivate or not.
-	 */
-	UFUNCTION(BlueprintCallable, Category="Interaction", meta=(DisplayName="Set Auto Activate"))
-	virtual void ToggleAutoActivate(const bool bNewAutoActivate) override;
 
 
 	/**
@@ -479,14 +366,6 @@ protected:
 	 */
 	UPROPERTY(EditAnywhere, Category="Interaction|Debug")
 	uint8 bToggleDebug : 1;
-
-	/**
-	 * !DEPRECEATED
-	 * Replaced by 'DefaultInteractorState'!
-	 * If auto activation is true, component will start as Awake and can start immediately interact.
-	 */
-	UPROPERTY(EditAnywhere, Category="Interaction|Required", meta=(DisplayName="Auto Activate", NoResetToDefault))
-	uint8 bDoesAutoActivate : 1;
 	
 	/**
 	 * Response Collision Channel this Interactor is interacting against.

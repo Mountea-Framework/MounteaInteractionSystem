@@ -1111,12 +1111,15 @@ void UActorInteractableComponentBase::FindAndAddHighlightableMeshes()
 
 bool UActorInteractableComponentBase::TriggerCooldown()
 {
-	const int32 TempRemainingLifecycleCount = RemainingLifecycleCount - 1;
-	RemainingLifecycleCount = FMath::Max(0, TempRemainingLifecycleCount);
+	if (LifecycleCount != -1)
+	{
+		const int32 TempRemainingLifecycleCount = RemainingLifecycleCount - 1;
+		RemainingLifecycleCount = FMath::Max(0, TempRemainingLifecycleCount);
+	}
 	
 	if (GetWorld())
 	{
-		if (RemainingLifecycleCount <= 0) return false;
+		if (RemainingLifecycleCount == 0) return false;
 
 		SetState(EInteractableStateV2::EIS_Cooldown);
 		GetWorld()->GetTimerManager().SetTimer

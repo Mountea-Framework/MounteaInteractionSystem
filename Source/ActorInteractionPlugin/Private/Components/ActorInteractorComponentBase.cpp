@@ -13,8 +13,7 @@
 UActorInteractorComponentBase::UActorInteractorComponentBase()
 {
 	PrimaryComponentTick.bCanEverTick = true;
-
-	bDoesAutoActivate = false;
+	
 	bToggleDebug = false;
 
 	InteractorState = EInteractorStateV2::EIS_Asleep;
@@ -36,31 +35,17 @@ void UActorInteractorComponentBase::BeginPlay()
 	OnCollisionChanged.AddUniqueDynamic(this, &UActorInteractorComponentBase::OnInteractorCollisionChanged);
 	OnAutoActivateChanged.AddUniqueDynamic(this, &UActorInteractorComponentBase::OnInteractorAutoActivateChanged);
 
-	if (bDoesAutoActivate)
-	{
-		SetState(EInteractorStateV2::EIS_Awake);
-	}
-	else
-	{
-		SetState(DefaultInteractorState);
-	}
-
 	if (GetOwner())
 	{
 		AddIgnoredActor(GetOwner());
 	}
-}
-
-void UActorInteractorComponentBase::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
-{
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-	TickInteraction(DeltaTime);
+	
+	SetState(DefaultInteractorState);
 }
 
 void UActorInteractorComponentBase::InteractableSelected(const TScriptInterface<IActorInteractableInterface>& SelectedInteractable)
 {
-	OnInteractableSelectedEvent(SelectedInteractable);
+	Execute_OnInteractableSelectedEvent(this, SelectedInteractable);
 }
 
 void UActorInteractorComponentBase::InteractableFound(const TScriptInterface<IActorInteractableInterface>& FoundInteractable)
@@ -75,7 +60,7 @@ void UActorInteractorComponentBase::InteractableFound(const TScriptInterface<IAc
 	
 	EvaluateInteractable(FoundInteractable);
 
-	OnInteractableFoundEvent(FoundInteractable);
+	Execute_OnInteractableFoundEvent(this, FoundInteractable);
 }
 
 void UActorInteractorComponentBase::InteractableLost(const TScriptInterface<IActorInteractableInterface>& LostInteractable)
@@ -95,9 +80,10 @@ void UActorInteractorComponentBase::InteractableLost(const TScriptInterface<IAct
 		}
 	}
 
-	OnInteractableLostEvent(LostInteractable);
+	Execute_OnInteractableLostEvent(this, LostInteractable);
 }
 
+/*
 void UActorInteractorComponentBase::OnInteractionKeyPressedEvent_Implementation(const float& TimeKeyPressed, const FKey& PressedKey)
 {
 	StartInteraction(TimeKeyPressed, PressedKey);
@@ -107,6 +93,7 @@ void UActorInteractorComponentBase::OnInteractionKeyReleasedEvent_Implementation
 {
 	StopInteraction();
 }
+*/
 
 bool UActorInteractorComponentBase::IsValidInteractor() const
 {
@@ -382,11 +369,6 @@ bool UActorInteractorComponentBase::CanInteract() const
 	return false;
 }
 
-void UActorInteractorComponentBase::TickInteraction(const float DeltaTime)
-{
-	TickInteractionEvent(DeltaTime);
-}
-
 ECollisionChannel UActorInteractorComponentBase::GetResponseChannel() const
 {
 	return CollisionChannel;
@@ -490,14 +472,7 @@ void UActorInteractorComponentBase::SetState(const EInteractorStateV2 NewState)
 
 bool UActorInteractorComponentBase::DoesAutoActivate() const
 {
-	return bDoesAutoActivate;
-}
-
-void UActorInteractorComponentBase::ToggleAutoActivate(const bool bNewAutoActivate)
-{
-	bDoesAutoActivate = bNewAutoActivate;
-
-	OnAutoActivateChanged.Broadcast(bDoesAutoActivate);
+	return DefaultInteractorState == EInteractorStateV2::EIS_Active ? true : false;
 }
 
 void UActorInteractorComponentBase::SetActiveInteractable(const TScriptInterface<IActorInteractableInterface> NewInteractable)
