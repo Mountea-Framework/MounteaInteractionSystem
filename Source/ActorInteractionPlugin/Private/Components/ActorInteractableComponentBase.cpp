@@ -6,11 +6,13 @@
 
 #if WITH_EDITOR
 #include "InteractionEditorNotifications/Public/EditorHelper.h"
-#endif
 
 #include "Interfaces/ActorInteractionWidget.h"
-#include "Interfaces/ActorInteractorInterface.h"
 #include "Widgets/ActorInteractableWidget.h"
+#endif
+
+#include "Interfaces/ActorInteractorInterface.h"
+
 
 UActorInteractableComponentBase::UActorInteractableComponentBase()
 {
@@ -238,11 +240,6 @@ bool UActorInteractableComponentBase::CompleteInteractable(FString& ErrorMessage
 void UActorInteractableComponentBase::DeactivateInteractable()
 {
 	SetState(EInteractableStateV2::EIS_Disabled);
-}
-
-bool UActorInteractableComponentBase::CanInteractEvent_Implementation() const
-{
-	return CanInteract();
 }
 
 bool UActorInteractableComponentBase::CanInteract() const
@@ -872,7 +869,7 @@ void UActorInteractableComponentBase::InteractorFound(const TScriptInterface<IAc
 	{
 		SetInteractor(FoundInteractor);
 		
-		OnInteractorFoundEvent(FoundInteractor);
+		Execute_OnInteractorFoundEvent(this, FoundInteractor);
 	}
 }
 
@@ -881,7 +878,7 @@ void UActorInteractableComponentBase::InteractorLost(const TScriptInterface<IAct
 	SetState(EInteractableStateV2::EIS_Awake);
 	
 	SetInteractor(nullptr);
-	OnInteractorLostEvent(LostInteractor);
+	Execute_OnInteractorLostEvent(this, LostInteractor);
 }
 
 void UActorInteractableComponentBase::InteractionCompleted(const float& TimeCompleted)
@@ -894,7 +891,7 @@ void UActorInteractableComponentBase::InteractionCompleted(const float& TimeComp
 	FString ErrorMessage;
 	if( CompleteInteractable(ErrorMessage))
 	{
-		OnInteractionCompletedEvent(TimeCompleted);
+		Execute_OnInteractionCompletedEvent(this, TimeCompleted);
 	}
 	else AIntP_LOG(Display, TEXT("%s"), *ErrorMessage);
 }
@@ -909,7 +906,7 @@ void UActorInteractableComponentBase::InteractionStarted(const float& TimeStarte
 
 	if (CanInteract())
 	{
-		OnInteractionStartedEvent(TimeStarted, PressedKey);
+		Execute_OnInteractionStartedEvent(this, TimeStarted, PressedKey);
 	}
 }
 
@@ -925,7 +922,7 @@ void UActorInteractableComponentBase::InteractionStopped()
 
 	GetWorld()->GetTimerManager().ClearTimer(Timer_Interaction);
 
-	OnInteractionStoppedEvent();
+	Execute_OnInteractionStoppedEvent(this);
 }
 
 void UActorInteractableComponentBase::InteractionCanceled()
@@ -936,7 +933,7 @@ void UActorInteractableComponentBase::InteractionCanceled()
 
 		SetState(EInteractableStateV2::EIS_Awake);
 		
-		OnInteractionCanceledEvent();
+		Execute_OnInteractionCanceledEvent(this);
 	}
 }
 
@@ -944,7 +941,7 @@ void UActorInteractableComponentBase::InteractionLifecycleCompleted()
 {
 	SetState(EInteractableStateV2::EIS_Completed);
 
-	OnLifecycleCompletedEvent();
+	Execute_OnLifecycleCompletedEvent(this);
 }
 
 void UActorInteractableComponentBase::InteractionCooldownCompleted()
@@ -952,7 +949,7 @@ void UActorInteractableComponentBase::InteractionCooldownCompleted()
 	if (CanInteract())	SetState(EInteractableStateV2::EIS_Awake);
 	else SetState(EInteractableStateV2::EIS_Asleep);
 	
-	OnCooldownCompletedEvent();
+	Execute_OnCooldownCompletedEvent(this);
 }
 
 void UActorInteractableComponentBase::OnInteractableBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -1124,12 +1121,32 @@ bool UActorInteractableComponentBase::TriggerCooldown()
 		if (RemainingLifecycleCount == 0) return false;
 
 		SetState(EInteractableStateV2::EIS_Cooldown);
+
+		FTimerDelegate Delegate;
+
+		auto Interactable = this;
+		Delegate.BindLambda([Interactable]()
+		{
+			if (!Interactable)
+			{
+				AIntP_LOG(Error, TEXT("[TriggerCooldown] Interactable is null, cannot request OnCooldownCompletedEvent!"))
+				return;
+			}
+			if (!Interactable->GetWorld())
+			{
+				AIntP_LOG(Error, TEXT("[TriggerCooldown] Interactable has no World, cannot request OnCooldownCompletedEvent!"))
+				return;
+			}
+			AIntP_LOG(Display, TEXT("[TriggerCooldown] Interactable requested OnCooldownCompletedEvent!"))
+			Execute_OnCooldownCompletedEvent(Interactable);
+		});
+		
 		GetWorld()->GetTimerManager().SetTimer
 		(
 			Timer_Cooldown,
-			this,
-			&UActorInteractableComponentBase::OnCooldownCompletedEvent,
-			CooldownPeriod
+			Delegate,
+			CooldownPeriod,
+			false
 		);
 
 		return true;

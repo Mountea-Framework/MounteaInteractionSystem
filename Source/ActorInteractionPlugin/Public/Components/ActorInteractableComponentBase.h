@@ -123,15 +123,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void DeactivateInteractable() override;
 
-
-	/**
-	 * Returns whether this Interactable can interacted with or not.
-	 * Calls Internal CanInteract which is implemented in C++.
-	 * Be sure to call Parent Event!
-	 */
-	UFUNCTION(BlueprintNativeEvent, BlueprintPure, Category="Interaction", meta=(DisplayName = "Can Interact"))
-	bool CanInteractEvent() const;
-
+	
 	/**
 	 * Optimized request for Interactables.
 	 * Can be overriden in C++ for specific class needs.
@@ -653,130 +645,6 @@ protected:
 	 */
 	UFUNCTION(Category="Interaction")
 	virtual void OnInteractableTraced(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
-
-#pragma endregion
-
-#pragma region InteractionEvents
-
-protected:
-		
-	/**
-	 * Event bound to OnInteractableSelected.
-	 */
-	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
-	void OnInteractableSelectedEvent(const TScriptInterface<IActorInteractableInterface>& Interactable);
-	
-	/**
-	 * Event bound to OnInteractorFound.
-	 */
-	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
-	void OnInteractorFoundEvent(const TScriptInterface<IActorInteractorInterface>& FoundInteractor);
-
-	/**
-	 * Event bound to OnInteractorLost.
-	 */
-	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
-	void OnInteractorLostEvent(const TScriptInterface<IActorInteractorInterface>& LostInteractor);
-	
-	/**
-	 * Event bound to OnInteractorOverlapped.
-	 */
-	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
-	void OnInteractableBeginOverlapEvent(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
-
-	/**
-	 * Event bound to OnInteractorStopOverlap.
-	 */
-	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
-	void OnInteractableStopOverlapEvent(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
-
-	/**
-	 * Event bound to OnInteractorTraced.
-	 */
-	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
-	void OnInteractableTracedEvent(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
-
-	/**
-	 * Event bound to OnInteractionCompleted.
-	 */
-	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
-	void OnInteractionCompletedEvent(const float& FinishTime);
-
-	/**
-	 * Event bound to OnInteractionStarted.
-	 */
-	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
-	void OnInteractionStartedEvent(const float& StartTime, const FKey& PressedKey);
-
-	/**
-	 * Event bound to OnInteractionStopped.
-	 */
-	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
-	void OnInteractionStoppedEvent();
-
-	/**
-	 * Event bound to OnInteractionCanceled.
-	 */
-	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
-	void OnInteractionCanceledEvent();
-	
-	/**
-	 * Event bound to OnLifecycleCompleted.
-	 */
-	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
-	void OnLifecycleCompletedEvent();
-
-	/**
-	 * Event bound to OnCooldownCompleted.
-	 */
-	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
-	void OnCooldownCompletedEvent();
-
-#pragma endregion
-
-#pragma region SetupHelpers
-
-protected:
-		
-	/**
-	 * Event bound to OnHighlightableOverrideAdded event.
-	 * Once OnHighlightableOverrideAdded is called this event is, too.
-	 * Be sure to call Parent event to access all C++ implementation!
-	 * 
-	 * @param NewTag Tag which has been found and added to Highlightable Meshes
-	 */
-	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
-	void OnHighlightableOverrideAddedEvent(const FName NewTag);
-
-	/**
-	 * Event bound to OnHighlightableOverrideRemoved event.
-	 * Once OnHighlightableOverrideRemoved is called this event is, too.
-	 * Be sure to call Parent event to access all C++ implementation!
-	 * 
-	 * @param RemovedTag Tag which has been found and removed from Highlightable Meshes
-	 */
-	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
-	void OnHighlightableOverrideRemovedEvent(const FName RemovedTag);
-	
-	/**
-	 * Event bound to OnCollisionOverrideAdded event.
-	 * Once OnCollisionOverrideAdded is called this event is, too.
-	 * Be sure to call Parent event to access all C++ implementation!
-	 * 
-	 * @param NewTag Tag which has been found and added to list of Colliders 
-	 */
-	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
-	void OnCollisionOverrideAddedEvent(const FName NewTag);
-
-	/**
-	 * Event bound to OnCollisionOverrideRemoved event.
-	 * Once OnCollisionOverrideRemoved is called this event is, too.
-	 * Be sure to call Parent event to access all C++ implementation!
-	 * 
-	 * @param RemovedTag Tag which has been found and removed from list of Colliders 
-	 */
-	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
-	void OnCollisionOverrideRemovedEvent(const FName RemovedTag);
 
 #pragma endregion
 
@@ -1498,8 +1366,7 @@ private:
 	
 protected:
 	
-	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
-
+	virtual void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;
 	virtual EDataValidationResult IsDataValid(TArray<FText>& ValidationErrors) override;
 
 	virtual void DrawDebug();

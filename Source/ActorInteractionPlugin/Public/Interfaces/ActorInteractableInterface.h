@@ -7,7 +7,7 @@
 #include "ActorInteractableInterface.generated.h"
 
 // This class does not need to be modified.
-UINTERFACE(MinimalAPI, BlueprintType)
+UINTERFACE(BlueprintType, Blueprintable)
 class UActorInteractableInterface : public UInterface
 {
 	GENERATED_BODY()
@@ -79,6 +79,105 @@ class ACTORINTERACTIONPLUGIN_API IActorInteractableInterface
 {
 	GENERATED_BODY()
 
+#pragma region InteractableEvents
+
+public:
+	
+	/**
+	 * Returns whether this Interactable can interacted with or not.
+	 * Calls Internal CanInteract which is implemented in C++.
+	 * Be sure to call Parent Event!
+	 */
+	UFUNCTION(BlueprintNativeEvent, Category="Interaction", meta=(DisplayName = "Can Interact"))
+	bool CanInteractEvent() const;
+
+protected:
+	
+	bool CanInteractEvent_Implementation() const
+	{
+		return CanInteract();
+	}
+
+#pragma endregion 
+
+#pragma region InteractionEvents
+
+protected:
+		
+	/**
+	 * Event bound to OnInteractableSelected.
+	 */
+	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	void OnInteractableSelectedEvent(const TScriptInterface<IActorInteractableInterface>& Interactable);
+	
+	/**
+	 * Event bound to OnInteractorFound.
+	 */
+	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	void OnInteractorFoundEvent(const TScriptInterface<IActorInteractorInterface>& FoundInteractor);
+
+	/**
+	 * Event bound to OnInteractorLost.
+	 */
+	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	void OnInteractorLostEvent(const TScriptInterface<IActorInteractorInterface>& LostInteractor);
+	
+	/**
+	 * Event bound to OnInteractorOverlapped.
+	 */
+	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	void OnInteractableBeginOverlapEvent(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
+
+	/**
+	 * Event bound to OnInteractorStopOverlap.
+	 */
+	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	void OnInteractableStopOverlapEvent(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+	/**
+	 * Event bound to OnInteractorTraced.
+	 */
+	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	void OnInteractableTracedEvent(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+
+	/**
+	 * Event bound to OnInteractionCompleted.
+	 */
+	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	void OnInteractionCompletedEvent(const float& FinishTime);
+
+	/**
+	 * Event bound to OnInteractionStarted.
+	 */
+	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	void OnInteractionStartedEvent(const float& StartTime, const FKey& PressedKey);
+
+	/**
+	 * Event bound to OnInteractionStopped.
+	 */
+	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	void OnInteractionStoppedEvent();
+
+	/**
+	 * Event bound to OnInteractionCanceled.
+	 */
+	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	void OnInteractionCanceledEvent();
+	
+	/**
+	 * Event bound to OnLifecycleCompleted.
+	 */
+	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	void OnLifecycleCompletedEvent();
+
+	/**
+	 * Event bound to OnCooldownCompleted.
+	 */
+	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	void OnCooldownCompletedEvent();
+
+#pragma endregion
+	
 public:
 
 	virtual bool DoesAutoSetup() const = 0;
