@@ -7,6 +7,7 @@
 #include "Kismet/KismetMathLibrary.h"
 
 #include "Components/ShapeComponent.h"
+
 #if WITH_EDITOR
 #include "DrawDebugHelpers.h"
 #endif
@@ -112,7 +113,7 @@ void UActorInteractorComponentTrace::ProcessTrace()
 	}
 
 #if WITH_EDITOR
-	if(bToggleDebug)
+	if(DebugMode == EDebugMode::EDM_On)
 	{
 		DrawTracingDebugStart(TraceData);
 	}
@@ -149,7 +150,7 @@ void UActorInteractorComponentTrace::ProcessTrace()
 	}
 
 #if WITH_EDITOR
-	if (bToggleDebug)
+	if (DebugMode == EDebugMode::EDM_On)
 	{
 		DrawTracingDebugEnd(TraceData);
 	}
@@ -227,7 +228,7 @@ void UActorInteractorComponentTrace::SetState(const EInteractorStateV2 NewState)
 #if WITH_EDITOR
 void UActorInteractorComponentTrace::DrawTracingDebugStart(FInteractionTraceDataV2& InteractionTraceData) const
 {
-	if(bToggleDebug)
+	if(DebugMode == EDebugMode::EDM_On)
 	{
 		switch (TraceType)
 		{
@@ -247,7 +248,7 @@ void UActorInteractorComponentTrace::DrawTracingDebugEnd(FInteractionTraceDataV2
 {
 	for (FHitResult& HitResult : InteractionTraceData.HitResults)
 	{
-		if(bToggleDebug && HitResult.GetComponent())
+		if(DebugMode == EDebugMode::EDM_On && HitResult.GetComponent())
 		{
 			DrawDebugSphere(GetWorld(), HitResult.ImpactPoint, 10.f, 6, FColor::Green, false, TraceInterval, 0, 0.25f);
 		}

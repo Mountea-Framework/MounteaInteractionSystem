@@ -14,7 +14,7 @@ UActorInteractorComponentBase::UActorInteractorComponentBase()
 {
 	PrimaryComponentTick.bCanEverTick = true;
 	
-	bToggleDebug = false;
+	DebugMode = EDebugMode::EDM_Off;
 
 	InteractorState = EInteractorStateV2::EIS_Asleep;
 	DefaultInteractorState = EInteractorStateV2::EIS_Asleep;
@@ -457,3 +457,51 @@ void UActorInteractorComponentBase::SetActiveInteractable(const TScriptInterface
 
 TScriptInterface<IActorInteractableInterface> UActorInteractorComponentBase::GetActiveInteractable() const
 {	return ActiveInteractable; }
+
+void UActorInteractorComponentBase::ToggleDebug()
+{
+	switch (DebugMode)
+	{
+		case EDebugMode::EDM_Off:
+			DebugMode = EDebugMode::EDM_On;
+			break;
+		case EDebugMode::EDM_On:
+			DebugMode = EDebugMode::EDM_Off;
+			break;
+		default:
+			break;
+	}
+}
+
+void UActorInteractorComponentBase::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent)
+{
+	Super::PostEditChangeChainProperty(PropertyChangedEvent);
+}
+
+EDataValidationResult UActorInteractorComponentBase::IsDataValid(TArray<FText>& ValidationErrors)
+{
+	const auto DefaultValue = Super::IsDataValid(ValidationErrors);
+	bool bAnyError = false;
+
+	FString InteractorName = GetName();
+	InteractorName.ReplaceInline(TEXT("_GEN_VARIABLE"), TEXT(""));
+
+	if
+	(
+		DefaultInteractorState == EInteractorStateV2::EIS_Active  ||
+		DefaultInteractorState == EInteractorStateV2::Default
+	)
+	{
+		const FText ErrorMessage = FText::FromString
+		(
+			InteractorName.Append(TEXT(": DefaultInteractorState cannot be")).Append(GetEnumValueAsString("EInteractorStateV2", DefaultInteractorState)).Append(TEXT("!"))
+		);
+
+		DefaultInteractorState = EInteractorStateV2::EIS_Awake;
+		
+		ValidationErrors.Add(ErrorMessage);
+		bAnyError = true;
+	}
+	
+	return bAnyError ? EDataValidationResult::Invalid : DefaultValue;
+}
