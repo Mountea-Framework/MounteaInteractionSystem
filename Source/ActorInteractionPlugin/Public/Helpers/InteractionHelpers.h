@@ -159,6 +159,21 @@ struct FInteractionKeySetup
      TArray<FKey> Keys;
 };
 
+#pragma endregion
+
+#pragma region DebugMode
+/**
+ * Fancier boolean logic.
+ */
+UENUM(BlueprintType)
+enum class EDebugMode : uint8
+{
+ EDM_On   UMETA(DisplayName ="On"),
+ EDM_Off  UMETA(DisplayName ="Off"),
+
+ Default  UMETA(Hidden)
+};
+
 #pragma endregion 
 
 #pragma region TEMPLATES
