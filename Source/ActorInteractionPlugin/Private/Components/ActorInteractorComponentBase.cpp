@@ -83,18 +83,6 @@ void UActorInteractorComponentBase::InteractableLost(const TScriptInterface<IAct
 	Execute_OnInteractableLostEvent(this, LostInteractable);
 }
 
-/*
-void UActorInteractorComponentBase::OnInteractionKeyPressedEvent_Implementation(const float& TimeKeyPressed, const FKey& PressedKey)
-{
-	StartInteraction(TimeKeyPressed, PressedKey);
-}
-
-void UActorInteractorComponentBase::OnInteractionKeyReleasedEvent_Implementation(const float& TimeKeyReleased, const FKey& ReleasedKey)
-{
-	StopInteraction();
-}
-*/
-
 bool UActorInteractorComponentBase::IsValidInteractor() const
 {
 	switch (InteractorState)
@@ -252,9 +240,7 @@ bool UActorInteractorComponentBase::SuppressInteractor(FString& ErrorMessage)
 }
 
 void UActorInteractorComponentBase::DeactivateInteractor()
-{
-	SetState(EInteractorStateV2::EIS_Disabled);
-}
+{	SetState(EInteractorStateV2::EIS_Disabled);}
 
 void UActorInteractorComponentBase::AddIgnoredActor(AActor* IgnoredActor)
 {
@@ -317,9 +303,7 @@ void UActorInteractorComponentBase::RemoveInteractionDependency(const TScriptInt
 }
 
 TArray<TScriptInterface<IActorInteractorInterface>> UActorInteractorComponentBase::GetInteractionDependencies() const
-{
-	return InteractionDependencies;
-}
+{	return InteractionDependencies;}
 
 void UActorInteractorComponentBase::ProcessDependencies()
 {
@@ -346,11 +330,6 @@ void UActorInteractorComponentBase::ProcessDependencies()
 	}
 }
 
-bool UActorInteractorComponentBase::CanInteractEvent_Implementation() const
-{
-	return CanInteract();
-}
-
 bool UActorInteractorComponentBase::CanInteract() const
 {
 	switch (InteractorState)
@@ -370,9 +349,7 @@ bool UActorInteractorComponentBase::CanInteract() const
 }
 
 ECollisionChannel UActorInteractorComponentBase::GetResponseChannel() const
-{
-	return CollisionChannel;
-}
+{ return CollisionChannel; }
 
 void UActorInteractorComponentBase::SetResponseChannel(const ECollisionChannel NewResponseChannel)
 {
@@ -382,9 +359,7 @@ void UActorInteractorComponentBase::SetResponseChannel(const ECollisionChannel N
 }
 
 EInteractorStateV2 UActorInteractorComponentBase::GetState() const
-{
-	return InteractorState;
-}
+{	return InteractorState; }
 
 void UActorInteractorComponentBase::SetState(const EInteractorStateV2 NewState)
 {
@@ -471,9 +446,7 @@ void UActorInteractorComponentBase::SetState(const EInteractorStateV2 NewState)
 }
 
 bool UActorInteractorComponentBase::DoesAutoActivate() const
-{
-	return DefaultInteractorState == EInteractorStateV2::EIS_Active ? true : false;
-}
+{	return DefaultInteractorState == EInteractorStateV2::EIS_Active ? true : false;}
 
 void UActorInteractorComponentBase::SetActiveInteractable(const TScriptInterface<IActorInteractableInterface> NewInteractable)
 {
@@ -483,6 +456,4 @@ void UActorInteractorComponentBase::SetActiveInteractable(const TScriptInterface
 }
 
 TScriptInterface<IActorInteractableInterface> UActorInteractorComponentBase::GetActiveInteractable() const
-{
-	return ActiveInteractable;
-}
+{	return ActiveInteractable; }

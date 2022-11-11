@@ -132,6 +132,22 @@ public:
 	void OnInteractorAutoActivateChanged(const bool NewAutoActivate);
 
 #pragma endregion
+
+#pragma region Validation
+
+	/**
+	 * Returns whether this Interactor can interact or not.
+	 * Parent Calls 'CanInteract' function which is implemented in C++.
+	 * For more information, visit GitHub Wiki: https://github.com/Mountea-Framework/ActorInteractionPlugin/wiki/Can-Interactor-Interact 
+	 */
+	UFUNCTION(BlueprintNativeEvent, BlueprintPure, Category="Interaction")
+	bool CanInteractEvent() const;
+	bool CanInteractEvent_Implementation()
+	{
+		return CanInteract();
+	};
+
+#pragma endregion
 	
 public:
 

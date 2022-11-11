@@ -78,6 +78,10 @@ protected:
 
 public:
 
+	/**
+	 * Returns whether this Interactor is Valid for Interactions.
+	 * Disabled/Suppressed Interactors are not valid.
+	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual bool IsValidInteractor() const override;
 	
@@ -89,7 +93,6 @@ public:
 	UFUNCTION()
 	virtual void EvaluateInteractable(const TScriptInterface<IActorInteractableInterface>& FoundInteractable) override;
 
-
 	/**
 	 * Function to start interaction.
 	 * Interaction will start only if CanInteract function evaluates true.
@@ -98,7 +101,6 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void StartInteraction(const float StartTime, const FKey& InputKey) override;
-
 	/**
 	 * Function to stop interaction.
 	 * No conditions required.
@@ -115,7 +117,6 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual bool ActivateInteractor(FString& ErrorMessage) override;
-
 	/**
 	 * Tries to Wake Up Interactor by setting Interactor state to Stand By.
 	 * Returns whether it was successful or not.
@@ -124,7 +125,6 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual bool WakeUpInteractor(FString& ErrorMessage) override;
-
 	/**
 	 * Tries to Suppress Interactor by setting Interactor state to Suppressed.
 	 * Returns whether it was successful or not.
@@ -133,7 +133,6 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual bool SuppressInteractor(FString& ErrorMessage) override;
-	
 	/**
 	 * Deactivates Interactor.
 	 */
@@ -209,14 +208,6 @@ public:
 	virtual void ProcessDependencies() override;
 
 	/**
-	 * Returns whether this Interactor can interact or not.
-	 * Parent Calls 'CanInteract' function which is implemented in C++.
-	 * For more information, visit GitHub Wiki: https://github.com/Mountea-Framework/ActorInteractionPlugin/wiki/Can-Interactor-Interact 
-	 */
-	UFUNCTION(BlueprintNativeEvent, BlueprintPure, Category="Interaction")
-	bool CanInteractEvent() const;
-
-	/**
 	 * Optimized request for Interactor.
 	 * Can be overriden in C++ for specific class needs.
 	 */
@@ -229,7 +220,6 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual ECollisionChannel GetResponseChannel() const override;
-
 	/**
 	 * Sets Collision Channel as Response Channel for this Interactor.
 	 * Tip: Use custom Collision Channel for Interaction types.
@@ -248,7 +238,6 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure,Category="Interaction")
 	virtual EInteractorStateV2 GetState() const override;
-
 	/**
 	 * Tries to set Interactor State.
 	 * State machine apply!
@@ -258,13 +247,11 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void SetState(const EInteractorStateV2 NewState) override;
 
-
 	/**
 	 * Returns whether Interactor auto activates or not.
 	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure,Category="Interaction")
 	virtual bool DoesAutoActivate() const override;
-
 
 	/**
 	 * Sets specified or nul Interactable to be Active Interactable.
@@ -272,7 +259,6 @@ public:
 	 */
 	UFUNCTION(Category="Interaction")
 	virtual void SetActiveInteractable(const TScriptInterface<IActorInteractableInterface> NewInteractable) override;
-
 	/**
 	 * Returns Active Interactable if there is any. Otherwise null.
 	 */
@@ -301,56 +287,47 @@ protected:
 	 */
 	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Interaction")
 	FInteractableSelected OnInteractableSelected;
-
 	/**
 	 * This event is called once this Interactor finds any Interactable.
 	 * This event might happen for multiple Interactables. Each one is compared and if fit it is fed to OnInteractableSelected.
 	 */
 	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Interaction")
 	FInteractableFound OnInteractableFound;
-
 	/**
 	 * This event is called one this Interactor loose its Active Interactable.
 	 */
 	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Interaction")
 	FInteractableLost OnInteractableLost;
-
 	/**
 	 * This event should be called once starting the Interaction Action is requested and valid Key is pressed.
 	 */
 	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Interaction")
 	FInteractionKeyPressed OnInteractionKeyPressed;
-
 	/**
 	 * This event should be called once stopping the Interaction Action is requested and valid Key is released.
 	 */
 	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Interaction")
 	FInteractionKeyReleased OnInteractionKeyReleased;
-
 	/**
 	 * This event is called once SetState function sets new State.
 	 */
 	UPROPERTY(BlueprintAssignable, Category="Interaction")
 	FStateChanged OnStateChanged;
-
 	/**
 	 * This event is called once SetResponseChannel set new Collision Channel.
 	 */
 	UPROPERTY(BlueprintAssignable, Category="Interaction")
 	FCollisionChanged OnCollisionChanged;
-
 	/**
 	 * This event is called once ToggleAutoActivate sets new value.
 	 */
 	UPROPERTY(BlueprintAssignable, Category="Interaction")
 	FAutoActivateChanged OnAutoActivateChanged;
-
 	/**
 	 * This event is called once Ignored Actor is successfully added to List of Ignored Actors. 
 	 */
 	UPROPERTY(BlueprintAssignable, Category="Interaction")
 	FIgnoredActorAdded OnIgnoredActorAdded;
-
 	/**
 	 * This event is called once Ignored Actor is successfully removed from List of Ignored Actors. 
 	 */
