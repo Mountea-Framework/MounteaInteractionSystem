@@ -7,6 +7,8 @@
 #include "Interfaces/ActorInteractorInterface.h"
 #include "ActorInteractorComponentBase.generated.h"
 
+enum class EDebugMode : uint8;
+
 /**
  * Actor Interactor Base Component
  *
@@ -270,10 +272,7 @@ public:
 	 * Toggles debug On/Off.
 	 */
 	UFUNCTION(BlueprintCallable, CallInEditor, Category="Interaction", meta=(DevelopmentOnly))
-	virtual void ToggleDebug() override
-	{
-		bToggleDebug = !bToggleDebug;
-	}
+	virtual void ToggleDebug() override;
 
 protected:
 
@@ -342,7 +341,7 @@ protected:
 	 * Does not affect Shipping builds by default C++ implementation.
 	 */
 	UPROPERTY(EditAnywhere, Category="Interaction|Debug")
-	uint8 bToggleDebug : 1;
+	EDebugMode DebugMode;
 	
 	/**
 	 * Response Collision Channel this Interactor is interacting against.
@@ -385,4 +384,11 @@ private:
 	// List of interactors suppressed by this one
 	UPROPERTY(VisibleAnywhere, Category="Interaction|Read Only")
 	TArray<TScriptInterface<IActorInteractorInterface>> InteractionDependencies;
+
+#pragma region Editor
+
+	virtual void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;
+	virtual EDataValidationResult IsDataValid(TArray<FText>& ValidationErrors) override;
+
+#pragma endregion 
 };

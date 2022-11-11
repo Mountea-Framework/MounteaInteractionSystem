@@ -98,10 +98,7 @@ protected:
 	void OnTraceTypeChangedEvent(const ETraceType& NewType);
 
 protected:
-
-	UPROPERTY(VisibleAnywhere, Category="Interaction|Debug")
-	FTimerHandle Timer_Ticking;
-
+	
 	/**
 	 * Defines how precise the interaction is.
 	 * - Loose Tracing is using BoxTrace and does not require precision.
@@ -153,6 +150,13 @@ protected:
 	 */
 	UPROPERTY(VisibleAnywhere, Category="Interaction|Read Only", AdvancedDisplay, meta=(DisplayName="Trace Start (World Space Transform)"))
 	FTransform CustomTraceTransform;
+
+	/**
+	 * Timer Handle.
+	 * Won't display any values in Blueprints.
+	 */
+	UPROPERTY(VisibleAnywhere, Category="Interaction|Read Only")
+	FTimerHandle Timer_Ticking;
 
 protected:
 	
