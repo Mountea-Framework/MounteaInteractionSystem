@@ -7,8 +7,10 @@
 #include "Kismet/KismetMathLibrary.h"
 
 #include "Components/ShapeComponent.h"
+#include "Helpers/InteractionHelpers.h"
 
 #if WITH_EDITOR
+#include "EditorHelper.h"
 #include "DrawDebugHelpers.h"
 #endif
 
@@ -113,7 +115,7 @@ void UActorInteractorComponentTrace::ProcessTrace()
 	}
 
 #if WITH_EDITOR
-	if(DebugMode == EDebugMode::EDM_On)
+	if(DebugSettings.DebugMode)
 	{
 		DrawTracingDebugStart(TraceData);
 	}
@@ -150,7 +152,7 @@ void UActorInteractorComponentTrace::ProcessTrace()
 	}
 
 #if WITH_EDITOR
-	if (DebugMode == EDebugMode::EDM_On)
+	if (DebugSettings.DebugMode)
 	{
 		DrawTracingDebugEnd(TraceData);
 	}
@@ -228,7 +230,7 @@ void UActorInteractorComponentTrace::SetState(const EInteractorStateV2 NewState)
 #if WITH_EDITOR
 void UActorInteractorComponentTrace::DrawTracingDebugStart(FInteractionTraceDataV2& InteractionTraceData) const
 {
-	if(DebugMode == EDebugMode::EDM_On)
+	if(DebugSettings.DebugMode)
 	{
 		switch (TraceType)
 		{
@@ -248,10 +250,96 @@ void UActorInteractorComponentTrace::DrawTracingDebugEnd(FInteractionTraceDataV2
 {
 	for (FHitResult& HitResult : InteractionTraceData.HitResults)
 	{
-		if(DebugMode == EDebugMode::EDM_On && HitResult.GetComponent())
+		if(DebugSettings.DebugMode && HitResult.GetComponent())
 		{
 			DrawDebugSphere(GetWorld(), HitResult.ImpactPoint, 10.f, 6, FColor::Green, false, TraceInterval, 0, 0.25f);
 		}
 	}
 }
+
+void UActorInteractorComponentTrace::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent)
+{
+	Super::PostEditChangeChainProperty(PropertyChangedEvent);
+
+	const FName PropertyName = (PropertyChangedEvent.MemberProperty != nullptr) ? PropertyChangedEvent.GetPropertyName() : NAME_None;
+	
+	FString InteractorName = GetName();
+	// Format Name
+	{
+		if (InteractorName.Contains(TEXT("_GEN_VARIABLE")))
+		{
+			InteractorName.ReplaceInline(TEXT("_GEN_VARIABLE"), TEXT(""));
+		}
+		if(InteractorName.EndsWith(TEXT("_C")) && InteractorName.StartsWith(TEXT("Default__")))
+		{
+		
+			InteractorName.RightChopInline(9);
+			InteractorName.LeftChopInline(2);
+		}
+	}
+
+	if (PropertyName == GET_MEMBER_NAME_CHECKED(UActorInteractorComponentTrace, TraceInterval))
+	{
+		if (TraceInterval < 0.01f)
+		{
+			const FText ErrorMessage = FText::FromString
+			(
+				InteractorName.Append(TEXT(": TraceInterval cannot be less than 0.01s!"))
+			);
+			FEditorHelper::DisplayEditorNotification(ErrorMessage, SNotificationItem::CS_Fail, 5.f, 2.f, TEXT("Icons.Error"));
+
+			TraceInterval = 0.01f;
+		}
+
+		if (TraceInterval > 3.f && DebugSettings.EditorDebugMode)
+		{
+			const FText ErrorMessage = FText::FromString
+			(
+				InteractorName.Append(TEXT(": TraceInterval is more than 3s! This might be unintentional and cause gameplay issues."))
+			);
+			FEditorHelper::DisplayEditorNotification(ErrorMessage, SNotificationItem::CS_Fail, 5.f, 2.f, TEXT("Icons.Warning"));
+		}
+	}
+
+	if (PropertyName == GET_MEMBER_NAME_CHECKED(UActorInteractorComponentTrace, TraceRange))
+	{
+		if (TraceRange < 1.f)
+		{
+			const FText ErrorMessage = FText::FromString
+			(
+				InteractorName.Append(TEXT(": TraceRange cannot be less than 1cm!"))
+			);
+			FEditorHelper::DisplayEditorNotification(ErrorMessage, SNotificationItem::CS_Fail, 5.f, 2.f, TEXT("Icons.Error"));
+
+			TraceRange = 0.01f;
+		}
+
+		if (TraceRange > 5000.f && DebugSettings.EditorDebugMode)
+		{
+			const FText ErrorMessage = FText::FromString
+			(
+				InteractorName.Append(TEXT(": TraceRange is more than 5000cm! This might be unintentional and cause gameplay issues."))
+			);
+			FEditorHelper::DisplayEditorNotification(ErrorMessage, SNotificationItem::CS_Fail, 5.f, 2.f, TEXT("Icons.Warning"));
+		}
+	}
+
+	if (PropertyName == GET_MEMBER_NAME_CHECKED(UActorInteractorComponentTrace, TraceShapeHalfSize))
+	{
+		if (TraceShapeHalfSize > 25.f && DebugSettings.EditorDebugMode)
+		{
+			const FText ErrorMessage = FText::FromString
+			(
+				InteractorName.Append(TEXT(": TraceShapeHalfSize is more than 25cm! This might be unintentional and cause gameplay issues."))
+			);
+			FEditorHelper::DisplayEditorNotification(ErrorMessage, SNotificationItem::CS_Fail, 5.f, 2.f, TEXT("Icons.Warning"));
+		}
+	}
+}
+
+EDataValidationResult UActorInteractorComponentTrace::IsDataValid(TArray<FText>& ValidationErrors)
+{
+	return Super::IsDataValid(ValidationErrors);
+}
+
 #endif

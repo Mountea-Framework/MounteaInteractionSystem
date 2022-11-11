@@ -69,10 +69,7 @@ protected:
 	virtual void BeginPlay() override;
 
 protected:
-
-	virtual void DrawTracingDebugStart(FInteractionTraceDataV2& InteractionTraceData) const;
-	virtual void DrawTracingDebugEnd(FInteractionTraceDataV2& InteractionTraceData) const;
-
+	
 	UFUNCTION(BlueprintCallable, Category="Interaction|Tracing")
 	virtual void DisableTracing();
 	UFUNCTION(BlueprintCallable, Category="Interaction|Tracing")
@@ -123,7 +120,7 @@ protected:
 	 * Higher the value, further items can be reached.
 	 * Min value: 0.01cm
 	 */
-	UPROPERTY(EditAnywhere, Category="Interaction|Required", meta=(Units = "cm", UIMin=0.01, ClampMin=0.01, DisplayName="Interaction Range (cm)"))
+	UPROPERTY(EditAnywhere, Category="Interaction|Required", meta=(Units = "cm", UIMin=1, ClampMin=1, DisplayName="Interaction Range (cm)"))
 	float TraceRange;
 
 	/**
@@ -162,4 +159,16 @@ protected:
 	
 	UPROPERTY(BlueprintAssignable, Category="Interaction")
 	FTraceTypeChanged OnTraceTypeChanged;
+
+#if WITH_EDITOR
+
+protected:
+
+	virtual void DrawTracingDebugStart(FInteractionTraceDataV2& InteractionTraceData) const;
+	virtual void DrawTracingDebugEnd(FInteractionTraceDataV2& InteractionTraceData) const;
+
+	virtual void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;
+	virtual EDataValidationResult IsDataValid(TArray<FText>& ValidationErrors) override;
+
+#endif	
 };
