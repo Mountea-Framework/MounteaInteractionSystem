@@ -148,6 +148,8 @@ void FActorInteractionPluginEditor::HandleNewInteractorBlueprintCreated(UBluepri
 	{
 		Blueprint->LastEditedDocuments.Add(FunctionGraph);
 	}
+	
+	Blueprint->BlueprintCategory = FString("Interaction");
 }
 
 void FActorInteractionPluginEditor::HandleNewInteractableBlueprintCreated(UBlueprint* Blueprint)
@@ -168,6 +170,8 @@ void FActorInteractionPluginEditor::HandleNewInteractableBlueprintCreated(UBluep
 	{
 		Blueprint->LastEditedDocuments.Add(FunctionGraph);
 	}
+
+	Blueprint->BlueprintCategory = FString("Interaction");
 }
 
 #undef LOCTEXT_NAMESPACE
