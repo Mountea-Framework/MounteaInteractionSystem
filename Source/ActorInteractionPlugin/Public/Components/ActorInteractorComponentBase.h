@@ -4,10 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "Helpers/InteractionHelpers.h"
 #include "Interfaces/ActorInteractorInterface.h"
 #include "ActorInteractorComponentBase.generated.h"
 
-enum class EDebugMode : uint8;
+struct FDebugSettings;
 
 /**
  * Actor Interactor Base Component
@@ -270,6 +271,7 @@ public:
 	/**
 	 * Development Only.
 	 * Toggles debug On/Off.
+	 * Does not affect Editor Debug!
 	 */
 	UFUNCTION(BlueprintCallable, CallInEditor, Category="Interaction", meta=(DevelopmentOnly))
 	virtual void ToggleDebug() override;
@@ -337,11 +339,12 @@ protected:
 
 	/**
 	 * If active, debug can be drawn.
+	 * You can disable Editor Warnings. Editor Errors cannot be disabled!
 	 * Serves a general purpose as a flag.
 	 * Does not affect Shipping builds by default C++ implementation.
 	 */
-	UPROPERTY(EditAnywhere, Category="Interaction|Debug")
-	EDebugMode DebugMode;
+	UPROPERTY(EditAnywhere, Category="Interaction|Debug", meta=(ShowOnlyInnerProperties))
+	struct FDebugSettings DebugSettings;
 	
 	/**
 	 * Response Collision Channel this Interactor is interacting against.
@@ -386,6 +389,8 @@ private:
 	TArray<TScriptInterface<IActorInteractorInterface>> InteractionDependencies;
 
 #pragma region Editor
+
+protected:
 
 	virtual void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;
 	virtual EDataValidationResult IsDataValid(TArray<FText>& ValidationErrors) override;

@@ -5,6 +5,7 @@
 
 #if WITH_EDITOR
 #include "Helpers/ActorInteractionPluginLog.h"
+#include "EditorHelper.h"
 #endif
 
 #include "Helpers/InteractionHelpers.h"
@@ -13,8 +14,9 @@
 UActorInteractorComponentBase::UActorInteractorComponentBase()
 {
 	PrimaryComponentTick.bCanEverTick = true;
-	
-	DebugMode = EDebugMode::EDM_Off;
+
+	DebugSettings.DebugMode = false;
+	DebugSettings.EditorDebugMode = true;
 
 	InteractorState = EInteractorStateV2::EIS_Asleep;
 	DefaultInteractorState = EInteractorStateV2::EIS_Asleep;
@@ -460,22 +462,45 @@ TScriptInterface<IActorInteractableInterface> UActorInteractorComponentBase::Get
 
 void UActorInteractorComponentBase::ToggleDebug()
 {
-	switch (DebugMode)
-	{
-		case EDebugMode::EDM_Off:
-			DebugMode = EDebugMode::EDM_On;
-			break;
-		case EDebugMode::EDM_On:
-			DebugMode = EDebugMode::EDM_Off;
-			break;
-		default:
-			break;
-	}
+	DebugSettings.DebugMode = !DebugSettings.DebugMode;
 }
 
 void UActorInteractorComponentBase::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent)
 {
-	Super::PostEditChangeChainProperty(PropertyChangedEvent);
+	const FName PropertyName = (PropertyChangedEvent.MemberProperty != nullptr) ? PropertyChangedEvent.GetPropertyName() : NAME_None;
+	
+	FString InteractorName = GetName();
+	// Format Name
+	{
+		if (InteractorName.Contains(TEXT("_GEN_VARIABLE")))
+		{
+			InteractorName.ReplaceInline(TEXT("_GEN_VARIABLE"), TEXT(""));
+		}
+		if(InteractorName.EndsWith(TEXT("_C")) && InteractorName.StartsWith(TEXT("Default__")))
+		{
+		
+			InteractorName.RightChopInline(9);
+			InteractorName.LeftChopInline(2);
+		}
+	}
+
+	if (PropertyName == GET_MEMBER_NAME_CHECKED(UActorInteractorComponentBase, DefaultInteractorState))
+	{
+		if
+		(
+			DefaultInteractorState == EInteractorStateV2::EIS_Active  ||
+			DefaultInteractorState == EInteractorStateV2::Default
+		)
+		{
+			const FText ErrorMessage = FText::FromString
+			(
+				InteractorName.Append(TEXT(": DefaultInteractorState cannot be")).Append(GetEnumValueAsString("EInteractorStateV2", DefaultInteractorState)).Append(TEXT("!"))
+			);
+			FEditorHelper::DisplayEditorNotification(ErrorMessage, SNotificationItem::CS_Fail, 5.f, 2.f, TEXT("Icons.Error"));
+
+			DefaultInteractorState = EInteractorStateV2::EIS_Awake;
+		}
+	}
 }
 
 EDataValidationResult UActorInteractorComponentBase::IsDataValid(TArray<FText>& ValidationErrors)
@@ -484,7 +509,19 @@ EDataValidationResult UActorInteractorComponentBase::IsDataValid(TArray<FText>& 
 	bool bAnyError = false;
 
 	FString InteractorName = GetName();
-	InteractorName.ReplaceInline(TEXT("_GEN_VARIABLE"), TEXT(""));
+	// Format Name
+	{
+		if (InteractorName.Contains(TEXT("_GEN_VARIABLE")))
+		{
+			InteractorName.ReplaceInline(TEXT("_GEN_VARIABLE"), TEXT(""));
+		}
+		if(InteractorName.EndsWith(TEXT("_C")) && InteractorName.StartsWith(TEXT("Default__")))
+		{
+		
+			InteractorName.RightChopInline(9);
+			InteractorName.LeftChopInline(2);
+		}
+	}
 
 	if
 	(
