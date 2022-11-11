@@ -163,21 +163,6 @@ struct FInteractionKeySetup
 
 #pragma region Debug
 
-#pragma region DebugMode
-/**
- * Fancier boolean logic.
- */
-UENUM(BlueprintType)
-enum class EDebugMode : uint8
-{
- EDM_On         UMETA(DisplayName ="On"),
- EDM_Off        UMETA(DisplayName ="Off"),
-
- Default        UMETA(Hidden)
-};
-
-#pragma endregion
-
 #pragma region DebugSettings
 
 /**
@@ -192,10 +177,10 @@ public:
 
     FDebugSettings()
     {
-     DebugMode = EDebugMode::EDM_Off;
-     EditorDebugMode = EDebugMode::EDM_Off;
+     DebugMode = false;
+     EditorDebugMode = true;
     };
-    FDebugSettings(EDebugMode NewDebug, EDebugMode NewEditorDebug) :
+    FDebugSettings(uint8 NewDebug, uint8 NewEditorDebug) :
     DebugMode(NewDebug),
     EditorDebugMode(NewEditorDebug)
     {};
@@ -207,8 +192,8 @@ public:
     {
       if (bDebug)
       {
-        DebugMode = EDebugMode::EDM_On;
-        EditorDebugMode = EDebugMode::EDM_On;
+        DebugMode = bDebug;
+        EditorDebugMode = bDebug;
       }
     }
 
@@ -217,13 +202,13 @@ public:
     * Default: Off
     */
     UPROPERTY(EditAnywhere)
-    EDebugMode DebugMode;
+    uint8 DebugMode : 1;
    /**
     * Enables Warnings in Editor.
     * Default: On
     */
     UPROPERTY(EditAnywhere)
-    EDebugMode EditorDebugMode;
+    uint8 EditorDebugMode : 1;
 };
 
 #pragma endregion 
