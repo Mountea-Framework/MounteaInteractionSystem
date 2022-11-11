@@ -34,6 +34,7 @@ class IActorInteractorInterface;
 enum class EInteractableStateV2 : uint8;
 enum class EInteractableLifecycle : uint8;
 
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractorFound, const TScriptInterface<IActorInteractorInterface>&, FoundInteractor);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractorLost, const TScriptInterface<IActorInteractorInterface>&, LostInteractor);
 
