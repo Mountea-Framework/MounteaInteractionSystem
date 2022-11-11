@@ -161,6 +161,8 @@ struct FInteractionKeySetup
 
 #pragma endregion
 
+#pragma region Debug
+
 #pragma region DebugMode
 /**
  * Fancier boolean logic.
@@ -168,11 +170,63 @@ struct FInteractionKeySetup
 UENUM(BlueprintType)
 enum class EDebugMode : uint8
 {
- EDM_On   UMETA(DisplayName ="On"),
- EDM_Off  UMETA(DisplayName ="Off"),
+ EDM_On         UMETA(DisplayName ="On"),
+ EDM_Off        UMETA(DisplayName ="Off"),
 
- Default  UMETA(Hidden)
+ Default        UMETA(Hidden)
 };
+
+#pragma endregion
+
+#pragma region DebugSettings
+
+/**
+ * Helper structure to encapsulate Debug Settings
+ */
+USTRUCT(BlueprintType)
+struct FDebugSettings
+{
+    GENERATED_BODY()
+
+public:
+
+    FDebugSettings()
+    {
+     DebugMode = EDebugMode::EDM_Off;
+     EditorDebugMode = EDebugMode::EDM_Off;
+    };
+    FDebugSettings(EDebugMode NewDebug, EDebugMode NewEditorDebug) :
+    DebugMode(NewDebug),
+    EditorDebugMode(NewEditorDebug)
+    {};
+    FDebugSettings(const FDebugSettings& Other) :
+    DebugMode(Other.DebugMode),
+    EditorDebugMode(Other.EditorDebugMode)
+    {};
+    FDebugSettings(const bool bDebug)
+    {
+      if (bDebug)
+      {
+        DebugMode = EDebugMode::EDM_On;
+        EditorDebugMode = EDebugMode::EDM_On;
+      }
+    }
+
+   /**
+    * Enables Debug in Gameplay.
+    * Default: Off
+    */
+    UPROPERTY(EditAnywhere)
+    EDebugMode DebugMode;
+   /**
+    * Enables Warnings in Editor.
+    * Default: On
+    */
+    UPROPERTY(EditAnywhere)
+    EDebugMode EditorDebugMode;
+};
+
+#pragma endregion 
 
 #pragma endregion 
 
