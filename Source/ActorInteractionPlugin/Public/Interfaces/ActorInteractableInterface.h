@@ -253,6 +253,7 @@ public:
 
 
 	virtual bool TriggerCooldown() = 0;
+	virtual void ToggleWidgetVisibility(const bool IsVisible) = 0;
 	
 	virtual TArray<TSoftClassPtr<UObject>> GetIgnoredClasses() const = 0;
 	virtual void SetIgnoredClasses(const TArray<TSoftClassPtr<UObject>> NewIgnoredClasses) = 0;

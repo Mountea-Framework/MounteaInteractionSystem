@@ -25,12 +25,18 @@ class ACTORINTERACTIONPLUGIN_API IActorInteractionWidget
 	GENERATED_BODY()
 
 public:
-
+	
 	/**
 	 * This event should be called when you want to refresh UI data.
 	 */
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category="Interaction")
 	void UpdateWidget();
+
+	/**
+	 * This event should be called when you want to Hide/Unhide the Widget.
+	 */
+	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category="Interaction")
+	void ToggleVisibility();
 
 	/**
 	 * Sets new Title Text.
