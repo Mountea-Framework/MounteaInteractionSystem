@@ -18,7 +18,7 @@ UActorInteractableComponentBase::UActorInteractableComponentBase()
 {
 	PrimaryComponentTick.bCanEverTick = false;
 
-	bToggleDebug = false;
+	DebugMode = EDebugMode::EDM_Off;
 	SetupType = ESetupType::EST_Quick;
 
 	InteractableState = EInteractableStateV2::EIS_Asleep;
@@ -1221,6 +1221,21 @@ void UActorInteractableComponentBase::UnbindHighlightableMesh(UMeshComponent* Me
 	MeshComponent->SetRenderCustomDepth(false);
 }
 
+void UActorInteractableComponentBase::ToggleDebug()
+{
+	switch (DebugMode)
+	{
+		case EDebugMode::EDM_Off:
+			DebugMode = EDebugMode::EDM_On;
+			break;
+		case EDebugMode::EDM_On:
+			DebugMode = EDebugMode::EDM_Off;
+			break;
+		default:
+			break;
+	}
+}
+
 void UActorInteractableComponentBase::AutoSetup()
 {
 	switch (SetupType)
@@ -1461,7 +1476,7 @@ EDataValidationResult UActorInteractableComponentBase::IsDataValid(TArray<FText>
 
 void UActorInteractableComponentBase::DrawDebug()
 {
-	if (bToggleDebug)
+	if (DebugMode == EDebugMode::EDM_On)
 	{
 		for (const auto Itr : CollisionComponents)
 		{

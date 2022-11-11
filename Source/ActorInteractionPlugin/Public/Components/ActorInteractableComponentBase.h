@@ -45,6 +45,8 @@ struct FCollisionShapeCache
 	
 };
 
+enum class EDebugMode : uint8;
+
 #pragma endregion 
 
 /**
@@ -854,10 +856,7 @@ protected:
 	 * Toggles debug On/Off.
 	 */
 	UFUNCTION(BlueprintCallable, CallInEditor, Category="Interaction", meta=(DevelopmentOnly))
-	virtual void ToggleDebug() override
-	{
-		bToggleDebug = !bToggleDebug;
-	}
+	virtual void ToggleDebug() override;
 
 	/**
 	 * Helper function.
@@ -1138,14 +1137,14 @@ protected:
 #pragma region Debug
 
 protected:
-
+	
 	/**
 	 * If active, debug can be drawn.
 	 * Serves a general purpose as a flag.
 	 * Does not affect Shipping builds by default C++ implementation.
 	 */
 	UPROPERTY(EditAnywhere, Category="Interaction|Debug")
-	uint8 bToggleDebug : 1;
+	EDebugMode DebugMode;
 
 	/**
 	 * Cached Collision Shape Settings.
