@@ -19,7 +19,7 @@ UActorInteractableComponentBase::UActorInteractableComponentBase()
 	PrimaryComponentTick.bCanEverTick = false;
 
 	DebugSettings.DebugMode = false;
-	DebugSettings.EditorDebugMode = true;
+	DebugSettings.EditorDebugMode = false;
 	
 	SetupType = ESetupType::EST_Quick;
 

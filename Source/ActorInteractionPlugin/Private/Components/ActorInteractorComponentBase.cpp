@@ -16,7 +16,7 @@ UActorInteractorComponentBase::UActorInteractorComponentBase()
 	PrimaryComponentTick.bCanEverTick = true;
 
 	DebugSettings.DebugMode = false;
-	DebugSettings.EditorDebugMode = true;
+	DebugSettings.EditorDebugMode = false;
 
 	InteractorState = EInteractorStateV2::EIS_Asleep;
 	DefaultInteractorState = EInteractorStateV2::EIS_Asleep;
