@@ -5,7 +5,7 @@
 #include "Helpers/ActorInteractionPluginLog.h"
 
 #if WITH_EDITOR
-#include "InteractionEditorNotifications/Public/EditorHelper.h"
+#include "EditorHelper.h"
 
 #include "Interfaces/ActorInteractionWidget.h"
 #include "Widgets/ActorInteractableWidget.h"
@@ -18,7 +18,9 @@ UActorInteractableComponentBase::UActorInteractableComponentBase()
 {
 	PrimaryComponentTick.bCanEverTick = false;
 
-	DebugMode = EDebugMode::EDM_Off;
+	DebugSettings.DebugMode = false;
+	DebugSettings.EditorDebugMode = true;
+	
 	SetupType = ESetupType::EST_Quick;
 
 	InteractableState = EInteractableStateV2::EIS_Asleep;
@@ -1223,17 +1225,7 @@ void UActorInteractableComponentBase::UnbindHighlightableMesh(UMeshComponent* Me
 
 void UActorInteractableComponentBase::ToggleDebug()
 {
-	switch (DebugMode)
-	{
-		case EDebugMode::EDM_Off:
-			DebugMode = EDebugMode::EDM_On;
-			break;
-		case EDebugMode::EDM_On:
-			DebugMode = EDebugMode::EDM_Off;
-			break;
-		default:
-			break;
-	}
+	DebugSettings.DebugMode = !DebugSettings.DebugMode;
 }
 
 void UActorInteractableComponentBase::AutoSetup()
@@ -1295,7 +1287,19 @@ void UActorInteractableComponentBase::PostEditChangeChainProperty(FPropertyChang
 	const FName PropertyName = (PropertyChangedEvent.MemberProperty != nullptr) ? PropertyChangedEvent.GetPropertyName() : NAME_None;
 
 	FString InteractableName = GetName();
-	InteractableName.ReplaceInline(TEXT("_GEN_VARIABLE"), TEXT(""));
+	// Format Name
+	{
+		if (InteractableName.Contains(TEXT("_GEN_VARIABLE")))
+		{
+			InteractableName.ReplaceInline(TEXT("_GEN_VARIABLE"), TEXT(""));
+		}
+		if(InteractableName.EndsWith(TEXT("_C")) && InteractableName.StartsWith(TEXT("Default__")))
+		{
+		
+			InteractableName.RightChopInline(9);
+			InteractableName.LeftChopInline(2);
+		}
+	}
 	
 	if (PropertyName == GET_MEMBER_NAME_CHECKED(UActorInteractableComponentBase, DefaultInteractableState))
 	{
@@ -1322,13 +1326,16 @@ void UActorInteractableComponentBase::PostEditChangeChainProperty(FPropertyChang
 		{
 			if (LifecycleCount == 0 || LifecycleCount == 1)
 			{
-				const FText ErrorMessage = FText::FromString
-				(
-					InteractableName.Append(TEXT(": Cycled LifecycleCount cannot be: ")).Append(FString::FromInt(LifecycleCount)).Append(TEXT("!"))
-				);
+				if (DebugSettings.EditorDebugMode)
+				{
+					const FText ErrorMessage = FText::FromString
+					(
+						InteractableName.Append(TEXT(": Cycled LifecycleCount cannot be: ")).Append(FString::FromInt(LifecycleCount)).Append(TEXT("!"))
+					);
 				
-				FEditorHelper::DisplayEditorNotification(ErrorMessage, SNotificationItem::CS_Fail, 5.f, 2.f, TEXT("Icons.Error"));
-
+					FEditorHelper::DisplayEditorNotification(ErrorMessage, SNotificationItem::CS_Fail, 5.f, 2.f, TEXT("Icons.Error"));
+				}
+				
 				LifecycleCount = 2.f;
 				RemainingLifecycleCount = LifecycleCount;
 			}
@@ -1386,8 +1393,6 @@ void UActorInteractableComponentBase::PostEditChangeChainProperty(FPropertyChang
 			}
 		}
 	}
-	
-	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
 
 EDataValidationResult UActorInteractableComponentBase::IsDataValid(TArray<FText>& ValidationErrors)
@@ -1396,7 +1401,19 @@ EDataValidationResult UActorInteractableComponentBase::IsDataValid(TArray<FText>
 	bool bAnyError = false;
 
 	FString InteractableName = GetName();
-	InteractableName.ReplaceInline(TEXT("_GEN_VARIABLE"), TEXT(""));
+	// Format Name
+	{
+		if (InteractableName.Contains(TEXT("_GEN_VARIABLE")))
+		{
+			InteractableName.ReplaceInline(TEXT("_GEN_VARIABLE"), TEXT(""));
+		}
+		if(InteractableName.EndsWith(TEXT("_C")) && InteractableName.StartsWith(TEXT("Default__")))
+		{
+		
+			InteractableName.RightChopInline(9);
+			InteractableName.LeftChopInline(2);
+		}
+	}
 	
 	if
 	(
@@ -1476,7 +1493,7 @@ EDataValidationResult UActorInteractableComponentBase::IsDataValid(TArray<FText>
 
 void UActorInteractableComponentBase::DrawDebug()
 {
-	if (DebugMode == EDebugMode::EDM_On)
+	if (DebugSettings.DebugMode)
 	{
 		for (const auto Itr : CollisionComponents)
 		{

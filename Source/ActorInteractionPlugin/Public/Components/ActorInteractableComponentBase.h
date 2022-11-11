@@ -45,8 +45,6 @@ struct FCollisionShapeCache
 	
 };
 
-enum class EDebugMode : uint8;
-
 #pragma endregion 
 
 /**
@@ -1140,11 +1138,12 @@ protected:
 	
 	/**
 	 * If active, debug can be drawn.
+	 * You can disable Editor Warnings. Editor Errors cannot be disabled!
 	 * Serves a general purpose as a flag.
 	 * Does not affect Shipping builds by default C++ implementation.
 	 */
-	UPROPERTY(EditAnywhere, Category="Interaction|Debug")
-	EDebugMode DebugMode;
+	UPROPERTY(EditAnywhere, Category="Interaction|Debug", meta=(ShowOnlyInnerProperties))
+	FDebugSettings DebugSettings;
 
 	/**
 	 * Cached Collision Shape Settings.
