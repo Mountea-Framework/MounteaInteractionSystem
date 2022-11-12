@@ -69,6 +69,7 @@ public:
 protected:
 
 	virtual void BeginPlay() override;
+	virtual void InitWidget() override;
 
 #pragma region InteractableFunctions
 	
@@ -584,7 +585,7 @@ protected:
 	 * Calls OnInteractionStoppedEvent
 	 */
 	UFUNCTION(Category="Interaction")
-	virtual void InteractionStopped() override;
+	virtual void InteractionStopped(const float& TimeStarted, const FKey& PressedKey) override;
 
 	/**
 	 * Event called once Interaction is Canceled.
@@ -1177,7 +1178,7 @@ protected:
 	 * Filled when Collision Shapes are registered.
 	 * Once Collision Shape is unregistered, it reads its cached settings and returns to pre-interaction Collision Settings.
 	 */
-	UPROPERTY(VisibleAnywhere, Category="Interaction|Debug", meta=(DisplayThumbnail = false, ShowOnlyInnerProperties))
+	UPROPERTY(SaveGame, VisibleAnywhere, Category="Interaction|Debug", meta=(DisplayThumbnail = false, ShowOnlyInnerProperties))
 	mutable TMap<UPrimitiveComponent*, FCollisionShapeCache> CachedCollisionShapesSettings;
 
 #pragma endregion
@@ -1191,7 +1192,7 @@ protected:
 	 * - -1 = immediate
 	 * - 0  = 0.1s
 	 */
-	UPROPERTY(EditAnywhere, Category="Interaction|Required", meta=(UIMin=-1, ClampMin=-1, Units="s"))
+	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Required", meta=(UIMin=-1, ClampMin=-1, Units="s"))
 	float InteractionPeriod;
 
 	/**
@@ -1201,14 +1202,14 @@ protected:
 	 * * Finished
 	 * * Cooldown
 	 */
-	UPROPERTY(EditAnywhere, Category="Interaction|Required", meta=(NoResetToDefault))
+	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Required", meta=(NoResetToDefault))
 	EInteractableStateV2 DefaultInteractableState;
 	
 	/**
 	 * If set to true, Interactable will automatically assigns owning Component in Hierarchy as Highlightable Meshes and Collision Shapes.
 	 * This setup might be useful for simple Actors, might cause issues with more complex ones.
 	 */
-	UPROPERTY(EditAnywhere, Category="Interaction|Required")
+	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Required")
 	ESetupType SetupType;
 
 	/**
@@ -1217,14 +1218,14 @@ protected:
 	 *
 	 * Could be either Trace or Object response.
 	 */
-	UPROPERTY(EditAnywhere, Category="Interaction|Required", meta=(NoResetToDefault))
+	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Required", meta=(NoResetToDefault))
 	TEnumAsByte<ECollisionChannel> CollisionChannel;
 
 	/**
 	* List of Interaction Keys for each platform.
 	* There is no validation for Keys validation! Nothing stops you from setting Keyboard keys for Consoles. Please, be careful with this variable!
 	*/
-	UPROPERTY(EditAnywhere, Category="Interaction|Required", meta=(NoResetToDefault))
+	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Required", meta=(NoResetToDefault))
 	TMap<FString, FInteractionKeySetup> InteractionKeysPerPlatform;
 	
 	/**
@@ -1234,7 +1235,7 @@ protected:
 	 * Default value: 1
 	 * Clamped in setter function to be at least 0 or higher.
 	 */
-	UPROPERTY(EditAnywhere, Category="Interaction|Required", meta=(UIMin=0, ClampMin=0))
+	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Required", meta=(UIMin=0, ClampMin=0))
 	int32 InteractionWeight;
 
 	/**
@@ -1246,7 +1247,7 @@ protected:
 	 * * Can be used only once
 	 * * Good for pickup items
 	 */
-	UPROPERTY(EditAnywhere, Category="Interaction|Required", meta=(NoResetToDefault))
+	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Required", meta=(NoResetToDefault))
 	EInteractableLifecycle LifecycleMode;
 
 	/**
@@ -1259,7 +1260,7 @@ protected:
 	 * *  1 | Invalid, will be set to 2
 	 * * 2+ | Will be used defined number of times
 	 */
-	UPROPERTY(EditAnywhere, Category="Interaction|Required", meta=(NoResetToDefault, EditCondition = "LifecycleMode == EInteractableLifecycle::EIL_Cycled", UIMin=-1, ClampMin=-1))
+	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Required", meta=(NoResetToDefault, EditCondition = "LifecycleMode == EInteractableLifecycle::EIL_Cycled", UIMin=-1, ClampMin=-1))
 	int32 LifecycleCount;
 
 	/**
@@ -1267,7 +1268,7 @@ protected:
 	 * After this period of time the Interactable will be Awake again, unless no Interactor.
 	 * Clamped in Setter.
 	 */
-	UPROPERTY(EditAnywhere, Category="Interaction|Required", meta=(NoResetToDefault, EditCondition = "LifecycleMode == EInteractableLifecycle::EIL_Cycled", UIMin=0.1, ClampMin=0.1))
+	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Required", meta=(NoResetToDefault, EditCondition = "LifecycleMode == EInteractableLifecycle::EIL_Cycled", UIMin=0.1, ClampMin=0.1))
 	float CooldownPeriod;
 
 #pragma endregion
@@ -1280,7 +1281,7 @@ protected:
 	/**
 	 * List of Interactable Classes which are ignored
 	 */
-	UPROPERTY(EditAnywhere, Category="Interaction|Optional", meta=(NoResetToDefault, AllowAbstract=false, MustImplement="ActorInteractorInterface", BlueprintBaseOnly))
+	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Optional", meta=(NoResetToDefault, AllowAbstract=false, MustImplement="ActorInteractorInterface", BlueprintBaseOnly))
 	TArray<TSoftClassPtr<UObject>> IgnoredClasses;
 	
 	/**
@@ -1313,7 +1314,7 @@ protected:
 	 * * * * Projects Settings -> Engine -> Rendering -> PostProcessing
 	 * * * * * Set to value: Enabled with Stencil
 	 */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly,  Category="Interaction|Optional")
+	UPROPERTY(SaveGame, EditAnywhere, BlueprintReadOnly,  Category="Interaction|Optional")
 	uint8 bInteractionHighlight : 1;
 	
 	/**
@@ -1321,7 +1322,7 @@ protected:
 	 * In order to smoothly integrate with other logic, keep this ID unique!
 	 * Default: 133
 	 */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly,  Category="Interaction|Optional", meta=(EditCondition="bInteractionHighlight == true", UIMin=0, ClampMin=0, UIMax=255, ClampMax=255))
+	UPROPERTY(SaveGame, EditAnywhere, BlueprintReadOnly,  Category="Interaction|Optional", meta=(EditCondition="bInteractionHighlight == true", UIMin=0, ClampMin=0, UIMax=255, ClampMax=255))
 	int32 StencilID ;
 
 #pragma endregion 
@@ -1335,13 +1336,13 @@ protected:
 	 * Is subject to State Machine.
 	 * @see [State Machine] https://github.com/Mountea-Framework/ActorInteractionPlugin/wiki/Actor-Interactable-Component-Validations#state-machine
 	 */
-	UPROPERTY(VisibleAnywhere, Category="Interaction|Read Only")
+	UPROPERTY(SaveGame, VisibleAnywhere, Category="Interaction|Read Only")
 	EInteractableStateV2 InteractableState;
 
-	UPROPERTY(VisibleAnywhere, Category="Interaction|Read Only")
+	UPROPERTY(SaveGame, VisibleAnywhere, Category="Interaction|Read Only")
 	int32 RemainingLifecycleCount;
 
-	UPROPERTY(VisibleAnywhere, Category="Interaction|Read Only")
+	UPROPERTY(SaveGame, VisibleAnywhere, Category="Interaction|Read Only")
 	TArray<TScriptInterface<IActorInteractableInterface>> InteractionDependencies;
 	
 	/**
@@ -1349,7 +1350,7 @@ protected:
 	 * * Set Overlap Events to true
 	 * * Response to Collision Channel to overlap
 	 */
-	UPROPERTY(VisibleAnywhere, Category="Interaction|Read Only")
+	UPROPERTY(SaveGame, VisibleAnywhere, Category="Interaction|Read Only")
 	TArray<UMeshComponent*> HighlightableComponents;
 	
 	/**
@@ -1358,7 +1359,7 @@ protected:
 	 * * Allow Render Custom Depth
 	 * * Use specific StencilID
 	 */
-	UPROPERTY(VisibleAnywhere, Category="Interaction|Read Only")
+	UPROPERTY(SaveGame, VisibleAnywhere, Category="Interaction|Read Only")
 	TArray<UPrimitiveComponent*> CollisionComponents;
 	
 	UPROPERTY()
@@ -1374,13 +1375,13 @@ private:
 	 * By default its set to Owner.
 	 * Can be overriden.
 	 */
-	UPROPERTY(VisibleAnywhere, Category="Interaction|Read Only", meta=(DisplayThumbnail = false))
+	UPROPERTY(SaveGame, VisibleAnywhere, Category="Interaction|Read Only", meta=(DisplayThumbnail = false))
 	AActor* InteractionOwner = nullptr;
 
 	/**
 	 * Interactor which is using this Interactable.
 	 */
-	UPROPERTY(VisibleAnywhere, Category="Interaction|Read Only", meta=(DisplayThumbnail = false))
+	UPROPERTY(SaveGame, VisibleAnywhere, Category="Interaction|Read Only", meta=(DisplayThumbnail = false))
 	TScriptInterface<IActorInteractorInterface> Interactor = nullptr;
 
 #pragma endregion
