@@ -13,6 +13,8 @@ class UActorInteractionWidget : public UInterface
 	GENERATED_BODY()
 };
 
+class IActorInteractableInterface;
+
 /**
  * Interaction Widget Interface.
  * Implements basic Setters and Getters.
@@ -30,7 +32,7 @@ public:
 	 * This event should be called when you want to refresh UI data.
 	 */
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category="Interaction")
-	void UpdateWidget();
+	void UpdateWidget(const TScriptInterface<IActorInteractableInterface>& InteractableInterface);
 
 	/**
 	 * This event should be called when you want to Hide/Unhide the Widget.
