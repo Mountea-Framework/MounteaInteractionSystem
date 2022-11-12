@@ -206,22 +206,14 @@ public:
 	virtual bool CanInteract() const = 0;
 	virtual bool CanBeTriggered() const = 0;
 	virtual bool IsInteracting() const = 0;
-
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Interaction")
-	EInteractableStateV2 GetStateCall() const;
-	EInteractableStateV2 GetStateCall_Implementation() const
-	{ return GetState(); };
+	
 	virtual EInteractableStateV2 GetState() const = 0;
 	virtual void SetState(const EInteractableStateV2 NewState) = 0;
 
 
 	virtual void StartHighlight() const = 0;
 	virtual void StopHighlight() const = 0;
-
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Interaction")
-	float GetInteractionProgressCall() const;
-	float GetInteractionProgress_Implementation() const
-	{ return GetInteractionProgress(); };
+	
 	virtual float GetInteractionProgress() const = 0;
 	
 	virtual float GetInteractionPeriod() const = 0;
