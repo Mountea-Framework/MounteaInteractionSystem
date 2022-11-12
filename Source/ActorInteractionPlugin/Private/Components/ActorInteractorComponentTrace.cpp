@@ -146,7 +146,7 @@ void UActorInteractorComponentTrace::ProcessTrace()
 		}
 	}
 
-	if (bAnyInteractable == false && GetActiveInteractable().GetInterface() != nullptr)
+	if (bAnyInteractable == false)
 	{
 		OnInteractableLost.Broadcast(GetActiveInteractable());
 	}
