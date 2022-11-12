@@ -45,7 +45,9 @@ struct FCollisionShapeCache
 	
 };
 
-#pragma endregion 
+#pragma endregion
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnWidgetUpdated);
 
 /**
  * Actor Interactable Base Component
@@ -55,7 +57,7 @@ struct FCollisionShapeCache
  *
  * @see https://github.com/Mountea-Framework/ActorInteractionPlugin/wiki/Actor-Interactable-Component-Base
  */
-UCLASS(Abstract, ClassGroup=(Interaction), Blueprintable, hideCategories=(Collision, AssetUserData, Cooking, ComponentTick, Activation), meta=(BlueprintSpawnableComponent, DisplayName = "Interactable Component"))
+UCLASS(Abstract, ClassGroup=(Interaction), Blueprintable, hideCategories=(Collision, AssetUserData, Cooking, Activation), meta=(BlueprintSpawnableComponent, DisplayName = "Interactable Component"))
 class ACTORINTERACTIONPLUGIN_API UActorInteractableComponentBase : public UWidgetComponent, public IActorInteractableInterface
 {
 	GENERATED_BODY()
@@ -523,7 +525,6 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual TArray<FName> GetHighlightableOverrides() const override;
 
-
 #pragma endregion
 
 #pragma region EventFunctions
@@ -646,6 +647,12 @@ protected:
 	UFUNCTION(Category="Interaction")
 	virtual void OnInteractableTraced(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
+	/**
+	 * Event called once Widget Settings are updated.
+	 */
+	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	void OnWidgetUpdatedEvent();
+
 #pragma endregion
 
 #pragma region IgnoredClassesEvents
@@ -658,7 +665,8 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
 	void OnIgnoredClassRemoved(const TSoftClassPtr<UObject>& IgnoredClass);
 
-#pragma endregion 
+#pragma endregion
+
 
 #pragma region AttributesEvents
 
@@ -813,6 +821,9 @@ protected:
 
 	virtual bool TriggerCooldown() override;
 
+	UFUNCTION()
+	virtual void ToggleWidgetVisibility(const bool IsVisible) override;
+
 	/**
 	 * Binds Collision Events for specified Primitive Component.
 	 * Caches Primitive Component collision settings.
@@ -864,6 +875,9 @@ protected:
 	UFUNCTION()
 	void AutoSetup();
 
+	bool ValidateInteractable() const;
+
+	virtual void UpdateInteractionWidget();
 
 #pragma endregion
 
@@ -1125,6 +1139,19 @@ protected:
 
 	virtual FTimerHandle& GetCooldownHandle() override
 	{ return Timer_Cooldown; }
+	
+	virtual FOnWidgetUpdated& WidgetUpdatedHandle()
+	{ return OnWidgetUpdated; } 
+
+#pragma endregion 
+
+#pragma region Widget
+
+	/**
+	 * Event called any time any value of 'UserInterfaceSettings' has changed.
+	 */
+	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Interaction")
+	FOnWidgetUpdated OnWidgetUpdated;
 
 #pragma endregion 
 
@@ -1339,7 +1366,7 @@ protected:
 
 	UPROPERTY()
 	FTimerHandle Timer_Cooldown;
-	
+
 private:
 	
 	/**
@@ -1348,13 +1375,13 @@ private:
 	 * Can be overriden.
 	 */
 	UPROPERTY(VisibleAnywhere, Category="Interaction|Read Only", meta=(DisplayThumbnail = false))
-	AActor* InteractionOwner;
+	AActor* InteractionOwner = nullptr;
 
 	/**
 	 * Interactor which is using this Interactable.
 	 */
 	UPROPERTY(VisibleAnywhere, Category="Interaction|Read Only", meta=(DisplayThumbnail = false))
-	TScriptInterface<IActorInteractorInterface> Interactor;
+	TScriptInterface<IActorInteractorInterface> Interactor = nullptr;
 
 #pragma endregion
 

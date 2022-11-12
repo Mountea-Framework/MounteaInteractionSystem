@@ -4,20 +4,22 @@
 
 #include "Helpers/ActorInteractionPluginLog.h"
 
-#if WITH_EDITOR
+#if (!UE_BUILD_SHIPPING || WITH_EDITOR)
 #include "EditorHelper.h"
 
 #include "Interfaces/ActorInteractionWidget.h"
 #include "Widgets/ActorInteractableWidget.h"
 #endif
 
+#include "Components/WidgetComponent.h"
 #include "Interfaces/ActorInteractorInterface.h"
 
 
 UActorInteractableComponentBase::UActorInteractableComponentBase()
 {
-	PrimaryComponentTick.bCanEverTick = false;
-
+	PrimaryComponentTick.bCanEverTick = true;
+	SetIsReplicatedByDefault(true);
+	
 	DebugSettings.DebugMode = false;
 	DebugSettings.EditorDebugMode = false;
 	
@@ -45,12 +47,19 @@ UActorInteractableComponentBase::UActorInteractableComponentBase()
 	InteractionKeysPerPlatform.Add((TEXT("Mac")), KeyboardKeys);
 	InteractionKeysPerPlatform.Add((TEXT("PS4")), GamepadKeys);
 	InteractionKeysPerPlatform.Add((TEXT("XboxOne")), GamepadKeys);
+
+	Space = EWidgetSpace::Screen;
+	DrawSize = FIntPoint(64, 64);
+	bDrawAtDesiredSize = true;
+	
+	UActorComponent::SetActive(true);
+	SetHiddenInGame(true);
 }
 
 void UActorInteractableComponentBase::BeginPlay()
 {
 	Super::BeginPlay();
-
+	
 	InteractionOwner = GetOwner();
 
 	// Interaction Events
@@ -92,6 +101,9 @@ void UActorInteractableComponentBase::BeginPlay()
 	// Collision Events
 	OnCollisionComponentAdded.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnCollisionComponentAddedEvent);
 	OnCollisionComponentRemoved.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnCollisionComponentRemovedEvent);
+
+	// Widget
+	OnWidgetUpdated.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnWidgetUpdatedEvent);
 	
 	SetState(DefaultInteractableState);
 
@@ -99,7 +111,7 @@ void UActorInteractableComponentBase::BeginPlay()
 
 	RemainingLifecycleCount = LifecycleCount;
 
-#if WITH_EDITOR
+#if (!UE_BUILD_SHIPPING || WITH_EDITOR)
 	
 	DrawDebug();
 
@@ -259,7 +271,7 @@ bool UActorInteractableComponentBase::CanInteract() const
 		case EInteractableStateV2::Default: 
 		default: break;
 	}
-
+	
 	return false;
 }
 
@@ -554,7 +566,12 @@ void UActorInteractableComponentBase::SetInteractor(const TScriptInterface<IActo
 float UActorInteractableComponentBase::GetInteractionProgress() const
 {
 	if (!GetWorld()) return -1;
-	return GetWorld()->GetTimerManager().GetTimerElapsed(Timer_Interaction) / InteractionPeriod;
+
+	if (GetWorld()->GetTimerManager().IsTimerActive(Timer_Interaction))
+	{
+		return GetWorld()->GetTimerManager().GetTimerElapsed(Timer_Interaction) / InteractionPeriod;
+	}
+	return 0.f;
 }
 
 float UActorInteractableComponentBase::GetInteractionPeriod() const
@@ -869,6 +886,8 @@ void UActorInteractableComponentBase::InteractorFound(const TScriptInterface<IAc
 {
 	if (CanBeTriggered())
 	{
+		ToggleWidgetVisibility(true);
+		
 		SetInteractor(FoundInteractor);
 		
 		Execute_OnInteractorFoundEvent(this, FoundInteractor);
@@ -877,6 +896,8 @@ void UActorInteractableComponentBase::InteractorFound(const TScriptInterface<IAc
 
 void UActorInteractableComponentBase::InteractorLost(const TScriptInterface<IActorInteractorInterface>& LostInteractor)
 {
+	ToggleWidgetVisibility(false);
+	
 	SetState(EInteractableStateV2::EIS_Awake);
 	
 	SetInteractor(nullptr);
@@ -885,6 +906,8 @@ void UActorInteractableComponentBase::InteractorLost(const TScriptInterface<IAct
 
 void UActorInteractableComponentBase::InteractionCompleted(const float& TimeCompleted)
 {
+	ToggleWidgetVisibility(false);
+	
 	if (LifecycleMode == EInteractableLifecycle::EIL_Cycled)
 	{
 		if (TriggerCooldown()) return;
@@ -908,6 +931,8 @@ void UActorInteractableComponentBase::InteractionStarted(const float& TimeStarte
 
 	if (CanInteract())
 	{
+		UpdateInteractionWidget();
+		
 		Execute_OnInteractionStartedEvent(this, TimeStarted, PressedKey);
 	}
 }
@@ -922,6 +947,8 @@ void UActorInteractableComponentBase::InteractionStopped()
 	
 	if (!GetWorld()) return;
 
+	UpdateInteractionWidget();
+
 	GetWorld()->GetTimerManager().ClearTimer(Timer_Interaction);
 
 	Execute_OnInteractionStoppedEvent(this);
@@ -931,6 +958,8 @@ void UActorInteractableComponentBase::InteractionCanceled()
 {
 	if (IsInteracting())
 	{
+		ToggleWidgetVisibility(false);
+		
 		GetWorld()->GetTimerManager().ClearTimer(Timer_Interaction);
 
 		SetState(EInteractableStateV2::EIS_Awake);
@@ -1067,7 +1096,6 @@ void UActorInteractableComponentBase::InteractableSelected(const TScriptInterfac
 	OnInteractableSelected.Broadcast(Interactable);
 }
 
-
 void UActorInteractableComponentBase::InteractableLost(const TScriptInterface<IActorInteractableInterface>& Interactable)
 {
 	if (Interactable == this)
@@ -1155,6 +1183,16 @@ bool UActorInteractableComponentBase::TriggerCooldown()
 	}
 
 	return false;
+}
+
+void UActorInteractableComponentBase::ToggleWidgetVisibility(const bool IsVisible)
+{
+	if (GetWidget())
+	{
+		SetHiddenInGame(!IsVisible);
+
+		UpdateInteractionWidget();
+	}
 }
 
 void UActorInteractableComponentBase::BindCollisionShape(UPrimitiveComponent* PrimitiveComponent) const
@@ -1280,6 +1318,46 @@ void UActorInteractableComponentBase::AutoSetup()
 	FindAndAddHighlightableMeshes();
 }
 
+bool UActorInteractableComponentBase::ValidateInteractable() const
+{
+	if (GetWidgetClass().Get() == nullptr)
+	{
+		AIntP_LOG(Error, TEXT("[%s] Has null Widget Class! Disabled!"), *GetName())
+		return false;
+	}
+	if (GetWidgetClass() != UActorInteractableWidget::StaticClass())
+	{
+		if (GetWidgetClass()->ImplementsInterface(UActorInteractionWidget::StaticClass()) == false)
+		{
+			AIntP_LOG(Error, TEXT("[%s] Has invalid Widget Class! Disabled!"), *GetName())
+			return false;
+		}
+	}
+
+	return true;
+}
+
+void UActorInteractableComponentBase::UpdateInteractionWidget()
+{
+	UUserWidget* UserWidget = GetWidget();
+	UserWidget->SetVisibility(bHiddenInGame ? ESlateVisibility::Hidden : ESlateVisibility::Visible);
+	
+	if (UserWidget->Implements<UActorInteractionWidget>())
+	{
+		TScriptInterface<IActorInteractionWidget> InteractionWidget = UserWidget;
+		InteractionWidget.SetObject(UserWidget);
+		InteractionWidget.SetInterface(Cast<IActorInteractionWidget>(UserWidget));
+
+		InteractionWidget->Execute_UpdateWidget(UserWidget, this);
+	}
+	else if (UActorInteractableWidget* InteractableWidget = Cast<UActorInteractableWidget>(UserWidget))
+	{
+		InteractableWidget->InitializeInteractionWidget(FText::FromString("E"), FText::FromString("Object"), FText::FromString("Use"), nullptr, nullptr);
+		InteractableWidget->SetInteractionProgress(GetInteractionProgress());
+	}
+}
+
+#if (!UE_BUILD_SHIPPING || WITH_EDITOR)
 #if WITH_EDITOR
 
 void UActorInteractableComponentBase::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent)
@@ -1366,7 +1444,7 @@ void UActorInteractableComponentBase::PostEditChangeChainProperty(FPropertyChang
 		}
 	}
 		
-	if (PropertyName == GET_MEMBER_NAME_CHECKED(UActorInteractableComponentBase, WidgetClass))
+	if (PropertyName == FName(TEXT("WidgetClass")))
 	{
 		if (GetWidgetClass() == nullptr)
 		{
@@ -1490,6 +1568,7 @@ EDataValidationResult UActorInteractableComponentBase::IsDataValid(TArray<FText>
 	
 	return bAnyError ? EDataValidationResult::Invalid : DefaultValue;
 }
+#endif
 
 void UActorInteractableComponentBase::DrawDebug()
 {
