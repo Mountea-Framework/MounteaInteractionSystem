@@ -98,7 +98,7 @@ public:
 	void OnInteractionKeyReleasedEvent(const float& TimeKeyReleased, const FKey& ReleasedKey);
 	void OnInteractionKeyReleasedEvent_Implementation(const float& TimeKeyReleased, const FKey& ReleasedKey)
 	{
-		StopInteraction();
+		StopInteraction(TimeKeyReleased, ReleasedKey);
 	};
 	
 	/**
@@ -159,7 +159,7 @@ public:
 	virtual bool IsValidInteractor() const = 0;
 		
 	virtual void StartInteraction(const float StartTime, const FKey& InputKey) = 0;
-	virtual void StopInteraction() = 0;
+	virtual void StopInteraction(const float StartTime, const FKey& InputKey) = 0;
 	
 	virtual bool ActivateInteractor(FString& ErrorMessage) = 0;
 	virtual bool WakeUpInteractor(FString& ErrorMessage) = 0;
