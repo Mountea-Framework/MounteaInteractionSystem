@@ -40,7 +40,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInteractorOverlapped, UPrimitiveC
  * 
  * @see https://sites.google.com/view/dominikpavlicek/home/documentation
  */
-UCLASS(ClassGroup=(Interaction), NotBlueprintable, HideCategories = (Navigation, Physics, Collision, Lighting, Rendering, Mobile, Animation, HLOD, UserInterface), meta=(BlueprintSpawnableComponent, DisplayName="Interactable Component"))
+UCLASS(ClassGroup=(Interaction), NotBlueprintable, HideCategories = (Navigation, Physics, Collision, Lighting, Rendering, Mobile, Animation, HLOD), meta=(BlueprintSpawnableComponent, DisplayName="Interactable Component"))
 class ACTORINTERACTIONPLUGIN_API UActorInteractableComponent final : public UWidgetComponent
 {
 	GENERATED_BODY()
