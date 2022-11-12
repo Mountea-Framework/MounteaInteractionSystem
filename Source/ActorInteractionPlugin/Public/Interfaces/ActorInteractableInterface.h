@@ -46,7 +46,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(FInteractorStopOverlap, UPrimitive
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractionCompleted, const float&, FinishTime);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FInteractionStarted, const float&, StartTime, const FKey&, PressedKey);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FInteractionStopped);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FInteractionStopped, const float&, StartTime, const FKey&, PressedKey);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FInteractionCanceled);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FLifecycleCompleted);
@@ -157,7 +157,7 @@ protected:
 	 * Event bound to OnInteractionStopped.
 	 */
 	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
-	void OnInteractionStoppedEvent();
+	void OnInteractionStoppedEvent(const float& TimeStarted, const FKey& PressedKey);
 
 	/**
 	 * Event bound to OnInteractionCanceled.
@@ -197,7 +197,7 @@ public:
 
 	virtual void InteractionCompleted(const float& TimeCompleted) = 0;
 	virtual void InteractionStarted(const float& TimeStarted, const FKey& PressedKey) = 0;
-	virtual void InteractionStopped() = 0;
+	virtual void InteractionStopped(const float& TimeStarted, const FKey& PressedKey) = 0;
 	virtual void InteractionCanceled() = 0;
 	virtual void InteractionLifecycleCompleted() = 0;
 	virtual void InteractionCooldownCompleted() = 0;
