@@ -23,10 +23,11 @@ protected:
 	virtual void BeginPlay() override;
 
 	virtual void InteractionStarted(const float& TimeStarted, const FKey& PressedKey) override;
-	virtual void InteractionStopped() override;
+	virtual void InteractionStopped(const float& TimeStarted, const FKey& PressedKey) override;
 	virtual void InteractionCanceled() override;
 
 	virtual void InteractorFound(const TScriptInterface<IActorInteractorInterface>& FoundInteractor) override;
+	virtual void InteractorLost(const TScriptInterface<IActorInteractorInterface>& LostInteractor) override;
 
 	virtual float GetInteractionProgress() const override;
 };
