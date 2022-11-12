@@ -52,21 +52,28 @@ void UActorInteractorComponentBase::InteractableSelected(const TScriptInterface<
 
 void UActorInteractorComponentBase::InteractableFound(const TScriptInterface<IActorInteractableInterface>& FoundInteractable)
 {
-	for (const auto Itr : InteractionDependencies)
-	{
-		if (Itr.GetInterface())
-		{
-			Itr->SetState(EInteractorStateV2::EIS_Suppressed);
-		}
-	}
-	
-	EvaluateInteractable(FoundInteractable);
+	if (FoundInteractable.GetInterface() == nullptr) return;
 
-	Execute_OnInteractableFoundEvent(this, FoundInteractable);
+	if (FoundInteractable != ActiveInteractable)
+	{
+		for (const auto Itr : InteractionDependencies)
+		{
+			if (Itr.GetInterface())
+			{
+				Itr->SetState(EInteractorStateV2::EIS_Suppressed);
+			}
+		}
+	
+		EvaluateInteractable(FoundInteractable);
+
+		Execute_OnInteractableFoundEvent(this, FoundInteractable);
+	}
 }
 
 void UActorInteractorComponentBase::InteractableLost(const TScriptInterface<IActorInteractableInterface>& LostInteractable)
 {
+	if (LostInteractable.GetInterface() == nullptr) return;
+	
 	if (LostInteractable == ActiveInteractable)
 	{
 		SetState(EInteractorStateV2::EIS_Awake);
@@ -80,9 +87,9 @@ void UActorInteractorComponentBase::InteractableLost(const TScriptInterface<IAct
 				Itr->SetState(InteractorState);
 			}
 		}
-	}
 
-	Execute_OnInteractableLostEvent(this, LostInteractable);
+		Execute_OnInteractableLostEvent(this, LostInteractable);
+	}
 }
 
 bool UActorInteractorComponentBase::IsValidInteractor() const
@@ -107,7 +114,7 @@ void UActorInteractorComponentBase::EvaluateInteractable(const TScriptInterface<
 	
 	if (FoundInteractable.GetInterface() == nullptr)
 	{
-		InteractableLost(ActiveInteractable);
+		OnInteractableLost.Broadcast(ActiveInteractable);
 		return;
 	}
 	
@@ -123,9 +130,11 @@ void UActorInteractorComponentBase::EvaluateInteractable(const TScriptInterface<
 	{
 		if (FoundInteractable->GetInteractableWeight() > ActiveInteractable->GetInteractableWeight())
 		{
+			OnInteractableLost.Broadcast(ActiveInteractable);
+			
 			SetActiveInteractable(FoundInteractable);
 			OnInteractableSelected.Broadcast(FoundInteractable);
-
+			
 			return;
 		}
 	}
@@ -144,7 +153,7 @@ void UActorInteractorComponentBase::StartInteraction(const float StartTime, cons
 	}
 }
 
-void UActorInteractorComponentBase::StopInteraction()
+void UActorInteractorComponentBase::StopInteraction(const float StartTime, const FKey& InputKey)
 {
 	/**
 	 * TODO
@@ -153,7 +162,7 @@ void UActorInteractorComponentBase::StopInteraction()
 
 	if (CanInteract() && ActiveInteractable.GetInterface())
 	{
-		ActiveInteractable->GetOnInteractionStoppedHandle().Broadcast();
+		ActiveInteractable->GetOnInteractionStoppedHandle().Broadcast(StartTime, InputKey);
 	}
 }
 
@@ -452,9 +461,22 @@ bool UActorInteractorComponentBase::DoesAutoActivate() const
 
 void UActorInteractorComponentBase::SetActiveInteractable(const TScriptInterface<IActorInteractableInterface> NewInteractable)
 {
-	ActiveInteractable = NewInteractable;
+	if (NewInteractable.GetInterface() == nullptr && ActiveInteractable.GetInterface() == nullptr)
+	{
+		return;
+	}
 
-	OnInteractableSelected.Broadcast(ActiveInteractable);
+	if (NewInteractable.GetInterface() == nullptr && ActiveInteractable.GetInterface() != nullptr)
+	{
+		ActiveInteractable = NewInteractable;
+	}
+
+	if (NewInteractable.GetInterface() != nullptr && ActiveInteractable.GetInterface() == nullptr)
+	{
+		ActiveInteractable = NewInteractable;
+
+		OnInteractableSelected.Broadcast(ActiveInteractable);
+	}	
 }
 
 TScriptInterface<IActorInteractableInterface> UActorInteractorComponentBase::GetActiveInteractable() const
