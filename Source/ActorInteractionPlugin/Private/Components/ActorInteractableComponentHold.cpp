@@ -75,3 +75,8 @@ void UActorInteractableComponentHold::InteractorFound(const TScriptInterface<IAc
 		GetInteractor()->OnInteractionKeyPressedHandle().AddUniqueDynamic(this, &UActorInteractableComponentHold::InteractionStarted);
 	}
 }
+
+float UActorInteractableComponentHold::GetInteractionProgress() const
+{
+	return Super::GetInteractionProgress();
+}

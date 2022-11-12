@@ -9,7 +9,7 @@
 /**
 * 
 */
-UCLASS(ClassGroup=(Interaction), Blueprintable, hideCategories=(Collision, AssetUserData, Cooking, ComponentTick, Activation), meta=(BlueprintSpawnableComponent, DisplayName = "Interactable Component Hold"))
+UCLASS(ClassGroup=(Interaction), Blueprintable, hideCategories=(Collision, AssetUserData, Cooking, Activation), meta=(BlueprintSpawnableComponent, DisplayName = "Interactable Component Hold"))
 class ACTORINTERACTIONPLUGIN_API UActorInteractableComponentHold : public UActorInteractableComponentBase
 {
 	GENERATED_BODY()
@@ -27,4 +27,6 @@ protected:
 	virtual void InteractionCanceled() override;
 
 	virtual void InteractorFound(const TScriptInterface<IActorInteractorInterface>& FoundInteractor) override;
+
+	virtual float GetInteractionProgress() const override;
 };
