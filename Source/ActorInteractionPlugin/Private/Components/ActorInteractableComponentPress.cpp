@@ -7,8 +7,6 @@
 // Sets default values for this component's properties
 UActorInteractableComponentPress::UActorInteractableComponentPress()
 {
-	PrimaryComponentTick.bCanEverTick = false;
-
 	InteractionPeriod = -1.f;
 }
 
