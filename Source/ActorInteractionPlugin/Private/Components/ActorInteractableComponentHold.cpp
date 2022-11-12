@@ -54,10 +54,10 @@ void UActorInteractableComponentHold::InteractionStarted(const float& TimeStarte
 	GetWorld()->GetTimerManager().SetTimer(Timer_Interaction, Delegate, InteractionPeriod, false);
 }
 
-void UActorInteractableComponentHold::InteractionStopped()
+void UActorInteractableComponentHold::InteractionStopped(const float& TimeStarted, const FKey& PressedKey)
 {
 	GetWorld()->GetTimerManager().ClearTimer(Timer_Interaction);
-	Super::InteractionStopped();
+	Super::InteractionStopped(TimeStarted, PressedKey);
 }
 
 void UActorInteractableComponentHold::InteractionCanceled()
@@ -73,7 +73,18 @@ void UActorInteractableComponentHold::InteractorFound(const TScriptInterface<IAc
 	if (GetInteractor().GetInterface())
 	{
 		GetInteractor()->OnInteractionKeyPressedHandle().AddUniqueDynamic(this, &UActorInteractableComponentHold::InteractionStarted);
+		GetInteractor()->OnInteractionKeyReleasedHandle().AddUniqueDynamic(this, &UActorInteractableComponentHold::InteractionStopped);
 	}
+}
+
+void UActorInteractableComponentHold::InteractorLost(const TScriptInterface<IActorInteractorInterface>& LostInteractor)
+{
+	if (GetInteractor().GetInterface())
+	{
+		GetInteractor()->OnInteractionKeyPressedHandle().RemoveDynamic(this, &UActorInteractableComponentHold::InteractionStarted);
+		GetInteractor()->OnInteractionKeyReleasedHandle().RemoveDynamic(this, &UActorInteractableComponentHold::InteractionStopped);
+	}
+	Super::InteractorLost(LostInteractor);
 }
 
 float UActorInteractableComponentHold::GetInteractionProgress() const
