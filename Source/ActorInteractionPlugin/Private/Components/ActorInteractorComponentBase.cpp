@@ -125,23 +125,35 @@ void UActorInteractorComponentBase::EvaluateInteractable(const TScriptInterface<
 
 		return;
 	}
-	
+
+	/***
+	 * Even when not tracing again active, active stays
+	 */
 	if (ActiveInteractable != FoundInteractable)
 	{
 		if (FoundInteractable->GetInteractableWeight() > ActiveInteractable->GetInteractableWeight())
 		{
-			OnInteractableLost.Broadcast(ActiveInteractable);
+			if (ActiveInteractable.GetInterface() != nullptr)
+			{
+				OnInteractableLost.Broadcast(ActiveInteractable);
+			}
+			
 			
 			SetActiveInteractable(FoundInteractable);
 			OnInteractableSelected.Broadcast(FoundInteractable);
-			
-			return;
+		}
+		else
+		{
+			if (FoundInteractable.GetInterface() != nullptr)
+			{
+				OnInteractableLost.Broadcast(FoundInteractable);
+			}
 		}
 	}
 	else
 	{
-		//SetActiveInteractable(FoundInteractable);
-		//OnInteractableSelected.Broadcast(FoundInteractable);
+		SetActiveInteractable(FoundInteractable);
+		OnInteractableSelected.Broadcast(FoundInteractable);
 	}
 }
 
