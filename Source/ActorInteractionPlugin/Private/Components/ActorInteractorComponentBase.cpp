@@ -149,6 +149,8 @@ void UActorInteractorComponentBase::EvaluateInteractable(const TScriptInterface<
 			{
 				OnInteractableLost.Broadcast(FoundInteractable);
 			}
+
+			OnInteractableSelected.Broadcast(ActiveInteractable);
 		}
 	}
 	else
