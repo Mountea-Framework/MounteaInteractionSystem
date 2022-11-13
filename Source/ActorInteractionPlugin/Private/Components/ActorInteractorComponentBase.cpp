@@ -127,6 +127,7 @@ void UActorInteractorComponentBase::EvaluateInteractable(const TScriptInterface<
 	}
 
 	/***
+	 * TODO ?
 	 * Even when not tracing again active, active stays
 	 */
 	if (ActiveInteractable != FoundInteractable)
@@ -167,11 +168,6 @@ void UActorInteractorComponentBase::StartInteraction(const float StartTime, cons
 
 void UActorInteractorComponentBase::StopInteraction(const float StartTime, const FKey& InputKey)
 {
-	/**
-	 * TODO
-	 * Interaction must stop here
-	 */
-
 	if (CanInteract() && ActiveInteractable.GetInterface())
 	{
 		ActiveInteractable->GetOnInteractionStoppedHandle().Broadcast(StartTime, InputKey);
