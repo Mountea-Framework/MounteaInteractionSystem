@@ -134,21 +134,80 @@ void UActorInteractorComponentTrace::ProcessTrace()
 	}
 
 	bool bAnyInteractable = false;
+	bool bFoundActiveAgain = false;
+	TArray<FHitResult> ValidHitResults;
+	
 	for (FHitResult& HitResult : TraceData.HitResults)
 	{
-		if (const auto HitComp = HitResult.GetComponent())
+		if (HitResult.GetComponent() == nullptr) continue;
+		if (const AActor* HitActor = HitResult.GetActor())
 		{
-			if (HitComp->Implements<UActorInteractableInterface>() == false)
+			auto InteractableComponents = HitActor->GetComponentsByInterface(UActorInteractableInterface::StaticClass());
+			for (const auto Itr : InteractableComponents)
 			{
-				HitComp->OnComponentHit.Broadcast(HitResult.GetComponent(), GetOwner(), nullptr, HitResult.Location, HitResult);
-				bAnyInteractable = true;
+				if (Itr && Itr->Implements<UActorInteractableInterface>())
+				{
+					TScriptInterface<IActorInteractableInterface> Interactable = Itr;
+					Interactable.SetObject(Itr);
+					Interactable.SetInterface(Cast<IActorInteractableInterface>(Itr));
+
+					if (Interactable == GetActiveInteractable())
+					{
+						bFoundActiveAgain = true;
+					}
+					if (Interactable->CanBeTriggered())
+					{
+						ValidHitResults.Add(HitResult);
+						//HitResult.GetComponent()->OnComponentHit.Broadcast(HitResult.GetComponent(), GetOwner(), nullptr, HitResult.Location, HitResult);
+						bAnyInteractable = true;
+					}
+				}
 			}
 		}
+
+		/*
+		if (const auto HitComp = HitResult.GetComponent())
+		{
+			if (HitComp->Implements<UActorInteractableInterface>())
+			{
+				TScriptInterface<IActorInteractableInterface> Interactable = HitComp;
+				Interactable.SetObject(HitComp);
+				Interactable.SetInterface(Cast<IActorInteractableInterface>(HitComp));
+
+				if (Interactable == GetActiveInteractable())
+				{
+					bFoundActiveAgain = true;
+				}
+				
+				if (Interactable->CanInteract())
+				{
+					Interactable->GetOnInteractorTracedHandle().Broadcast(HitResult.GetComponent(), GetOwner(), nullptr, HitResult.Location, HitResult);
+					bAnyInteractable = true;
+				}
+			}
+		}
+		*/
 	}
 
-	if (bAnyInteractable == false)
+	/*
+	if (bFoundActiveAgain == false)
+	{
+		if (bAnyInteractable == false)
+		{
+			OnInteractableLost.Broadcast(GetActiveInteractable());
+		}
+	}
+	*/
+	if (bFoundActiveAgain == false)
 	{
 		OnInteractableLost.Broadcast(GetActiveInteractable());
+	}
+	if (bAnyInteractable)
+	{
+		for (auto HitResult : ValidHitResults)
+		{
+			HitResult.GetComponent()->OnComponentHit.Broadcast(HitResult.GetComponent(), GetOwner(), nullptr, HitResult.Location, HitResult);
+		}
 	}
 
 #if WITH_EDITOR
