@@ -158,46 +158,13 @@ void UActorInteractorComponentTrace::ProcessTrace()
 					if (Interactable->CanBeTriggered())
 					{
 						ValidHitResults.Add(HitResult);
-						//HitResult.GetComponent()->OnComponentHit.Broadcast(HitResult.GetComponent(), GetOwner(), nullptr, HitResult.Location, HitResult);
 						bAnyInteractable = true;
 					}
 				}
 			}
 		}
-
-		/*
-		if (const auto HitComp = HitResult.GetComponent())
-		{
-			if (HitComp->Implements<UActorInteractableInterface>())
-			{
-				TScriptInterface<IActorInteractableInterface> Interactable = HitComp;
-				Interactable.SetObject(HitComp);
-				Interactable.SetInterface(Cast<IActorInteractableInterface>(HitComp));
-
-				if (Interactable == GetActiveInteractable())
-				{
-					bFoundActiveAgain = true;
-				}
-				
-				if (Interactable->CanInteract())
-				{
-					Interactable->GetOnInteractorTracedHandle().Broadcast(HitResult.GetComponent(), GetOwner(), nullptr, HitResult.Location, HitResult);
-					bAnyInteractable = true;
-				}
-			}
-		}
-		*/
 	}
 
-	/*
-	if (bFoundActiveAgain == false)
-	{
-		if (bAnyInteractable == false)
-		{
-			OnInteractableLost.Broadcast(GetActiveInteractable());
-		}
-	}
-	*/
 	if (bFoundActiveAgain == false)
 	{
 		OnInteractableLost.Broadcast(GetActiveInteractable());
@@ -216,9 +183,7 @@ void UActorInteractorComponentTrace::ProcessTrace()
 		DrawTracingDebugEnd(TraceData);
 	}
 #endif
-
-	// TODO
-	// Validate results
+	
 	ResumeTracing();
 }
 
