@@ -526,6 +526,20 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual TArray<FName> GetHighlightableOverrides() const override;
 
+	/**
+	 * Returns Interactable Data Asset.
+	 * Works best with 'ActorInteractableData'!
+	 */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
+	virtual UDataAsset* GetInteractableData() const override;
+	/**
+	 * Sets new Interactable Data.
+	 * Works best with 'ActorInteractableData'!
+	 * @param NewData New Data to be used as Interactable Data.
+	 */
+	UFUNCTION(BlueprintCallable, Category="Interaction")
+	virtual void SetInteractableData(UDataAsset* NewData) override;
+
 #pragma endregion
 
 #pragma region EventFunctions
@@ -1324,6 +1338,14 @@ protected:
 	 */
 	UPROPERTY(SaveGame, EditAnywhere, BlueprintReadOnly,  Category="Interaction|Optional", meta=(EditCondition="bInteractionHighlight == true", UIMin=0, ClampMin=0, UIMax=255, ClampMax=255))
 	int32 StencilID ;
+
+	/**
+	 * Interactable Data.
+	 * Could be any Data Asset.
+	 * Would work best with 'ActorInteractableData'!
+	 */
+	UPROPERTY(SaveGame, EditAnywhere, BlueprintReadOnly,  Category="Interaction|Optional")
+	UDataAsset* InteractableData = nullptr;
 
 #pragma endregion 
 

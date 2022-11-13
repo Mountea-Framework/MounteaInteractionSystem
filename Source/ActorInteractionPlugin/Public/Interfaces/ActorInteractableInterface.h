@@ -297,7 +297,10 @@ public:
 
 	virtual void BindHighlightableMesh(UMeshComponent* MeshComponent) const = 0;
 	virtual void UnbindHighlightableMesh(UMeshComponent* MeshComponent) const = 0;
-
+	
+	virtual UDataAsset* GetInteractableData() const = 0;
+	virtual void SetInteractableData(UDataAsset* NewData) = 0;
+	
 	virtual FOnInteractableSelected& GetOnInteractableSelectedHandle() = 0;
 	virtual FInteractorFound& GetOnInteractorFoundHandle() = 0;
 	virtual FInteractorLost& GetOnInteractorLostHandle() = 0;

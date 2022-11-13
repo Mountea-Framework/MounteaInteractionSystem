@@ -213,7 +213,6 @@ bool UActorInteractableComponentBase::SnoozeInteractable(FString& ErrorMessage)
 			ErrorMessage.Append(TEXT("Interactable Component has been Asleep"));
 			return true;
 		case EInteractableStateV2::EIS_Cooldown:
-			// TODO: reset cooldown
 			ErrorMessage.Append(TEXT("Interactable Component has been Asleep"));
 			return true;
 		case EInteractableStateV2::EIS_Completed:
@@ -911,6 +910,12 @@ TArray<FName> UActorInteractableComponentBase::GetCollisionOverrides() const
 TArray<FName> UActorInteractableComponentBase::GetHighlightableOverrides() const
 {	return HighlightableOverrides;}
 
+UDataAsset* UActorInteractableComponentBase::GetInteractableData() const
+{ return InteractableData; }
+
+void UActorInteractableComponentBase::SetInteractableData(UDataAsset* NewData)
+{ InteractableData = NewData; }
+
 void UActorInteractableComponentBase::InteractorFound(const TScriptInterface<IActorInteractorInterface>& FoundInteractor)
 {
 	if (CanBeTriggered())
@@ -966,12 +971,6 @@ void UActorInteractableComponentBase::InteractionCompleted(const float& TimeComp
 
 void UActorInteractableComponentBase::InteractionStarted(const float& TimeStarted, const FKey& PressedKey)
 {
-	/**
-	 * TODO
-	 * Validation
-	 * If Valid, then Broadcast
-	 */
-
 	if (CanInteract())
 	{
 		Execute_OnInteractionStartedEvent(this, TimeStarted, PressedKey);
@@ -980,12 +979,6 @@ void UActorInteractableComponentBase::InteractionStarted(const float& TimeStarte
 
 void UActorInteractableComponentBase::InteractionStopped(const float& TimeStarted, const FKey& PressedKey)
 {
-	/**
-	 * TODO
-	 * Validation
-	 * If Valid, then Broadcast
-	 */
-	
 	if (!GetWorld()) return;
 	
 	GetWorld()->GetTimerManager().ClearTimer(Timer_Interaction);
