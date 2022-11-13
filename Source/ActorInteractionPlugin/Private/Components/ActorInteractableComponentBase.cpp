@@ -268,8 +268,8 @@ bool UActorInteractableComponentBase::CanInteract() const
 	switch (InteractableState)
 	{
 		case EInteractableStateV2::EIS_Awake:
+		case EInteractableStateV2::EIS_Active:
 			return GetInteractor().GetInterface() != nullptr;
-		case EInteractableStateV2::EIS_Active: // already interacting
 		case EInteractableStateV2::EIS_Asleep:
 		case EInteractableStateV2::EIS_Disabled:
 		case EInteractableStateV2::EIS_Cooldown:
@@ -283,7 +283,23 @@ bool UActorInteractableComponentBase::CanInteract() const
 }
 
 bool UActorInteractableComponentBase::CanBeTriggered() const
-{ return InteractableState == EInteractableStateV2::EIS_Awake && Interactor.GetInterface() == nullptr; }
+{
+	switch (InteractableState)
+	{
+		case EInteractableStateV2::EIS_Awake:
+		case EInteractableStateV2::EIS_Active:
+			return true;
+		case EInteractableStateV2::EIS_Asleep:
+		case EInteractableStateV2::EIS_Disabled:
+		case EInteractableStateV2::EIS_Cooldown:
+		case EInteractableStateV2::EIS_Completed:
+		case EInteractableStateV2::EIS_Suppressed:
+		case EInteractableStateV2::Default: 
+		default: break;
+	}
+	
+	return false;
+}
 
 bool UActorInteractableComponentBase::IsInteracting() const
 { return InteractableState == EInteractableStateV2::EIS_Active; }
@@ -339,6 +355,7 @@ void UActorInteractableComponentBase::SetState(const EInteractableStateV2 NewSta
 				case EInteractableStateV2::EIS_Cooldown:
 				case EInteractableStateV2::EIS_Disabled:
 					InteractableState = NewState;
+					StopHighlight();
 					OnInteractableStateChanged.Broadcast(InteractableState);
 					break;
 				case EInteractableStateV2::EIS_Completed:
@@ -352,6 +369,7 @@ void UActorInteractableComponentBase::SetState(const EInteractableStateV2 NewSta
 			{
 				case EInteractableStateV2::EIS_Active:
 					InteractableState = NewState;
+					StopHighlight();
 					OnInteractableStateChanged.Broadcast(InteractableState);
 					break;
 				case EInteractableStateV2::EIS_Awake:
@@ -370,6 +388,7 @@ void UActorInteractableComponentBase::SetState(const EInteractableStateV2 NewSta
 				case EInteractableStateV2::EIS_Active:
 					{
 						InteractableState = NewState;
+						StopHighlight();
 						OnInteractableStateChanged.Broadcast(InteractableState);
 						if (GetWorld()) GetWorld()->GetTimerManager().ClearAllTimersForObject(this);
 						OnInteractorLost.Broadcast(Interactor);
@@ -395,6 +414,7 @@ void UActorInteractableComponentBase::SetState(const EInteractableStateV2 NewSta
 				case EInteractableStateV2::EIS_Cooldown:
 				case EInteractableStateV2::EIS_Asleep:
 					InteractableState = NewState;
+					StopHighlight();	
 					OnInteractableStateChanged.Broadcast(InteractableState);
 					break;
 				case EInteractableStateV2::EIS_Disabled:
@@ -410,6 +430,7 @@ void UActorInteractableComponentBase::SetState(const EInteractableStateV2 NewSta
 				case EInteractableStateV2::EIS_Asleep:
 				case EInteractableStateV2::EIS_Disabled:
 					InteractableState = NewState;
+					StopHighlight();
 					OnInteractableStateChanged.Broadcast(InteractableState);
 					break;
 				case EInteractableStateV2::EIS_Cooldown:
@@ -420,7 +441,9 @@ void UActorInteractableComponentBase::SetState(const EInteractableStateV2 NewSta
 			}
 			break;
 		case EInteractableStateV2::Default: 
-		default: break;
+		default:
+			StopHighlight();
+			break;
 	}
 	
 	ProcessDependencies();
@@ -559,8 +582,7 @@ void UActorInteractableComponentBase::SetInteractor(const TScriptInterface<IActo
 	{
 		if (Interactor.GetInterface() != nullptr)
 		{
-			Interactor->GetOnInteractableSelectedHandle().AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractableSelected);
-			//Interactor->GetOnInteractableLostHandle().Broadcast(this);
+			Interactor->GetOnInteractableSelectedHandle().RemoveDynamic(this, &UActorInteractableComponentBase::InteractableSelected);
 		}
 
 		StopHighlight();
@@ -973,13 +995,13 @@ void UActorInteractableComponentBase::InteractionStopped(const float& TimeStarte
 
 void UActorInteractableComponentBase::InteractionCanceled()
 {
-	if (IsInteracting())
+	if (CanInteract())
 	{
 		ToggleWidgetVisibility(false);
 		
 		GetWorld()->GetTimerManager().ClearTimer(Timer_Interaction);
 
-		SetState(EInteractableStateV2::EIS_Asleep);
+		SetState(EInteractableStateV2::EIS_Active);
 		
 		Execute_OnInteractionCanceledEvent(this);
 	}
@@ -996,10 +1018,12 @@ void UActorInteractableComponentBase::InteractionCooldownCompleted()
 {
 	if (Interactor.GetInterface() != nullptr)
 	{
+		StartHighlight();
 		SetState(EInteractableStateV2::EIS_Awake);
 	}
 	else
 	{
+		StopHighlight();
 		SetState(EInteractableStateV2::EIS_Asleep);
 	}
 	
@@ -1072,7 +1096,7 @@ void UActorInteractableComponentBase::OnInteractableStopOverlap(UPrimitiveCompon
 
 void UActorInteractableComponentBase::OnInteractableTraced(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-	if (IsInteracting()) return;
+	//if (IsInteracting()) return;
 	if (!OtherActor) return;
 
 	TArray<UActorComponent*> InteractorComponents = OtherActor->GetComponentsByInterface(UActorInteractorInterface::StaticClass());
@@ -1103,6 +1127,7 @@ void UActorInteractableComponentBase::OnInteractableTraced(UPrimitiveComponent* 
 			case EInteractorStateV2::EIS_Suppressed:
 			case EInteractorStateV2::EIS_Disabled:
 			case EInteractorStateV2::Default:
+				OnInteractionCanceled.Broadcast();
 				break;
 		}
 	}
@@ -1111,7 +1136,9 @@ void UActorInteractableComponentBase::OnInteractableTraced(UPrimitiveComponent* 
 void UActorInteractableComponentBase::InteractableSelected(const TScriptInterface<IActorInteractableInterface>& Interactable)
 {
  	if (Interactable == this)
- 	{ 		
+ 	{
+ 		StartHighlight();
+ 		
  		SetState(EInteractableStateV2::EIS_Active);
  		OnInteractableSelected.Broadcast(Interactable);
  	}
@@ -1119,9 +1146,11 @@ void UActorInteractableComponentBase::InteractableSelected(const TScriptInterfac
 	{
 		if (Interactor.GetInterface() != nullptr)
 		{
-			Interactor->GetOnInteractableSelectedHandle().RemoveDynamic(this, &UActorInteractableComponentBase::InteractableSelected);
-			Interactor->GetOnInteractableLostHandle().RemoveDynamic(this, &UActorInteractableComponentBase::InteractableLost);
+			//Interactor->GetOnInteractableSelectedHandle().RemoveDynamic(this, &UActorInteractableComponentBase::InteractableSelected);
+			//Interactor->GetOnInteractableLostHandle().RemoveDynamic(this, &UActorInteractableComponentBase::InteractableLost);
 		}
+
+		OnInteractionCanceled.Broadcast();
 		
 		SetState(EInteractableStateV2::EIS_Awake);
 		OnInteractorLost.Broadcast(GetInteractor());
