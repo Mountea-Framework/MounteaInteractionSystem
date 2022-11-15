@@ -11,6 +11,7 @@
 #include "Widgets/ActorInteractableWidget.h"
 #endif
 
+#include "Components/ActorInteractableComponent.h"
 #include "Components/WidgetComponent.h"
 #include "Interfaces/ActorInteractorInterface.h"
 
@@ -1500,7 +1501,7 @@ void UActorInteractableComponentBase::PostEditChangeChainProperty(FPropertyChang
 		}
 	}
 		
-	if (PropertyName == FName(TEXT("WidgetClass")))
+	if (PropertyName == TEXT("WidgetClass"))
 	{
 		if (GetWidgetClass() == nullptr)
 		{
@@ -1526,6 +1527,26 @@ void UActorInteractableComponentBase::PostEditChangeChainProperty(FPropertyChang
 				}
 			}
 		}
+	}
+
+	if (PropertyName == TEXT("Space"))
+	{
+		if (GetWidgetSpace() == EWidgetSpace::World)
+		{
+			SetWorldScale3D(FVector(0.01f));
+			SetDrawSize(FVector2D(2000));
+			bDrawAtDesiredSize = false;
+		}
+		else
+		{
+			SetWorldScale3D(FVector(1.f));
+		}
+
+		const FText ErrorMessage = FText::FromString
+		(
+			InteractableName.Append(TEXT(": UI Space changed! Component Scale has been updated. Check your Widget Class whether it is intended for this Space Type."))
+		);
+		FEditorHelper::DisplayEditorNotification(ErrorMessage, SNotificationItem::CS_Fail, 5.f, 2.f, TEXT("Icons.Info"));
 	}
 }
 
