@@ -34,6 +34,7 @@ void FActorInteractionPluginEditor::StartupModule()
 	{
 		InteractorComponentSet = MakeShareable(new FSlateStyleSet("InteractorComponent Style"));
 		InteractableComponentSet = MakeShareable(new FSlateStyleSet("InteractableComponent Style"));
+		RotationComponentSet = MakeShareable(new FSlateStyleSet("RotationComponent Style"));
 
 		const TSharedPtr<IPlugin> PluginPtr = IPluginManager::Get().FindPlugin("ActorInteractionPlugin");
 
