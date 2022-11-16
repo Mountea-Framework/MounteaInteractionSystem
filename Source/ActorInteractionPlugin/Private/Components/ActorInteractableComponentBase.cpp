@@ -576,7 +576,7 @@ void UActorInteractableComponentBase::SetInteractor(const TScriptInterface<IActo
 		NewInteractor->GetOnInteractableSelectedHandle().AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractableSelected);
 		NewInteractor->GetOnInteractableFoundHandle().Broadcast(this);
 
-		StartHighlight();
+		//StartHighlight();
 	}
 	else
 	{
