@@ -55,10 +55,10 @@ protected:
 	
 protected:
 
-	UPROPERTY(VisibleAnywhere, Category="Interaction|Overlap")
+	UPROPERTY(EditAnywhere, Category="Interaction|Overlap")
 	TArray<FName> OverrideCollisionComponents;
 	
-	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Overlap")
+	UPROPERTY(SaveGame, VisibleAnywhere, Category="Interaction|Overlap", meta=(DisplayThumbnail = false, ShowOnlyInnerProperties))
 	TArray<UPrimitiveComponent*> CollisionShapes;
 
 private:
