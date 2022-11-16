@@ -25,6 +25,7 @@ private:
 
 	TSharedPtr<FSlateStyleSet> InteractorComponentSet;
 	TSharedPtr<FSlateStyleSet> InteractableComponentSet;
+	TSharedPtr<FSlateStyleSet> RotationComponentSet;
 
 	TSharedPtr<class FInteractorComponentAssetActions> InteractorComponentAssetActions;
 	TSharedPtr<class FInteractableComponentAssetActions> InteractableComponentAssetActions;
