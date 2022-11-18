@@ -34,6 +34,11 @@ protected:
 	virtual void UnbindCollisions();
 	virtual void UnbindCollision(UPrimitiveComponent* Component);
 	
+	UFUNCTION()
+	void OnOverlapStopped(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int Index);
+	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	void OnOveralpStoppedEvent(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int Index);
+	
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void AddCollisionComponent(UPrimitiveComponent* CollisionComponent);
 	UFUNCTION(BlueprintCallable, Category="Interaction")
@@ -72,3 +77,4 @@ private:
 	mutable TMap<UPrimitiveComponent*, FCollisionShapeCache> CachedCollisionShapesSettings;
 	
 };
+
