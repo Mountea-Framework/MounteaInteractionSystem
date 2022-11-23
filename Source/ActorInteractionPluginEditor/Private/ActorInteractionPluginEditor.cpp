@@ -34,7 +34,6 @@ void FActorInteractionPluginEditor::StartupModule()
 	{
 		InteractorComponentSet = MakeShareable(new FSlateStyleSet("InteractorComponent Style"));
 		InteractableComponentSet = MakeShareable(new FSlateStyleSet("InteractableComponent Style"));
-		RotationComponentSet = MakeShareable(new FSlateStyleSet("RotationComponent Style"));
 
 		const TSharedPtr<IPlugin> PluginPtr = IPluginManager::Get().FindPlugin("ActorInteractionPlugin");
 
@@ -71,22 +70,6 @@ void FActorInteractionPluginEditor::StartupModule()
      
 					//Register the created style
 					FSlateStyleRegistry::RegisterSlateStyle(*InteractableComponentSet.Get());
-				}
-			}
-			
-			// Interactable Rotation Component
-			{
-				RotationComponentSet->SetContentRoot(ContentDir);
-        		
-				FSlateImageBrush* RotationComponentClassThumb = new FSlateImageBrush(RotationComponentSet->RootToContentDir(TEXT("Resources/InteractableRotationIcon_128"), TEXT(".png")), FVector2D(128.f, 128.f));
-				FSlateImageBrush* RotationComponentClassIcon = new FSlateImageBrush(RotationComponentSet->RootToContentDir(TEXT("Resources/InteractableRotationIcon_16"), TEXT(".png")), FVector2D(16.f, 16.f));
-				if (RotationComponentClassThumb && RotationComponentClassIcon)
-				{
-					RotationComponentSet->Set("ClassThumbnail.ActorInteractableRotationComponent", RotationComponentClassThumb);
-					RotationComponentSet->Set("ClassIcon.ActorInteractableRotationComponent", RotationComponentClassIcon);
-     
-					//Register the created style
-					FSlateStyleRegistry::RegisterSlateStyle(*RotationComponentSet.Get());
 				}
 			}
 		}
@@ -133,7 +116,6 @@ void FActorInteractionPluginEditor::ShutdownModule()
 	{
 		FSlateStyleRegistry::UnRegisterSlateStyle(InteractorComponentSet->GetStyleSetName());
 		FSlateStyleRegistry::UnRegisterSlateStyle(InteractableComponentSet->GetStyleSetName());
-		FSlateStyleRegistry::UnRegisterSlateStyle(RotationComponentSet->GetStyleSetName());
 	}
 
 	// Asset Types Cleanup
