@@ -995,7 +995,7 @@ void UActorInteractableComponentBase::InteractionCanceled()
 		
 		GetWorld()->GetTimerManager().ClearTimer(Timer_Interaction);
 
-		SetState(EInteractableStateV2::EIS_Active);
+		SetState(EInteractableStateV2::EIS_Awake);
 		
 		Execute_OnInteractionCanceledEvent(this);
 	}
@@ -1045,21 +1045,24 @@ void UActorInteractableComponentBase::OnInteractableBeginOverlap(UPrimitiveCompo
 		FoundInteractor.SetObject(Itr);
 		FoundInteractor.SetInterface(Cast<IActorInteractorInterface>(Itr));
 
-		switch (FoundInteractor->GetState())
+		if (FoundInteractor->CanInteract())
 		{
-		case EInteractorStateV2::EIS_Active:
-		case EInteractorStateV2::EIS_Awake:
-			if (FoundInteractor->GetResponseChannel() != GetCollisionChannel()) continue;
-			FoundInteractor->GetOnInteractableLostHandle().AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractableLost);
-			FoundInteractor->GetOnInteractableSelectedHandle().AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractableSelected);
-			OnInteractorOverlapped.Broadcast(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
-			OnInteractorFound.Broadcast(FoundInteractor);
-			break;
-		case EInteractorStateV2::EIS_Asleep:
-		case EInteractorStateV2::EIS_Suppressed:
-		case EInteractorStateV2::EIS_Disabled:
-		case EInteractorStateV2::Default:
-			break;
+			switch (FoundInteractor->GetState())
+			{
+				case EInteractorStateV2::EIS_Active:
+				case EInteractorStateV2::EIS_Awake:
+					if (FoundInteractor->GetResponseChannel() != GetCollisionChannel()) continue;
+					FoundInteractor->GetOnInteractableLostHandle().AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractableLost);
+					FoundInteractor->GetOnInteractableSelectedHandle().AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractableSelected);
+					OnInteractorOverlapped.Broadcast(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
+					OnInteractorFound.Broadcast(FoundInteractor);
+					break;
+				case EInteractorStateV2::EIS_Asleep:
+				case EInteractorStateV2::EIS_Suppressed:
+				case EInteractorStateV2::EIS_Disabled:
+				case EInteractorStateV2::Default:
+					break;
+			}
 		}
 	}
 }
@@ -1074,16 +1077,26 @@ void UActorInteractableComponentBase::OnInteractableStopOverlap(UPrimitiveCompon
 
 	for (const auto Itr : InteractorComponents)
 	{
-		if (Itr == GetInteractor().GetInterface())
+		TScriptInterface<IActorInteractorInterface> LostInteractor;
+		if (IgnoredClasses.Contains(Itr->StaticClass())) continue;
+		
+		LostInteractor = Itr;
+		LostInteractor.SetObject(Itr);
+		LostInteractor.SetInterface(Cast<IActorInteractorInterface>(Itr));
+
+		if (LostInteractor->CanInteract())
 		{
-			GetInteractor()->GetOnInteractableLostHandle().RemoveDynamic(this, &UActorInteractableComponentBase::InteractableLost);
-			GetInteractor()->GetOnInteractableLostHandle().Broadcast(this);
-			
-			OnInteractorLost.Broadcast(GetInteractor());
-						
-			OnInteractorStopOverlap.Broadcast(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex);
-			
-			return;
+			if (LostInteractor == GetInteractor())
+			{
+				GetInteractor()->GetOnInteractableLostHandle().RemoveDynamic(this, &UActorInteractableComponentBase::InteractableLost);
+				GetInteractor()->GetOnInteractableLostHandle().Broadcast(this);
+				
+				OnInteractorLost.Broadcast(GetInteractor());
+				OnInteractorStopOverlap.Broadcast(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex);
+
+				//SetState(EInteractableStateV2::EIS_Awake);
+				return;
+			}
 		}
 	}
 }
