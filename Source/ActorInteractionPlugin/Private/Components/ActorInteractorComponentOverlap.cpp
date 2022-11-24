@@ -95,14 +95,6 @@ void UActorInteractorComponentOverlap::BindCollision(UPrimitiveComponent* Compon
 		case ECollisionEnabled::QueryAndPhysics:
 		default: break;
 	}
-
-	for (const auto Itr : CollisionShapes)
-	{
-		if (Itr)
-		{
-			Itr->OnComponentEndOverlap.AddUniqueDynamic(this, &UActorInteractorComponentOverlap::OnOverlapStopped);
-		}
-	}
 }
 
 void UActorInteractorComponentOverlap::UnbindCollisions()
@@ -129,24 +121,6 @@ void UActorInteractorComponentOverlap::UnbindCollision(UPrimitiveComponent* Comp
 		Component->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 		Component->SetCollisionResponseToChannel(CollisionChannel, ECollisionResponse::ECR_Overlap);
 	}
-
-	for (const auto Itr : CollisionShapes)
-	{
-		if (Itr)
-		{
-			Itr->OnComponentEndOverlap.RemoveDynamic(this, &UActorInteractorComponentOverlap::OnOverlapStopped);
-		}
-	}
-}
-
-void UActorInteractorComponentOverlap::OnOverlapStopped(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int Index)
-{
-	if (!OtherComp) return;
-	if (!OtherActor) return;
-
-	// TODO: check if ended overlap with Interactable, if so, broadcast InteractableLost
-	
-	OnOveralpStoppedEvent(OverlappedComponent, OtherActor, OtherComp, Index);
 }
 
 void UActorInteractorComponentOverlap::AddCollisionComponent(UPrimitiveComponent* CollisionComponent)
