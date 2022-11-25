@@ -4,11 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "Components/WidgetComponent.h"
+#include "Engine/DataTable.h"
 
 #include "Interfaces/ActorInteractableInterface.h"
 #include "Helpers/InteractionHelpers.h"
 
 #include "ActorInteractableComponentBase.generated.h"
+
+#define LOCTEXT_NAMESPACE "InteractableComponent"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnWidgetUpdated);
 
@@ -132,13 +135,13 @@ public:
 	 * Requires Rendering Custom depth in Project Settings.
 	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
-	virtual void StartHighlight() const override;
+	virtual void StartHighlight() override;
 	/**
 	 * Stops Highlight for all Highlightable Components.
 	 * Requires Rendering Custom depth in Project Settings.
 	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
-	virtual void StopHighlight() const override;
+	virtual void StopHighlight() override;
 	
 	
 	/**
@@ -494,14 +497,26 @@ public:
 	 * Works best with 'ActorInteractableData'!
 	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
-	virtual UDataAsset* GetInteractableData() const override;
+	virtual FDataTableRowHandle GetInteractableData() override;
 	/**
 	 * Sets new Interactable Data.
 	 * Works best with 'ActorInteractableData'!
 	 * @param NewData New Data to be used as Interactable Data.
 	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
-	virtual void SetInteractableData(UDataAsset* NewData) override;
+	virtual void SetInteractableData(FDataTableRowHandle NewData) override;
+
+	/**
+	 * Returns Interactable Name.
+	 */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
+	virtual FText GetInteractableName() const override;
+	/**
+	 * Sets new Interactable Name.
+	 * @param NewName Name to set as Interactable Name.
+	 */
+	UFUNCTION(BlueprintCallable, Category="Interaction")
+	virtual void SetInteractableName(const FText& NewName) override;
 
 #pragma endregion
 
@@ -1301,15 +1316,19 @@ protected:
 	 */
 	UPROPERTY(SaveGame, EditAnywhere, BlueprintReadOnly,  Category="Interaction|Optional", meta=(EditCondition="bInteractionHighlight == true", UIMin=0, ClampMin=0, UIMax=255, ClampMax=255))
 	int32 StencilID ;
-
+	
 	/**
 	 * Interactable Data.
-	 * Could be any Data Asset.
-	 * Would work best with 'ActorInteractableData'!
+	 * Could be any Data Table.
 	 */
-	UPROPERTY(SaveGame, EditAnywhere, BlueprintReadOnly,  Category="Interaction|Optional")
-	UDataAsset* InteractableData = nullptr;
+	UPROPERTY(SaveGame, EditAnywhere, BlueprintReadOnly,  Category="Interaction|Optional", meta=(ShowOnlyInnerProperties))
+	FDataTableRowHandle InteractableData;
 
+	/**
+	 * Display Name.
+	 */
+	UPROPERTY(VisibleAnywhere, Category="Interaction|Optional")
+	FText InteractableName = LOCTEXT("InteractableComponentBase", "Default");
 #pragma endregion 
 
 #pragma region ReadOnly
@@ -1353,6 +1372,9 @@ protected:
 	UPROPERTY()
 	FTimerHandle Timer_Cooldown;
 
+	UPROPERTY()
+	UBillboardComponent* BillboardComponent = nullptr;
+
 private:
 	
 	/**
@@ -1384,3 +1406,5 @@ protected:
 
 #pragma endregion 
 };
+
+#undef LOCTEXT_NAMESPACE
