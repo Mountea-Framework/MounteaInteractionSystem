@@ -211,8 +211,8 @@ public:
 	virtual void SetState(const EInteractableStateV2 NewState) = 0;
 
 
-	virtual void StartHighlight() const = 0;
-	virtual void StopHighlight() const = 0;
+	virtual void StartHighlight() = 0;
+	virtual void StopHighlight() = 0;
 	
 	virtual float GetInteractionProgress() const = 0;
 	
@@ -286,7 +286,9 @@ public:
 	virtual TArray<FName> GetCollisionOverrides() const = 0;
 	virtual TArray<FName> GetHighlightableOverrides() const = 0;
 
-
+	virtual FText GetInteractableName() const = 0;
+	virtual void SetInteractableName(const FText& NewName) = 0;
+	
 	virtual void ToggleDebug() = 0;
 
 	virtual void FindAndAddCollisionShapes() = 0;
@@ -298,8 +300,8 @@ public:
 	virtual void BindHighlightableMesh(UMeshComponent* MeshComponent) const = 0;
 	virtual void UnbindHighlightableMesh(UMeshComponent* MeshComponent) const = 0;
 	
-	virtual UDataAsset* GetInteractableData() const = 0;
-	virtual void SetInteractableData(UDataAsset* NewData) = 0;
+	virtual FDataTableRowHandle GetInteractableData() = 0;
+	virtual void SetInteractableData(FDataTableRowHandle NewData) = 0;
 	
 	virtual FOnInteractableSelected& GetOnInteractableSelectedHandle() = 0;
 	virtual FInteractorFound& GetOnInteractorFoundHandle() = 0;
