@@ -23,5 +23,8 @@ void UActorInteractableComponentPress::InteractionStarted(const float& TimeStart
 {
 	Super::InteractionStarted(TimeStarted, PressedKey);
 
-	OnInteractionCompleted.Broadcast(TimeStarted);
+	if (CanInteract())
+	{
+		OnInteractionCompleted.Broadcast(TimeStarted);
+	}
 }
