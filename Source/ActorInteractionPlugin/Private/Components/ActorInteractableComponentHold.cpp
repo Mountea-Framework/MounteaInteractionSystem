@@ -9,12 +9,14 @@
 #include "Helpers/ActorInteractionPluginLog.h"
 #endif
 
+#define LOCTEXT_NAMESPACE "InteractableComponentHold"
 
 UActorInteractableComponentHold::UActorInteractableComponentHold()
 {
 	PrimaryComponentTick.bCanEverTick = true;
 
 	InteractionPeriod = 3.f;
+	InteractableName = LOCTEXT("InteractableComponentHold", "Hold");
 }
 
 void UActorInteractableComponentHold::BeginPlay()
@@ -87,3 +89,5 @@ float UActorInteractableComponentHold::GetInteractionProgress() const
 {
 	return Super::GetInteractionProgress();
 }
+
+#undef LOCTEXT_NAMESPACE
