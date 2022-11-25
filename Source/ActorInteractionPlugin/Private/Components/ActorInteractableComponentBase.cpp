@@ -16,6 +16,7 @@
 #include "Components/WidgetComponent.h"
 #include "Interfaces/ActorInteractorInterface.h"
 
+#define LOCTEXT_NAMESPACE "InteractableComponentBase"
 
 UActorInteractableComponentBase::UActorInteractableComponentBase()
 {
@@ -41,7 +42,9 @@ UActorInteractableComponentBase::UActorInteractableComponentBase()
 
 	InteractionOwner = GetOwner();
 
-	const FInteractionKeySetup GamepadKeys = FKey("Gamepad Face Button Down");
+	InteractableName = LOCTEXT("InteractableComponentBase", "Base");
+
+	const FInteractionKeySetup GamepadKeys = FKey("Gamepad_FaceButton_Bottom");
 	FInteractionKeySetup KeyboardKeys = GamepadKeys;
 	KeyboardKeys.Keys.Add("E");
 		
@@ -1688,3 +1691,5 @@ void UActorInteractableComponentBase::DrawDebug()
 
 #endif
 #pragma endregion
+
+#undef LOCTEXT_NAMESPACE
