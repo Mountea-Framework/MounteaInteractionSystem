@@ -155,7 +155,7 @@ struct FInteractionKeySetup
          Keys.Add(NewKey);
      }
 
-     UPROPERTY(BlueprintReadWrite, VisibleAnywhere, meta=(NoElementDuplicate))
+     UPROPERTY(BlueprintReadWrite, EditAnywhere, meta=(NoElementDuplicate))
      TArray<FKey> Keys;
 };
 
