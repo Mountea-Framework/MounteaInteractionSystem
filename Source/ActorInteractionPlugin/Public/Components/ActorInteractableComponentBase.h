@@ -1321,13 +1321,13 @@ protected:
 	 * Interactable Data.
 	 * Could be any Data Table.
 	 */
-	UPROPERTY(SaveGame, EditAnywhere, BlueprintReadOnly,  Category="Interaction|Optional", meta=(ShowOnlyInnerProperties))
+	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Optional", meta=(ShowOnlyInnerProperties))
 	FDataTableRowHandle InteractableData;
 
 	/**
 	 * Display Name.
 	 */
-	UPROPERTY(VisibleAnywhere, Category="Interaction|Optional")
+	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Optional")
 	FText InteractableName = LOCTEXT("InteractableComponentBase", "Default");
 #pragma endregion 
 
