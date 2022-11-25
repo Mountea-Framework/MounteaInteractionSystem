@@ -12,6 +12,7 @@
 #endif
 
 #include "Components/ActorInteractableComponent.h"
+#include "Components/BillboardComponent.h"
 #include "Components/WidgetComponent.h"
 #include "Interfaces/ActorInteractorInterface.h"
 
@@ -55,6 +56,10 @@ UActorInteractableComponentBase::UActorInteractableComponentBase()
 	
 	UActorComponent::SetActive(true);
 	SetHiddenInGame(true);
+
+	BillboardComponent = CreateDefaultSubobject<UBillboardComponent>(TEXT("BillboardComp"), true);
+	BillboardComponent->SetupAttachment(this);
+	BillboardComponent->SetHiddenInGame(true);
 }
 
 void UActorInteractableComponentBase::BeginPlay()
@@ -62,6 +67,8 @@ void UActorInteractableComponentBase::BeginPlay()
 	Super::BeginPlay();
 	
 	InteractionOwner = GetOwner();
+
+	BillboardComponent->SetVisibility(false);
 
 	// Interaction Events
 	OnInteractableSelected.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableSelectedEvent);
@@ -367,12 +374,12 @@ void UActorInteractableComponentBase::SetState(const EInteractableStateV2 NewSta
 		case EInteractableStateV2::EIS_Cooldown:
 			switch (InteractableState)
 			{
+				case EInteractableStateV2::EIS_Awake:
 				case EInteractableStateV2::EIS_Active:
 					InteractableState = NewState;
 					StopHighlight();
 					OnInteractableStateChanged.Broadcast(InteractableState);
 					break;
-				case EInteractableStateV2::EIS_Awake:
 				case EInteractableStateV2::EIS_Suppressed:
 				case EInteractableStateV2::EIS_Cooldown:
 				case EInteractableStateV2::EIS_Disabled:
@@ -449,8 +456,9 @@ void UActorInteractableComponentBase::SetState(const EInteractableStateV2 NewSta
 	ProcessDependencies();
 }
 
-void UActorInteractableComponentBase::StartHighlight() const
+void UActorInteractableComponentBase::StartHighlight()
 {
+	SetHiddenInGame(false, true);
 	for (const auto Itr : HighlightableComponents)
 	{
 		Itr->SetRenderCustomDepth(bInteractionHighlight);
@@ -458,8 +466,9 @@ void UActorInteractableComponentBase::StartHighlight() const
 	}
 }
 
-void UActorInteractableComponentBase::StopHighlight() const
+void UActorInteractableComponentBase::StopHighlight()
 {
+	SetHiddenInGame(true, true);
 	for (const auto Itr : HighlightableComponents)
 	{
 		Itr->SetRenderCustomDepth(false);
@@ -575,8 +584,6 @@ void UActorInteractableComponentBase::SetInteractor(const TScriptInterface<IActo
 	{
 		NewInteractor->GetOnInteractableSelectedHandle().AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractableSelected);
 		NewInteractor->GetOnInteractableFoundHandle().Broadcast(this);
-
-		//StartHighlight();
 	}
 	else
 	{
@@ -911,11 +918,20 @@ TArray<FName> UActorInteractableComponentBase::GetCollisionOverrides() const
 TArray<FName> UActorInteractableComponentBase::GetHighlightableOverrides() const
 {	return HighlightableOverrides;}
 
-UDataAsset* UActorInteractableComponentBase::GetInteractableData() const
+FDataTableRowHandle UActorInteractableComponentBase::GetInteractableData()
 { return InteractableData; }
 
-void UActorInteractableComponentBase::SetInteractableData(UDataAsset* NewData)
+void UActorInteractableComponentBase::SetInteractableData(FDataTableRowHandle NewData)
 { InteractableData = NewData; }
+
+FText UActorInteractableComponentBase::GetInteractableName() const
+{ return InteractableName; }
+
+void UActorInteractableComponentBase::SetInteractableName(const FText& NewName)
+{
+	if (NewName.IsEmpty()) return;
+	InteractableName = NewName;
+}
 
 void UActorInteractableComponentBase::InteractorFound(const TScriptInterface<IActorInteractorInterface>& FoundInteractor)
 {
@@ -983,7 +999,7 @@ void UActorInteractableComponentBase::InteractionStopped(const float& TimeStarte
 	if (!GetWorld()) return;
 	
 	GetWorld()->GetTimerManager().ClearTimer(Timer_Interaction);
-
+	
 	Execute_OnInteractionStoppedEvent(this, TimeStarted, PressedKey);
 }
 
@@ -1026,6 +1042,7 @@ void UActorInteractableComponentBase::InteractionCooldownCompleted()
 
 void UActorInteractableComponentBase::OnInteractableBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
+	if (!CanBeTriggered()) return;
 	if (IsInteracting()) return;
 	if (!OtherActor) return;
 	if (!OtherComp) return;
@@ -1093,8 +1110,7 @@ void UActorInteractableComponentBase::OnInteractableStopOverlap(UPrimitiveCompon
 				
 				OnInteractorLost.Broadcast(GetInteractor());
 				OnInteractorStopOverlap.Broadcast(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex);
-
-				//SetState(EInteractableStateV2::EIS_Awake);
+				
 				return;
 			}
 		}
@@ -1103,7 +1119,7 @@ void UActorInteractableComponentBase::OnInteractableStopOverlap(UPrimitiveCompon
 
 void UActorInteractableComponentBase::OnInteractableTraced(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-	//if (IsInteracting()) return;
+	if (!CanBeTriggered()) return;
 	if (!OtherActor) return;
 
 	TArray<UActorComponent*> InteractorComponents = OtherActor->GetComponentsByInterface(UActorInteractorInterface::StaticClass());
@@ -1134,7 +1150,6 @@ void UActorInteractableComponentBase::OnInteractableTraced(UPrimitiveComponent* 
 			case EInteractorStateV2::EIS_Suppressed:
 			case EInteractorStateV2::EIS_Disabled:
 			case EInteractorStateV2::Default:
-				OnInteractionCanceled.Broadcast();
 				break;
 		}
 	}
@@ -1151,11 +1166,13 @@ void UActorInteractableComponentBase::InteractableSelected(const TScriptInterfac
  	}
 	else
 	{
+		/*
 		if (Interactor.GetInterface() != nullptr)
 		{
-			//Interactor->GetOnInteractableSelectedHandle().RemoveDynamic(this, &UActorInteractableComponentBase::InteractableSelected);
-			//Interactor->GetOnInteractableLostHandle().RemoveDynamic(this, &UActorInteractableComponentBase::InteractableLost);
+			Interactor->GetOnInteractableSelectedHandle().RemoveDynamic(this, &UActorInteractableComponentBase::InteractableSelected);
+			Interactor->GetOnInteractableLostHandle().RemoveDynamic(this, &UActorInteractableComponentBase::InteractableLost);
 		}
+		*/
 
 		OnInteractionCanceled.Broadcast();
 		
@@ -1257,8 +1274,6 @@ void UActorInteractableComponentBase::ToggleWidgetVisibility(const bool IsVisibl
 {
 	if (GetWidget())
 	{
-		SetHiddenInGame(!IsVisible);
-
 		UpdateInteractionWidget();
 	}
 }
@@ -1434,18 +1449,18 @@ void UActorInteractableComponentBase::PostEditChangeChainProperty(FPropertyChang
 {
 	const FName PropertyName = (PropertyChangedEvent.MemberProperty != nullptr) ? PropertyChangedEvent.GetPropertyName() : NAME_None;
 
-	FString InteractableName = GetName();
+	FString interactableName = GetName();
 	// Format Name
 	{
-		if (InteractableName.Contains(TEXT("_GEN_VARIABLE")))
+		if (interactableName.Contains(TEXT("_GEN_VARIABLE")))
 		{
-			InteractableName.ReplaceInline(TEXT("_GEN_VARIABLE"), TEXT(""));
+			interactableName.ReplaceInline(TEXT("_GEN_VARIABLE"), TEXT(""));
 		}
-		if(InteractableName.EndsWith(TEXT("_C")) && InteractableName.StartsWith(TEXT("Default__")))
+		if(interactableName.EndsWith(TEXT("_C")) && interactableName.StartsWith(TEXT("Default__")))
 		{
 		
-			InteractableName.RightChopInline(9);
-			InteractableName.LeftChopInline(2);
+			interactableName.RightChopInline(9);
+			interactableName.LeftChopInline(2);
 		}
 	}
 	
@@ -1460,7 +1475,7 @@ void UActorInteractableComponentBase::PostEditChangeChainProperty(FPropertyChang
 		{
 			const FText ErrorMessage = FText::FromString
 			(
-				InteractableName.Append(TEXT(": DefaultInteractableState cannot be ")).Append(GetEnumValueAsString("EInteractableStateV2", DefaultInteractableState)).Append(TEXT("!"))
+				interactableName.Append(TEXT(": DefaultInteractableState cannot be ")).Append(GetEnumValueAsString("EInteractableStateV2", DefaultInteractableState)).Append(TEXT("!"))
 			);
 			FEditorHelper::DisplayEditorNotification(ErrorMessage, SNotificationItem::CS_Fail, 5.f, 2.f, TEXT("Icons.Error"));
 
@@ -1478,7 +1493,7 @@ void UActorInteractableComponentBase::PostEditChangeChainProperty(FPropertyChang
 				{
 					const FText ErrorMessage = FText::FromString
 					(
-						InteractableName.Append(TEXT(": Cycled LifecycleCount cannot be: ")).Append(FString::FromInt(LifecycleCount)).Append(TEXT("!"))
+						interactableName.Append(TEXT(": Cycled LifecycleCount cannot be: ")).Append(FString::FromInt(LifecycleCount)).Append(TEXT("!"))
 					);
 				
 					FEditorHelper::DisplayEditorNotification(ErrorMessage, SNotificationItem::CS_Fail, 5.f, 2.f, TEXT("Icons.Error"));
@@ -1496,7 +1511,7 @@ void UActorInteractableComponentBase::PostEditChangeChainProperty(FPropertyChang
 		{
 			const FText ErrorMessage = FText::FromString
 			(
-				InteractableName.Append(TEXT(": InteractionPeriod cannot be less than -1!"))
+				interactableName.Append(TEXT(": InteractionPeriod cannot be less than -1!"))
 			);
 			FEditorHelper::DisplayEditorNotification(ErrorMessage, SNotificationItem::CS_Fail, 5.f, 2.f, TEXT("Icons.Error"));
 
@@ -1520,7 +1535,7 @@ void UActorInteractableComponentBase::PostEditChangeChainProperty(FPropertyChang
 		{
 			const FText ErrorMessage = FText::FromString
 			(
-				InteractableName.Append(TEXT(": Widget Class is NULL!"))
+				interactableName.Append(TEXT(": Widget Class is NULL!"))
 			);
 			FEditorHelper::DisplayEditorNotification(ErrorMessage, SNotificationItem::CS_Fail, 5.f, 2.f, TEXT("Icons.Error"));
 		}
@@ -1532,7 +1547,7 @@ void UActorInteractableComponentBase::PostEditChangeChainProperty(FPropertyChang
 				{
 					const FText ErrorMessage = FText::FromString
 					(
-						InteractableName.Append(TEXT(": Widget Class must either implement 'ActorInteractionWidget Interface' or inherit from 'ActorInteractableWidget' class!"))
+						interactableName.Append(TEXT(": Widget Class must either implement 'ActorInteractionWidget Interface' or inherit from 'ActorInteractableWidget' class!"))
 					);
 					
 					SetWidgetClass(nullptr);
@@ -1557,7 +1572,7 @@ void UActorInteractableComponentBase::PostEditChangeChainProperty(FPropertyChang
 
 		const FText ErrorMessage = FText::FromString
 		(
-			InteractableName.Append(TEXT(": UI Space changed! Component Scale has been updated. Check your Widget Class whether it is intended for this Space Type."))
+			interactableName.Append(TEXT(": UI Space changed! Component Scale has been updated. Check your Widget Class whether it is intended for this Space Type."))
 		);
 		FEditorHelper::DisplayEditorNotification(ErrorMessage, SNotificationItem::CS_Fail, 5.f, 2.f, TEXT("Icons.Info"));
 	}
@@ -1568,18 +1583,18 @@ EDataValidationResult UActorInteractableComponentBase::IsDataValid(TArray<FText>
 	const auto DefaultValue = Super::IsDataValid(ValidationErrors);
 	bool bAnyError = false;
 
-	FString InteractableName = GetName();
+	FString interactableName = GetName();
 	// Format Name
 	{
-		if (InteractableName.Contains(TEXT("_GEN_VARIABLE")))
+		if (interactableName.Contains(TEXT("_GEN_VARIABLE")))
 		{
-			InteractableName.ReplaceInline(TEXT("_GEN_VARIABLE"), TEXT(""));
+			interactableName.ReplaceInline(TEXT("_GEN_VARIABLE"), TEXT(""));
 		}
-		if(InteractableName.EndsWith(TEXT("_C")) && InteractableName.StartsWith(TEXT("Default__")))
+		if(interactableName.EndsWith(TEXT("_C")) && interactableName.StartsWith(TEXT("Default__")))
 		{
 		
-			InteractableName.RightChopInline(9);
-			InteractableName.LeftChopInline(2);
+			interactableName.RightChopInline(9);
+			interactableName.LeftChopInline(2);
 		}
 	}
 	
@@ -1592,7 +1607,7 @@ EDataValidationResult UActorInteractableComponentBase::IsDataValid(TArray<FText>
 	{
 		const FText ErrorMessage = FText::FromString
 		(
-			InteractableName.Append(TEXT(": DefaultInteractableState cannot be")).Append(GetEnumValueAsString("EInteractableStateV2", DefaultInteractableState)).Append(TEXT("!"))
+			interactableName.Append(TEXT(": DefaultInteractableState cannot be")).Append(GetEnumValueAsString("EInteractableStateV2", DefaultInteractableState)).Append(TEXT("!"))
 		);
 
 		DefaultInteractableState = EInteractableStateV2::EIS_Awake;
@@ -1605,7 +1620,7 @@ EDataValidationResult UActorInteractableComponentBase::IsDataValid(TArray<FText>
 	{
 		const FText ErrorMessage = FText::FromString
 		(
-			InteractableName.Append(TEXT(": DefaultInteractableState cannot be lesser than -1!"))
+			interactableName.Append(TEXT(": DefaultInteractableState cannot be lesser than -1!"))
 		);
 
 		InteractionPeriod = -1.f;
@@ -1618,7 +1633,7 @@ EDataValidationResult UActorInteractableComponentBase::IsDataValid(TArray<FText>
 	{
 		const FText ErrorMessage = FText::FromString
 		(
-			InteractableName.Append(TEXT(":")).Append(TEXT(" LifecycleCount cannot be %d!"), LifecycleCount)
+			interactableName.Append(TEXT(":")).Append(TEXT(" LifecycleCount cannot be %d!"), LifecycleCount)
 		);
 			
 		LifecycleCount = 2.f;
@@ -1632,7 +1647,7 @@ EDataValidationResult UActorInteractableComponentBase::IsDataValid(TArray<FText>
 	{
 		const FText ErrorMessage = FText::FromString
 		(
-			InteractableName.Append(TEXT(": Widget Class is NULL!"))
+			interactableName.Append(TEXT(": Widget Class is NULL!"))
 		);
 
 		ValidationErrors.Add(ErrorMessage);
@@ -1646,7 +1661,7 @@ EDataValidationResult UActorInteractableComponentBase::IsDataValid(TArray<FText>
 			{
 				const FText ErrorMessage = FText::FromString
 				(
-					InteractableName.Append(TEXT(" : Widget Class must either implement 'ActorInteractionWidget Interface' or inherit from 'ActorInteractableWidget' class!"))
+					interactableName.Append(TEXT(" : Widget Class must either implement 'ActorInteractionWidget Interface' or inherit from 'ActorInteractableWidget' class!"))
 				);
 
 				SetWidgetClass(nullptr);
