@@ -3,11 +3,13 @@
 
 #include "Components/ActorInteractableComponentPress.h"
 
+#define LOCTEXT_NAMESPACE "InteractableComponentPress"
 
 // Sets default values for this component's properties
 UActorInteractableComponentPress::UActorInteractableComponentPress()
 {
 	InteractionPeriod = -1.f;
+	InteractableName = LOCTEXT("InteractableComponentPress", "Press");
 }
 
 void UActorInteractableComponentPress::BeginPlay()
@@ -28,3 +30,5 @@ void UActorInteractableComponentPress::InteractionStarted(const float& TimeStart
 		OnInteractionCompleted.Broadcast(TimeStarted);
 	}
 }
+
+#undef LOCTEXT_NAMESPACE
