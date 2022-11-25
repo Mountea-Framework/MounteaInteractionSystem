@@ -24,66 +24,62 @@ void UActorInteractableComponentHold::BeginPlay()
 
 void UActorInteractableComponentHold::InteractionStarted(const float& TimeStarted, const FKey& PressedKey)
 {
-	Super::InteractionStarted(TimeStarted, PressedKey);
-
-	// Force Interaction Period to be at least 0.1s
-	InteractionPeriod = FMath::Max(0.1f, InteractionPeriod);
-
-	if (!GetWorld()) return;
-	
-	FTimerDelegate Delegate;
-
-	auto Interactable = this;
-	Delegate.BindLambda([Interactable]()
+	if (CanInteract())
 	{
-		if (!Interactable)
-		{
-			AIntP_LOG(Error, TEXT("[InteractionStarted] Interactable is null, cannot request OnInteractionCompleted!"))
-			return;
-		}
-		if (!Interactable->GetWorld())
-		{
-			AIntP_LOG(Error, TEXT("[InteractionStarted] Interactable has no World, cannot request OnInteractionCompleted!"))
-			return;
-			
-		}
-		AIntP_LOG(Display, TEXT("[InteractionStarted] Interactable requested OnInteractionCompleted!"))
-		Interactable->OnInteractionCompleted.Broadcast(Interactable->GetWorld()->GetTimeSeconds());
-	});
+		// Force Interaction Period to be at least 0.1s
+		const float TempInteractionPeriod = FMath::Max(0.1f, InteractionPeriod);
+
+		if (!GetWorld()) return;
 	
-	GetWorld()->GetTimerManager().SetTimer(Timer_Interaction, Delegate, InteractionPeriod, false);
+		FTimerDelegate Delegate;
+
+		auto Interactable = this;
+		Delegate.BindLambda([Interactable]()
+		{
+			if (!Interactable)
+			{
+				AIntP_LOG(Error, TEXT("[InteractionStarted] Interactable is null, cannot request OnInteractionCompleted!"))
+				return;
+			}
+			if (!Interactable->GetWorld())
+			{
+				AIntP_LOG(Error, TEXT("[InteractionStarted] Interactable has no World, cannot request OnInteractionCompleted!"))
+				return;
+			
+			}
+			AIntP_LOG(Display, TEXT("[InteractionStarted] Interactable requested OnInteractionCompleted!"))
+			Interactable->OnInteractionCompleted.Broadcast(Interactable->GetWorld()->GetTimeSeconds());
+		});
+
+		GetWorld()->GetTimerManager().SetTimer
+		(
+			Timer_Interaction,
+			Delegate,
+			TempInteractionPeriod,
+			false
+		);
+		
+		Super::InteractionStarted(TimeStarted, PressedKey);
+	}
 }
 
 void UActorInteractableComponentHold::InteractionStopped(const float& TimeStarted, const FKey& PressedKey)
 {
-	GetWorld()->GetTimerManager().ClearTimer(Timer_Interaction);
 	Super::InteractionStopped(TimeStarted, PressedKey);
 }
 
 void UActorInteractableComponentHold::InteractionCanceled()
 {
-	GetWorld()->GetTimerManager().ClearTimer(Timer_Interaction);
 	Super::InteractionCanceled();
 }
 
 void UActorInteractableComponentHold::InteractorFound(const TScriptInterface<IActorInteractorInterface>& FoundInteractor)
 {
 	Super::InteractorFound(FoundInteractor);
-
-	if (GetInteractor().GetInterface())
-	{
-		GetInteractor()->OnInteractionKeyPressedHandle().AddUniqueDynamic(this, &UActorInteractableComponentHold::InteractionStarted);
-		GetInteractor()->OnInteractionKeyReleasedHandle().AddUniqueDynamic(this, &UActorInteractableComponentHold::InteractionStopped);
-	}
 }
 
 void UActorInteractableComponentHold::InteractorLost(const TScriptInterface<IActorInteractorInterface>& LostInteractor)
 {
-	if (GetInteractor().GetInterface())
-	{
-		GetInteractor()->OnInteractionKeyPressedHandle().RemoveDynamic(this, &UActorInteractableComponentHold::InteractionStarted);
-		GetInteractor()->OnInteractionKeyReleasedHandle().RemoveDynamic(this, &UActorInteractableComponentHold::InteractionStopped);
-	}
 	Super::InteractorLost(LostInteractor);
 }
 
