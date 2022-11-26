@@ -13,8 +13,6 @@
 
 UActorInteractableComponentHold::UActorInteractableComponentHold()
 {
-	PrimaryComponentTick.bCanEverTick = true;
-
 	InteractionPeriod = 3.f;
 	InteractableName = LOCTEXT("InteractableComponentHold", "Hold");
 }
