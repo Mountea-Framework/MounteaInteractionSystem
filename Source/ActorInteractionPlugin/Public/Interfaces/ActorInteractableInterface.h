@@ -243,7 +243,8 @@ public:
 	virtual void SetCooldownPeriod(const float NewCooldownPeriod) = 0;
 
 
-	virtual FKey GetInteractionKey(const FString& RequestedPlatform) const = 0;
+	virtual FKey GetInteractionKeyForPlatform(const FString& RequestedPlatform) const = 0;
+	virtual TArray<FKey> GetInteractionKeysForPlatform(const FString& RequestedPlatform) const = 0;
 	virtual void SetInteractionKey(const FString& Platform, const FKey NewInteractorKey) = 0;
 	virtual TMap<FString, struct FInteractionKeySetup> GetInteractionKeys() const = 0;
 	virtual bool FindKey(const FKey& RequestedKey, const FString& Platform) const = 0;
