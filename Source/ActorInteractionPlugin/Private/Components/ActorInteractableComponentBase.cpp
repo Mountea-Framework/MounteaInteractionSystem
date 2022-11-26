@@ -59,13 +59,6 @@ UActorInteractableComponentBase::UActorInteractableComponentBase()
 	
 	UActorComponent::SetActive(true);
 	SetHiddenInGame(true);
-
-	if (GetWorld())
-	{
-		BillboardComponent = CreateDefaultSubobject<UBillboardComponent>(TEXT("BillboardComp"), true);
-		BillboardComponent->SetupAttachment(this);
-		BillboardComponent->SetHiddenInGame(true);
-	}
 }
 
 void UActorInteractableComponentBase::BeginPlay()
@@ -73,8 +66,6 @@ void UActorInteractableComponentBase::BeginPlay()
 	Super::BeginPlay();
 	
 	InteractionOwner = GetOwner();
-
-	BillboardComponent->SetVisibility(false);
 
 	// Interaction Events
 	OnInteractableSelected.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableSelectedEvent);

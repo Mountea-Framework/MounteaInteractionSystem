@@ -1378,9 +1378,6 @@ protected:
 	UPROPERTY()
 	FTimerHandle Timer_Cooldown;
 
-	UPROPERTY()
-	UBillboardComponent* BillboardComponent = nullptr;
-
 private:
 	
 	/**
