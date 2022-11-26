@@ -55,14 +55,17 @@ UActorInteractableComponentBase::UActorInteractableComponentBase()
 
 	Space = EWidgetSpace::Screen;
 	DrawSize = FIntPoint(64, 64);
-	bDrawAtDesiredSize = true;
+	bDrawAtDesiredSize = false;
 	
 	UActorComponent::SetActive(true);
 	SetHiddenInGame(true);
 
-	BillboardComponent = CreateDefaultSubobject<UBillboardComponent>(TEXT("BillboardComp"), true);
-	BillboardComponent->SetupAttachment(this);
-	BillboardComponent->SetHiddenInGame(true);
+	if (GetWorld())
+	{
+		BillboardComponent = CreateDefaultSubobject<UBillboardComponent>(TEXT("BillboardComp"), true);
+		BillboardComponent->SetupAttachment(this);
+		BillboardComponent->SetHiddenInGame(true);
+	}
 }
 
 void UActorInteractableComponentBase::BeginPlay()
@@ -725,7 +728,7 @@ void UActorInteractableComponentBase::SetCooldownPeriod(const float NewCooldownP
 	}
 }
 
-FKey UActorInteractableComponentBase::GetInteractionKey(const FString& RequestedPlatform) const
+FKey UActorInteractableComponentBase::GetInteractionKeyForPlatform(const FString& RequestedPlatform) const
 {
 	if(const FInteractionKeySetup* KeySet = InteractionKeysPerPlatform.Find(RequestedPlatform))
 	{
@@ -735,6 +738,18 @@ FKey UActorInteractableComponentBase::GetInteractionKey(const FString& Requested
 	}
 	
 	return FKey();
+}
+
+TArray<FKey> UActorInteractableComponentBase::GetInteractionKeysForPlatform(const FString& RequestedPlatform) const
+{
+	if(const FInteractionKeySetup* KeySet = InteractionKeysPerPlatform.Find(RequestedPlatform))
+	{
+		if (KeySet->Keys.Num() == 0) return TArray<FKey>();
+
+		return KeySet->Keys;
+	}
+	
+	return TArray<FKey>();
 }
 
 void UActorInteractableComponentBase::SetInteractionKey(const FString& Platform, const FKey NewInteractorKey)
@@ -1571,11 +1586,12 @@ void UActorInteractableComponentBase::PostEditChangeChainProperty(FPropertyChang
 		else
 		{
 			SetWorldScale3D(FVector(1.f));
+			bDrawAtDesiredSize = false;
 		}
 
 		const FText ErrorMessage = FText::FromString
 		(
-			interactableName.Append(TEXT(": UI Space changed! Component Scale has been updated. Check your Widget Class whether it is intended for this Space Type."))
+			interactableName.Append(TEXT(": UI Space changed! Component Scale has been updated. Update 'DrawSize' to match new Widget Space!."))
 		);
 		FEditorHelper::DisplayEditorNotification(ErrorMessage, SNotificationItem::CS_Fail, 5.f, 2.f, TEXT("Icons.Info"));
 	}

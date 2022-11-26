@@ -351,11 +351,17 @@ public:
 
 
 	/**
-	 * Returns Interaction Key for specified Platform.
+	 * Returns first Interaction Key for specified Platform.
 	 * @param RequestedPlatform Name of platform you want to know the Interaction Key
 	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
-	virtual FKey GetInteractionKey(const FString& RequestedPlatform) const override;
+	virtual FKey GetInteractionKeyForPlatform(const FString& RequestedPlatform) const override;
+	/**
+	 * Returns all Interaction Keys for specified Platform.
+	 * @param RequestedPlatform Name of platform you want to know the Interaction Key
+	 */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
+	virtual TArray<FKey> GetInteractionKeysForPlatform(const FString& RequestedPlatform) const override;
 	/**
 	 * Sets or Updates Interaction Key for specified Platform.
 	 * There is no validation for Keys validation! Nothing stops you from setting Keyboard keys for Consoles. Please, be careful with this variable!
