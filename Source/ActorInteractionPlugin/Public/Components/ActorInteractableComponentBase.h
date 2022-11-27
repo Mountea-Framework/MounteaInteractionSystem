@@ -874,6 +874,9 @@ protected:
 	UFUNCTION()
 	void AutoSetup();
 
+	UFUNCTION()
+	void OnCooldownCompletedCallback();
+	
 	bool ValidateInteractable() const;
 
 	virtual void UpdateInteractionWidget();
@@ -1335,6 +1338,7 @@ protected:
 	 */
 	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Optional")
 	FText InteractableName = LOCTEXT("InteractableComponentBase", "Default");
+
 #pragma endregion 
 
 #pragma region ReadOnly
