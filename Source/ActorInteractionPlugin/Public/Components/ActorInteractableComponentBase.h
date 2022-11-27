@@ -524,6 +524,19 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void SetInteractableName(const FText& NewName) override;
 
+	/**
+	 * Returns value of Comparison Method.
+	 */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
+	virtual ETimingComparison GetComparisonMethod() const override;
+	/**
+	 * Sets new value of Comparison Method.
+	 *
+	 * @param Value	Value of new Comparison Method.
+	 */
+	UFUNCTION(BlueprintCallable, Category="Interaction")
+	virtual void SetComparisonMethod(const ETimingComparison Value) override;
+
 #pragma endregion
 
 #pragma region EventFunctions
@@ -1338,6 +1351,21 @@ protected:
 	 */
 	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Optional")
 	FText InteractableName = LOCTEXT("InteractableComponentBase", "Default");
+
+	/**
+	 * TODO
+	 * Defines behaviour of TimeToStart.
+	 * Less Than: Interaction will start if key is hold less than TimeToStart.
+	 * More Than: Interaction will start if key is hold more than TimeToStart.
+	 */
+	UPROPERTY(EditAnywhere, Category="Interaction|Optional")
+	ETimingComparison ComparisonMethod;
+
+	/**
+	 * 
+	 */
+	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Optional", meta=(UIMin=0.001, ClampMin=0.001, EditCondition="ComparisonMethod!=ETimingComparison::ECM_None"))
+	float TimeToStart;
 
 #pragma endregion 
 

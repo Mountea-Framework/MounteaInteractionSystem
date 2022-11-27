@@ -29,6 +29,18 @@ enum class ESetupType : uint8
 
 #pragma endregion
 
+#pragma region ComparisonMethod
+UENUM(BlueprintType)
+enum class ETimingComparison : uint8 // TODO: rename, because name is used
+{
+	ECM_LessThan	UMETA(DisplayName="Less Than"),
+	ECM_MoreThan	UMETA(DisplayName="More Than"),
+	ECM_None		UMETA(DisplayName="No comparison"),
+
+	Default			 UMETA(Hidden)
+   };
+#pragma endregion 
+
 class IActorInteractableInterface;
 class IActorInteractorInterface;
 enum class EInteractableStateV2 : uint8;
@@ -242,6 +254,8 @@ public:
 	virtual float GetCooldownPeriod() const = 0;
 	virtual void SetCooldownPeriod(const float NewCooldownPeriod) = 0;
 
+	virtual ETimingComparison GetComparisonMethod() const = 0;
+	virtual void SetComparisonMethod(const ETimingComparison Value) = 0;
 
 	virtual FKey GetInteractionKeyForPlatform(const FString& RequestedPlatform) const = 0;
 	virtual TArray<FKey> GetInteractionKeysForPlatform(const FString& RequestedPlatform) const = 0;

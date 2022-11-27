@@ -42,6 +42,8 @@ UActorInteractableComponentBase::UActorInteractableComponentBase()
 
 	InteractionOwner = GetOwner();
 
+	ComparisonMethod = ETimingComparison::ECM_None;
+	TimeToStart = 0.001f;
 	InteractableName = LOCTEXT("InteractableComponentBase", "Base");
 
 	const FInteractionKeySetup GamepadKeys = FKey("Gamepad_FaceButton_Bottom");
@@ -941,6 +943,12 @@ void UActorInteractableComponentBase::SetInteractableName(const FText& NewName)
 	if (NewName.IsEmpty()) return;
 	InteractableName = NewName;
 }
+
+ETimingComparison UActorInteractableComponentBase::GetComparisonMethod() const
+{ return ComparisonMethod; }
+
+void UActorInteractableComponentBase::SetComparisonMethod(const ETimingComparison Value)
+{ ComparisonMethod = Value; }
 
 void UActorInteractableComponentBase::InteractorFound(const TScriptInterface<IActorInteractorInterface>& FoundInteractor)
 {
