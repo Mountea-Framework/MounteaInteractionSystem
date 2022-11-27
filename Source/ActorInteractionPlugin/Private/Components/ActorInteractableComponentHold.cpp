@@ -32,24 +32,7 @@ void UActorInteractableComponentHold::InteractionStarted(const float& TimeStarte
 		if (!GetWorld()) return;
 	
 		FTimerDelegate Delegate;
-
-		auto Interactable = this;
-		Delegate.BindLambda([Interactable]()
-		{
-			if (!Interactable)
-			{
-				AIntP_LOG(Error, TEXT("[InteractionStarted] Interactable is null, cannot request OnInteractionCompleted!"))
-				return;
-			}
-			if (!Interactable->GetWorld())
-			{
-				AIntP_LOG(Error, TEXT("[InteractionStarted] Interactable has no World, cannot request OnInteractionCompleted!"))
-				return;
-			
-			}
-			AIntP_LOG(Display, TEXT("[InteractionStarted] Interactable requested OnInteractionCompleted!"))
-			Interactable->OnInteractionCompleted.Broadcast(Interactable->GetWorld()->GetTimeSeconds());
-		});
+		Delegate.BindUObject(this, &UActorInteractableComponentHold::OnInteractionCompletedCallback);
 
 		GetWorld()->GetTimerManager().SetTimer
 		(
@@ -86,6 +69,17 @@ void UActorInteractableComponentHold::InteractorLost(const TScriptInterface<IAct
 float UActorInteractableComponentHold::GetInteractionProgress() const
 {
 	return Super::GetInteractionProgress();
+}
+
+void UActorInteractableComponentHold::OnInteractionCompletedCallback()
+{
+	if (!GetWorld())
+	{
+		AIntP_LOG(Error, TEXT("[InteractionStarted] Interactable has no World, cannot request OnInteractionCompleted!"))
+		return;
+	}
+	AIntP_LOG(Display, TEXT("[InteractionStarted] Interactable requested OnInteractionCompleted!"))
+	OnInteractionCompleted.Broadcast(GetWorld()->GetTimeSeconds());
 }
 
 #undef LOCTEXT_NAMESPACE

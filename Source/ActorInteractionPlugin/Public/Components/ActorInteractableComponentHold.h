@@ -30,4 +30,9 @@ protected:
 	virtual void InteractorLost(const TScriptInterface<IActorInteractorInterface>& LostInteractor) override;
 
 	virtual float GetInteractionProgress() const override;
+
+protected:
+
+	UFUNCTION()
+	void OnInteractionCompletedCallback();
 };
