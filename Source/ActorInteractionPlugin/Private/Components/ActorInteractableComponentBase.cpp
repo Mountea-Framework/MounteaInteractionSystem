@@ -1247,23 +1247,7 @@ bool UActorInteractableComponentBase::TriggerCooldown()
 		SetState(EInteractableStateV2::EIS_Cooldown);
 
 		FTimerDelegate Delegate;
-
-		auto Interactable = this;
-		Delegate.BindLambda([Interactable]()
-		{
-			if (!Interactable)
-			{
-				AIntP_LOG(Error, TEXT("[TriggerCooldown] Interactable is null, cannot request OnCooldownCompletedEvent!"))
-				return;
-			}
-			if (!Interactable->GetWorld())
-			{
-				AIntP_LOG(Error, TEXT("[TriggerCooldown] Interactable has no World, cannot request OnCooldownCompletedEvent!"))
-				return;
-			}
-			AIntP_LOG(Display, TEXT("[TriggerCooldown] Interactable requested OnCooldownCompletedEvent!"))
-			Interactable->OnCooldownCompleted.Broadcast();
-		});
+		Delegate.BindUObject(this, &UActorInteractableComponentBase::OnCooldownCompletedCallback);
 		
 		GetWorld()->GetTimerManager().SetTimer
 		(
@@ -1408,6 +1392,18 @@ void UActorInteractableComponentBase::AutoSetup()
 	
 	FindAndAddCollisionShapes();
 	FindAndAddHighlightableMeshes();
+}
+
+void UActorInteractableComponentBase::OnCooldownCompletedCallback()
+{
+	if (!GetWorld())
+	{
+		AIntP_LOG(Error, TEXT("[TriggerCooldown] Interactable has no World, cannot request OnCooldownCompletedEvent!"))
+		return;
+	}
+	
+	AIntP_LOG(Display, TEXT("[TriggerCooldown] Interactable requested OnCooldownCompletedEvent!"))
+	OnCooldownCompleted.Broadcast();
 }
 
 bool UActorInteractableComponentBase::ValidateInteractable() const
