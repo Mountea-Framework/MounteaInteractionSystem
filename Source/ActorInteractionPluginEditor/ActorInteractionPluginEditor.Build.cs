@@ -10,9 +10,26 @@ public class ActorInteractionPluginEditor : ModuleRules
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 		bEnforceIWYU = true;
 
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "UnrealEd"});
+		PublicDependencyModuleNames.AddRange
+			(
+				new string[]
+				{
+					"Core",
+					"CoreUObject",
+					
+					"BlueprintGraph",
+					
+					"Engine",
+					
+					"KismetCompiler",
+					"PropertyEditor",
+					"UnrealEd",
+					"Kismet"
+				}
+			);
 		
-		PrivateDependencyModuleNames.AddRange(
+		PrivateDependencyModuleNames.AddRange
+		(
 			new string[]
 			{
 				"ActorInteractionPlugin",
