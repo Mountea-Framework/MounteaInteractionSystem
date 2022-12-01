@@ -1206,7 +1206,7 @@ protected:
 	 * - -1 = immediate
 	 * - 0  = 0.1s
 	 */
-	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Required", meta=(UIMin=-1, ClampMin=-1, Units="s"))
+	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Required", meta=(UIMin=-1, ClampMin=-1, Units="seconds"))
 	float InteractionPeriod;
 
 	/**
@@ -1274,7 +1274,7 @@ protected:
 	 * *  1 | Invalid, will be set to 2
 	 * * 2+ | Will be used defined number of times
 	 */
-	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Required", meta=(NoResetToDefault, EditCondition = "LifecycleMode == EInteractableLifecycle::EIL_Cycled", UIMin=-1, ClampMin=-1))
+	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Required", meta=(NoResetToDefault, EditCondition = "LifecycleMode == EInteractableLifecycle::EIL_Cycled", UIMin=-1, ClampMin=-1, Units="times"))
 	int32 LifecycleCount;
 
 	/**
@@ -1282,7 +1282,7 @@ protected:
 	 * After this period of time the Interactable will be Awake again, unless no Interactor.
 	 * Clamped in Setter.
 	 */
-	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Required", meta=(NoResetToDefault, EditCondition = "LifecycleMode == EInteractableLifecycle::EIL_Cycled", UIMin=0.1, ClampMin=0.1))
+	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Required", meta=(NoResetToDefault, EditCondition = "LifecycleMode == EInteractableLifecycle::EIL_Cycled", UIMin=0.1, ClampMin=0.1, Units="Seconds"))
 	float CooldownPeriod;
 
 #pragma endregion
@@ -1343,13 +1343,13 @@ protected:
 	 * Interactable Data.
 	 * Could be any Data Table.
 	 */
-	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Optional", meta=(ShowOnlyInnerProperties))
+	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Optional", meta=(ShowOnlyInnerProperties, NoResetToDefault))
 	FDataTableRowHandle InteractableData;
 
 	/**
 	 * Display Name.
 	 */
-	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Optional")
+	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Optional", meta=(NoResetToDefault))
 	FText InteractableName = LOCTEXT("InteractableComponentBase", "Default");
 
 	/**
@@ -1358,13 +1358,16 @@ protected:
 	 * Less Than: Interaction will start if key is hold less than TimeToStart.
 	 * More Than: Interaction will start if key is hold more than TimeToStart.
 	 */
-	UPROPERTY(EditAnywhere, Category="Interaction|Optional")
+	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Optional", meta=(NoResetToDefault))
 	ETimingComparison ComparisonMethod;
 
 	/**
-	 * 
+	 * TODO
+	 * Time in seconds it is required to start this interaction.
+	 * Useful with multiple interactables.
+	 * Depends on 'ComparisonMethod'.
 	 */
-	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Optional", meta=(UIMin=0.001, ClampMin=0.001, EditCondition="ComparisonMethod!=ETimingComparison::ECM_None"))
+	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Optional", meta=(UIMin=0.001, ClampMin=0.001, Units="seconds", EditCondition="ComparisonMethod!=ETimingComparison::ECM_None", NoResetToDefault))
 	float TimeToStart;
 
 #pragma endregion 
