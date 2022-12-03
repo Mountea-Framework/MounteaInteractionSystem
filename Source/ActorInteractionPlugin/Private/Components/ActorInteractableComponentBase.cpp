@@ -37,6 +37,7 @@ UActorInteractableComponentBase::UActorInteractableComponentBase()
 
 	LifecycleMode = EInteractableLifecycle::EIL_Cycled;
 	LifecycleCount = -1;
+	InteractionPeriod = 3.f;
 	CooldownPeriod = 3.f;
 	RemainingLifecycleCount = LifecycleCount;
 
@@ -79,6 +80,7 @@ void UActorInteractableComponentBase::BeginPlay()
 	OnInteractorTraced.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableTracedEvent);
 
 	OnInteractionCompleted.AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractionCompleted);
+	OnInteractionCycleCompleted.AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractionCycleCompleted);
 	OnInteractionStarted.AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractionStarted);
 	OnInteractionStopped.AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractionStopped);
 	OnInteractionCanceled.AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractionCanceled);
@@ -271,6 +273,8 @@ void UActorInteractableComponentBase::DeactivateInteractable()
 
 bool UActorInteractableComponentBase::CanInteract() const
 {
+	if (!GetWorld()) return false;
+	
 	switch (InteractableState)
 	{
 		case EInteractableStateV2::EIS_Awake:
@@ -290,6 +294,8 @@ bool UActorInteractableComponentBase::CanInteract() const
 
 bool UActorInteractableComponentBase::CanBeTriggered() const
 {
+	if (!GetWorld()) return false;
+	
 	switch (InteractableState)
 	{
 		case EInteractableStateV2::EIS_Awake:
@@ -1003,6 +1009,11 @@ void UActorInteractableComponentBase::InteractionCompleted(const float& TimeComp
 	else AIntP_LOG(Display, TEXT("%s"), *ErrorMessage);
 }
 
+void UActorInteractableComponentBase::InteractionCycleCompleted(const float& CompletedTime, const int32 CyclesRemaining)
+{
+	Execute_OnInteractionCycleCompletedEvent(this, CompletedTime, CyclesRemaining);
+}
+
 void UActorInteractableComponentBase::InteractionStarted(const float& TimeStarted, const FKey& PressedKey)
 {
 	if (CanInteract())
@@ -1265,6 +1276,7 @@ bool UActorInteractableComponentBase::TriggerCooldown()
 			false
 		);
 
+		OnInteractionCycleCompleted.Broadcast(GetWorld()->GetTimeSeconds(), RemainingLifecycleCount);
 		return true;
 	}
 

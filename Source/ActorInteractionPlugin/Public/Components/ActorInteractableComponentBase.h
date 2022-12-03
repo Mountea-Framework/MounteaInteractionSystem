@@ -583,6 +583,13 @@ protected:
 	virtual void InteractionCompleted(const float& TimeCompleted) override;
 
 	/**
+	 * Event called once Interaction Cycle is completed.
+	 * Calls OnInteractionCycleCompletedEvent
+	 */
+	UFUNCTION(Category="Interaction")
+	virtual void InteractionCycleCompleted(const float& CompletedTime, const int32 CyclesRemaining) override;
+
+	/**
 	 * Event called once Interaction Starts.
 	 * Called by OnInteractionStarted
 	 * Calls OnInteractionStartedEvent
@@ -984,6 +991,13 @@ protected:
 	 */
 	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Interaction")
 	FInteractionCompleted OnInteractionCompleted;
+	
+	/**
+	 * Event called once single Interaction Cycle is completed.
+	 * Might be called multiple times, before 'OnInteractionCompleted' is called.
+	 */
+	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Interaction")
+	FInteractionCycleCompleted OnInteractionCycleCompleted;
 
 	/**
 	 * Event called once Interaction Starts.
@@ -1143,6 +1157,8 @@ protected:
 	{ return OnInteractorStopOverlap; };
 	virtual FInteractionCompleted& GetOnInteractionCompletedHandle() override
 	{ return OnInteractionCompleted; };
+	virtual FInteractionCycleCompleted& GetOnInteractionCycleCompletedHandle() override
+	{ return OnInteractionCycleCompleted; };
 	virtual FInteractionStarted& GetOnInteractionStartedHandle() override
 	{ return OnInteractionStarted; };
 	virtual FInteractionStopped& GetOnInteractionStoppedHandle() override

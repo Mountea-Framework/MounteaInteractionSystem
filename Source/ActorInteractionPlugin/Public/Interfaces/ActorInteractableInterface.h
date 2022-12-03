@@ -57,6 +57,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_SixParams(FInteractorOverlapped, UPrimitiveCo
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(FInteractorStopOverlap, UPrimitiveComponent*, OverlappedComponent, AActor*, OtherActor, UPrimitiveComponent*, OtherComp, int32, OtherBodyIndex);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractionCompleted, const float&, FinishTime);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FInteractionCycleCompleted, const float&, FinishTime, const int32, RemainingLifecycles);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FInteractionStarted, const float&, StartTime, const FKey&, PressedKey);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FInteractionStopped, const float&, StartTime, const FKey&, PressedKey);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FInteractionCanceled);
@@ -160,6 +161,12 @@ protected:
 	void OnInteractionCompletedEvent(const float& FinishTime);
 
 	/**
+	 * Event called once Interaction Cycle is completed.
+	 */
+	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	void OnInteractionCycleCompletedEvent(const float& CompletedTime, const int32 CyclesRemaining);
+
+	/**
 	 * Event bound to OnInteractionStarted.
 	 */
 	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
@@ -208,6 +215,7 @@ public:
 	virtual void InteractorLost(const TScriptInterface<IActorInteractorInterface>& LostInteractor) = 0;
 
 	virtual void InteractionCompleted(const float& TimeCompleted) = 0;
+	virtual void InteractionCycleCompleted(const float& CompletedTime, const int32 CyclesRemaining) = 0;
 	virtual void InteractionStarted(const float& TimeStarted, const FKey& PressedKey) = 0;
 	virtual void InteractionStopped(const float& TimeStarted, const FKey& PressedKey) = 0;
 	virtual void InteractionCanceled() = 0;
@@ -325,6 +333,7 @@ public:
 	virtual FInteractorOverlapped& GetOnInteractorOverlappedHandle() = 0;
 	virtual FInteractorStopOverlap& GetOnInteractorStopOverlapHandle() = 0;
 	virtual FInteractionCompleted& GetOnInteractionCompletedHandle() = 0;
+	virtual FInteractionCycleCompleted& GetOnInteractionCycleCompletedHandle() = 0;
 	virtual FInteractionStarted& GetOnInteractionStartedHandle() = 0;
 	virtual FInteractionStopped& GetOnInteractionStoppedHandle() = 0;
 	virtual FInteractionCanceled& GetOnInteractionCanceledHandle() = 0;
