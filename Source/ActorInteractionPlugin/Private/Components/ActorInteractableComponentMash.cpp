@@ -3,13 +3,16 @@
 
 #include "Components/ActorInteractableComponentMash.h"
 
+#include "Helpers/ActorInteractionPluginLog.h"
+
 #define LOCTEXT_NAMESPACE "ActorInteractableComponentMash"
 
 UActorInteractableComponentMash::UActorInteractableComponentMash()
 {
 	MinMashAmountRequired = 5;
-	KeystrokeTimeThreshold = 0.1f;
+	KeystrokeTimeThreshold = 1.f;
 	ActualMashAmount = 0;
+	InteractionPeriod = 3.f;
 	InteractableName = LOCTEXT("ActorInteractableComponentMash", "Mash");
 }
 
@@ -18,6 +21,7 @@ void UActorInteractableComponentMash::BeginPlay()
 	Super::BeginPlay();
 
 	OnInteractionFailed.AddUniqueDynamic(this, &UActorInteractableComponentMash::InteractionFailed);
+	OnKeyMashed.AddUniqueDynamic(this, &UActorInteractableComponentMash::OnKeyMashedEvent);
 }
 
 void UActorInteractableComponentMash::InteractionFailed()
@@ -34,11 +38,22 @@ void UActorInteractableComponentMash::OnInteractionFailedCallback()
 	OnInteractionFailed.Broadcast();
 }
 
+void UActorInteractableComponentMash::OnInteractionCompletedCallback()
+{
+	if (!GetWorld())
+	{
+		return;
+	}
+	
+	OnInteractionCompleted.Broadcast(GetWorld()->GetTimeSeconds());
+}
+
 void UActorInteractableComponentMash::CleanUpComponent()
 {
 	if (GetWorld())
 	{
 		GetWorld()->GetTimerManager().ClearTimer(TimerHandle_Mashed);
+		GetWorld()->GetTimerManager().ClearTimer(Timer_Interaction);
 	}
 
 	ActualMashAmount = 0;
@@ -48,24 +63,43 @@ void UActorInteractableComponentMash::InteractionStarted(const float& TimeStarte
 {
 	Super::InteractionStarted(TimeStarted, PressedKey);
 
-	if (GetWorld())
+	if (CanInteract())
 	{
+		if(!GetWorld()->GetTimerManager().IsTimerActive(Timer_Interaction))
+		{
+			// Force Interaction Period to be at least 0.1s
+			const float TempInteractionPeriod = FMath::Max(0.1f, InteractionPeriod);
+	
+			FTimerDelegate Delegate_Completed;
+			Delegate_Completed.BindUObject(this, &UActorInteractableComponentMash::OnInteractionCompletedCallback);
+
+			GetWorld()->GetTimerManager().SetTimer
+			(
+				Timer_Interaction,
+				Delegate_Completed,
+				TempInteractionPeriod,
+				false
+			);
+		}
+
 		if (GetWorld()->GetTimerManager().IsTimerActive(TimerHandle_Mashed))
 		{
 			GetWorld()->GetTimerManager().ClearTimer(TimerHandle_Mashed);
 		}
 		
-		FTimerDelegate Delegate;
-		Delegate.BindUObject(this, &UActorInteractableComponentMash::OnInteractionFailedCallback);
+		FTimerDelegate Delegate_Mashed;
+		Delegate_Mashed.BindUObject(this, &UActorInteractableComponentMash::OnInteractionFailedCallback);
 		GetWorld()->GetTimerManager().SetTimer
 		(
 			TimerHandle_Mashed,
-			Delegate,
+			Delegate_Mashed,
 			KeystrokeTimeThreshold,
 			false
 		);
-
+		
 		ActualMashAmount++;
+
+		OnKeyMashed.Broadcast();
 	}
 }
 
@@ -99,6 +133,8 @@ void UActorInteractableComponentMash::InteractionCompleted(const float& TimeComp
 	}
 
 	CleanUpComponent();
+
+	Super::InteractionCompleted(TimeCompleted);
 }
 
 int32 UActorInteractableComponentMash::GetMinMashAmountRequired() const

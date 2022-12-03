@@ -7,6 +7,7 @@
 #include "ActorInteractableComponentMash.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInteractionFailed);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnKeyMashed);
 
 UCLASS(ClassGroup=(Interaction), Blueprintable, hideCategories=(Collision, AssetUserData, Cooking, Activation), meta=(BlueprintSpawnableComponent, DisplayName = "Interactable Component Mash"))
 class ACTORINTERACTIONPLUGIN_API UActorInteractableComponentMash : public UActorInteractableComponentBase
@@ -20,7 +21,6 @@ public:
 protected:
 	
 	virtual void BeginPlay() override;
-	
 	virtual void InteractionStarted(const float& TimeStarted, const FKey& PressedKey) override;
 	virtual void InteractionStopped(const float& TimeStarted, const FKey& PressedKey) override;
 	virtual void InteractionCanceled() override;
@@ -36,6 +36,16 @@ protected:
 	UFUNCTION()
 	virtual void InteractionFailed();
 	virtual void OnInteractionFailedCallback();
+
+	UFUNCTION()
+	void OnInteractionCompletedCallback();
+	
+	/**
+	 * Event called once Key is pressed.
+	 * Is the same as Interaction Started, but with more understandable name.
+	 */
+	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	void OnKeyMashedEvent();
 
 	void CleanUpComponent();
 	
@@ -69,6 +79,9 @@ protected:
 
 	FTimerHandle TimerHandle_Mashed;
 
+	/**
+	 * How many times the key was mashed.
+	 */
 	UPROPERTY(VisibleAnywhere, Category="Interaction|Read Only")
 	int32 ActualMashAmount;
 	
@@ -81,4 +94,11 @@ protected:
 	 */
 	UPROPERTY(BlueprintAssignable, Category="Interaction")
 	FOnInteractionFailed OnInteractionFailed;
+
+	/**
+	 * Event called once Key is pressed.
+	 * Is the same as Interaction Started, but with more understandable name.
+	 */
+	UPROPERTY(BlueprintAssignable, Category="Interaction")
+	FOnKeyMashed OnKeyMashed;
 };
