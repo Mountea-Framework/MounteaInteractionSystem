@@ -75,10 +75,8 @@ void UActorInteractableComponentHold::OnInteractionCompletedCallback()
 {
 	if (!GetWorld())
 	{
-		AIntP_LOG(Error, TEXT("[InteractionStarted] Interactable has no World, cannot request OnInteractionCompleted!"))
 		return;
 	}
-	AIntP_LOG(Display, TEXT("[InteractionStarted] Interactable requested OnInteractionCompleted!"))
 	OnInteractionCompleted.Broadcast(GetWorld()->GetTimeSeconds());
 }
 
