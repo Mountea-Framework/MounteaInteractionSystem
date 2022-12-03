@@ -133,8 +133,6 @@ void UActorInteractableComponentMash::InteractionCompleted(const float& TimeComp
 	}
 
 	CleanUpComponent();
-
-	Super::InteractionCompleted(TimeCompleted);
 }
 
 int32 UActorInteractableComponentMash::GetMinMashAmountRequired() const
