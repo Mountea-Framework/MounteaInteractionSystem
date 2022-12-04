@@ -37,6 +37,8 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void InitWidget() override;
 
+	virtual void OnRegister() override;
+
 #pragma region InteractableFunctions
 	
 public:
@@ -1211,6 +1213,9 @@ protected:
 	UPROPERTY(SaveGame, VisibleAnywhere, Category="Interaction|Debug", meta=(DisplayThumbnail = false, ShowOnlyInnerProperties))
 	mutable TMap<UPrimitiveComponent*, FCollisionShapeCache> CachedCollisionShapesSettings;
 
+#if WITH_EDITORONLY_DATA
+	UBillboardComponent* InteractableSpriteComponent = nullptr;
+#endif
 #pragma endregion
 
 #pragma region Required

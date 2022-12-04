@@ -62,6 +62,8 @@ UActorInteractableComponentBase::UActorInteractableComponentBase()
 	
 	UActorComponent::SetActive(true);
 	SetHiddenInGame(true);
+
+	bVisualizeComponent = true;
 }
 
 void UActorInteractableComponentBase::BeginPlay()
@@ -132,6 +134,33 @@ void UActorInteractableComponentBase::InitWidget()
 	Super::InitWidget();
 
 	UpdateInteractionWidget();
+}
+
+void UActorInteractableComponentBase::OnRegister()
+{
+	
+#if WITH_EDITORONLY_DATA
+	if (bVisualizeComponent && SpriteComponent == nullptr && GetOwner() && !GetWorld()->IsGameWorld() )
+	{
+		SpriteComponent = NewObject<UBillboardComponent>(GetOwner(), NAME_None, RF_Transactional | RF_Transient | RF_TextExportTransient);
+
+		SpriteComponent->Sprite = LoadObject<UTexture2D>(nullptr, TEXT("/ActorInteractionPlugin/Textures/Editor/T_MounteaLogo"));
+		SpriteComponent->SetRelativeScale3D_Direct(FVector(1.f));
+		SpriteComponent->Mobility = EComponentMobility::Movable;
+		SpriteComponent->AlwaysLoadOnClient = false;
+		SpriteComponent->SetIsVisualizationComponent(true);
+		SpriteComponent->SpriteInfo.Category = TEXT("Misc");
+		SpriteComponent->SpriteInfo.DisplayName = NSLOCTEXT( "SpriteCategory", "Misc", "Misc" );
+		SpriteComponent->CreationMethod = CreationMethod;
+		SpriteComponent->bIsScreenSizeScaled = true;
+		SpriteComponent->bUseInEditorScaling = true;
+
+		SpriteComponent->SetupAttachment(this);
+		SpriteComponent->RegisterComponent();
+	}
+#endif
+
+	Super::OnRegister();
 }
 
 #pragma region InteractionImplementations
