@@ -251,7 +251,8 @@ void UActorInteractorComponentTrace::SetState(const EInteractorStateV2 NewState)
 	}
 }
 
-#if WITH_EDITOR
+#if (!UE_BUILD_SHIPPING || WITH_EDITOR)
+
 void UActorInteractorComponentTrace::DrawTracingDebugStart(FInteractionTraceDataV2& InteractionTraceData) const
 {
 	if(DebugSettings.DebugMode)
@@ -280,6 +281,8 @@ void UActorInteractorComponentTrace::DrawTracingDebugEnd(FInteractionTraceDataV2
 		}
 	}
 }
+
+#if WITH_EDITOR
 
 void UActorInteractorComponentTrace::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent)
 {
@@ -366,4 +369,5 @@ EDataValidationResult UActorInteractorComponentTrace::IsDataValid(TArray<FText>&
 	return Super::IsDataValid(ValidationErrors);
 }
 
+#endif
 #endif

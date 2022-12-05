@@ -160,15 +160,17 @@ protected:
 	UPROPERTY(BlueprintAssignable, Category="Interaction")
 	FTraceTypeChanged OnTraceTypeChanged;
 
-#if WITH_EDITOR
+#if (!UE_BUILD_SHIPPING || WITH_EDITOR)
 
 protected:
 
 	virtual void DrawTracingDebugStart(FInteractionTraceDataV2& InteractionTraceData) const;
 	virtual void DrawTracingDebugEnd(FInteractionTraceDataV2& InteractionTraceData) const;
 
+#if WITH_EDITOR
+	
 	virtual void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;
 	virtual EDataValidationResult IsDataValid(TArray<FText>& ValidationErrors) override;
-
+#endif
 #endif	
 };
