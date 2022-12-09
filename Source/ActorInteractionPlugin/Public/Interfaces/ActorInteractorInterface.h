@@ -190,6 +190,8 @@ public:
 
 	virtual EInteractorStateV2 GetState() const = 0;
 	virtual void SetState(const EInteractorStateV2 NewState) = 0;
+	virtual EInteractorStateV2 GetDefaultState() const = 0;
+	virtual void SetDefaultState(const EInteractorStateV2 NewState) = 0;
 
 	virtual bool DoesAutoActivate() const = 0;
 
