@@ -1086,7 +1086,12 @@ void UActorInteractableComponentBase::InteractionCooldownCompleted()
 	if (Interactor.GetInterface() != nullptr)
 	{
 		StartHighlight();
+
 		SetState(EInteractableStateV2::EIS_Awake);
+		if (Interactor->GetActiveInteractable() == this)
+		{
+			SetState(EInteractableStateV2::EIS_Active);
+		}
 	}
 	else
 	{
