@@ -77,6 +77,13 @@ void UActorInteractableComponentHold::OnInteractionCompletedCallback()
 	{
 		return;
 	}
+
+	ToggleWidgetVisibility(false);
+	if (LifecycleMode == EInteractableLifecycle::EIL_Cycled)
+	{
+		if (TriggerCooldown()) return;
+	}
+	
 	OnInteractionCompleted.Broadcast(GetWorld()->GetTimeSeconds());
 }
 
