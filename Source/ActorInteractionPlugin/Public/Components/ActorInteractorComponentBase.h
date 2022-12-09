@@ -249,6 +249,18 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void SetState(const EInteractorStateV2 NewState) override;
+	/**
+	 * Returns Default Interactor State.
+	 */
+	UFUNCTION(BlueprintCallable, BlueprintPure,Category="Interaction")
+	virtual EInteractorStateV2 GetDefaultState() const override;
+	/**
+	 * Tries to set Default Interactor State.
+	 *
+	 * @param NewState	Value which will be set as new Default Interactor State.
+	 */
+	UFUNCTION(BlueprintCallable, Category="Interaction")
+	virtual void SetDefaultState(const EInteractorStateV2 NewState) override;
 
 	/**
 	 * Returns whether Interactor auto activates or not.
