@@ -79,15 +79,7 @@ void UActorInteractorComponentBase::InteractableLost(const TScriptInterface<IAct
 		SetState(EInteractorStateV2::EIS_Awake);
 		
 		SetActiveInteractable(nullptr);
-
-		for (const auto Itr : InteractionDependencies)
-		{
-			if (Itr.GetInterface())
-			{
-				Itr->SetState(InteractorState);
-			}
-		}
-
+		
 		Execute_OnInteractableLostEvent(this, LostInteractable);
 	}
 }
@@ -164,6 +156,7 @@ void UActorInteractorComponentBase::StartInteraction(const float StartTime, cons
 {
 	if (CanInteract() && ActiveInteractable.GetInterface())
 	{
+		SetState(EInteractorStateV2::EIS_Active);
 		ActiveInteractable->GetOnInteractionStartedHandle().Broadcast(StartTime, InputKey);
 	}
 }
@@ -172,6 +165,7 @@ void UActorInteractorComponentBase::StopInteraction(const float StartTime, const
 {
 	if (CanInteract() && ActiveInteractable.GetInterface())
 	{
+		SetState(EInteractorStateV2::EIS_Awake);
 		ActiveInteractable->GetOnInteractionStoppedHandle().Broadcast(StartTime, InputKey);
 	}
 }
@@ -312,6 +306,7 @@ void UActorInteractorComponentBase::AddInteractionDependency(const TScriptInterf
 	}
 	
 	InteractionDependencies.Add(InteractionDependency);
+	ProcessDependencies();
 }
 
 void UActorInteractorComponentBase::RemoveInteractionDependency(const TScriptInterface<IActorInteractorInterface> InteractionDependency)
@@ -319,6 +314,8 @@ void UActorInteractorComponentBase::RemoveInteractionDependency(const TScriptInt
 	if (InteractionDependency.GetInterface() == nullptr) return;
 	if (InteractionDependencies.Contains(InteractionDependency))
 	{
+		InteractionDependency->SetState(InteractionDependency->GetDefaultState());
+		
 		InteractionDependencies.Remove(InteractionDependency);
 	}
 }
@@ -336,11 +333,11 @@ void UActorInteractorComponentBase::ProcessDependencies()
 		{
 			case EInteractorStateV2::EIS_Active:
 			case EInteractorStateV2::EIS_Suppressed:
+			case EInteractorStateV2::EIS_Awake:
+			case EInteractorStateV2::EIS_Asleep:
 				Itr->SetState(EInteractorStateV2::EIS_Suppressed);
 				break;
 			case EInteractorStateV2::EIS_Disabled:
-			case EInteractorStateV2::EIS_Awake:
-			case EInteractorStateV2::EIS_Asleep:
 				Itr->SetState(EInteractorStateV2::EIS_Awake);
 				RemoveInteractionDependency(Itr);
 				break;
@@ -464,6 +461,26 @@ void UActorInteractorComponentBase::SetState(const EInteractorStateV2 NewState)
 		case EInteractorStateV2::Default:
 		default: break;
 	}
+
+	ProcessDependencies();
+}
+
+EInteractorStateV2 UActorInteractorComponentBase::GetDefaultState() const
+{ return DefaultInteractorState; }
+
+void UActorInteractorComponentBase::SetDefaultState(const EInteractorStateV2 NewState)
+{
+	if
+	(
+		NewState == EInteractorStateV2::EIS_Active  ||
+		NewState == EInteractorStateV2::Default
+	)
+	{
+		AIntP_LOG(Error, TEXT("[SetDefaultState] Tried to set invalid Default State!"))
+		return;
+	}
+
+	DefaultInteractorState = NewState;
 }
 
 bool UActorInteractorComponentBase::DoesAutoActivate() const
