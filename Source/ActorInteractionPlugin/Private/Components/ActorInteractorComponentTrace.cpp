@@ -7,6 +7,7 @@
 #include "Kismet/KismetMathLibrary.h"
 
 #include "Components/ShapeComponent.h"
+#include "Helpers/ActorInteractionPluginLog.h"
 #include "Helpers/InteractionHelpers.h"
 
 #if WITH_EDITOR
@@ -180,10 +181,18 @@ void UActorInteractorComponentTrace::ProcessTrace()
 			}
 		}
 	}
-	if (bFoundActiveAgain == false)
+
+	AIntP_LOG(Warning, TEXT("[ProcessTrace] Round"))
+	
+	if (bAnyInteractable == false)
 	{
 		OnInteractableLost.Broadcast(GetActiveInteractable());
 	}
+	else if (bFoundActiveAgain == false)
+	{
+		OnInteractableLost.Broadcast(GetActiveInteractable());
+	}
+	
 	if (bAnyInteractable)
 	{
 		BestInteractable->GetInteractorTracedCallbackHandle().Broadcast(BestHitResult.GetComponent(), GetOwner(), nullptr, BestHitResult.Location, BestHitResult);
@@ -254,7 +263,7 @@ void UActorInteractorComponentTrace::SetState(const EInteractorStateV2 NewState)
 				EnableTracing();
 				break;
 			case EInteractorStateV2::EIS_Active:
-				PauseTracing();
+				EnableTracing();
 				break;
 			case EInteractorStateV2::Default:
 			default:
