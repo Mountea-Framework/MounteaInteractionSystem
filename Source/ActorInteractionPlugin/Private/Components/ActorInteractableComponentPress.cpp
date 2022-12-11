@@ -27,6 +27,11 @@ void UActorInteractableComponentPress::InteractionStarted(const float& TimeStart
 
 	if (CanInteract())
 	{
+		if (LifecycleMode == EInteractableLifecycle::EIL_Cycled)
+		{
+			if (TriggerCooldown()) return;
+		}
+		
 		OnInteractionCompleted.Broadcast(TimeStarted);
 	}
 }
