@@ -165,7 +165,7 @@ void UActorInteractorComponentBase::StopInteraction(const float StartTime, const
 {
 	if (CanInteract() && ActiveInteractable.GetInterface())
 	{
-		SetState(EInteractorStateV2::EIS_Awake);
+		SetState(DefaultInteractorState);
 		ActiveInteractable->GetOnInteractionStoppedHandle().Broadcast(StartTime, InputKey);
 	}
 }
