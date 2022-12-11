@@ -1025,8 +1025,27 @@ void UActorInteractableComponentBase::InteractorLost(const TScriptInterface<IAct
 		GetWorld()->GetTimerManager().ClearTimer(Timer_Interaction);
 		
 		ToggleWidgetVisibility(false);
-	
-		SetState(EInteractableStateV2::EIS_Awake);
+
+		switch (GetState())
+		{
+			case EInteractableStateV2::EIS_Cooldown:
+			case EInteractableStateV2::EIS_Awake:
+				if (GetInteractor().GetObject() == nullptr)
+				{
+					SetState(DefaultInteractableState);
+				}
+				break;
+			case EInteractableStateV2::EIS_Active:
+			case EInteractableStateV2::EIS_Asleep:
+			case EInteractableStateV2::EIS_Completed:
+			case EInteractableStateV2::EIS_Disabled:
+			case EInteractableStateV2::EIS_Suppressed:
+				SetState(DefaultInteractableState);
+				break;
+			case EInteractableStateV2::Default:
+			default: break;
+		}
+		
 		OnInteractionCanceled.Broadcast();
 
 		if (Interactor.GetInterface() != nullptr)
@@ -1087,7 +1106,25 @@ void UActorInteractableComponentBase::InteractionCanceled()
 		
 		GetWorld()->GetTimerManager().ClearTimer(Timer_Interaction);
 
-		SetState(EInteractableStateV2::EIS_Awake);
+		switch (GetState())
+		{
+			case EInteractableStateV2::EIS_Cooldown:
+			case EInteractableStateV2::EIS_Awake:
+				if (GetInteractor().GetObject() == nullptr)
+				{
+					SetState(DefaultInteractableState);
+				}
+				break;
+			case EInteractableStateV2::EIS_Active:
+			case EInteractableStateV2::EIS_Asleep:
+			case EInteractableStateV2::EIS_Completed:
+			case EInteractableStateV2::EIS_Disabled:
+			case EInteractableStateV2::EIS_Suppressed:
+				SetState(DefaultInteractableState);
+				break;
+			case EInteractableStateV2::Default:
+			default: break;
+		}
 		
 		Execute_OnInteractionCanceledEvent(this);
 	}
@@ -1266,7 +1303,25 @@ void UActorInteractableComponentBase::InteractableLost(const TScriptInterface<IA
 {
 	if (Interactable == this)
 	{
-		SetState(EInteractableStateV2::EIS_Awake);
+		switch (GetState())
+		{
+			case EInteractableStateV2::EIS_Active:
+				SetState(EInteractableStateV2::EIS_Awake);
+				break;
+			case EInteractableStateV2::EIS_Cooldown:
+			case EInteractableStateV2::EIS_Awake:
+				if (GetInteractor().GetObject() == nullptr)
+				{
+					SetState(EInteractableStateV2::EIS_Awake);
+				}
+				break;
+			case EInteractableStateV2::EIS_Asleep:
+			case EInteractableStateV2::EIS_Completed:
+			case EInteractableStateV2::EIS_Disabled:
+			case EInteractableStateV2::EIS_Suppressed:
+			case EInteractableStateV2::Default:
+			default: break;
+		}
 		
 		OnInteractorLost.Broadcast(GetInteractor());
 	}
