@@ -80,6 +80,7 @@ void UActorInteractableComponentBase::BeginPlay()
 	OnInteractorOverlapped.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableBeginOverlapEvent);
 	OnInteractorStopOverlap.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableStopOverlapEvent);
 	OnInteractorTraced.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableTracedEvent);
+	InteractorTracedCallback.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractorTracedCallback);
 
 	OnInteractionCompleted.AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractionCompleted);
 	OnInteractionCycleCompleted.AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractionCycleCompleted);
@@ -345,6 +346,24 @@ bool UActorInteractableComponentBase::CanBeTriggered() const
 bool UActorInteractableComponentBase::IsInteracting() const
 { return InteractableState == EInteractableStateV2::EIS_Active; }
 
+EInteractableStateV2 UActorInteractableComponentBase::GetDefaultState() const
+{ return DefaultInteractableState; }
+
+void UActorInteractableComponentBase::SetDefaultState(const EInteractableStateV2 NewState)
+{
+	if
+	(
+		DefaultInteractableState == EInteractableStateV2::EIS_Active ||
+		DefaultInteractableState == EInteractableStateV2::EIS_Completed ||
+		DefaultInteractableState == EInteractableStateV2::EIS_Cooldown
+	)
+	{
+		AIntP_LOG(Error, TEXT("[SetDefaultState] Tried to set invalid Default State!"))
+		return;
+	}
+	DefaultInteractableState = NewState;
+}
+
 EInteractableStateV2 UActorInteractableComponentBase::GetState() const
 { return InteractableState; }
 
@@ -592,14 +611,14 @@ void UActorInteractableComponentBase::ProcessDependencies()
 			case EInteractableStateV2::EIS_Suppressed:
 				Itr->SetState(EInteractableStateV2::EIS_Suppressed);
 				break;
-			case EInteractableStateV2::EIS_Disabled:
+			case EInteractableStateV2::EIS_Cooldown:
 			case EInteractableStateV2::EIS_Awake:
 			case EInteractableStateV2::EIS_Asleep:
-				Itr->SetState(InteractableState);
+				Itr->SetState(Itr->GetDefaultState());
 				break;
-			case EInteractableStateV2::EIS_Cooldown:
+			case EInteractableStateV2::EIS_Disabled:
 			case EInteractableStateV2::EIS_Completed:
-				Itr->SetState(EInteractableStateV2::EIS_Awake);
+				Itr->SetState(Itr->GetDefaultState());
 				RemoveInteractionDependency(Itr);
 				break;
 			case EInteractableStateV2::Default:
@@ -1096,7 +1115,7 @@ void UActorInteractableComponentBase::InteractionCooldownCompleted()
 	else
 	{
 		StopHighlight();
-		SetState(EInteractableStateV2::EIS_Asleep);
+		SetState(DefaultInteractableState);
 	}
 	
 	Execute_OnCooldownCompletedEvent(this);
@@ -1253,6 +1272,11 @@ void UActorInteractableComponentBase::InteractableLost(const TScriptInterface<IA
 	}
 }
 
+void UActorInteractableComponentBase::OnInteractorTracedCallback(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+{
+	OnInteractableTraced(HitComponent, OtherActor, OtherComp, NormalImpulse, Hit);
+}
+
 void UActorInteractableComponentBase::FindAndAddCollisionShapes()
 {
 	for (const auto Itr : CollisionOverrides)
@@ -1331,7 +1355,7 @@ void UActorInteractableComponentBase::BindCollisionShape(UPrimitiveComponent* Pr
 	
 	PrimitiveComponent->OnComponentBeginOverlap.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableBeginOverlap);
 	PrimitiveComponent->OnComponentEndOverlap.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableStopOverlap);
-	PrimitiveComponent->OnComponentHit.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableTraced);
+	//PrimitiveComponent->OnComponentHit.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableTraced);
 
 	FCollisionShapeCache CachedValues;
 	CachedValues.bGenerateOverlapEvents = PrimitiveComponent->GetGenerateOverlapEvents();
@@ -1361,7 +1385,7 @@ void UActorInteractableComponentBase::UnbindCollisionShape(UPrimitiveComponent* 
 	
 	PrimitiveComponent->OnComponentBeginOverlap.RemoveDynamic(this, &UActorInteractableComponentBase::OnInteractableBeginOverlap);
 	PrimitiveComponent->OnComponentEndOverlap.RemoveDynamic(this, &UActorInteractableComponentBase::OnInteractableStopOverlap);
-	PrimitiveComponent->OnComponentHit.RemoveDynamic(this, &UActorInteractableComponentBase::OnInteractableTraced);
+	//PrimitiveComponent->OnComponentHit.RemoveDynamic(this, &UActorInteractableComponentBase::OnInteractableTraced);
 
 	if (CachedCollisionShapesSettings.Find(PrimitiveComponent))
 	{
