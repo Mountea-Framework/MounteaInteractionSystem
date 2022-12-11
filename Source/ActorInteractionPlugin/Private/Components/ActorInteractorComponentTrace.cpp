@@ -135,7 +135,9 @@ void UActorInteractorComponentTrace::ProcessTrace()
 
 	bool bAnyInteractable = false;
 	bool bFoundActiveAgain = false;
-	TArray<FHitResult> ValidHitResults;
+	
+	FHitResult BestHitResult;
+	TScriptInterface<IActorInteractableInterface> BestInteractable = nullptr;
 	
 	for (FHitResult& HitResult : TraceData.HitResults)
 	{
@@ -150,31 +152,41 @@ void UActorInteractorComponentTrace::ProcessTrace()
 					TScriptInterface<IActorInteractableInterface> Interactable = Itr;
 					Interactable.SetObject(Itr);
 					Interactable.SetInterface(Cast<IActorInteractableInterface>(Itr));
-
-					if (Interactable == GetActiveInteractable())
-					{
-						bFoundActiveAgain = true;
-					}
+					
 					if (Interactable->CanBeTriggered())
 					{
-						ValidHitResults.Add(HitResult);
 						bAnyInteractable = true;
+
+						if (Interactable == GetActiveInteractable())
+						{
+							bFoundActiveAgain = true;
+						}
+
+						if (BestInteractable.GetObject() == nullptr)
+						{
+							BestInteractable = Interactable;
+							BestHitResult = HitResult;
+						}
+						else
+						{
+							if (Interactable->GetInteractableWeight() > BestInteractable->GetInteractableWeight())
+							{
+								BestInteractable = Interactable;
+								BestHitResult = HitResult;
+							}
+						}
 					}
 				}
 			}
 		}
 	}
-
 	if (bFoundActiveAgain == false)
 	{
 		OnInteractableLost.Broadcast(GetActiveInteractable());
 	}
 	if (bAnyInteractable)
 	{
-		for (auto HitResult : ValidHitResults)
-		{
-			HitResult.GetComponent()->OnComponentHit.Broadcast(HitResult.GetComponent(), GetOwner(), nullptr, HitResult.Location, HitResult);
-		}
+		BestInteractable->GetInteractorTracedCallbackHandle().Broadcast(BestHitResult.GetComponent(), GetOwner(), nullptr, BestHitResult.Location, BestHitResult);
 	}
 
 #if WITH_EDITOR
