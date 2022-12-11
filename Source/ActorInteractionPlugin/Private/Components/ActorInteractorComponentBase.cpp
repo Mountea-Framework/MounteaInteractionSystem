@@ -333,12 +333,14 @@ void UActorInteractorComponentBase::ProcessDependencies()
 		{
 			case EInteractorStateV2::EIS_Active:
 			case EInteractorStateV2::EIS_Suppressed:
-			case EInteractorStateV2::EIS_Awake:
 			case EInteractorStateV2::EIS_Asleep:
 				Itr->SetState(EInteractorStateV2::EIS_Suppressed);
 				break;
+			case EInteractorStateV2::EIS_Awake:
+				Itr->SetState(Itr->GetDefaultState());
+				break;
 			case EInteractorStateV2::EIS_Disabled:
-				Itr->SetState(EInteractorStateV2::EIS_Awake);
+				Itr->SetState(Itr->GetDefaultState());
 				RemoveInteractionDependency(Itr);
 				break;
 			case EInteractorStateV2::Default:
