@@ -44,6 +44,13 @@ void UActorInteractableComponentMash::OnInteractionCompletedCallback()
 	{
 		return;
 	}
+
+	GetWorld()->GetTimerManager().ClearTimer(TimerHandle_Mashed);
+	
+	if (LifecycleMode == EInteractableLifecycle::EIL_Cycled)
+	{
+		if (TriggerCooldown()) return;
+	}
 	
 	OnInteractionCompleted.Broadcast(GetWorld()->GetTimeSeconds());
 }
