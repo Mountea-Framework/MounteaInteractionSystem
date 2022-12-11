@@ -15,6 +15,7 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnWidgetUpdated);
 
+
 /**
  * Actor Interactable Base Component
  *
@@ -114,7 +115,18 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual bool IsInteracting() const override;
 
-
+	/**
+	 * Returns Default Interactable State.
+	 */
+	UFUNCTION(BlueprintCallable, BlueprintPure,Category="Interaction")
+	virtual EInteractableStateV2 GetDefaultState() const override;
+	/**
+	 * Tries to set Default Interactable State.
+	 *
+	 * @param NewState	Value which will be set as new Default Interactable State.
+	 */
+	UFUNCTION(BlueprintCallable, Category="Interaction")
+	virtual void SetDefaultState(const EInteractableStateV2 NewState) override;
 	/**
 	 * Returns State of Interactable.
 	 */
@@ -831,6 +843,10 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
 	void OnInteractorChangedEvent(const TScriptInterface<IActorInteractorInterface>& NewInteractor);
 
+	/** Internal event for handling direct calls to Traced event.*/
+	UFUNCTION()
+	void OnInteractorTracedCallback(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+
 #pragma endregion 
 
 #pragma region InteractionHelpers
@@ -942,6 +958,8 @@ protected:
 	 */
 	UPROPERTY(BlueprintAssignable, Category="Interaction")
 	FInteractorStopOverlap OnInteractorStopOverlap;
+
+	FInteractorTracedCallback InteractorTracedCallback;
 
 #pragma endregion
 
@@ -1171,10 +1189,12 @@ protected:
 	{ return OnInteractableDependencyChanged; };
 
 	virtual FTimerHandle& GetCooldownHandle() override
-	{ return Timer_Cooldown; }
+	{ return Timer_Cooldown; };
 	
 	virtual FOnWidgetUpdated& WidgetUpdatedHandle()
-	{ return OnWidgetUpdated; } 
+	{ return OnWidgetUpdated; };
+	virtual FInteractorTracedCallback& GetInteractorTracedCallbackHandle() override
+	{ return InteractorTracedCallback; };
 
 #pragma endregion 
 

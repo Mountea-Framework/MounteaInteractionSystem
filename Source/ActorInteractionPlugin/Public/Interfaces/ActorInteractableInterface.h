@@ -52,6 +52,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractorLost, const TScriptInterf
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInteractableSelected, const TScriptInterface<IActorInteractableInterface>&, SelectedInteractable);
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_FiveParams(FInteractorTracedCallback, UPrimitiveComponent*, HitComponent, AActor*, OtherActor, UPrimitiveComponent*, OtherComp, FVector, NormalImpulse, const FHitResult&, Hit);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_FiveParams(FInteractorTraced, UPrimitiveComponent*, HitComponent, AActor*, OtherActor, UPrimitiveComponent*, OtherComp, FVector, NormalImpulse, const FHitResult&, Hit);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_SixParams(FInteractorOverlapped, UPrimitiveComponent*, OverlappedComponent, AActor*, OtherActor, UPrimitiveComponent*, OtherComp, int32, OtherBodyIndex, bool, bFromSweep, const FHitResult &, SweepResult);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(FInteractorStopOverlap, UPrimitiveComponent*, OverlappedComponent, AActor*, OtherActor, UPrimitiveComponent*, OtherComp, int32, OtherBodyIndex);
@@ -226,7 +227,9 @@ public:
 	virtual bool CanInteract() const = 0;
 	virtual bool CanBeTriggered() const = 0;
 	virtual bool IsInteracting() const = 0;
-	
+
+	virtual EInteractableStateV2 GetDefaultState() const = 0;
+	virtual void SetDefaultState(const EInteractableStateV2 NewState) = 0;
 	virtual EInteractableStateV2 GetState() const = 0;
 	virtual void SetState(const EInteractableStateV2 NewState) = 0;
 
@@ -338,6 +341,7 @@ public:
 	virtual FInteractionStopped& GetOnInteractionStoppedHandle() = 0;
 	virtual FInteractionCanceled& GetOnInteractionCanceledHandle() = 0;
 	virtual FInteractableDependencyChanged& GetInteractableDependencyChangedHandle() = 0;
+	virtual FInteractorTracedCallback& GetInteractorTracedCallbackHandle() = 0;
 
 	virtual FTimerHandle& GetCooldownHandle() = 0;
 };
