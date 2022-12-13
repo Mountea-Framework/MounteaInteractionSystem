@@ -8,7 +8,7 @@
 #include "Helpers/ActorInteractionPluginLog.h"
 #include "Net/UnrealNetwork.h"
 
-#if WITH_EDITOR || !UE_BUILD_SHIPPING
+#if (WITH_EDITOR || !UE_BUILD_SHIPPING)
 #include "DrawDebugHelpers.h"
 #endif
 
@@ -231,11 +231,11 @@ void UActorInteractorComponent::TickInteraction(const float DeltaTime)
 	FInteractionTraceData Trace;
 	CalculateInteractionTrace(Trace);
 
-	if (Trace.HitResult.Component.IsValid() && Trace.HitResult.Actor.IsValid())
+	if (Trace.HitResult.Component.IsValid() && Trace.HitResult.GetActor())
 	{
 		if (UShapeComponent* HitComponent = Cast<UShapeComponent>(Trace.HitResult.Component.Get()))
 		{
-			AActor* HitActor = Trace.HitResult.Actor.Get();
+			AActor* HitActor = Trace.HitResult.GetActor();
 			TArray<UActorComponent*> InteractableComponents = HitActor->GetComponentsByTag(UActorInteractableComponent::StaticClass(), INTERACTABLE_TAG_NAME);
 			if (InteractableComponents.Num())
 			{

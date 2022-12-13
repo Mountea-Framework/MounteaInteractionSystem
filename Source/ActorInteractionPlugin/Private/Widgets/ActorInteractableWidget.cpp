@@ -64,6 +64,30 @@ void UActorInteractableWidget::InitializeInteractionWidget(const FText& NewInter
 	SetInteractionProgress(1.f);
 }
 
+void UActorInteractableWidget::ToggleVisibility_Implementation()
+{
+	ESlateVisibility NewVisibility = ESlateVisibility::Hidden;
+
+	switch (CachedVisibility)
+	{
+		case ESlateVisibility::HitTestInvisible: break;
+		case ESlateVisibility::SelfHitTestInvisible: break;
+		case ESlateVisibility::Visible:
+			NewVisibility = ESlateVisibility::Hidden;
+			break;
+		case ESlateVisibility::Collapsed:
+		case ESlateVisibility::Hidden:
+			NewVisibility = ESlateVisibility::Visible;
+			break;
+		default:
+			NewVisibility = ESlateVisibility::Hidden;
+			break;
+	}
+	
+	CachedVisibility = GetVisibility();
+	SetVisibility(NewVisibility);
+}
+
 void UActorInteractableWidget::CalculateRemainingTime(float InDeltaTime)
 {
 	if (!OwningComponent)
