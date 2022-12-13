@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-
+#include "CollisionQueryParams.h"
 #include "Helpers/InteractionHelpers.h"
 
 #include "ActorInteractorComponent.generated.h"
@@ -525,7 +525,7 @@ public:
 	/**
 	 * This helper function toggles Debug mode on and off.
 	 */
-	UFUNCTION(CallInEditor, DisplayName="Refresh Details Panel", Category="Interaction", meta=(DevelopmentOnly))
+	UFUNCTION(BlueprintCallable, Category="Interaction", meta=(DevelopmentOnly))
 	void ToggleDebugMode() { bDebug = !bDebug; }
 
 private:
