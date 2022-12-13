@@ -160,7 +160,7 @@ public:
 	
 	/**
 	 * Returns list of ignored classes.
-	 * Those are classes which will be ignored for interaction events and won't trigger them.
+	 * Those are classes which will be ignored for interaction events and will not trigger them.
 	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual TArray<TSoftClassPtr<UObject>> GetIgnoredClasses() const override;
@@ -314,7 +314,7 @@ public:
 	 * @param NewChannel New Collision Channel to be used for this Interactable.
 	 * 
 	 * Interaction specific channel are our strong recommendation.
-	 * For usage and setup, take a look at 'Examples' project from Mountea Framework GitHub page.
+	 * For usage and setup, take a look at Examples project from Mountea Framework GitHub page.
 	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void SetCollisionChannel(const ECollisionChannel& NewChannel) override;
@@ -537,6 +537,31 @@ public:
 	virtual void SetInteractableName(const FText& NewName) override;
 
 	/**
+	 * Return Highlightable Type of this Interactable Component.
+	 */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
+	virtual EHighlightType GetHighlightType() const override;
+	/**
+	 * Tries to set new Highlight Type.
+	 *
+	 * @param NewHighlightType	Value of Highlight type.
+	 */
+	UFUNCTION(BlueprintCallable, Category="Interaction")
+	virtual void SetHighlightType(const EHighlightType NewHighlightType) override;
+	/**
+	 * Returns Highlight Material if any specified.
+	 */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
+	virtual UMaterialInterface* GetHighlightMaterial() const override;
+	/**
+	 * Tries to set new Highlight Material.
+	 *
+	 * @param NewHighlightMaterial	Material Instance to be used as new HighlightMaterial.
+	 */
+	UFUNCTION(BlueprintCallable, Category="Interaction")
+	virtual void SetHighlightMaterial(UMaterialInterface* NewHighlightMaterial) override;
+	
+	/**
 	 * Returns value of Comparison Method.
 	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
@@ -558,7 +583,7 @@ public:
 protected:
 
 	/**
-	 * Event bound to Interactor's OnInteractableSelected.
+	 * Event bound to Interactor OnInteractableSelected.
 	 * If Interactor selects any Interactable, this Event is called and selected Interactable is Activated, while others are set back to Awaken state.
 	 */
 	UFUNCTION(Category="Interaction")
@@ -684,6 +709,17 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
 	void OnWidgetUpdatedEvent();
 
+	/**
+	 * Event called once Highlight Type has changed.
+	 */
+	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	void OnHighlightTypeChangedEvent(const EHighlightType& NewHighlightType);
+	
+	/**
+	 * Event called once Highlight Material has changed.
+	 */
+	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	void OnHighlightMaterialChangedEvent(const UMaterialInterface* NewHighlightMaterial);
 #pragma endregion
 
 #pragma region IgnoredClassesEvents
@@ -1006,7 +1042,7 @@ protected:
 	
 	/**
 	 * Event called once single Interaction Cycle is completed.
-	 * Might be called multiple times, before 'OnInteractionCompleted' is called.
+	 * Might be called multiple times, before OnInteractionCompleted is called.
 	 */
 	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Interaction")
 	FInteractionCycleCompleted OnInteractionCycleCompleted;
@@ -1151,6 +1187,18 @@ protected:
 	UPROPERTY(BlueprintAssignable, Category="Interaction")
 	FInteractorChanged OnInteractorChanged;
 
+	/**
+	 * Event called once HighlightType has changed.
+	 */
+	UPROPERTY(BlueprintAssignable, Category="Interaction")
+	FHighlightTypeChanged OnHighlightTypeChanged;
+
+	/**
+	 * Event called once HighlightMaterial has changed.
+	 */
+	UPROPERTY(BlueprintAssignable, Category="Interaction")
+	FHighlightMaterialChanged OnHighlightMaterialChanged;
+
 #pragma endregion 
 
 #pragma region Handles
@@ -1186,12 +1234,17 @@ protected:
 	virtual FOnWidgetUpdated& WidgetUpdatedHandle()
 	{ return OnWidgetUpdated; };
 
+	virtual FHighlightTypeChanged& GetHighlightTypeChanged() override
+	{ return OnHighlightTypeChanged; };
+	virtual FHighlightMaterialChanged& GetHighlightMaterialChanged() override
+	{ return OnHighlightMaterialChanged; };
+
 #pragma endregion 
 
 #pragma region Widget
 
 	/**
-	 * Event called any time any value of 'UserInterfaceSettings' has changed.
+	 * Event called any time any value of UserInterfaceSettings has changed.
 	 */
 	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Interaction")
 	FOnWidgetUpdated OnWidgetUpdated;
@@ -1345,13 +1398,22 @@ protected:
 	 */
 	UPROPERTY(SaveGame, EditAnywhere, BlueprintReadOnly,  Category="Interaction|Optional")
 	uint8 bInteractionHighlight : 1;
+
+	/**
+	 * Defines what Highlight Type is used.
+	 */
+	UPROPERTY(SaveGame, EditAnywhere, BlueprintReadOnly,  Category="Interaction|Optional")
+	EHighlightType HighlightType;
+	
+	UPROPERTY(SaveGame, EditAnywhere, BlueprintReadOnly,  Category="Interaction|Optional", meta=(EditCondition="bInteractionHighlight == true && HighlightType==EHighlightType::EHT_OverlayMaterial"))
+	UMaterialInterface* HighlightMaterial = nullptr;
 	
 	/**
 	 * Defines what Stencil ID should be used to highlight the Primitive Mesh Components.
 	 * In order to smoothly integrate with other logic, keep this ID unique!
 	 * Default: 133
 	 */
-	UPROPERTY(SaveGame, EditAnywhere, BlueprintReadOnly,  Category="Interaction|Optional", meta=(EditCondition="bInteractionHighlight == true", UIMin=0, ClampMin=0, UIMax=255, ClampMax=255))
+	UPROPERTY(SaveGame, EditAnywhere, BlueprintReadOnly,  Category="Interaction|Optional", meta=(EditCondition="bInteractionHighlight == true && HighlightType==EHighlightType::EHT_PostProcessing", UIMin=0, ClampMin=0, UIMax=255, ClampMax=255))
 	int32 StencilID;
 
 	/**
@@ -1388,7 +1450,7 @@ protected:
 	 * TODO
 	 * Time in seconds it is required to start this interaction.
 	 * Useful with multiple interactables.
-	 * Depends on 'ComparisonMethod'.
+	 * Depends on ComparisonMethod.
 	 * Currently has no logic tied to it!
 	 */
 	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Optional", meta=(UIMin=0.001, ClampMin=0.001, Units="seconds", EditCondition="ComparisonMethod!=ETimingComparison::ECM_None", NoResetToDefault))

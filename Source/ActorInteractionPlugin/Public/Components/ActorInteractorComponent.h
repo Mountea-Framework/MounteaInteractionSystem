@@ -6,7 +6,7 @@
 #include "Components/ActorComponent.h"
 #include "CollisionQueryParams.h"
 #include "Helpers/InteractionHelpers.h"
-
+#include "Engine/HitResult.h"
 #include "ActorInteractorComponent.generated.h"
 
 class UActorInteractableComponent;

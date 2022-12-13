@@ -116,13 +116,13 @@ enum class EInteractableStateV2 : uint8
 {
  EIS_Active     UMETA(DisplayName = "Active",      Tooltip = "Interactable is awaken and being interacted with."),
  EIS_Awake      UMETA(DisplayName = "Awake",       ToolTip = "Interactable is awaken and can be interacted with. Will react to Interactors."),
- EIS_Asleep     UMETA(DisplayName = "Inactive",    Tooltip = "Interactable is asleep, but can be awaken. Default state. Doesn't react to Interactors."),
- EIS_Cooldown   UMETA(DisplayName = "Cooldown",    Tooltip = "Interactable is disabled during cooldown period. Then will be awaken again. Doesn't react to Interactors."),
- EIS_Completed  UMETA(DisplayName = "Finished",    Tooltip = "Interactable is disabled after sucesful interaction. Doesn't react to Interactors. Cannot be activated again."),
- EIS_Disabled   UMETA(DisplayName = "Disabled",    Tooltip = "Interactable is disabled. Can be awaken. Doesn't react to Interactors."),
- EIS_Suppressed UMETA(DisplayName = "Suppressed",  Tooltip = "Interactable is suppressed and cannot be interacted with. Can be awaken. Doesn't react to Interactors."),
+ EIS_Asleep     UMETA(DisplayName = "Inactive",    Tooltip = "Interactable is asleep, but can be awaken. Default state. Does not react to Interactors."),
+ EIS_Cooldown   UMETA(DisplayName = "Cooldown",    Tooltip = "Interactable is disabled during cooldown period. Then will be awaken again. Does not react to Interactors."),
+ EIS_Completed  UMETA(DisplayName = "Finished",    Tooltip = "Interactable is disabled after sucesful interaction. Does not react to Interactors. Cannot be activated again."),
+ EIS_Disabled   UMETA(DisplayName = "Disabled",    Tooltip = "Interactable is disabled. Can be awaken. Does not react to Interactors."),
+ EIS_Suppressed UMETA(DisplayName = "Suppressed",  Tooltip = "Interactable is suppressed and cannot be interacted with. Can be awaken. Does not react to Interactors."),
 
- Default      UMETA(Hidden)
+ Default        UMETA(Hidden)
 };
 
 UENUM(BlueprintType, meta=(ScriptName="InteractorState"))

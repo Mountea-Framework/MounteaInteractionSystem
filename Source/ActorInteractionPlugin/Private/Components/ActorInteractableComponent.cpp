@@ -353,11 +353,6 @@ void UActorInteractableComponent::SetInteractionState(const EInteractableState N
 	/* Full State Machine is available in Documentation
 	 * @see https://sites.google.com/view/dominikpavlicek/home/documentation
 	*/
-	if (NewState == EInteractableState::EIS_Disabled)
-	{
-		InteractableState = NewState;
-		return;
-	}
 	switch (GetInteractionState())
 	{
 		case EInteractableState::EIS_Standby:
@@ -385,8 +380,7 @@ void UActorInteractableComponent::SetInteractionState(const EInteractableState N
 			}
 			break;
 		case EInteractableState::EIS_Finished:
-			InteractableState = NewState;
-			break;
+				InteractableState = NewState;
 		case EInteractableState::EIS_Disabled:
 			if(NewState == EInteractableState::EIS_Inactive)
 			{

@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "ActorInteractorComponentBase.h"
 #include "CollisionQueryParams.h"
+#include "Engine/HitResult.h"
 #include "ActorInteractorComponentTrace.generated.h"
 
 /**
