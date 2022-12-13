@@ -1265,14 +1265,7 @@ protected:
 	 */
 	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Required", meta=(NoResetToDefault))
 	TEnumAsByte<ECollisionChannel> CollisionChannel;
-
-	/**
-	* List of Interaction Keys for each platform.
-	* There is no validation for Keys validation! Nothing stops you from setting Keyboard keys for Consoles. Please, be careful with this variable!
-	*/
-	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Required", meta=(NoResetToDefault))
-	TMap<FString, FInteractionKeySetup> InteractionKeysPerPlatform;
-	
+		
 	/**
 	 * Weight of this Interactable.
 	 * Useful with multiple overlapping Interactables withing the same Actor. Interactor will always prefer the one with highest Weight value.
@@ -1321,7 +1314,6 @@ protected:
 #pragma region Optional
 
 protected:
-
 	
 	/**
 	 * List of Interactable Classes which are ignored
@@ -1368,7 +1360,14 @@ protected:
 	 * Default: 133
 	 */
 	UPROPERTY(SaveGame, EditAnywhere, BlueprintReadOnly,  Category="Interaction|Optional", meta=(EditCondition="bInteractionHighlight == true", UIMin=0, ClampMin=0, UIMax=255, ClampMax=255))
-	int32 StencilID ;
+	int32 StencilID;
+
+	/**
+	* List of Interaction Keys for each platform.
+	* There is no validation for Keys validation! Nothing stops you from setting Keyboard keys for Consoles. Please, be careful with this variable!
+	*/
+	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Optional", meta=(NoResetToDefault))
+	TMap<FString, FInteractionKeySetup> InteractionKeysPerPlatform;
 	
 	/**
 	 * Interactable Data.
