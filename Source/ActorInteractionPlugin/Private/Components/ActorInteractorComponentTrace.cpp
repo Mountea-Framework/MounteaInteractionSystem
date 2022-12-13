@@ -153,27 +153,30 @@ void UActorInteractorComponentTrace::ProcessTrace()
 					TScriptInterface<IActorInteractableInterface> Interactable = Itr;
 					Interactable.SetObject(Itr);
 					Interactable.SetInterface(Cast<IActorInteractableInterface>(Itr));
-					
-					if (Interactable->CanBeTriggered())
+
+					if (Interactable->GetCollisionChannel() == GetResponseChannel())
 					{
-						bAnyInteractable = true;
+						if (Interactable->CanBeTriggered())
+						{
+							bAnyInteractable = true;
 
-						if (Interactable == GetActiveInteractable())
-						{
-							bFoundActiveAgain = true;
-						}
+							if (Interactable == GetActiveInteractable())
+							{
+								bFoundActiveAgain = true;
+							}
 
-						if (BestInteractable.GetObject() == nullptr)
-						{
-							BestInteractable = Interactable;
-							BestHitResult = HitResult;
-						}
-						else
-						{
-							if (Interactable->GetInteractableWeight() > BestInteractable->GetInteractableWeight())
+							if (BestInteractable.GetObject() == nullptr)
 							{
 								BestInteractable = Interactable;
 								BestHitResult = HitResult;
+							}
+							else
+							{
+								if (Interactable->GetInteractableWeight() > BestInteractable->GetInteractableWeight())
+								{
+									BestInteractable = Interactable;
+									BestHitResult = HitResult;
+								}
 							}
 						}
 					}
@@ -181,9 +184,7 @@ void UActorInteractorComponentTrace::ProcessTrace()
 			}
 		}
 	}
-
-	AIntP_LOG(Warning, TEXT("[ProcessTrace] Round"))
-	
+		
 	if (bAnyInteractable == false)
 	{
 		OnInteractableLost.Broadcast(GetActiveInteractable());
@@ -195,7 +196,7 @@ void UActorInteractorComponentTrace::ProcessTrace()
 	
 	if (bAnyInteractable)
 	{
-		BestInteractable->GetInteractorTracedCallbackHandle().Broadcast(BestHitResult.GetComponent(), GetOwner(), nullptr, BestHitResult.Location, BestHitResult);
+		BestInteractable->GetOnInteractorTracedHandle().Broadcast(BestHitResult.GetComponent(), GetOwner(), nullptr, BestHitResult.Location, BestHitResult);
 	}
 
 #if WITH_EDITOR
@@ -272,7 +273,7 @@ void UActorInteractorComponentTrace::SetState(const EInteractorStateV2 NewState)
 	}
 }
 
-#if (!UE_BUILD_SHIPPING || WITH_EDITOR)
+#if WITH_EDITOR
 
 void UActorInteractorComponentTrace::DrawTracingDebugStart(FInteractionTraceDataV2& InteractionTraceData) const
 {
@@ -302,8 +303,6 @@ void UActorInteractorComponentTrace::DrawTracingDebugEnd(FInteractionTraceDataV2
 		}
 	}
 }
-
-#if WITH_EDITOR
 
 void UActorInteractorComponentTrace::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent)
 {
@@ -385,10 +384,4 @@ void UActorInteractorComponentTrace::PostEditChangeChainProperty(FPropertyChange
 	}
 }
 
-EDataValidationResult UActorInteractorComponentTrace::IsDataValid(TArray<FText>& ValidationErrors)
-{
-	return Super::IsDataValid(ValidationErrors);
-}
-
-#endif
 #endif
