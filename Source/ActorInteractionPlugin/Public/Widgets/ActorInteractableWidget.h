@@ -43,6 +43,13 @@ public:
 	void InitializeInteractionWidget(const FText& NewInteractableKey, const FText& NewInteractableName, const FText& NewInteractionAction,
 	                                 UActorInteractableComponent* NewOwningComponent, UTexture2D* NewInteractionTexture);
 
+	/**
+	 * Use this Event to Toggle Visibility;
+	 * Call Parent function to ensure caching previous Visibility!
+	 */
+	UFUNCTION(BlueprintNativeEvent, Category="Interaction")
+	void ToggleVisibility();
+
 	virtual bool Initialize() override;
 
 	/**
@@ -148,6 +155,9 @@ protected:
 	UPROPERTY(Category="Properties", BlueprintReadWrite, meta=(BindWidget))
 	UImage* InteractionTexture = nullptr;
 
+	UPROPERTY(VisibleAnywhere, Category="Interaction|Debug")
+	ESlateVisibility CachedVisibility;
+	
 private:
 
 	/**
@@ -165,4 +175,6 @@ private:
 	float InteractionProgress;
 
 	float TimeRemainder;
+
+
 };

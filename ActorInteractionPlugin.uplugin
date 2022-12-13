@@ -1,10 +1,10 @@
 {
 	"FileVersion": 3,
 	"Version": 1,
-	"VersionName": "2.1.0.0",
+	"VersionName": "3.0.0.0",
 	"FriendlyName": "Actor Interaction Plugin",
-	"Description": "Component utilities for smart Actor Interaction with other Actors. Developed with Designers in mind to allow you as easy as possible implementation while maintaining high scalability and diverse options to tweak everything to your liking.",
-	"Category": "Gameplay",
+	"Description": "Actor Interaction Plugin is an Open-source Mountea Framework components-based simple framework providing utilities for smart Actor Interaction with other Actors. Developed with Game Developers in mind to allow as easy as possible implementation while maintaining high scalability and diverse options to tweak everything.",
+	"Category": "Mountea Framework",
 	"CreatedBy": "Dominik Pavlicek",
 	"CreatedByURL": "https://sites.google.com/view/dominikpavlicek/home",
 	"DocsURL": "https://sites.google.com/view/dominikpavlicek/home/documentation",
@@ -12,8 +12,6 @@
 	"SupportURL": "https://bit.ly/DominikPavlicek_SupportServer",
 	"EngineVersion": "4.27.0",
 	"CanContainContent": true,
-	"IsBetaVersion": false,
-	"IsExperimentalVersion": false,
 	"Installed": true,
 	"Modules": [
 		{
@@ -26,8 +24,19 @@
 				"Mac",
 				"Linux",
 				"PS4",
-				"XboxOne"
+				"XboxOne",
+				"Switch"
 			]
+		},
+		{
+			"Name": "ActorInteractionPluginEditor",
+			"Type": "Editor",
+			"LoadingPhase": "Default"
+		},
+		{
+			"Name": "InteractionEditorNotifications",
+			"Type": "Editor",
+			"LoadingPhase": "Default"
 		}
 	]
 }
