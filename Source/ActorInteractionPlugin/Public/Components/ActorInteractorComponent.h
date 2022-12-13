@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-
+#include "CollisionQueryParams.h"
 #include "Helpers/InteractionHelpers.h"
 
 #include "ActorInteractorComponent.generated.h"
