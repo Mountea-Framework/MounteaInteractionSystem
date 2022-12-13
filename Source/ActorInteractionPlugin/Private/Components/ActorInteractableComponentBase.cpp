@@ -37,7 +37,7 @@ UActorInteractableComponentBase::UActorInteractableComponentBase()
 
 	LifecycleMode = EInteractableLifecycle::EIL_Cycled;
 	LifecycleCount = -1;
-	InteractionPeriod = 3.f;
+	InteractionPeriod = 1.5;
 	CooldownPeriod = 3.f;
 	RemainingLifecycleCount = LifecycleCount;
 
@@ -118,13 +118,13 @@ void UActorInteractableComponentBase::BeginPlay()
 	// Widget
 	OnWidgetUpdated.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnWidgetUpdatedEvent);
 	
+	RemainingLifecycleCount = LifecycleCount;
+	
 	SetState(DefaultInteractableState);
 
 	AutoSetup();
 
-	RemainingLifecycleCount = LifecycleCount;
-
-#if (!UE_BUILD_SHIPPING || WITH_EDITOR)
+#if WITH_EDITOR
 	
 	DrawDebug();
 
@@ -1343,7 +1343,12 @@ void UActorInteractableComponentBase::FindAndAddCollisionShapes()
 		}
 		else
 		{
-			AIntP_LOG(Error, TEXT("[Actor Interactable Component] Primitive Component '%s' not found!"), *Itr.ToString())
+			if (const auto NewCollisionByTag = FindPrimitiveByTag(Itr))
+			{
+				AddCollisionComponent(NewCollisionByTag);
+				BindCollisionShape(NewCollisionByTag);
+			}
+			else AIntP_LOG(Error, TEXT("[Actor Interactable Component] Primitive Component '%s' not found!"), *Itr.ToString())
 		}
 	}
 }
@@ -1479,7 +1484,34 @@ void UActorInteractableComponentBase::AutoSetup()
 {
 	switch (SetupType)
 	{
-		case ESetupType::EST_Full:
+		case ESetupType::EST_FullAll:
+			{
+				if (GetOwner() == nullptr) break;
+
+				TArray<UPrimitiveComponent*> OwnerPrimitives;
+				GetOwner()->GetComponents(OwnerPrimitives);
+
+				TArray<UMeshComponent*> OwnerMeshes;
+				GetOwner()->GetComponents(OwnerMeshes);
+
+				for (const auto Itr : OwnerPrimitives)
+				{
+					if (Itr)
+					{
+						AddCollisionComponent(Itr);
+					}
+				}
+
+				for (const auto Itr : OwnerMeshes)
+				{
+					if (Itr)
+					{
+						AddHighlightableComponent(Itr);
+					}
+				}
+			}
+			break;
+		case ESetupType::EST_AllParent:
 			{
 				// Get all Parent Components
 				TArray<USceneComponent*> ParentComponents;

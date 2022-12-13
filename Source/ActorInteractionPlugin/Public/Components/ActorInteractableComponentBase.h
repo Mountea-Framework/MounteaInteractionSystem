@@ -1215,14 +1215,6 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Interaction|Debug", meta=(ShowOnlyInnerProperties))
 	FDebugSettings DebugSettings;
 
-	/**
-	 * Cached Collision Shape Settings.
-	 * Filled when Collision Shapes are registered.
-	 * Once Collision Shape is unregistered, it reads its cached settings and returns to pre-interaction Collision Settings.
-	 */
-	UPROPERTY(SaveGame, VisibleAnywhere, Category="Interaction|Debug", meta=(DisplayThumbnail = false, ShowOnlyInnerProperties))
-	mutable TMap<UPrimitiveComponent*, FCollisionShapeCache> CachedCollisionShapesSettings;
-
 #if WITH_EDITORONLY_DATA
 	UBillboardComponent* InteractableSpriteComponent = nullptr;
 #endif
@@ -1416,11 +1408,28 @@ protected:
 	UPROPERTY(SaveGame, VisibleAnywhere, Category="Interaction|Read Only")
 	EInteractableStateV2 InteractableState;
 
+	/**
+	 * How many Lifecycles remain until this Interactable is Finished.
+	 */
 	UPROPERTY(SaveGame, VisibleAnywhere, Category="Interaction|Read Only")
 	int32 RemainingLifecycleCount;
 
+	/**
+	 * List of Interactables which are dependant on this Interactable.
+	 * To manage dependencies, use following functions:
+	 * - AddInteractionDependency
+	 * - RemoveInteractionDependency
+	 */
 	UPROPERTY(SaveGame, VisibleAnywhere, Category="Interaction|Read Only")
 	TArray<TScriptInterface<IActorInteractableInterface>> InteractionDependencies;
+
+	/**
+	 * Cached Collision Shape Settings.
+	 * Filled when Collision Shapes are registered.
+	 * Once Collision Shape is unregistered, it reads its cached settings and returns to pre-interaction Collision Settings.
+	 */
+	UPROPERTY(SaveGame, VisibleAnywhere, Category="Interaction|Read Only", meta=(DisplayThumbnail = false, ShowOnlyInnerProperties))
+	mutable TMap<UPrimitiveComponent*, FCollisionShapeCache> CachedCollisionShapesSettings;
 	
 	/**
 	 * List of Highlightable Components.
