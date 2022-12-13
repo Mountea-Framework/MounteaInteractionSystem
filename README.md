@@ -20,7 +20,7 @@ Join support and community Discord!
 
 The things you need before running this plugin.
 
-* Unreal Engine (supports from 4.25 to newest version)
+* Unreal Engine (supports from 4.26 to newest version)
 
 ### Installation
 
