@@ -29,7 +29,9 @@ public class ActorInteractionPlugin : ModuleRules
 			new string[]
 			{
 				"Core",
-				"UMG"
+				"UMG",
+				"InputCore",
+				"Engine"
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);
@@ -38,13 +40,16 @@ public class ActorInteractionPlugin : ModuleRules
 		PrivateDependencyModuleNames.AddRange(
 			new string[]
 			{
+				"Core",
 				"CoreUObject",
 				"Engine",
 				"UMG",
 				"Slate",
 				"SlateCore",
 				"Projects",
-				// "InputCore" // Future feature update: Uncomment for implementation of UActorInteractableComponent InteractionKeys
+				"InputCore",
+
+				"InteractionEditorNotifications"
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);
