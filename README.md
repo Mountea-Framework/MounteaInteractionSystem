@@ -1,6 +1,5 @@
 # Notice
-All assets in **Content** folder are now broken, because 4.26_dev has been merged into 4.25_dev.
-This will be solved.
+4.25 is deprecated and not supported anymore!
 
 # Actor Interaction Plugin
 
