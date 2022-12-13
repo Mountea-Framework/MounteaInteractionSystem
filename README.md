@@ -1,14 +1,7 @@
-# Actor Interaction Plugin
+# ActorInteractionPlugin
 
-Actor Interaction Plugin is an Open-source Mountea Framework components-based simple framework providing utilities for smart Actor Interaction with other Actors.
-Developed with Game Developers in mind to allow as easy as possible implementation while maintaining high scalability and diverse options to tweak everything.
-
-
-![UE](https://img.shields.io/badge/supported-4.26%2B-green)
-![License](https://img.shields.io/github/license/Mountea-Framework/ActorInteractionPlugin)
-[![YouTube](https://img.shields.io/badge/YouTube-Subscribe-red?style=flat&logo=youtube)](https://www.youtube.com/@mounteaframework)
-[![Discord](https://badgen.net/discord/online-members/2vXWEEN?label=Discord&logo=discord&logoColor=ffffff&color=7389D8)](https://discord.com/invite/2vXWEEN)
-[![Discord](https://badgen.net/discord/members/2vXWEEN?label=Discord&logo=discord&logoColor=ffffff&color=7389D8)](https://discord.com/invite/2vXWEEN)
+Component tool for smart Actor Interaction with other Actors.
+Developed with Designers in mind to allow you as easy as possible implementation while maintaining high scalability and diverse options to tweak everything to your liking.
 
 ### Discord Channel
 
@@ -24,11 +17,12 @@ The things you need before running this plugin.
 
 ### Installation
 
-Download the plugin (either from Releases or from Marketplace). For more detailed guide take a look at Wiki page.
+A step by step guide that will tell you how to get the development environment up and running.
 
-1. Download the branch release you are interested in
-2. Instal the plugin to your Game Project (within /Plugin folder)
-
+```
+$ Download the branch you are interested in
+$ Instal the plugin to your Game Project (within /Plugin folder)
+```
 
 ## Usage
 
@@ -43,5 +37,5 @@ A best way to describe the usage is to take a look or play the demo build.
 
 ## Additional Documentation and Acknowledgments
 
-* Roadmap: https://github.com/orgs/Mountea-Framework/projects/2
+* Trello board: https://trello.com/b/a9yrcH44/actor-interaction-plugin
 * Documentation: https://sites.google.com/view/dominikpavlicek/home/documentation 
