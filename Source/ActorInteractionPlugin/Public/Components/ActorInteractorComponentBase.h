@@ -402,12 +402,14 @@ private:
 
 #pragma region Editor
 
-#if (!UE_BUILD_SHIPPING || WITH_EDITOR)
+#if WITH_EDITOR
+	
 protected:
 
 	virtual void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;
 	virtual EDataValidationResult IsDataValid(TArray<FText>& ValidationErrors) override;
 
 #endif
+	
 #pragma endregion 
 };

@@ -514,13 +514,11 @@ public:
 
 	/**
 	 * Returns Interactable Data Asset.
-	 * Works best with 'ActorInteractableData'!
 	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual FDataTableRowHandle GetInteractableData() override;
 	/**
 	 * Sets new Interactable Data.
-	 * Works best with 'ActorInteractableData'!
 	 * @param NewData New Data to be used as Interactable Data.
 	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
@@ -843,10 +841,6 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
 	void OnInteractorChangedEvent(const TScriptInterface<IActorInteractorInterface>& NewInteractor);
 
-	/** Internal event for handling direct calls to Traced event.*/
-	UFUNCTION()
-	void OnInteractorTracedCallback(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
-
 #pragma endregion 
 
 #pragma region InteractionHelpers
@@ -958,8 +952,6 @@ protected:
 	 */
 	UPROPERTY(BlueprintAssignable, Category="Interaction")
 	FInteractorStopOverlap OnInteractorStopOverlap;
-
-	FInteractorTracedCallback InteractorTracedCallback;
 
 #pragma endregion
 
@@ -1193,8 +1185,6 @@ protected:
 	
 	virtual FOnWidgetUpdated& WidgetUpdatedHandle()
 	{ return OnWidgetUpdated; };
-	virtual FInteractorTracedCallback& GetInteractorTracedCallbackHandle() override
-	{ return InteractorTracedCallback; };
 
 #pragma endregion 
 
@@ -1398,6 +1388,7 @@ protected:
 	 * Defines behaviour of TimeToStart.
 	 * Less Than: Interaction will start if key is hold less than TimeToStart.
 	 * More Than: Interaction will start if key is hold more than TimeToStart.
+	 * Currently has no logic tied to it!
 	 */
 	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Optional", meta=(NoResetToDefault))
 	ETimingComparison ComparisonMethod;
@@ -1407,6 +1398,7 @@ protected:
 	 * Time in seconds it is required to start this interaction.
 	 * Useful with multiple interactables.
 	 * Depends on 'ComparisonMethod'.
+	 * Currently has no logic tied to it!
 	 */
 	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Optional", meta=(UIMin=0.001, ClampMin=0.001, Units="seconds", EditCondition="ComparisonMethod!=ETimingComparison::ECM_None", NoResetToDefault))
 	float TimeToStart;

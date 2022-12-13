@@ -3,8 +3,8 @@
 
 #include "Components/ActorInteractorComponentBase.h"
 
-#if WITH_EDITOR
 #include "Helpers/ActorInteractionPluginLog.h"
+#if (!UE_BUILD_SHIPPING || WITH_EDITOR)
 #include "EditorHelper.h"
 #endif
 
@@ -516,6 +516,8 @@ void UActorInteractorComponentBase::ToggleDebug()
 	DebugSettings.DebugMode = !DebugSettings.DebugMode;
 }
 
+#if WITH_EDITOR
+
 void UActorInteractorComponentBase::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent)
 {
 	const FName PropertyName = (PropertyChangedEvent.MemberProperty != nullptr) ? PropertyChangedEvent.GetPropertyName() : NAME_None;
@@ -593,3 +595,5 @@ EDataValidationResult UActorInteractorComponentBase::IsDataValid(TArray<FText>& 
 	
 	return bAnyError ? EDataValidationResult::Invalid : DefaultValue;
 }
+
+#endif

@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "InputCoreTypes.h"
 #include "InteractionHelpers.generated.h"
 
 #define INTERACTOR_TAG_NAME   TEXT("Interactor")

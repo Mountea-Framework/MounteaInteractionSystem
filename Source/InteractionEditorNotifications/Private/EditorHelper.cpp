@@ -5,11 +5,10 @@
 
 #if WITH_EDITOR
 #include "Framework/Notifications/NotificationManager.h"
-#endif
 
 void FEditorHelper::DisplayEditorNotification(const FText DisplayText, const SNotificationItem::ECompletionState State, const float ExpireDuration, const float FadeOutDuration, const FName ImagePropertyName)
 {
-#if WITH_EDITOR
+
 	if (DisplayText.IsEmpty() || State == SNotificationItem::CS_None) return;
 	
 	
@@ -21,5 +20,6 @@ void FEditorHelper::DisplayEditorNotification(const FText DisplayText, const SNo
 	NotificationInfo.Image = FCoreStyle::Get().GetBrush(ImagePropertyName);
 	
 	FSlateNotificationManager::Get().AddNotification(NotificationInfo).Get()->SetCompletionState(State);
-#endif
+
 }
+#endif

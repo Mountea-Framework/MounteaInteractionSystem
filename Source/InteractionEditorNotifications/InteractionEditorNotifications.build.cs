@@ -6,6 +6,16 @@ public class InteractionEditorNotifications : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "UnrealEd", "Slate", "SlateCore", "Projects"});
+		PublicDependencyModuleNames.AddRange
+			(new string[]
+				{
+					"Core", 
+					"CoreUObject", 
+					"Engine",
+					"Slate", 
+					"SlateCore", 
+					"Projects"
+				}
+			);
 	}
 }

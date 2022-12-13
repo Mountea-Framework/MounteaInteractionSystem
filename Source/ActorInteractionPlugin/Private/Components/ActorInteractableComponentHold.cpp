@@ -5,9 +5,7 @@
 
 #include "Interfaces/ActorInteractorInterface.h"
 
-#if WITH_EDITOR
 #include "Helpers/ActorInteractionPluginLog.h"
-#endif
 
 #define LOCTEXT_NAMESPACE "InteractableComponentHold"
 

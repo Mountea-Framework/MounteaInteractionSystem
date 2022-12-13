@@ -6,10 +6,10 @@
 
 #if (!UE_BUILD_SHIPPING || WITH_EDITOR)
 #include "EditorHelper.h"
+#endif
 
 #include "Interfaces/ActorInteractionWidget.h"
 #include "Widgets/ActorInteractableWidget.h"
-#endif
 
 #include "Components/ActorInteractableComponent.h"
 #include "Components/BillboardComponent.h"
@@ -63,7 +63,9 @@ UActorInteractableComponentBase::UActorInteractableComponentBase()
 	UActorComponent::SetActive(true);
 	SetHiddenInGame(true);
 
+#if WITH_EDITORONLY_DATA
 	bVisualizeComponent = true;
+#endif
 }
 
 void UActorInteractableComponentBase::BeginPlay()
@@ -79,8 +81,7 @@ void UActorInteractableComponentBase::BeginPlay()
 
 	OnInteractorOverlapped.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableBeginOverlapEvent);
 	OnInteractorStopOverlap.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableStopOverlapEvent);
-	OnInteractorTraced.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableTracedEvent);
-	InteractorTracedCallback.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractorTracedCallback);
+	OnInteractorTraced.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableTraced);
 
 	OnInteractionCompleted.AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractionCompleted);
 	OnInteractionCycleCompleted.AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractionCycleCompleted);
@@ -489,6 +490,7 @@ void UActorInteractableComponentBase::SetState(const EInteractableStateV2 NewSta
 				case EInteractableStateV2::EIS_Awake:
 				case EInteractableStateV2::EIS_Asleep:
 				case EInteractableStateV2::EIS_Disabled:
+					OnInteractionCanceled.Broadcast();
 					InteractableState = NewState;
 					StopHighlight();
 					OnInteractableStateChanged.Broadcast(InteractableState);
@@ -1259,10 +1261,13 @@ void UActorInteractableComponentBase::OnInteractableTraced(UPrimitiveComponent* 
 			case EInteractorStateV2::EIS_Awake:
 				if (FoundInteractor->CanInteract() == false) return;
 				if (FoundInteractor->GetResponseChannel() != GetCollisionChannel()) continue;
+			
 				FoundInteractor->GetOnInteractableLostHandle().AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractableLost);
 				FoundInteractor->GetOnInteractableSelectedHandle().AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractableSelected);
-				OnInteractorTraced.Broadcast(HitComponent, OtherActor, OtherComp, NormalImpulse, Hit);
+			
+				Execute_OnInteractableTracedEvent(this, HitComponent, OtherActor, OtherComp, NormalImpulse, Hit);
 				OnInteractorFound.Broadcast(FoundInteractor);
+			
 				break;
 			case EInteractorStateV2::EIS_Asleep:
 			case EInteractorStateV2::EIS_Suppressed:
@@ -1325,11 +1330,6 @@ void UActorInteractableComponentBase::InteractableLost(const TScriptInterface<IA
 		
 		OnInteractorLost.Broadcast(GetInteractor());
 	}
-}
-
-void UActorInteractableComponentBase::OnInteractorTracedCallback(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
-{
-	OnInteractableTraced(HitComponent, OtherActor, OtherComp, NormalImpulse, Hit);
 }
 
 void UActorInteractableComponentBase::FindAndAddCollisionShapes()
