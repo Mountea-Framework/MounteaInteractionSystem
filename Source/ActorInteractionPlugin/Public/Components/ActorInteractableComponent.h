@@ -40,7 +40,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInteractorOverlapped, UPrimitiveC
  * 
  * @see https://sites.google.com/view/dominikpavlicek/home/documentation
  */
-UCLASS(ClassGroup=(Interaction), NotBlueprintable, HideCategories = (Navigation, Physics, Collision, Lighting, Rendering, Mobile, Animation, HLOD, UserInterface), meta=(BlueprintSpawnableComponent, DisplayName="Interactable Component"))
+UCLASS(ClassGroup=(Interaction), NotBlueprintable, HideCategories = (Navigation, Physics, Collision, Lighting, Rendering, Mobile, Animation, HLOD), meta=(BlueprintSpawnableComponent, DisplayName="Interactable Component"))
 class ACTORINTERACTIONPLUGIN_API UActorInteractableComponent final : public UWidgetComponent
 {
 	GENERATED_BODY()
@@ -939,7 +939,7 @@ protected:
 	int32 InteractionCyclesAllowed = -1;
 	
 	/** User Widget class that will be forced to use.*/
-	UPROPERTY(EditAnywhere, BlueprintReadOnly,  Category="Interaction|Settings|Widget")
+	UPROPERTY(SaveGame, EditAnywhere, BlueprintReadOnly, Category="Interaction|Settings|Widget", NoClear, meta=(NoResetToDefault, BlueprintBaseOnly=true, AllowAbstract=false))
 	TSubclassOf<UActorInteractableWidget> InteractableWidgetClass;
 	
 	/** Value of the Interaction Action Title.
@@ -974,7 +974,7 @@ protected:
 	 * Editor only flag.
 	 * If true, will display debug info.
 	 */
-	UPROPERTY(VisibleAnywhere, Category="Interaction|Debug")
+	UPROPERTY(EditAnywhere, Category="Interaction|Debug")
 	uint8 bDebug : 1;
 
 protected:
@@ -1046,7 +1046,7 @@ private:
 	/**
 	 * This helper function toggles Debug mode on and off.
 	 */
-	UFUNCTION(CallInEditor, DisplayName="Refresh Details Panel", Category="Interaction")
+	UFUNCTION(BlueprintCallable, Category="Interaction", meta=(DevelopmentOnly))
 	void ToggleDebugMode() {bDebug = !bDebug; };
 	
 	void StopInteractionLink(UActorInteractorComponent* OtherComponent);

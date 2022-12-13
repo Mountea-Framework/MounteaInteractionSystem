@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-
+#include "CollisionQueryParams.h"
 #include "Helpers/InteractionHelpers.h"
 
 #include "ActorInteractorComponent.generated.h"
@@ -493,7 +493,7 @@ protected:
 	 * Editor only flag.
 	 * If true, will display debug lines and boxes.
 	 */
-	UPROPERTY(VisibleAnywhere, Category="Interaction|Debug")
+	UPROPERTY(EditAnywhere, Category="Interaction|Debug")
 	uint8 bDebug : 1;
 
 	/**
@@ -525,7 +525,7 @@ public:
 	/**
 	 * This helper function toggles Debug mode on and off.
 	 */
-	UFUNCTION(BlueprintCallable, CallInEditor, Category="Interaction")
+	UFUNCTION(BlueprintCallable, Category="Interaction", meta=(DevelopmentOnly))
 	void ToggleDebugMode() { bDebug = !bDebug; }
 
 private:

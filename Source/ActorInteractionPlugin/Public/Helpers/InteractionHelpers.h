@@ -2,6 +2,10 @@
 
 #pragma once
 
+#include "CoreMinimal.h"
+#include "InputCoreTypes.h"
+#include "InteractionHelpers.generated.h"
+
 #define INTERACTOR_TAG_NAME   TEXT("Interactor")
 #define INTERACTABLE_TAG_NAME TEXT("Interactable")
 
@@ -100,6 +104,157 @@ enum class EInteractorPrecision : uint8
  Default     UMETA(Hidden)
 };
 
+#pragma region State Machine
+
+/**
+ * State of Interactable Actor Component.
+ * 
+ * Machine State of the Interactable Actor Component Base.
+ */
+UENUM(BlueprintType, meta=(ScriptName="Interactable State"))
+enum class EInteractableStateV2 : uint8
+{
+ EIS_Active     UMETA(DisplayName = "Active",      Tooltip = "Interactable is awaken and being interacted with."),
+ EIS_Awake      UMETA(DisplayName = "Awake",       ToolTip = "Interactable is awaken and can be interacted with. Will react to Interactors."),
+ EIS_Asleep     UMETA(DisplayName = "Inactive",    Tooltip = "Interactable is asleep, but can be awaken. Default state. Doesn't react to Interactors."),
+ EIS_Cooldown   UMETA(DisplayName = "Cooldown",    Tooltip = "Interactable is disabled during cooldown period. Then will be awaken again. Doesn't react to Interactors."),
+ EIS_Completed  UMETA(DisplayName = "Finished",    Tooltip = "Interactable is disabled after sucesful interaction. Doesn't react to Interactors. Cannot be activated again."),
+ EIS_Disabled   UMETA(DisplayName = "Disabled",    Tooltip = "Interactable is disabled. Can be awaken. Doesn't react to Interactors."),
+ EIS_Suppressed UMETA(DisplayName = "Suppressed",  Tooltip = "Interactable is suppressed and cannot be interacted with. Can be awaken. Doesn't react to Interactors."),
+
+ Default      UMETA(Hidden)
+};
+
+UENUM(BlueprintType, meta=(ScriptName="Interactor State"))
+enum class EInteractorStateV2 : uint8
+{
+ EIS_Awake      UMETA(DisplayName = "Awake",       Tooltip = "Interactor is awaken. Interactor is looking for Interactables."),
+ EIS_Asleep     UMETA(DisplayName = "Asleep",      Tooltip = "Interactor is asleep, but can be awaken. Default state. Useful for cutscenes or UI interactions."),
+ EIS_Suppressed UMETA(DisplayName = "Suppressed",  Tooltip = "Interactor is suppressed and cannot interact. Default state for secondary Interactors when master is Active."),
+ EIS_Active     UMETA(DisplayName = "Interacting", Tooltip = "Interactor is in use"),
+ EIS_Disabled   UMETA(DisplayName = "Disabled",    Tooltip = "Interactor is disabled. Can be awaken."),
+
+ Default        UMETA(Hidden)
+};
+
+#pragma endregion
+
+#pragma region InteractionKeySetup
+
+USTRUCT(BlueprintType)
+struct FInteractionKeySetup
+{
+     GENERATED_BODY()
+     
+     FInteractionKeySetup(){};
+     FInteractionKeySetup(const TArray<FKey> NewKeys)
+     {
+         Keys = NewKeys;
+     }
+     FInteractionKeySetup(const FKey NewKey)
+     {
+         Keys.Add(NewKey);
+     }
+
+     UPROPERTY(BlueprintReadWrite, EditAnywhere, meta=(NoElementDuplicate))
+     TArray<FKey> Keys;
+};
+
+#pragma endregion
+
+#pragma region CollisionCache
+
+/**
+ * Collision Shape Cache data.
+ * 
+ * Holds data for each Collision Shape before interaction setup has been applied.
+ * Used for resetting Collision Shapes to pre-interaction state.
+ */
+USTRUCT(BlueprintType)
+struct FCollisionShapeCache
+{
+ GENERATED_BODY()
+	
+ FCollisionShapeCache()
+ {
+  bGenerateOverlapEvents = false;
+  CollisionEnabled = ECollisionEnabled::QueryOnly;
+  CollisionResponse = ECR_Overlap;
+ };
+	
+ FCollisionShapeCache(bool GeneratesOverlaps, TEnumAsByte<ECollisionEnabled::Type> collisionEnabled, TEnumAsByte<ECollisionResponse> collisionResponse) :
+ bGenerateOverlapEvents(GeneratesOverlaps),
+  CollisionEnabled(collisionEnabled),
+  CollisionResponse(collisionResponse)
+ {};
+	
+ UPROPERTY(VisibleAnywhere)
+ uint8 bGenerateOverlapEvents : 1;
+ UPROPERTY(VisibleAnywhere)
+ TEnumAsByte<ECollisionEnabled::Type> CollisionEnabled;
+ UPROPERTY(VisibleAnywhere)
+ TEnumAsByte<ECollisionResponse> CollisionResponse;
+	
+};
+
+#pragma endregion
+
+#pragma region Debug
+
+#pragma region DebugSettings
+
+/**
+ * Helper structure to encapsulate Debug Settings
+ */
+USTRUCT(BlueprintType)
+struct FDebugSettings
+{
+    GENERATED_BODY()
+
+public:
+
+    FDebugSettings()
+    {
+     DebugMode = false;
+     EditorDebugMode = true;
+    };
+    FDebugSettings(uint8 NewDebug, uint8 NewEditorDebug) :
+    DebugMode(NewDebug),
+    EditorDebugMode(NewEditorDebug)
+    {};
+    FDebugSettings(const FDebugSettings& Other) :
+    DebugMode(Other.DebugMode),
+    EditorDebugMode(Other.EditorDebugMode)
+    {};
+    FDebugSettings(const bool bDebug)
+    {
+      if (bDebug)
+      {
+        DebugMode = bDebug;
+        EditorDebugMode = bDebug;
+      }
+    }
+
+   /**
+    * Enables Debug in Gameplay.
+    * Default: Off
+    */
+    UPROPERTY(EditAnywhere)
+    uint8 DebugMode : 1;
+   /**
+    * Enables Warnings in Editor.
+    * Default: On
+    */
+    UPROPERTY(EditAnywhere)
+    uint8 EditorDebugMode : 1;
+};
+
+#pragma endregion 
+
+#pragma endregion 
+
+#pragma region TEMPLATES
+
 /**
  * Template that allows reading Name value from any given UENUM.
  * @param Name: Name of the UENUM (ECollisionChannel, for instance)
@@ -107,9 +262,11 @@ enum class EInteractorPrecision : uint8
  * @return FString of the Value (ECC_Visibility in our example, or invalid of name not specified nor UENUM does not exist)
  */
 template<typename TEnum>
-static FORCEINLINE FString GetEnumValueAsString(const FString& Name, TEnum Value)
+static FString GetEnumValueAsString(const FString& Name, TEnum Value)
 {
-  const UEnum* enumPtr = FindObject<UEnum>(ANY_PACKAGE, *Name, true);
-  if (!enumPtr) return FString("invalid");
-  return enumPtr->GetNameByValue((int64)Value).ToString();
+ const UEnum* enumPtr = FindObject<UEnum>(ANY_PACKAGE, *Name, true);
+ if (!enumPtr) return FString("invalid");
+ return enumPtr->GetDisplayNameTextByValue((int64)Value).ToString();
 }
+
+#pragma endregion TEMPLATES
