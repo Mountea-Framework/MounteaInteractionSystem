@@ -110,8 +110,8 @@ protected:
 	 * The frequency in seconds at which the Interaction function will be executed.
 	 *
 	 * Min value is 0.01 (1e-2)
-	 * Lower the value, less frequent tracing is and less performance is required.
-	 * Higher the value, more frequent tracing is and more performance is required.
+	 * Higher the value, less frequent tracing is and less performance is required.
+	 * Lower the value, more frequent tracing is and more performance is required.
 	 */
 	UPROPERTY(EditAnywhere, Category="Interaction|Required", meta=(Units = "s", UIMin=0.01f, ClampMin=0.01f, DisplayName="Tick Interval (sec)"))
 	float TraceInterval;
