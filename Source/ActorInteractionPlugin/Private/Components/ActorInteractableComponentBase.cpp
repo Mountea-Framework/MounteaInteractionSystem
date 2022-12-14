@@ -526,7 +526,7 @@ void UActorInteractableComponentBase::StopHighlight()
 	SetHiddenInGame(true, true);
 	for (const auto Itr : HighlightableComponents)
 	{
-		Itr->SetRenderCustomDepth(false);
+		//Itr->SetRenderCustomDepth(false);
 		Itr->SetCustomDepthStencilValue(0);
 	}
 }
@@ -1711,7 +1711,7 @@ void UActorInteractableComponentBase::PostEditChangeChainProperty(FPropertyChang
 		}
 		else
 		{
-			if (GetWidgetClass() != UActorInteractableWidget::StaticClass())
+			if (!GetWidgetClass()->IsChildOf(UActorInteractableWidget::StaticClass()))
 			{
 				if (GetWidgetClass()->ImplementsInterface(UActorInteractionWidget::StaticClass()) == false)
 				{
@@ -1826,7 +1826,7 @@ EDataValidationResult UActorInteractableComponentBase::IsDataValid(TArray<FText>
 	}
 	else
 	{
-		if (GetWidgetClass() != UActorInteractableWidget::StaticClass())
+		if (!GetWidgetClass()->IsChildOf(UActorInteractableWidget::StaticClass()))
 		{
 			if (GetWidgetClass()->ImplementsInterface(UActorInteractionWidget::StaticClass()) == false)
 			{
