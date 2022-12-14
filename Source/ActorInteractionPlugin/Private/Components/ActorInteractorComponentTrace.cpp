@@ -242,6 +242,17 @@ bool UActorInteractorComponentTrace::CanTrace() const
 	return CanInteract();
 }
 
+void UActorInteractorComponentTrace::SetCustomTraceStart(const FTransform TraceStart)
+{
+	if (bUseCustomStartTransform)
+	{
+		CustomTraceTransform = TraceStart;
+	}
+}
+
+FTransform UActorInteractorComponentTrace::GetCustomTraceStart() const
+{ return CustomTraceTransform; }
+
 bool UActorInteractorComponentTrace::CanInteract() const
 {
 	return Super::CanInteract();
