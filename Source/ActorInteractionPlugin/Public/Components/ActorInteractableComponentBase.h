@@ -47,6 +47,12 @@ protected:
 public:
 
 	/**
+	 * Return whether this Interactable does have any Interactor.
+	 */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
+	virtual bool DoesHaveInteractor() const override;
+
+	/**
 	 * Returns whether this Interactable is being autosetup or not. 
 	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")

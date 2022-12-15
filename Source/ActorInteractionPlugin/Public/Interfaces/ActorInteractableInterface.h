@@ -201,6 +201,7 @@ protected:
 	
 public:
 
+	virtual bool DoesHaveInteractor() const = 0;
 	virtual bool DoesAutoSetup() const = 0;
 	virtual void ToggleAutoSetup(const ESetupType& NewValue) = 0;
 

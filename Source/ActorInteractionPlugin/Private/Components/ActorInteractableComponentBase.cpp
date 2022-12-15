@@ -165,6 +165,11 @@ void UActorInteractableComponentBase::OnRegister()
 	Super::OnRegister();
 }
 
+bool UActorInteractableComponentBase::DoesHaveInteractor() const
+{
+	return Interactor.GetObject() != nullptr;
+}
+
 #pragma region InteractionImplementations
 
 bool UActorInteractableComponentBase::DoesAutoSetup() const
@@ -425,7 +430,10 @@ void UActorInteractableComponentBase::SetState(const EInteractableStateV2 NewSta
 				case EInteractableStateV2::EIS_Disabled:
 					{
 						InteractableState = NewState;
-						CleanupComponent();
+						StopHighlight();
+						OnInteractableStateChanged.Broadcast(InteractableState);
+						if (GetWorld()) GetWorld()->GetTimerManager().ClearAllTimersForObject(this);
+						OnInteractorLost.Broadcast(Interactor);
 					}
 					break;
 				case EInteractableStateV2::EIS_Completed:
@@ -649,13 +657,13 @@ TScriptInterface<IActorInteractorInterface> UActorInteractableComponentBase::Get
 void UActorInteractableComponentBase::SetInteractor(const TScriptInterface<IActorInteractorInterface> NewInteractor)
 {
 	const TScriptInterface<IActorInteractorInterface> OldInteractor = Interactor;
+
+	Interactor = NewInteractor;
 	
 	if (NewInteractor.GetInterface() != nullptr)
 	{
 		NewInteractor->GetOnInteractableSelectedHandle().AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractableSelected);
 		NewInteractor->GetOnInteractableFoundHandle().Broadcast(this);
-
-		Interactor = NewInteractor;
 	}
 	else
 	{
@@ -1053,9 +1061,6 @@ void UActorInteractableComponentBase::InteractorLost(const TScriptInterface<IAct
 					SetState(DefaultInteractableState);
 				}
 				break;
-			case EInteractableStateV2::EIS_Completed:
-				SetState(DefaultInteractableState);
-				break;
 			case EInteractableStateV2::EIS_Asleep:
 			case EInteractableStateV2::EIS_Suppressed:
 				SetState(DefaultInteractableState);
@@ -1063,8 +1068,8 @@ void UActorInteractableComponentBase::InteractorLost(const TScriptInterface<IAct
 			case EInteractableStateV2::EIS_Active:
 			case EInteractableStateV2::EIS_Awake:
 				SetState(DefaultInteractableState);
-				OnInteractionCanceled.Broadcast();
 				break;
+			case EInteractableStateV2::EIS_Completed:
 			case EInteractableStateV2::EIS_Disabled:
 			case EInteractableStateV2::Default:
 			default: break;
@@ -1078,6 +1083,8 @@ void UActorInteractableComponentBase::InteractorLost(const TScriptInterface<IAct
 		
 		SetInteractor(nullptr);
 		Execute_OnInteractorLostEvent(this, LostInteractor);
+
+		OnInteractionCanceled.Broadcast();
 	}
 }
 
@@ -1165,10 +1172,16 @@ void UActorInteractableComponentBase::InteractionCooldownCompleted()
 	{
 		StartHighlight();
 
-		SetState(EInteractableStateV2::EIS_Awake);
+		SetState(DefaultInteractableState);
+		
 		if (Interactor->GetActiveInteractable() == this)
 		{
 			SetState(EInteractableStateV2::EIS_Active);
+		}
+		else
+		{
+			StopHighlight();
+			SetState(DefaultInteractableState);
 		}
 	}
 	else
