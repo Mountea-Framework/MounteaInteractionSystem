@@ -19,6 +19,8 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnWidgetUpdated);
 /**
  * Actor Interactable Base Component
  *
+ * Abstract base class which contains underlying logic for child components.
+ *
  * Implements ActorInteractableInterface.
  * Networking is not implemented.
  *
@@ -846,7 +848,8 @@ protected:
 #pragma region InteractionHelpers
 
 protected:
-
+	
+	virtual void CleanupComponent();
 	virtual void FindAndAddCollisionShapes() override;
 	virtual void FindAndAddHighlightableMeshes() override;
 
