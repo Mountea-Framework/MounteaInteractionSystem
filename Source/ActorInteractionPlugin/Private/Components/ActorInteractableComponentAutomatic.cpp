@@ -56,6 +56,8 @@ void UActorInteractableComponentAutomatic::InteractionStarted(const float& TimeS
 			TempInteractionPeriod,
 			false
 		);
+
+		UpdateInteractionWidget();
 	}
 }
 

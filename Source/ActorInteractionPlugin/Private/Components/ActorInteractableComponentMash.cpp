@@ -60,8 +60,14 @@ void UActorInteractableComponentMash::OnInteractionCompletedCallback()
 void UActorInteractableComponentMash::CleanupComponent()
 {
 	ActualMashAmount = 0;
-	if (GetWorld()) GetWorld()->GetTimerManager().ClearAllTimersForObject(this);
-	//Super::CleanupComponent();
+	
+	OnInteractableStateChanged.Broadcast(InteractableState);
+	
+	if (GetWorld())
+	{
+		GetWorld()->GetTimerManager().ClearTimer(TimerHandle_Mashed);
+		GetWorld()->GetTimerManager().ClearTimer(Timer_Interaction);
+	}
 }
 
 void UActorInteractableComponentMash::InteractionStarted(const float& TimeStarted, const FKey& PressedKey)
