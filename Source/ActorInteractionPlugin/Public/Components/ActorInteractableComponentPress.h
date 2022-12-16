@@ -7,8 +7,16 @@
 #include "ActorInteractableComponentPress.generated.h"
 
 /**
-* 
-*/
+ * Actor Interactable Press Component
+ *
+ * Child class of Actor Interactable Base Component.
+ * This component requires to press interaction key. Interaction period is ignored.
+ * 
+ * Implements ActorInteractableInterface.
+ * Networking is not implemented.
+ *
+ * @see https://github.com/Mountea-Framework/ActorInteractionPlugin/wiki/Actor-Interactable-Component-Press
+ */
 UCLASS(ClassGroup=(Interaction), Blueprintable, meta=(BlueprintSpawnableComponent, DisplayName = "Interactable Component Press"))
 class ACTORINTERACTIONPLUGIN_API UActorInteractableComponentPress : public UActorInteractableComponentBase
 {
@@ -23,4 +31,10 @@ protected:
 	virtual void BeginPlay() override;
 
 	virtual void InteractionStarted(const float& TimeStarted, const FKey& PressedKey) override;
+
+#if WITH_EDITOR
+	virtual void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;
+	virtual EDataValidationResult IsDataValid(TArray<FText>& ValidationErrors) override;
+#endif
+	
 };
