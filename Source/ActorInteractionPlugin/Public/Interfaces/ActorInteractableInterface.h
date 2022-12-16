@@ -44,6 +44,9 @@ enum class ETimingComparison : uint8 // TODO: rename, because name is used
 
 class IActorInteractableInterface;
 class IActorInteractorInterface;
+
+struct FDataTableRowHandle;
+
 enum class EInteractableStateV2 : uint8;
 enum class EInteractableLifecycle : uint8;
 
