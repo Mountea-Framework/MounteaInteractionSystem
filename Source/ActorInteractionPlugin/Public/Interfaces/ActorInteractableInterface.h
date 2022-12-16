@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
+#include "Engine/HitResult.h"
 #include "ActorInteractableInterface.generated.h"
 
 // This class does not need to be modified.
@@ -40,7 +41,7 @@ enum class ETimingComparison : uint8 // TODO: rename, because name is used
 
 	Default			 UMETA(Hidden)
    };
-#pragma endregion
+#pragma endregion 
 
 #pragma region HighlightType
 
@@ -57,6 +58,9 @@ enum class EHighlightType : uint8
 
 class IActorInteractableInterface;
 class IActorInteractorInterface;
+
+struct FDataTableRowHandle;
+
 enum class EInteractableStateV2 : uint8;
 enum class EInteractableLifecycle : uint8;
 
@@ -216,6 +220,7 @@ protected:
 	
 public:
 
+	virtual bool DoesHaveInteractor() const = 0;
 	virtual bool DoesAutoSetup() const = 0;
 	virtual void ToggleAutoSetup(const ESetupType& NewValue) = 0;
 
@@ -340,7 +345,7 @@ public:
 
 	virtual void BindHighlightableMesh(UMeshComponent* MeshComponent) const = 0;
 	virtual void UnbindHighlightableMesh(UMeshComponent* MeshComponent) const = 0;
-	
+		
 	virtual FDataTableRowHandle GetInteractableData() = 0;
 	virtual void SetInteractableData(FDataTableRowHandle NewData) = 0;
 
