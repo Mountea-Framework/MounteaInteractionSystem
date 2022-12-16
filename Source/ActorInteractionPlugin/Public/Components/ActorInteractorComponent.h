@@ -52,6 +52,9 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInteractionKeyReleased, float, Ti
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInteractorTypeChanged, float, TimeChanged);
 
 /**
+ * DEPRECATED.
+ * Use ActorInteractorComponentBase classes instead.
+ * 
  * Implement an Actor component for interaction.
  *
  * An Interactor Component is a non-transient component that enables its owning Actor to interact with Interactable Actors.
