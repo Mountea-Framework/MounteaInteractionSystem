@@ -486,7 +486,7 @@ void UActorInteractorComponentBase::SetDefaultState(const EInteractorStateV2 New
 }
 
 bool UActorInteractorComponentBase::DoesAutoActivate() const
-{	return DefaultInteractorState == EInteractorStateV2::EIS_Active ? true : false;}
+{	return DefaultInteractorState == EInteractorStateV2::EIS_Awake ? true : false;}
 
 void UActorInteractorComponentBase::SetActiveInteractable(const TScriptInterface<IActorInteractableInterface> NewInteractable)
 {

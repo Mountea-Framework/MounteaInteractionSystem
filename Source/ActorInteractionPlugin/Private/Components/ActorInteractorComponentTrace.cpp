@@ -29,17 +29,20 @@ void UActorInteractorComponentTrace::BeginPlay()
 	OnTraceTypeChanged.AddUniqueDynamic(this, &UActorInteractorComponentTrace::OnTraceTypeChangedEvent);
 
 	Super::BeginPlay();
-
+	
+	/*
 	if (GetOwner())
 	{
 		TArray<UShapeComponent*> OwnerCollisionComponents;
 		GetOwner()->GetComponents(OwnerCollisionComponents);
-
+		
 		for (const auto Itr : OwnerCollisionComponents)
 		{
 			Itr->SetCollisionResponseToChannel(CollisionChannel, ECollisionResponse::ECR_Ignore);
 		}
+		
 	}
+	*/
 }
 
 void UActorInteractorComponentTrace::DisableTracing()
@@ -241,6 +244,17 @@ bool UActorInteractorComponentTrace::CanTrace() const
 {
 	return CanInteract();
 }
+
+void UActorInteractorComponentTrace::SetCustomTraceStart(const FTransform TraceStart)
+{
+	if (bUseCustomStartTransform)
+	{
+		CustomTraceTransform = TraceStart;
+	}
+}
+
+FTransform UActorInteractorComponentTrace::GetCustomTraceStart() const
+{ return CustomTraceTransform; }
 
 bool UActorInteractorComponentTrace::CanInteract() const
 {
