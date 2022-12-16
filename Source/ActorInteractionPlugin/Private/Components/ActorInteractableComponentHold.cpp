@@ -11,6 +11,8 @@
 
 UActorInteractableComponentHold::UActorInteractableComponentHold()
 {
+	bInteractionHighlight = true;
+	DefaultInteractableState = EInteractableStateV2::EIS_Awake;
 	InteractionPeriod = 3.f;
 	InteractableName = LOCTEXT("InteractableComponentHold", "Hold");
 }
@@ -22,6 +24,8 @@ void UActorInteractableComponentHold::BeginPlay()
 
 void UActorInteractableComponentHold::InteractionStarted(const float& TimeStarted, const FKey& PressedKey)
 {
+	Super::InteractionStarted(TimeStarted, PressedKey);
+	
 	if (CanInteract())
 	{
 		// Force Interaction Period to be at least 0.1s
@@ -39,8 +43,6 @@ void UActorInteractableComponentHold::InteractionStarted(const float& TimeStarte
 			TempInteractionPeriod,
 			false
 		);
-		
-		Super::InteractionStarted(TimeStarted, PressedKey);
 	}
 }
 
@@ -73,6 +75,7 @@ void UActorInteractableComponentHold::OnInteractionCompletedCallback()
 {
 	if (!GetWorld())
 	{
+		OnInteractionCanceled.Broadcast();
 		return;
 	}
 

@@ -7,6 +7,8 @@
 
 UActorInteractableComponentHover::UActorInteractableComponentHover()
 {
+	bInteractionHighlight = true;
+	DefaultInteractableState = EInteractableStateV2::EIS_Awake;
 	InteractionPeriod = 3.f;
 	InteractableName = LOCTEXT("ActorInteractableComponentHover", "Hover");
 
