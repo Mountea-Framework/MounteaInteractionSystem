@@ -14,6 +14,7 @@
 #include "Components/ActorInteractableComponent.h"
 #include "Components/BillboardComponent.h"
 #include "Components/WidgetComponent.h"
+#include "Helpers/ActorInteractionFunctionLibrary.h"
 #include "Interfaces/ActorInteractorInterface.h"
 
 #define LOCTEXT_NAMESPACE "InteractableComponentBase"
@@ -62,6 +63,26 @@ UActorInteractableComponentBase::UActorInteractableComponentBase()
 	
 	UActorComponent::SetActive(true);
 	SetHiddenInGame(true);
+
+	// Setup default Data Table
+	if (InteractableData.IsNull())
+	{
+		const auto DefaultTable = UActorInteractionFunctionLibrary::GetInteractableDefaultDataTable();
+		if (DefaultTable.IsValid())
+		{
+			InteractableData.DataTable = DefaultTable.Get();
+		}
+	}
+
+	// Setup default Widget Class
+	if (GetWidgetClass() == nullptr)
+	{
+		const auto DefaultWidgetClass = UActorInteractionFunctionLibrary::GetInteractableDefaultWidgetClass();
+		if (DefaultWidgetClass.IsValid())
+		{
+			SetWidgetClass(DefaultWidgetClass.Get());
+		}
+	}
 
 #if WITH_EDITORONLY_DATA
 	bVisualizeComponent = true;
@@ -1627,8 +1648,6 @@ void UActorInteractableComponentBase::UpdateInteractionWidget()
 {
 	if (UUserWidget* UserWidget = GetWidget() )
 	{
-		//UserWidget->SetVisibility(bHiddenInGame ? ESlateVisibility::Hidden : ESlateVisibility::Visible);
-	
 		if (UserWidget->Implements<UActorInteractionWidget>())
 		{
 			TScriptInterface<IActorInteractionWidget> InteractionWidget = UserWidget;
