@@ -35,4 +35,13 @@ protected:
 	virtual void InteractableSelected(const TScriptInterface<IActorInteractableInterface>& Interactable) override;
 	
 	virtual void InteractionStarted(const float& TimeStarted, const FKey& PressedKey) override;
+	virtual void InteractionStopped(const float& TimeStarted, const FKey& PressedKey) override;
+
+	virtual FInteractionStarted& GetOnInteractionStartedHandle() override;
+	virtual FInteractionStopped& GetOnInteractionStoppedHandle() override;
+
+private:
+
+	FInteractionStarted EmptyHandle_Started;
+	FInteractionStopped EmptyHandle_Stopped;
 };
