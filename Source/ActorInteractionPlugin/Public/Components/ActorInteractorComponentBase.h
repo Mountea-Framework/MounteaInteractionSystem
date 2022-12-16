@@ -377,7 +377,7 @@ protected:
 	EInteractorStateV2 DefaultInteractorState;
 
 	/**
-	 * A list of Actors that won't be taken in count when tracing.
+	 * A list of Actors that won't be taken in count when interacting.
 	 * If left empty, only Owner Actor is ignored.
 	 * If using multiple Actors (a gun, for instance), all those child/attached Actors should be ignored.
 	 */

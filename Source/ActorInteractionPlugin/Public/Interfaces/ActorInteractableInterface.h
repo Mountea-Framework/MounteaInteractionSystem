@@ -20,9 +20,10 @@ class UActorInteractableInterface : public UInterface
 UENUM(BlueprintType)
 enum class ESetupType : uint8
 {
-	EST_Full		UMETA(DisplayName="Full Auto Setup", 	Tooltip="Will add all parent components to Highlightable and Collision Components."),
-	EST_Quick		UMETA(DisplayName="Quick Auto Setup",	Tooltip="Will add only first parent component to Highlightable and Collision Components."),
-	EST_None		UMETA(DisplayName="None",				Tooltip="No auto setup will be performed."),
+	EST_FullAll		UMETA(DisplayName="Full Auto Setup",			Tooltip="Will add all components from Owning Actor to Highlightable and Collision Components."),
+	EST_AllParent	UMETA(DisplayName="All Parents Auto Setup", 	Tooltip="Will add all parent components to Highlightable and Collision Components."),
+	EST_Quick		UMETA(DisplayName="Quick Auto Setup",			Tooltip="Will add only first parent component to Highlightable and Collision Components."),
+	EST_None		UMETA(DisplayName="None",						Tooltip="No auto setup will be performed."),
 
 	EST_Default		UMETA(Hidden)
 };
@@ -200,6 +201,7 @@ protected:
 	
 public:
 
+	virtual bool DoesHaveInteractor() const = 0;
 	virtual bool DoesAutoSetup() const = 0;
 	virtual void ToggleAutoSetup(const ESetupType& NewValue) = 0;
 

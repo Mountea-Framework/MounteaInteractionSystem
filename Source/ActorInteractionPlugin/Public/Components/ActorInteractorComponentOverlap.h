@@ -55,10 +55,10 @@ protected:
 	
 protected:
 
-	UPROPERTY(EditAnywhere, Category="Interaction|Overlap")
+	UPROPERTY(EditAnywhere, Category="Interaction|Optional")
 	TArray<FName> OverrideCollisionComponents;
 	
-	UPROPERTY(SaveGame, VisibleAnywhere, Category="Interaction|Overlap", meta=(DisplayThumbnail = false, ShowOnlyInnerProperties))
+	UPROPERTY(SaveGame, VisibleAnywhere, Category="Interaction|Read Only", meta=(DisplayThumbnail = false, ShowOnlyInnerProperties))
 	TArray<UPrimitiveComponent*> CollisionShapes;
 
 private:
@@ -68,7 +68,7 @@ private:
 	 * Filled when Collision Shapes are registered.
 	 * Once Collision Shape is unregistered, it reads its cached settings and returns to pre-interaction Collision Settings.
 	 */
-	UPROPERTY(SaveGame, VisibleAnywhere, Category="Interaction|Debug", meta=(DisplayThumbnail = false, ShowOnlyInnerProperties))
+	UPROPERTY(SaveGame, VisibleAnywhere, Category="Interaction|Read Only", meta=(DisplayThumbnail = false, ShowOnlyInnerProperties))
 	mutable TMap<UPrimitiveComponent*, FCollisionShapeCache> CachedCollisionShapesSettings;
 	
 };

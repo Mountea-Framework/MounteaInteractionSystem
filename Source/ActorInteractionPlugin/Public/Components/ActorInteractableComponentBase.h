@@ -19,6 +19,8 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnWidgetUpdated);
 /**
  * Actor Interactable Base Component
  *
+ * Abstract base class which contains underlying logic for child components.
+ *
  * Implements ActorInteractableInterface.
  * Networking is not implemented.
  *
@@ -43,6 +45,12 @@ protected:
 #pragma region InteractableFunctions
 	
 public:
+
+	/**
+	 * Return whether this Interactable does have any Interactor.
+	 */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
+	virtual bool DoesHaveInteractor() const override;
 
 	/**
 	 * Returns whether this Interactable is being autosetup or not. 
@@ -846,7 +854,8 @@ protected:
 #pragma region InteractionHelpers
 
 protected:
-
+	
+	virtual void CleanupComponent();
 	virtual void FindAndAddCollisionShapes() override;
 	virtual void FindAndAddHighlightableMeshes() override;
 
@@ -1215,14 +1224,6 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Interaction|Debug", meta=(ShowOnlyInnerProperties))
 	FDebugSettings DebugSettings;
 
-	/**
-	 * Cached Collision Shape Settings.
-	 * Filled when Collision Shapes are registered.
-	 * Once Collision Shape is unregistered, it reads its cached settings and returns to pre-interaction Collision Settings.
-	 */
-	UPROPERTY(SaveGame, VisibleAnywhere, Category="Interaction|Debug", meta=(DisplayThumbnail = false, ShowOnlyInnerProperties))
-	mutable TMap<UPrimitiveComponent*, FCollisionShapeCache> CachedCollisionShapesSettings;
-
 #if WITH_EDITORONLY_DATA
 	UBillboardComponent* InteractableSpriteComponent = nullptr;
 #endif
@@ -1265,14 +1266,7 @@ protected:
 	 */
 	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Required", meta=(NoResetToDefault))
 	TEnumAsByte<ECollisionChannel> CollisionChannel;
-
-	/**
-	* List of Interaction Keys for each platform.
-	* There is no validation for Keys validation! Nothing stops you from setting Keyboard keys for Consoles. Please, be careful with this variable!
-	*/
-	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Required", meta=(NoResetToDefault))
-	TMap<FString, FInteractionKeySetup> InteractionKeysPerPlatform;
-	
+		
 	/**
 	 * Weight of this Interactable.
 	 * Useful with multiple overlapping Interactables withing the same Actor. Interactor will always prefer the one with highest Weight value.
@@ -1321,7 +1315,6 @@ protected:
 #pragma region Optional
 
 protected:
-
 	
 	/**
 	 * List of Interactable Classes which are ignored
@@ -1368,7 +1361,14 @@ protected:
 	 * Default: 133
 	 */
 	UPROPERTY(SaveGame, EditAnywhere, BlueprintReadOnly,  Category="Interaction|Optional", meta=(EditCondition="bInteractionHighlight == true", UIMin=0, ClampMin=0, UIMax=255, ClampMax=255))
-	int32 StencilID ;
+	int32 StencilID;
+
+	/**
+	* List of Interaction Keys for each platform.
+	* There is no validation for Keys validation! Nothing stops you from setting Keyboard keys for Consoles. Please, be careful with this variable!
+	*/
+	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Optional", meta=(NoResetToDefault))
+	TMap<FString, FInteractionKeySetup> InteractionKeysPerPlatform;
 	
 	/**
 	 * Interactable Data.
@@ -1417,11 +1417,28 @@ protected:
 	UPROPERTY(SaveGame, VisibleAnywhere, Category="Interaction|Read Only")
 	EInteractableStateV2 InteractableState;
 
+	/**
+	 * How many Lifecycles remain until this Interactable is Finished.
+	 */
 	UPROPERTY(SaveGame, VisibleAnywhere, Category="Interaction|Read Only")
 	int32 RemainingLifecycleCount;
 
+	/**
+	 * List of Interactables which are dependant on this Interactable.
+	 * To manage dependencies, use following functions:
+	 * - AddInteractionDependency
+	 * - RemoveInteractionDependency
+	 */
 	UPROPERTY(SaveGame, VisibleAnywhere, Category="Interaction|Read Only")
 	TArray<TScriptInterface<IActorInteractableInterface>> InteractionDependencies;
+
+	/**
+	 * Cached Collision Shape Settings.
+	 * Filled when Collision Shapes are registered.
+	 * Once Collision Shape is unregistered, it reads its cached settings and returns to pre-interaction Collision Settings.
+	 */
+	UPROPERTY(SaveGame, VisibleAnywhere, Category="Interaction|Read Only", meta=(DisplayThumbnail = false, ShowOnlyInnerProperties))
+	mutable TMap<UPrimitiveComponent*, FCollisionShapeCache> CachedCollisionShapesSettings;
 	
 	/**
 	 * List of Highlightable Components.

@@ -111,7 +111,7 @@ enum class EInteractorPrecision : uint8
  * 
  * Machine State of the Interactable Actor Component Base.
  */
-UENUM(BlueprintType, meta=(ScriptName="Interactable State"))
+UENUM(BlueprintType, meta=(ScriptName="InteractableState"))
 enum class EInteractableStateV2 : uint8
 {
  EIS_Active     UMETA(DisplayName = "Active",      Tooltip = "Interactable is awaken and being interacted with."),
@@ -125,7 +125,7 @@ enum class EInteractableStateV2 : uint8
  Default      UMETA(Hidden)
 };
 
-UENUM(BlueprintType, meta=(ScriptName="Interactor State"))
+UENUM(BlueprintType, meta=(ScriptName="InteractorState"))
 enum class EInteractorStateV2 : uint8
 {
  EIS_Awake      UMETA(DisplayName = "Awake",       Tooltip = "Interactor is awaken. Interactor is looking for Interactables."),
@@ -156,7 +156,7 @@ struct FInteractionKeySetup
          Keys.Add(NewKey);
      }
 
-     UPROPERTY(Category="Interaction|Interaction Key Setup", BlueprintReadWrite, EditAnywhere, meta=(NoElementDuplicate))
+     UPROPERTY(Category="Interaction Key Setup", BlueprintReadWrite, EditAnywhere, meta=(NoElementDuplicate))
      TArray<FKey> Keys;
 };
 
@@ -188,11 +188,11 @@ struct FCollisionShapeCache
   CollisionResponse(collisionResponse)
  {};
 	
- UPROPERTY(Category="Interaction|Collision Shape Cache", VisibleAnywhere)
+ UPROPERTY(Category="Collision Cache", VisibleAnywhere)
  uint8 bGenerateOverlapEvents : 1;
- UPROPERTY(Category="Interaction|Collision Shape Cache", VisibleAnywhere)
+ UPROPERTY(Category="Collision Cache", VisibleAnywhere)
  TEnumAsByte<ECollisionEnabled::Type> CollisionEnabled;
- UPROPERTY(Category="Interaction|Collision Shape Cache", VisibleAnywhere)
+ UPROPERTY(Category="Collision Cache", VisibleAnywhere)
  TEnumAsByte<ECollisionResponse> CollisionResponse;
 	
 };
@@ -239,13 +239,13 @@ public:
     * Enables Debug in Gameplay.
     * Default: Off
     */
-    UPROPERTY(Category="Interaction|Debug", EditAnywhere)
+    UPROPERTY(Category="Interaction Debug", BlueprintReadWrite, EditAnywhere)
     uint8 DebugMode : 1;
    /**
     * Enables Warnings in Editor.
     * Default: On
     */
-    UPROPERTY(Category="Interaction|Debug", EditAnywhere)
+    UPROPERTY(Category="Interaction Debug", BlueprintReadWrite, EditAnywhere)
     uint8 EditorDebugMode : 1;
 };
 
