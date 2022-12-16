@@ -87,6 +87,19 @@ protected:
 
 	virtual bool CanTrace() const;
 
+	/**
+	 * Sets Trace Start to specified location.
+	 *
+	 * @param TraceStart	Value to be used as Custom Trace Start.
+	 */
+	UFUNCTION(BlueprintCallable, Category="Interaction")
+	virtual void SetCustomTraceStart(FTransform TraceStart);
+	/**
+	 * Returns current Custom Trace Start value.
+	 */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
+	virtual FTransform GetCustomTraceStart() const;
+	
 protected:
 	
 	virtual bool CanInteract() const override;

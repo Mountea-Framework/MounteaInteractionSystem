@@ -29,6 +29,9 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInteractableTraced, UActorInterac
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInteractorOverlapped, UPrimitiveComponent*, OverlappedInteractableCollisionComponent);
 
 /**
+ * DEPRECATED
+ * Use UActorInteractableComponentBase classes instead.
+ * 
  * Implement an Actor component for being interacted with.
  * 
  * An Interactable Component is a non-transient component that enables other Actors, who posses an Interactor Component, to interact.
