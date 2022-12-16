@@ -88,10 +88,10 @@ void UActorInteractorComponentOverlap::BindCollision(UPrimitiveComponent* Compon
 	switch (Component->GetCollisionEnabled())
 	{
 		case ECollisionEnabled::NoCollision:
+			Component->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+			break;
 		case ECollisionEnabled::QueryOnly:
 		case ECollisionEnabled::PhysicsOnly:
-			Component->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-			break;
 		case ECollisionEnabled::QueryAndPhysics:
 		default: break;
 	}
