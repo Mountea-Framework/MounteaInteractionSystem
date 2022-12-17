@@ -144,29 +144,33 @@ void UActorInteractorComponentTrace::ProcessTrace()
 					Interactable.SetObject(Itr);
 					Interactable.SetInterface(Cast<IActorInteractableInterface>(Itr));
 
-					if (Interactable->GetCollisionChannel() == GetResponseChannel())
+					const bool bCanTraceWith =
+					(
+						Interactable->GetCollisionComponents().Contains(HitResult.GetComponent()) &&
+						Interactable->GetCollisionChannel() == GetResponseChannel() &&
+						Interactable->CanBeTriggered()
+					);
+					
+					if (bCanTraceWith)
 					{
-						if (Interactable->CanBeTriggered())
+						bAnyInteractable = true;
+
+						if (Interactable == GetActiveInteractable())
 						{
-							bAnyInteractable = true;
+							bFoundActiveAgain = true;
+						}
 
-							if (Interactable == GetActiveInteractable())
-							{
-								bFoundActiveAgain = true;
-							}
-
-							if (BestInteractable.GetObject() == nullptr)
+						if (BestInteractable.GetObject() == nullptr)
+						{
+							BestInteractable = Interactable;
+							BestHitResult = HitResult;
+						}
+						else
+						{
+							if (Interactable->GetInteractableWeight() > BestInteractable->GetInteractableWeight())
 							{
 								BestInteractable = Interactable;
 								BestHitResult = HitResult;
-							}
-							else
-							{
-								if (Interactable->GetInteractableWeight() > BestInteractable->GetInteractableWeight())
-								{
-									BestInteractable = Interactable;
-									BestHitResult = HitResult;
-								}
 							}
 						}
 					}
