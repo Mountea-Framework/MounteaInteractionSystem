@@ -89,6 +89,8 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCollisionComponentAdded, const UPri
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FHighlightableComponentRemoved, const UMeshComponent*, RemovedHighlightableComp);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCollisionComponentRemoved, const UPrimitiveComponent*, RemovedCollisionComp);
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractableDependencyStarted, const TScriptInterface<IActorInteractableInterface>&, NewMaster);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractableDependencyStopped, const TScriptInterface<IActorInteractableInterface>&, FormerMaster);
 
 /**
  * 
@@ -332,6 +334,9 @@ public:
 	
 	virtual FDataTableRowHandle GetInteractableData() = 0;
 	virtual void SetInteractableData(FDataTableRowHandle NewData) = 0;
+
+	virtual void InteractableDependencyStartedCallback(const TScriptInterface<IActorInteractableInterface>& NewMaster) = 0;
+	virtual void InteractableDependencyStoppedCallback(const TScriptInterface<IActorInteractableInterface>& FormerMaster) = 0;
 	
 	virtual FOnInteractableSelected& GetOnInteractableSelectedHandle() = 0;
 	virtual FInteractorFound& GetOnInteractorFoundHandle() = 0;
@@ -345,6 +350,9 @@ public:
 	virtual FInteractionStopped& GetOnInteractionStoppedHandle() = 0;
 	virtual FInteractionCanceled& GetOnInteractionCanceledHandle() = 0;
 	virtual FInteractableDependencyChanged& GetInteractableDependencyChangedHandle() = 0;
+
+	virtual FInteractableDependencyStarted& GetInteractableDependencyStarted() = 0;
+	virtual FInteractableDependencyStopped& GetInteractableDependencyStopped() = 0;
 
 	virtual FTimerHandle& GetCooldownHandle() = 0;
 };
