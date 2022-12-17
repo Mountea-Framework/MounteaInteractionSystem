@@ -48,9 +48,12 @@ public class ActorInteractionPlugin : ModuleRules
 				"SlateCore",
 				"Projects",
 				"InputCore",
-				"DeveloperSettings",
-				
+
 				"InteractionEditorNotifications",
+				
+#if UE_4_26_OR_LATER
+				"DeveloperSettings",
+#endif
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);
