@@ -3,6 +3,8 @@
 
 #include "Components/ActorInteractableComponentAutomatic.h"
 
+#include "Helpers/ActorInteractionPluginLog.h"
+
 #define LOCTEXT_NAMESPACE "ActorInteractableComponentAutomatic"
 
 UActorInteractableComponentAutomatic::UActorInteractableComponentAutomatic()
@@ -19,6 +21,8 @@ UActorInteractableComponentAutomatic::UActorInteractableComponentAutomatic()
 void UActorInteractableComponentAutomatic::BeginPlay()
 {
 	Super::BeginPlay();
+
+	OnInteractionStopped.RemoveAll(this);
 }
 
 void UActorInteractableComponentAutomatic::InteractableSelected(const TScriptInterface<IActorInteractableInterface>& Interactable)
@@ -37,15 +41,13 @@ void UActorInteractableComponentAutomatic::InteractableSelected(const TScriptInt
 
 void UActorInteractableComponentAutomatic::InteractionStarted(const float& TimeStarted, const FKey& PressedKey)
 {
-	Super::InteractionStarted(TimeStarted, PressedKey);
-	
-	if (CanInteract())
+	if (!GetWorld()) return;
+
+	if (CanInteract() && !GetWorld()->GetTimerManager().IsTimerActive(Timer_Interaction))
 	{
 		// Force Interaction Period to be at least 0.01s
 		const float TempInteractionPeriod = FMath::Max(0.01f, InteractionPeriod);
-
-		if (!GetWorld()) return;
-	
+		
 		FTimerDelegate Delegate;
 		Delegate.BindUObject(this, &UActorInteractableComponentAutomatic::OnInteractionCompletedCallback);
 
@@ -57,8 +59,35 @@ void UActorInteractableComponentAutomatic::InteractionStarted(const float& TimeS
 			false
 		);
 
+		Super::InteractionStarted(TimeStarted, PressedKey);
+		
 		UpdateInteractionWidget();
 	}
+}
+
+void UActorInteractableComponentAutomatic::InteractionStopped(const float& TimeStarted, const FKey& PressedKey)
+{
+#if WITH_EDITOR
+	AIntP_LOG(Warning, TEXT("[InteractionStopped] This function does nothing in UActorInteractableComponentAutomatic"))
+#endif
+}
+
+FInteractionStarted& UActorInteractableComponentAutomatic::GetOnInteractionStartedHandle()
+{
+#if WITH_EDITOR
+	AIntP_LOG(Warning, TEXT("[GetOnInteractionStartedHandle] This handle is invalid in UActorInteractableComponentAutomatic"))
+#endif
+	
+	return EmptyHandle_Started;
+}
+
+FInteractionStopped& UActorInteractableComponentAutomatic::GetOnInteractionStoppedHandle()
+{
+#if WITH_EDITOR
+	AIntP_LOG(Warning, TEXT("[GetOnInteractionStoppedHandle] This handle is invalid in UActorInteractableComponentAutomatic"))
+#endif
+	
+	return EmptyHandle_Stopped;
 }
 
 void UActorInteractableComponentAutomatic::OnInteractionCompletedCallback()

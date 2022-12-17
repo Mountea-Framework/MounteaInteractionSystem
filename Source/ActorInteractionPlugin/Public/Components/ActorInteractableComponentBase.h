@@ -568,6 +568,7 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void SetHighlightMaterial(UMaterialInterface* NewHighlightMaterial) override;
+
 	
 	/**
 	 * Returns value of Comparison Method.
@@ -959,6 +960,10 @@ protected:
 
 	virtual void UpdateInteractionWidget();
 
+
+	UFUNCTION() virtual void InteractableDependencyStartedCallback(const TScriptInterface<IActorInteractableInterface>& NewMaster) override;
+	UFUNCTION() virtual void InteractableDependencyStoppedCallback(const TScriptInterface<IActorInteractableInterface>& FormerMaster) override;
+
 #pragma endregion
 
 #pragma endregion
@@ -1209,6 +1214,10 @@ protected:
 	UPROPERTY(BlueprintAssignable, Category="Interaction")
 	FHighlightMaterialChanged OnHighlightMaterialChanged;
 
+	FInteractableDependencyStarted InteractableDependencyStarted;
+
+	FInteractableDependencyStopped InteractableDependencyStopped;
+
 #pragma endregion 
 
 #pragma region Handles
@@ -1237,17 +1246,20 @@ protected:
 	{ return OnInteractionCanceled; };
 	virtual FInteractableDependencyChanged& GetInteractableDependencyChangedHandle() override
 	{ return OnInteractableDependencyChanged; };
+	virtual FHighlightTypeChanged& GetHighlightTypeChanged() override
+	{ return OnHighlightTypeChanged; };
+	virtual FHighlightMaterialChanged& GetHighlightMaterialChanged() override
+	{ return OnHighlightMaterialChanged; };
+	virtual FInteractableDependencyStarted& GetInteractableDependencyStarted() override
+	{ return InteractableDependencyStarted; };
+	virtual FInteractableDependencyStopped& GetInteractableDependencyStopped() override
+	{ return InteractableDependencyStopped; };
 
 	virtual FTimerHandle& GetCooldownHandle() override
 	{ return Timer_Cooldown; };
 	
 	virtual FOnWidgetUpdated& WidgetUpdatedHandle()
 	{ return OnWidgetUpdated; };
-
-	virtual FHighlightTypeChanged& GetHighlightTypeChanged() override
-	{ return OnHighlightTypeChanged; };
-	virtual FHighlightMaterialChanged& GetHighlightMaterialChanged() override
-	{ return OnHighlightMaterialChanged; };
 
 #pragma endregion 
 
@@ -1518,6 +1530,13 @@ protected:
 	 */
 	UPROPERTY(SaveGame, VisibleAnywhere, Category="Interaction|Read Only")
 	TArray<UPrimitiveComponent*> CollisionComponents;
+
+	/**
+	 * Cached value which is by default set to Interaction Weight.
+	 * Used when removing Interactable from Dependencies.
+	 */
+	UPROPERTY(VisibleAnywhere, Category="Interaction|Read Only")
+	int32 CachedInteractionWeight;
 	
 	UPROPERTY()
 	FTimerHandle Timer_Interaction;

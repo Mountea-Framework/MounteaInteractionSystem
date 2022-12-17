@@ -25,8 +25,7 @@ public class ActorInteractionPlugin : ModuleRules
 			);
 			
 		
-		PublicDependencyModuleNames.AddRange
-		(
+		PublicDependencyModuleNames.AddRange(
 			new string[]
 			{
 				"Core",
@@ -35,11 +34,10 @@ public class ActorInteractionPlugin : ModuleRules
 				"Engine"
 				// ... add other public dependencies that you statically link with here ...
 			}
-		);
+			);
 			
 		
-		PrivateDependencyModuleNames.AddRange
-		(
+		PrivateDependencyModuleNames.AddRange(
 			new string[]
 			{
 				"Core",
@@ -50,15 +48,15 @@ public class ActorInteractionPlugin : ModuleRules
 				"SlateCore",
 				"Projects",
 				"InputCore",
-				
-				//"EditorStyle",
-				"DeveloperSettings",
-				
+
 				"InteractionEditorNotifications",
 				
+#if UE_4_26_OR_LATER
+				"DeveloperSettings",
+#endif
 				// ... add private dependencies that you statically link with here ...	
 			}
-		);
+			);
 		
 		
 		DynamicallyLoadedModuleNames.AddRange(

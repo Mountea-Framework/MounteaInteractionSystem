@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Components/PrimitiveComponent.h"
 #include "ActorInteractorComponentBase.h"
 #include "ActorInteractorComponentOverlap.generated.h"
 

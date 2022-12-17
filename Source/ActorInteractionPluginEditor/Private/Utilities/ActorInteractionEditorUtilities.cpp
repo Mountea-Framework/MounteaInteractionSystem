@@ -19,7 +19,6 @@ bool FActorInteractionEditorUtilities::PickChildrenOfClass(const FText& TitleTex
 	FClassViewerInitializationOptions Options;
 	Options.Mode = EClassViewerMode::ClassPicker;
 	Options.DisplayMode = EClassViewerDisplayMode::ListView;
-	
 	Options.ClassFilters.Add(Filter.ToSharedRef());
 	
 	Options.bShowUnloadedBlueprints = true;

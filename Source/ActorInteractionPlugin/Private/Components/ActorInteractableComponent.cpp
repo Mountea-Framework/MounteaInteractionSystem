@@ -9,7 +9,6 @@
 
 #include "Helpers/ActorInteractionPluginLog.h"
 #include "Kismet/GameplayStatics.h"
-#include "UObject/ConstructorHelpers.h"
 
 #include "Widgets/ActorInteractableWidget.h"
 
