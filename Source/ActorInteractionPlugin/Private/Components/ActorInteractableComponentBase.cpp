@@ -70,9 +70,9 @@ UActorInteractableComponentBase::UActorInteractableComponentBase()
 	if (InteractableData.IsNull())
 	{
 		const auto DefaultTable = UActorInteractionFunctionLibrary::GetInteractableDefaultDataTable();
-		if (DefaultTable.IsValid())
+		if (DefaultTable != nullptr)
 		{
-			InteractableData.DataTable = DefaultTable.Get();
+			InteractableData.DataTable = DefaultTable;
 		}
 	}
 
@@ -80,7 +80,7 @@ UActorInteractableComponentBase::UActorInteractableComponentBase()
 	if (GetWidgetClass() == nullptr)
 	{
 		const auto DefaultWidgetClass = UActorInteractionFunctionLibrary::GetInteractableDefaultWidgetClass();
-		if (DefaultWidgetClass.IsValid())
+		if (DefaultWidgetClass != nullptr)
 		{
 			SetWidgetClass(DefaultWidgetClass.Get());
 		}
