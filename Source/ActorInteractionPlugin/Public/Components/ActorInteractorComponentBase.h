@@ -373,7 +373,7 @@ protected:
 	 * New and easier way to set Default State.
 	 * This state will be propagated to Interactor State.
 	 */
-	UPROPERTY(EditAnywhere, Category="Interaction|Optional", meta=(NoResetToDefault))
+	UPROPERTY(EditAnywhere, Category="Interaction|Required", meta=(NoResetToDefault))
 	EInteractorStateV2 DefaultInteractorState;
 
 	/**
