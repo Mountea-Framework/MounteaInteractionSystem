@@ -7,6 +7,7 @@
 #include "ActorInteractionPluginSettings.generated.h"
 
 class UDataTable;
+class UUserWidget;
 
 /**
  * Actor Interaction Plugin global settings.
@@ -28,12 +29,13 @@ class ACTORINTERACTIONPLUGIN_API UActorInteractionPluginSettings : public UDevel
 	float WidgetUpdateFrequency = 0.05f;
 
 	/* Defines default Interactable Widget class.*/
-	UPROPERTY(config, EditAnywhere, Category = "Widgets", meta=(MustImplement="ActorInteractionWidget"))
-	TSoftClassPtr<UUserWidget> InteractableDefaultWidgetClass;
+	UPROPERTY(config, EditAnywhere, Category = "Widgets", meta=(AllowedClasses="UserWidget", MustImplement="ActorInteractionWidget"))
+	TSoftClassPtr<UUserWidget>InteractableDefaultWidgetClass;
 	
 	/* Defines default DataTable which contains Interactable data values.*/
-	UPROPERTY(config, EditAnywhere, Category = "Interaction Data")
+	UPROPERTY(config, EditAnywhere, Category = "Interaction Data", meta=(AllowedClasses = "DataTable"))
 	TSoftObjectPtr<UDataTable> InteractableDefaultDataTable;
+	
 	
 	virtual FName GetContainerName() const override
 	{
