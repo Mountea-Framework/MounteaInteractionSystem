@@ -106,6 +106,9 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCollisionComponentRemoved, const UP
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FHighlightTypeChanged, const EHighlightType&, NewHighlightType);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FHighlightMaterialChanged, const UMaterialInterface*, NewHighlightMaterial);
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractableDependencyStarted, const TScriptInterface<IActorInteractableInterface>&, NewMaster);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractableDependencyStopped, const TScriptInterface<IActorInteractableInterface>&, FormerMaster);
+
 /**
  * 
  */
@@ -345,7 +348,7 @@ public:
 
 	virtual void BindHighlightableMesh(UMeshComponent* MeshComponent) const = 0;
 	virtual void UnbindHighlightableMesh(UMeshComponent* MeshComponent) const = 0;
-		
+	
 	virtual FDataTableRowHandle GetInteractableData() = 0;
 	virtual void SetInteractableData(FDataTableRowHandle NewData) = 0;
 
@@ -353,6 +356,9 @@ public:
 	virtual void SetHighlightType(const EHighlightType NewHighlightType) = 0;
 	virtual UMaterialInterface* GetHighlightMaterial() const = 0;
 	virtual void SetHighlightMaterial(UMaterialInterface* NewHighlightMaterial) = 0;
+
+	virtual void InteractableDependencyStartedCallback(const TScriptInterface<IActorInteractableInterface>& NewMaster) = 0;
+	virtual void InteractableDependencyStoppedCallback(const TScriptInterface<IActorInteractableInterface>& FormerMaster) = 0;
 	
 	virtual FOnInteractableSelected& GetOnInteractableSelectedHandle() = 0;
 	virtual FInteractorFound& GetOnInteractorFoundHandle() = 0;
@@ -366,8 +372,12 @@ public:
 	virtual FInteractionStopped& GetOnInteractionStoppedHandle() = 0;
 	virtual FInteractionCanceled& GetOnInteractionCanceledHandle() = 0;
 	virtual FInteractableDependencyChanged& GetInteractableDependencyChangedHandle() = 0;
+
 	virtual FHighlightTypeChanged& GetHighlightTypeChanged() = 0;
 	virtual FHighlightMaterialChanged& GetHighlightMaterialChanged() = 0;
+
+	virtual FInteractableDependencyStarted& GetInteractableDependencyStarted() = 0;
+	virtual FInteractableDependencyStopped& GetInteractableDependencyStopped() = 0;
 
 	virtual FTimerHandle& GetCooldownHandle() = 0;
 };

@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "ActorInteractionPluginLog.h"
 #include "ActorInteractionPluginSettings.h"
+#include "Blueprint/UserWidget.h"
+#include "Engine/DataTable.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "ActorInteractionFunctionLibrary.generated.h"
 
@@ -39,13 +41,16 @@ public:
 	}
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction", meta=(CompactNodeTitle="Default Interactable Data"))
-	static TSoftObjectPtr<UDataTable> GetInteractableDefaultDataTable()
+	static UDataTable* GetInteractableDefaultDataTable()
 	{
 		const UActorInteractionPluginSettings* Settings = GetMutableDefault<UActorInteractionPluginSettings>();
 
 		if (Settings)
 		{
-			return Settings->GetInteractableDefaultDataTable();
+			if (const auto FoundTable = Settings->GetInteractableDefaultDataTable().LoadSynchronous())
+			{
+				return FoundTable;
+			}
 		}
 
 		AIntP_LOG(Error, TEXT("[GetInteractableDefaultDataTable] Cannot load ActorInteractionPluginSettings! Using null value."))
@@ -53,13 +58,14 @@ public:
 	}
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction", meta=(CompactNodeTitle="Default Interactable Data"))
-	static TSoftClassPtr<UUserWidget> GetInteractableDefaultWidgetClass()
+	static TSubclassOf<UUserWidget> GetInteractableDefaultWidgetClass()
 	{
 		const UActorInteractionPluginSettings* Settings = GetMutableDefault<UActorInteractionPluginSettings>();
 
 		if (Settings)
 		{
-			return Settings->GetInteractableDefaultWidgetClass();
+			const TSubclassOf<UUserWidget> WidgetClass = Settings->GetInteractableDefaultWidgetClass().LoadSynchronous();
+			return WidgetClass;
 		}
 		
 		AIntP_LOG(Error, TEXT("[GetInteractableDefaultWidgetClass] Cannot load ActorInteractionPluginSettings! Using null value."))

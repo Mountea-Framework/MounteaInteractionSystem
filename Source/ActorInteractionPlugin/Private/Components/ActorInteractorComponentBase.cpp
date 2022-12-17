@@ -4,7 +4,7 @@
 #include "Components/ActorInteractorComponentBase.h"
 
 #include "Helpers/ActorInteractionPluginLog.h"
-#if (!UE_BUILD_SHIPPING || WITH_EDITOR)
+#if WITH_EDITOR
 #include "EditorHelper.h"
 #endif
 
@@ -19,7 +19,7 @@ UActorInteractorComponentBase::UActorInteractorComponentBase()
 	DebugSettings.EditorDebugMode = false;
 
 	InteractorState = EInteractorStateV2::EIS_Asleep;
-	DefaultInteractorState = EInteractorStateV2::EIS_Asleep;
+	DefaultInteractorState = EInteractorStateV2::EIS_Awake;
 }
 
 void UActorInteractorComponentBase::BeginPlay()
