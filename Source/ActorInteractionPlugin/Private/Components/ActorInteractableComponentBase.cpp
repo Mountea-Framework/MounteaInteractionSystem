@@ -476,10 +476,8 @@ void UActorInteractableComponentBase::SetState(const EInteractableStateV2 NewSta
 				case EInteractableStateV2::EIS_Disabled:
 					{
 						InteractableState = NewState;
-						StopHighlight();
-						OnInteractableStateChanged.Broadcast(InteractableState);
-						if (GetWorld()) GetWorld()->GetTimerManager().ClearAllTimersForObject(this);
-						OnInteractorLost.Broadcast(Interactor);
+						CleanupComponent();
+						
 						for (const auto Itr : CollisionComponents)
 						{
 							UnbindCollisionShape(Itr);
@@ -502,8 +500,18 @@ void UActorInteractableComponentBase::SetState(const EInteractableStateV2 NewSta
 					OnInteractableStateChanged.Broadcast(InteractableState);
 					break;
 				case EInteractableStateV2::EIS_Suppressed:
-				case EInteractableStateV2::EIS_Cooldown:
 				case EInteractableStateV2::EIS_Disabled:
+					{
+						InteractableState = NewState;
+						CleanupComponent();
+						
+						for (const auto Itr : CollisionComponents)
+						{
+							UnbindCollisionShape(Itr);
+						}
+					}
+					break;
+				case EInteractableStateV2::EIS_Cooldown:
 				case EInteractableStateV2::EIS_Completed:
 				case EInteractableStateV2::EIS_Asleep:
 				case EInteractableStateV2::Default: 
@@ -516,10 +524,6 @@ void UActorInteractableComponentBase::SetState(const EInteractableStateV2 NewSta
 				case EInteractableStateV2::EIS_Active:
 					{
 						InteractableState = NewState;
-						StopHighlight();
-						OnInteractableStateChanged.Broadcast(InteractableState);
-						if (GetWorld()) GetWorld()->GetTimerManager().ClearAllTimersForObject(this);
-						OnInteractorLost.Broadcast(Interactor);
 						CleanupComponent();
 					}
 					break;
@@ -544,15 +548,11 @@ void UActorInteractableComponentBase::SetState(const EInteractableStateV2 NewSta
 				case EInteractableStateV2::EIS_Asleep:
 					{
 						InteractableState = NewState;
-						StopHighlight();	
-						OnInteractableStateChanged.Broadcast(InteractableState);
-						if (GetWorld()) GetWorld()->GetTimerManager().ClearAllTimersForObject(this);
-						OnInteractorLost.Broadcast(Interactor);
+						CleanupComponent();
+						
+						for (const auto Itr : CollisionComponents)
 						{
-							for (const auto Itr : CollisionComponents)
-							{
-								UnbindCollisionShape(Itr);
-							}
+							UnbindCollisionShape(Itr);
 						}
 					}
 					break;
@@ -574,6 +574,12 @@ void UActorInteractableComponentBase::SetState(const EInteractableStateV2 NewSta
 					OnInteractableStateChanged.Broadcast(InteractableState);
 					break;
 				case EInteractableStateV2::EIS_Cooldown:
+					OnInteractionCanceled.Broadcast();
+					InteractableState = NewState;
+					StopHighlight();
+					OnInteractableStateChanged.Broadcast(InteractableState);
+					GetWorld()->GetTimerManager().ClearTimer(Timer_Cooldown);
+					break;
 				case EInteractableStateV2::EIS_Completed:
 				case EInteractableStateV2::EIS_Suppressed:
 				case EInteractableStateV2::Default:
@@ -701,9 +707,13 @@ void UActorInteractableComponentBase::ProcessDependencies()
 					case EInteractableStateV2::EIS_Active:
 					case EInteractableStateV2::EIS_Awake:
 					case EInteractableStateV2::EIS_Asleep:
-						Itr->SetState(Itr->GetDefaultState());
+						Itr->SetState(EInteractableStateV2::EIS_Suppressed);
 						break;
-					case EInteractableStateV2::EIS_Cooldown: break;
+					case EInteractableStateV2::EIS_Cooldown:
+						
+						Itr->SetState(EInteractableStateV2::EIS_Suppressed);
+						
+						break;
 					case EInteractableStateV2::EIS_Completed: break;
 					case EInteractableStateV2::EIS_Disabled: break;
 					case EInteractableStateV2::EIS_Suppressed: break;
@@ -717,15 +727,16 @@ void UActorInteractableComponentBase::ProcessDependencies()
 				Itr->GetInteractableDependencyStarted().Broadcast(this);
 				switch (Itr->GetState())
 				{
-					case EInteractableStateV2::EIS_Active:
+					
 					case EInteractableStateV2::EIS_Awake:
 					case EInteractableStateV2::EIS_Asleep:
+					case EInteractableStateV2::EIS_Suppressed: 
 						Itr->SetState(Itr->GetDefaultState());
 						break;
 					case EInteractableStateV2::EIS_Cooldown: break;
 					case EInteractableStateV2::EIS_Completed: break;
 					case EInteractableStateV2::EIS_Disabled: break;
-					case EInteractableStateV2::EIS_Suppressed: break;
+					case EInteractableStateV2::EIS_Active:
 					case EInteractableStateV2::Default: break;
 					default: break;
 				}
