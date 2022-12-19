@@ -380,4 +380,5 @@ public:
 	virtual FInteractableDependencyStopped& GetInteractableDependencyStopped() = 0;
 
 	virtual FTimerHandle& GetCooldownHandle() = 0;
+	virtual FInteractableStateChanged& GetInteractableStateChanged() = 0;
 };

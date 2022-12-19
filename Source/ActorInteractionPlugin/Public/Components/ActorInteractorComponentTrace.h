@@ -52,7 +52,70 @@ struct FInteractionTraceDataV2
 	};
 };
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTraceTypeChanged, const ETraceType&, NewTraceType);
+#pragma region TracingData
+USTRUCT(BlueprintType)
+struct FTracingData
+{
+	GENERATED_BODY()
+
+	UPROPERTY(Category="Interaction|FTracingData", VisibleAnywhere, BlueprintReadWrite)
+	ETraceType TracingType;
+	UPROPERTY(Category="Interaction|FTracingData", VisibleAnywhere, BlueprintReadWrite)
+	float TracingInterval;
+	UPROPERTY(Category="Interaction|FTracingData", VisibleAnywhere, BlueprintReadWrite)
+	float TracingRange;
+	UPROPERTY(Category="Interaction|FTracingData", VisibleAnywhere, BlueprintReadWrite)
+	float TracingShapeHalfSize;
+	UPROPERTY(Category="Interaction|FTracingData", VisibleAnywhere, BlueprintReadWrite)
+	uint8 bUsingCustomStartTransform : 1;
+	UPROPERTY(Category="Interaction|FTracingData", VisibleAnywhere, BlueprintReadWrite)
+	FTransform CustomTracingTransform;
+
+	FTracingData() :
+	TracingType(ETraceType::ETT_Loose),
+	TracingInterval(0.01f),
+	TracingRange(250.f),
+	TracingShapeHalfSize(5.f),
+	bUsingCustomStartTransform(false),
+	CustomTracingTransform(FTransform())
+	{};
+
+	FTracingData
+	(
+		ETraceType NewType,
+		float NewInterval,
+		float NewRange,
+		float NewShapeHalfSize,
+		bool bUse,
+		FTransform NewTransform
+	) :
+	TracingType(NewType), bUsingCustomStartTransform(bUse), CustomTracingTransform(NewTransform)
+	{
+		TracingInterval = FMath::Max(0.01f, NewInterval);
+		TracingRange = FMath::Max(1.f, NewRange);
+		TracingShapeHalfSize = FMath::Max(0.1f, NewShapeHalfSize);
+	}
+
+	inline bool operator==(const FTracingData& Other) const
+	{
+		return
+		TracingType == Other.TracingType &&
+		FMath::IsNearlyEqual(TracingInterval, Other.TracingInterval) &&
+		FMath::IsNearlyEqual(TracingRange, Other.TracingRange) &&
+		FMath::IsNearlyEqual(TracingShapeHalfSize, Other.TracingShapeHalfSize) &&
+		bUsingCustomStartTransform == Other.bUsingCustomStartTransform &&
+		(bUsingCustomStartTransform && CustomTracingTransform.Equals(Other.CustomTracingTransform))
+		;
+	}
+
+	inline bool operator!=(const FTracingData& Other) const
+	{
+		return !(*this==Other);
+	}
+};
+#pragma endregion 
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FTracingDataChanged, const FTracingData&, NewTracingData, const FTracingData&, OldTracingData);
 
 /**
  * 
@@ -89,6 +152,83 @@ protected:
 	virtual bool CanTrace() const;
 
 	/**
+	 * Returns Trace Type.
+	 */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
+	virtual ETraceType GetTraceType() const;
+	/**
+	 * Sets Trace Type.
+	 *
+	 * @param NewTraceType	Value to be set.
+	 */
+	UFUNCTION(BlueprintCallable, Category="Interaction")
+	virtual void SetTraceType(const ETraceType& NewTraceType);
+
+	/**
+	 * Returns Trace Interval in seconds.
+	 */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
+	virtual float GetTraceInterval() const;
+	/**
+	 * Sets Trace Interval in seconds.
+	 * Clamped to be at least 0.01s.
+	 *
+	 * @param NewInterval	Value to be set
+	 */
+	UFUNCTION(BlueprintCallable, Category="Interaction")
+	virtual void SetTraceInterval(const float NewInterval);
+
+	/**
+	 * Returns Trace Range in cm.
+	 */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
+	virtual float GetTraceRange() const;
+	/**
+	 * Sets Trace Range in cm.
+	 * Clamped to be at least 1cm.
+	 *
+	 * @param NewRange	Value to be set
+	 */
+	UFUNCTION(BlueprintCallable, Category="Interaction")
+	virtual void SetTraceRange(const float NewRange);
+
+	/**
+	 * Returns Trace Shape Half Size in cm.
+	 * Defines how precise tracing is when using Loose tracing type.
+	 */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
+	virtual float GetTraceShapeHalfSize() const;
+	/**
+	 * Sets Trace Shape Half Size in cm.
+	 * Clamped to be at least 0.1cm.
+	 *
+	 * @param NewTraceShapeHalfSize	Value to be set
+	 */
+	UFUNCTION(BlueprintCallable, Category="Interaction")
+	virtual void SetTraceShapeHalfSize(const float NewTraceShapeHalfSize);
+
+	/**
+	 * Returns whether using Custom Trace Transform.
+	 */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
+	virtual bool GetUseCustomStartTransform() const;
+	/**
+	 * Sets Using Custom Trace Start Transform.
+	 *
+	 * @param bUse	Value to be set
+	 */
+	UFUNCTION(BlueprintCallable, Category="Interaction")
+	virtual void SetUseCustomStartTransform(const bool bUse);
+
+	/**
+	 * Returns transient Tracing Data.
+	 * Structure of all Tracing Data at one place.
+	 * Updated every time any value is changed.
+	 */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
+	virtual FTracingData GetLastTracingData() const;
+
+	/**
 	 * Sets Trace Start to specified location.
 	 *
 	 * @param TraceStart	Value to be used as Custom Trace Start.
@@ -107,7 +247,7 @@ protected:
 	virtual void SetState(const EInteractorStateV2 NewState) override;
 	
 	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
-	void OnTraceTypeChangedEvent(const ETraceType& NewType);
+	void OnTraceDataChangedEvent(const FTracingData& NewType, const FTracingData& OldType);
 
 protected:
 	
@@ -164,6 +304,13 @@ protected:
 	FTransform CustomTraceTransform;
 
 	/**
+	 * Structure of all Tracing Data at one place.
+	 * Updated every time any value is changed.
+	 */
+	UPROPERTY(Transient, VisibleAnywhere, Category="Interaction|Read Only")
+	FTracingData LastTracingData;
+
+	/**
 	 * Timer Handle.
 	 * Won't display any values in Blueprints.
 	 */
@@ -171,9 +318,13 @@ protected:
 	FTimerHandle Timer_Ticking;
 
 protected:
-	
+
+	/**
+	 * Event called every time any Trace value has changed.
+	 * Will provide information about Old data and New data. Useful when debugging.
+	 */
 	UPROPERTY(BlueprintAssignable, Category="Interaction")
-	FTraceTypeChanged OnTraceTypeChanged;
+	FTracingDataChanged OnTraceDataChanged;
 
 #if WITH_EDITOR
 

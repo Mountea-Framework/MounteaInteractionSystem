@@ -26,10 +26,21 @@ UActorInteractorComponentTrace::UActorInteractorComponentTrace()
 
 void UActorInteractorComponentTrace::BeginPlay()
 {
-	OnTraceTypeChanged.AddUniqueDynamic(this, &UActorInteractorComponentTrace::OnTraceTypeChangedEvent);
+	OnTraceDataChanged.AddUniqueDynamic(this, &UActorInteractorComponentTrace::OnTraceDataChangedEvent);
 
+	{
+		FTracingData NewData;
+		NewData.TracingType = TraceType;
+		NewData.TracingInterval = TraceInterval;
+		NewData.TracingRange = TraceRange;
+		NewData.TracingShapeHalfSize = TraceShapeHalfSize;
+		NewData.bUsingCustomStartTransform = bUseCustomStartTransform;
+		NewData.CustomTracingTransform = CustomTraceTransform;
+
+		LastTracingData = NewData;
+	}
+	
 	Super::BeginPlay();
-
 }
 
 void UActorInteractorComponentTrace::DisableTracing()
@@ -42,6 +53,20 @@ void UActorInteractorComponentTrace::DisableTracing()
 
 void UActorInteractorComponentTrace::EnableTracing()
 {
+	switch (GetState())
+	{
+		case EInteractorStateV2::EIS_Awake:
+		case EInteractorStateV2::EIS_Active:
+			break;
+		case EInteractorStateV2::EIS_Asleep: 
+		case EInteractorStateV2::EIS_Suppressed:
+		case EInteractorStateV2::EIS_Disabled:
+		case EInteractorStateV2::Default: 
+		default:
+			AIntP_LOG(Warning, TEXT("[EnableTracing] Tracing not allowed for this state!"))
+			return;
+	}
+	
 	if (GetWorld())
 	{
 		if(GetWorld()->GetTimerManager().IsTimerPaused(Timer_Ticking))
@@ -235,6 +260,84 @@ bool UActorInteractorComponentTrace::CanTrace() const
 {
 	return CanInteract();
 }
+
+ETraceType UActorInteractorComponentTrace::GetTraceType() const
+{ return TraceType; }
+
+void UActorInteractorComponentTrace::SetTraceType(const ETraceType& NewTraceType)
+{
+	const FTracingData OldData = GetLastTracingData();
+	FTracingData NewData = GetLastTracingData();
+	NewData.TracingType = NewTraceType;
+
+	LastTracingData = NewData;
+	
+	TraceType = NewTraceType;
+	OnTraceDataChanged.Broadcast(NewData, OldData);
+}
+
+float UActorInteractorComponentTrace::GetTraceInterval() const
+{ return TraceInterval; }
+
+void UActorInteractorComponentTrace::SetTraceInterval(const float NewInterval)
+{
+	const FTracingData OldData = GetLastTracingData();
+	FTracingData NewData = GetLastTracingData();
+	NewData.TracingInterval = FMath::Max(0.01f, NewInterval);
+
+	LastTracingData = NewData;
+	
+	TraceInterval = NewData.TracingInterval;
+	OnTraceDataChanged.Broadcast(NewData, OldData);
+}
+
+float UActorInteractorComponentTrace::GetTraceRange() const
+{ return TraceRange; }
+
+void UActorInteractorComponentTrace::SetTraceRange(const float NewRange)
+{
+	const FTracingData OldData = GetLastTracingData();
+	FTracingData NewData = GetLastTracingData();
+	NewData.TracingRange = FMath::Max(1.f, NewRange);
+
+	LastTracingData = NewData;
+	
+	TraceRange = NewData.TracingRange;
+	OnTraceDataChanged.Broadcast(NewData, OldData);
+}
+
+float UActorInteractorComponentTrace::GetTraceShapeHalfSize() const
+{ return TraceShapeHalfSize; }
+
+void UActorInteractorComponentTrace::SetTraceShapeHalfSize(const float NewTraceShapeHalfSize)
+{
+	const FTracingData OldData = GetLastTracingData();
+	FTracingData NewData = GetLastTracingData();
+	NewData.TracingShapeHalfSize = FMath::Max(0.1f, NewTraceShapeHalfSize);
+
+	LastTracingData = NewData;
+	
+	TraceShapeHalfSize = NewData.TracingShapeHalfSize;
+	OnTraceDataChanged.Broadcast(NewData, OldData);
+}
+
+bool UActorInteractorComponentTrace::GetUseCustomStartTransform() const
+{ return bUseCustomStartTransform; }
+
+void UActorInteractorComponentTrace::SetUseCustomStartTransform(const bool bUse)
+{
+	const FTracingData OldData = GetLastTracingData();
+	FTracingData NewData = GetLastTracingData();
+	NewData.bUsingCustomStartTransform = bUse;
+	
+	bUseCustomStartTransform = bUse;
+
+	LastTracingData = NewData;
+	OnTraceDataChanged.Broadcast(NewData, OldData);
+}
+
+FTracingData UActorInteractorComponentTrace::GetLastTracingData() const
+{ return LastTracingData; }
 
 void UActorInteractorComponentTrace::SetCustomTraceStart(const FTransform TraceStart)
 {
