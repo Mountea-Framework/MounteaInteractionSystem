@@ -13,9 +13,4 @@ public:
 	/** IModuleInterface implementation */
 	virtual void StartupModule() override;
 	virtual void ShutdownModule() override;
-
-protected:
-
-	TSharedPtr<FSlateStyleSet> InteractorSet;
-	TSharedPtr<FSlateStyleSet> InteractableSet;
 };
