@@ -858,11 +858,10 @@ protected:
 	virtual void CleanupComponent();
 	virtual void FindAndAddCollisionShapes() override;
 	virtual void FindAndAddHighlightableMeshes() override;
-
+	
 	virtual bool TriggerCooldown() override;
 
-	UFUNCTION()
-	virtual void ToggleWidgetVisibility(const bool IsVisible) override;
+	UFUNCTION()	virtual void ToggleWidgetVisibility(const bool IsVisible) override;
 
 	/**
 	 * Binds Collision Events for specified Primitive Component.
@@ -914,15 +913,12 @@ protected:
 	 */
 	UFUNCTION()
 	void AutoSetup();
-
-	UFUNCTION()
-	void OnCooldownCompletedCallback();
 	
 	bool ValidateInteractable() const;
 
 	virtual void UpdateInteractionWidget();
-
-
+	
+	UFUNCTION()	virtual void OnCooldownCompletedCallback();
 	UFUNCTION() virtual void InteractableDependencyStartedCallback(const TScriptInterface<IActorInteractableInterface>& NewMaster) override;
 	UFUNCTION() virtual void InteractableDependencyStoppedCallback(const TScriptInterface<IActorInteractableInterface>& FormerMaster) override;
 
@@ -1203,6 +1199,9 @@ protected:
 
 	virtual FTimerHandle& GetCooldownHandle() override
 	{ return Timer_Cooldown; };
+
+	virtual FInteractableStateChanged& GetInteractableStateChanged() override
+	{ return OnInteractableStateChanged; };
 	
 	virtual FOnWidgetUpdated& WidgetUpdatedHandle()
 	{ return OnWidgetUpdated; };
