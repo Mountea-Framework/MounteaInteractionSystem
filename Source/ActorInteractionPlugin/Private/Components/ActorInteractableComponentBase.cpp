@@ -1191,7 +1191,7 @@ void UActorInteractableComponentBase::InteractorLost(const TScriptInterface<IAct
 	}
 }
 
-void UActorInteractableComponentBase::InteractionCompleted(const float& TimeCompleted)
+void UActorInteractableComponentBase::InteractionCompleted(const float& TimeCompleted, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
 {
 	ToggleWidgetVisibility(false);
 	
@@ -1203,31 +1203,31 @@ void UActorInteractableComponentBase::InteractionCompleted(const float& TimeComp
 	FString ErrorMessage;
 	if( CompleteInteractable(ErrorMessage))
 	{
-		Execute_OnInteractionCompletedEvent(this, TimeCompleted);
+		Execute_OnInteractionCompletedEvent(this, TimeCompleted, CausingInteractor);
 	}
 	else AIntP_LOG(Display, TEXT("%s"), *ErrorMessage);
 }
 
-void UActorInteractableComponentBase::InteractionCycleCompleted(const float& CompletedTime, const int32 CyclesRemaining)
+void UActorInteractableComponentBase::InteractionCycleCompleted(const float& CompletedTime, const int32 CyclesRemaining, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
 {
-	Execute_OnInteractionCycleCompletedEvent(this, CompletedTime, CyclesRemaining);
+	Execute_OnInteractionCycleCompletedEvent(this, CompletedTime, CyclesRemaining, CausingInteractor);
 }
 
-void UActorInteractableComponentBase::InteractionStarted(const float& TimeStarted, const FKey& PressedKey)
+void UActorInteractableComponentBase::InteractionStarted(const float& TimeStarted, const FKey& PressedKey, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
 {
 	if (CanInteract())
 	{
-		Execute_OnInteractionStartedEvent(this, TimeStarted, PressedKey);
+		Execute_OnInteractionStartedEvent(this, TimeStarted, PressedKey, CausingInteractor);
 	}
 }
 
-void UActorInteractableComponentBase::InteractionStopped(const float& TimeStarted, const FKey& PressedKey)
+void UActorInteractableComponentBase::InteractionStopped(const float& TimeStarted, const FKey& PressedKey, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
 {
 	if (!GetWorld()) return;
 	
 	GetWorld()->GetTimerManager().ClearTimer(Timer_Interaction);
 	
-	Execute_OnInteractionStoppedEvent(this, TimeStarted, PressedKey);
+	Execute_OnInteractionStoppedEvent(this, TimeStarted, PressedKey, CausingInteractor);
 }
 
 void UActorInteractableComponentBase::InteractionCanceled()
@@ -1537,7 +1537,7 @@ bool UActorInteractableComponentBase::TriggerCooldown()
 			UnbindCollisionShape(Itr);
 		}
 
-		OnInteractionCycleCompleted.Broadcast(GetWorld()->GetTimeSeconds(), RemainingLifecycleCount);
+		OnInteractionCycleCompleted.Broadcast(GetWorld()->GetTimeSeconds(), RemainingLifecycleCount, GetInteractor());
 		return true;
 	}
 
