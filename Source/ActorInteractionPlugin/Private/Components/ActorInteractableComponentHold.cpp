@@ -22,9 +22,9 @@ void UActorInteractableComponentHold::BeginPlay()
 	Super::BeginPlay();
 }
 
-void UActorInteractableComponentHold::InteractionStarted(const float& TimeStarted, const FKey& PressedKey)
+void UActorInteractableComponentHold::InteractionStarted(const float& TimeStarted, const FKey& PressedKey, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
 {
-	Super::InteractionStarted(TimeStarted, PressedKey);
+	Super::InteractionStarted(TimeStarted, PressedKey, CausingInteractor);
 	
 	if (CanInteract())
 	{
@@ -46,9 +46,9 @@ void UActorInteractableComponentHold::InteractionStarted(const float& TimeStarte
 	}
 }
 
-void UActorInteractableComponentHold::InteractionStopped(const float& TimeStarted, const FKey& PressedKey)
+void UActorInteractableComponentHold::InteractionStopped(const float& TimeStarted, const FKey& PressedKey, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
 {
-	Super::InteractionStopped(TimeStarted, PressedKey);
+	Super::InteractionStopped(TimeStarted, PressedKey, CausingInteractor);
 }
 
 void UActorInteractableComponentHold::InteractionCanceled()
@@ -85,7 +85,7 @@ void UActorInteractableComponentHold::OnInteractionCompletedCallback()
 		if (TriggerCooldown()) return;
 	}
 	
-	OnInteractionCompleted.Broadcast(GetWorld()->GetTimeSeconds());
+	OnInteractionCompleted.Broadcast(GetWorld()->GetTimeSeconds(), GetInteractor());
 }
 
 #undef LOCTEXT_NAMESPACE

@@ -1,7 +1,7 @@
 {
 	"FileVersion": 3,
 	"Version": 1,
-	"VersionName": "3.0.0.3",
+	"VersionName": "3.0.0.4",
 	"FriendlyName": "Actor Interaction Plugin",
 	"Description": "Actor Interaction Plugin is an Open-source Mountea Framework components-based simple framework providing utilities for smart Actor Interaction with other Actors. Developed with Game Developers in mind to allow as easy as possible implementation while maintaining high scalability and diverse options to tweak everything.",
 	"Category": "Mountea Framework",
@@ -18,7 +18,7 @@
 			"Name": "ActorInteractionPlugin",
 			"Type": "Runtime",
 			"LoadingPhase": "PreDefault",
-			"PlatformAllowList": [
+			"WhitelistPlatforms": [
 				"Win64",
 				"Mac",
 				"Linux"

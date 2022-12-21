@@ -157,7 +157,7 @@ void UActorInteractorComponentBase::StartInteraction(const float StartTime, cons
 	if (CanInteract() && ActiveInteractable.GetInterface())
 	{
 		SetState(EInteractorStateV2::EIS_Active);
-		ActiveInteractable->GetOnInteractionStartedHandle().Broadcast(StartTime, InputKey);
+		ActiveInteractable->GetOnInteractionStartedHandle().Broadcast(StartTime, InputKey, this);
 	}
 }
 
@@ -166,7 +166,7 @@ void UActorInteractorComponentBase::StopInteraction(const float StartTime, const
 	if (CanInteract() && ActiveInteractable.GetInterface())
 	{
 		SetState(DefaultInteractorState);
-		ActiveInteractable->GetOnInteractionStoppedHandle().Broadcast(StartTime, InputKey);
+		ActiveInteractable->GetOnInteractionStoppedHandle().Broadcast(StartTime, InputKey, this);
 	}
 }
 

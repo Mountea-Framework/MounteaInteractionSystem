@@ -573,7 +573,9 @@ protected:
 	virtual void InteractableSelected(const TScriptInterface<IActorInteractableInterface>& Interactable) override;
 
 	/**
-	 * 
+	 * Event called once Interactor is lost. Provides info which Interactor is lost.
+	 * This event is usually the first one in chain leading to Interaction Canceled.
+	 * Called by OnInteractorLost.
 	 */
 	UFUNCTION(Category="Interaction")
 	virtual void InteractableLost(const TScriptInterface<IActorInteractableInterface>& Interactable) override;
@@ -600,14 +602,14 @@ protected:
 	 * Calls OnInteractionCompletedEvent
 	 */
 	UFUNCTION(Category="Interaction")
-	virtual void InteractionCompleted(const float& TimeCompleted) override;
+	virtual void InteractionCompleted(const float& TimeCompleted, const TScriptInterface<IActorInteractorInterface>& CausingInteractor) override;
 
 	/**
 	 * Event called once Interaction Cycle is completed.
 	 * Calls OnInteractionCycleCompletedEvent
 	 */
 	UFUNCTION(Category="Interaction")
-	virtual void InteractionCycleCompleted(const float& CompletedTime, const int32 CyclesRemaining) override;
+	virtual void InteractionCycleCompleted(const float& CompletedTime, const int32 CyclesRemaining, const TScriptInterface<IActorInteractorInterface>& CausingInteractor) override;
 
 	/**
 	 * Event called once Interaction Starts.
@@ -615,7 +617,7 @@ protected:
 	 * Calls OnInteractionStartedEvent
 	 */
 	UFUNCTION(Category="Interaction")
-	virtual void InteractionStarted(const float& TimeStarted, const FKey& PressedKey) override;
+	virtual void InteractionStarted(const float& TimeStarted, const FKey& PressedKey, const TScriptInterface<IActorInteractorInterface>& CausingInteractor) override;
 
 	/**
 	 * Event called once Interaction Stops.
@@ -623,7 +625,7 @@ protected:
 	 * Calls OnInteractionStoppedEvent
 	 */
 	UFUNCTION(Category="Interaction")
-	virtual void InteractionStopped(const float& TimeStarted, const FKey& PressedKey) override;
+	virtual void InteractionStopped(const float& TimeStarted, const FKey& PressedKey, const TScriptInterface<IActorInteractorInterface>& CausingInteractor) override;
 
 	/**
 	 * Event called once Interaction is Canceled.
@@ -985,7 +987,8 @@ protected:
 #pragma region InteractionEvents
 
 	/**
-	 * Event called once Interactor is selected.
+	 * Event called once Interactor selects any Interactable. Provides info which Interactable has been selected.
+	 * Selected Interactable might differ to this one. In such case, this event calls OnInteractorLost and cancels any interaction which might be in progress.
 	 * Has native C++ implementation.
 	 * Calls OnInteractableSelectedEvent.
 	 */
@@ -993,29 +996,34 @@ protected:
 	FOnInteractableSelected OnInteractableSelected;
 
 	/**
-	 * Event called once Interactor is found.
+	 * Event called once Interactor is found. Provides info which Interactor is found.
+	 * This event doesn't usually start the interaction, only notifies that this Interactable has found an Interactor.
 	 * Called by OnInteractorFound
 	 */
 	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Interaction")
 	FInteractorFound OnInteractorFound;
 
 	/**
-	 * Event called once Interactor is lost.
-	 * Called by OnInteractorLost
+	 * Event called once Interactor is lost. Provides info which Interactor is lost.
+	 * This event is usually the first one in chain leading to Interaction Canceled.
+	 * Called by OnInteractorLost.
 	 */
 	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Interaction")
 	FInteractorLost OnInteractorLost;
 
 	/**
-	 * Event called once Interaction is completed.
+	 * Event called once Interaction is completed. Provides information which Interactor caused completion.
+	 * This event is the last event in chain.
+	 * Called when Type is Once or after Lifecycles run out.
 	 * Called from OnInteractionCompleted
 	 */
 	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Interaction")
 	FInteractionCompleted OnInteractionCompleted;
 	
 	/**
-	 * Event called once single Interaction Cycle is completed.
+	 * Event called once single Interaction Cycle is completed. Provides information which Interactor caused completion.
 	 * Might be called multiple times, before 'OnInteractionCompleted' is called.
+	 * Never called if Type is Once.
 	 */
 	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Interaction")
 	FInteractionCycleCompleted OnInteractionCycleCompleted;
