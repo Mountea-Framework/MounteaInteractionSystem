@@ -38,7 +38,7 @@ void UActorInteractableComponentPress::InteractionStarted(const float& TimeStart
 			if (TriggerCooldown()) return;
 		}
 		
-		OnInteractionCompleted.Broadcast(TimeStarted, GetInteractor());
+		OnInteractionCompleted.Broadcast(TimeStarted, CausingInteractor);
 	}
 }
 
