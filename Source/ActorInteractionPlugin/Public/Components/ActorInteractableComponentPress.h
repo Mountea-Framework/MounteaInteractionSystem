@@ -30,7 +30,7 @@ protected:
 
 	virtual void BeginPlay() override;
 
-	virtual void InteractionStarted(const float& TimeStarted, const FKey& PressedKey) override;
+	virtual void InteractionStarted(const float& TimeStarted, const FKey& PressedKey, const TScriptInterface<IActorInteractorInterface>& CausingInteractor) override;
 
 #if WITH_EDITOR
 	virtual void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;
