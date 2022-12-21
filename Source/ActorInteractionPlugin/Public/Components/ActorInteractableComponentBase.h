@@ -1002,7 +1002,9 @@ protected:
 	FInteractorFound OnInteractorFound;
 
 	/**
-	 * c
+	 * Event called once Interactor is lost. Provides info which Interactor is lost.
+	 * This event is usually the first one in chain leading to Interaction Canceled.
+	 * Called by OnInteractorLost.
 	 */
 	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Interaction")
 	FInteractorLost OnInteractorLost;
