@@ -54,7 +54,7 @@ void UActorInteractableComponentMash::OnInteractionCompletedCallback()
 		if (TriggerCooldown()) return;
 	}
 	
-	OnInteractionCompleted.Broadcast(GetWorld()->GetTimeSeconds());
+	OnInteractionCompleted.Broadcast(GetWorld()->GetTimeSeconds(), GetInteractor());
 }
 
 void UActorInteractableComponentMash::CleanupComponent()
@@ -70,9 +70,9 @@ void UActorInteractableComponentMash::CleanupComponent()
 	}
 }
 
-void UActorInteractableComponentMash::InteractionStarted(const float& TimeStarted, const FKey& PressedKey)
+void UActorInteractableComponentMash::InteractionStarted(const float& TimeStarted, const FKey& PressedKey, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
 {
-	Super::InteractionStarted(TimeStarted, PressedKey);
+	Super::InteractionStarted(TimeStarted, PressedKey, CausingInteractor);
 	
 	if (CanInteract())
 	{
@@ -114,13 +114,13 @@ void UActorInteractableComponentMash::InteractionStarted(const float& TimeStarte
 	}
 }
 
-void UActorInteractableComponentMash::InteractionStopped(const float& TimeStarted, const FKey& PressedKey)
+void UActorInteractableComponentMash::InteractionStopped(const float& TimeStarted, const FKey& PressedKey, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
 {
 	if (GetWorld())
 	{
 		if (!GetWorld()->GetTimerManager().IsTimerActive(TimerHandle_Mashed))
 		{
-			Super::InteractionStopped(TimeStarted, PressedKey);
+			Super::InteractionStopped(TimeStarted, PressedKey, CausingInteractor);
 		}
 	}
 }
@@ -132,11 +132,11 @@ void UActorInteractableComponentMash::InteractionCanceled()
 	CleanupComponent();
 }
 
-void UActorInteractableComponentMash::InteractionCompleted(const float& TimeCompleted)
+void UActorInteractableComponentMash::InteractionCompleted(const float& TimeCompleted, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
 {
 	if (ActualMashAmount >= MinMashAmountRequired)
 	{
-		Super::InteractionCompleted(TimeCompleted);
+		Super::InteractionCompleted(TimeCompleted, CausingInteractor);
 	}
 	else
 	{
