@@ -42,7 +42,11 @@ public class ActorInteractionPluginEditor : ModuleRules
 				"AssetTools",
 				
 				"BlueprintGraph",
-				"Kismet"
+				"Kismet", 
+				
+				"WebBrowser",
+				"EditorStyle",
+				"DeveloperSettings"
 			}
 		);
 		
