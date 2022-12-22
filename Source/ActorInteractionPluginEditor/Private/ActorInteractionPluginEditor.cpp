@@ -14,6 +14,7 @@
 
 #include "AssetToolsModule.h"
 #include "Kismet2/KismetEditorUtilities.h"
+#include "Popup/AIntPPopup.h"
 #include "Utilities/ActorInteractionEditorUtilities.h"
 
 
@@ -107,6 +108,13 @@ void FActorInteractionPluginEditor::StartupModule()
 			UActorInteractorComponentBase::StaticClass(),
 			FKismetEditorUtilities::FOnBlueprintCreated::CreateRaw(this, &FActorInteractionPluginEditor::HandleNewInteractorBlueprintCreated)
 		);
+	}
+
+	// Register popup
+	{
+		
+		
+		AIntPPopup::Register();
 	}
 }
 
