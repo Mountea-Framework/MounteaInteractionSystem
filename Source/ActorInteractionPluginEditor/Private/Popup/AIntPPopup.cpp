@@ -112,6 +112,7 @@ But let's keep it short, here are the cool new features (and bugfixes) of versio
 * Add new Interactable Base Component class implementing <RichTextBlock.Italic>IActorInteractableInterface</>
 * Add new child Classes for this new Interactable Base class, replacing existing monolithic <RichTextBlock.Italic>ActorInteractableComponent</> solution
 * Add new Interactable Widget Interface for easier communication between Widgets and Interactables
+* Add Editor billboard so Interactable Components are now easier to spot
 * Add new Overlay Materials for 5.1 only
 
 <RichTextBlock.Bold>Bugfixes</>
