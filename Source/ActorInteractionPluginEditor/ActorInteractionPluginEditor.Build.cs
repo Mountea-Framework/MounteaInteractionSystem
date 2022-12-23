@@ -46,7 +46,11 @@ public class ActorInteractionPluginEditor : ModuleRules
 				
 				"WebBrowser",
 				"EditorStyle",
-				"DeveloperSettings"
+				"DeveloperSettings",
+				
+				"MainFrame",
+				"ToolMenus",
+				"InputCore"
 			}
 		);
 		
