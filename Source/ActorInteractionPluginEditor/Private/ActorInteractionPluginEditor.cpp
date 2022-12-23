@@ -19,12 +19,9 @@
 #include "Popup/AIntPPopup.h"
 #include "Utilities/ActorInteractionEditorUtilities.h"
 
-#include "Misc/MessageDialog.h"
 #include "ToolMenus.h"
 
-#include "Framework/MultiBox/MultiBoxBuilder.h"
 #include "Interfaces/IMainFrameModule.h"
-#include "LevelEditor.h"
 
 DEFINE_LOG_CATEGORY(ActorInteractionPluginEditor);
 
@@ -242,19 +239,15 @@ void FActorInteractionPluginEditor::RegisterMenus()
 		{
 			FToolMenuSection& Section = Menu->FindOrAddSection("MounteaFramework");
 			Section.Label = FText::FromString(TEXT("Mountea Framework"));
-
-			FToolMenuEntry Entry = Section.AddMenuEntryWithCommandList(FAIntPCommands::Get().PluginAction, PluginCommands);
-
-			/** Will figure out way to override the icon
+						
 			FToolMenuEntry Entry = Section.AddMenuEntryWithCommandList
 			(
 				FAIntPCommands::Get().PluginAction,
 				PluginCommands,
-				FText::FromString(TEXT("Support")),
-				FText::FromString(TEXT("Opens Support channel")),
-				FAIntPHelpStyle::Get().GetBrush("AIntPSupport.PluginAction.Small")
+				NSLOCTEXT("MounteaSupport", "TabTitle", "Mountea Support"),
+				NSLOCTEXT("MounteaSupport", "TooltipText", "Opens Mountea Framework Support channel"),
+				FSlateIcon(FAIntPHelpStyle::GetStyleSetName(), "AIntPSupport.PluginAction.small")
 			);
-			 */
 		}
 	}
 

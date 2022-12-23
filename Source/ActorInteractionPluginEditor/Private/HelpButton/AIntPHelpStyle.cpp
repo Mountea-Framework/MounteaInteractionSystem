@@ -60,8 +60,7 @@ TSharedRef<FSlateStyleSet> FAIntPHelpStyle::Create()
 	Style->SetContentRoot(IPluginManager::Get().FindPlugin("ActorInteractionPlugin")->GetBaseDir() / TEXT("Resources"));
 
 	Style->Set("AIntPSupport.PluginAction", new IMAGE_BRUSH(TEXT("Mountea_Logo"), Icon40x40));
-	Style->Set("AIntPSupport.PluginAction.Small", new IMAGE_BRUSH(TEXT("ButtonIcon20"), Icon20x20));
-	Style->Set("AIntPSupport.PluginAction.Small", new IMAGE_BRUSH(TEXT("ButtonIcon20"), Icon16x16));
+	Style->Set("AIntPSupport.PluginAction.small", new IMAGE_BRUSH(TEXT("HelpIcon"), Icon20x20));
 
 	return Style;
 }
