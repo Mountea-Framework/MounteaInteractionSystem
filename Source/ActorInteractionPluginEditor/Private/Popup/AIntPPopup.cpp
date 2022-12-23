@@ -88,7 +88,7 @@ void AIntPPopup::Open()
 		[
 			SNew(SBorder)
 			.Padding(10)
-			.BorderImage(FEditorStyle::GetBrush("ToolPanel.DarkGroupBorder"))
+			.BorderImage(FAppStyle::GetBrush("ToolPanel.DarkGroupBorder"))
 			[
 				SNew(SScrollBox)
 				+ SScrollBox::Slot()
@@ -120,8 +120,8 @@ But let's keep it short, here are the cool new features (and bugfixes) of versio
 * Fix missed descriptions
 * Add <RichTextBlock.Bold>DEPRECATED</> to old Component Classes
 )"))
-					.TextStyle(FEditorStyle::Get(), "NormalText")
-					.DecoratorStyleSet(&FEditorStyle::Get())
+					.TextStyle(FAppStyle::Get(), "NormalText")
+					.DecoratorStyleSet(&FAppStyle::Get())
 					.AutoWrapText(true)
 					+ SRichTextBlock::HyperlinkDecorator(TEXT("browser"), FSlateHyperlinkRun::FOnClick::CreateStatic(&OnBrowserLinkClicked))
 				]
