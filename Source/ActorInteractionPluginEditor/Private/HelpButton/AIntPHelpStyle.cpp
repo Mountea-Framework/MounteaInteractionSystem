@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// All rights reserved Dominik Pavlicek 2022.
 
 
 #include "AIntPHelpStyle.h"
