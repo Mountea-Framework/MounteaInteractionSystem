@@ -476,7 +476,11 @@ void UActorInteractableComponentBase::SetState(const EInteractableStateV2 NewSta
 				case EInteractableStateV2::EIS_Disabled:
 					{
 						InteractableState = NewState;
-						CleanupComponent();
+						
+						StopHighlight();
+						OnInteractableStateChanged.Broadcast(InteractableState);
+						if (GetWorld()) GetWorld()->GetTimerManager().ClearAllTimersForObject(this);
+						OnInteractorLost.Broadcast(Interactor);
 						
 						for (const auto Itr : CollisionComponents)
 						{
@@ -503,7 +507,11 @@ void UActorInteractableComponentBase::SetState(const EInteractableStateV2 NewSta
 				case EInteractableStateV2::EIS_Disabled:
 					{
 						InteractableState = NewState;
-						CleanupComponent();
+						
+						StopHighlight();
+						OnInteractableStateChanged.Broadcast(InteractableState);
+						if (GetWorld()) GetWorld()->GetTimerManager().ClearAllTimersForObject(this);
+						OnInteractorLost.Broadcast(Interactor);
 						
 						for (const auto Itr : CollisionComponents)
 						{
@@ -548,7 +556,11 @@ void UActorInteractableComponentBase::SetState(const EInteractableStateV2 NewSta
 				case EInteractableStateV2::EIS_Asleep:
 					{
 						InteractableState = NewState;
-						CleanupComponent();
+						
+						StopHighlight();
+						OnInteractableStateChanged.Broadcast(InteractableState);
+						if (GetWorld()) GetWorld()->GetTimerManager().ClearAllTimersForObject(this);
+						OnInteractorLost.Broadcast(Interactor);
 						
 						for (const auto Itr : CollisionComponents)
 						{
