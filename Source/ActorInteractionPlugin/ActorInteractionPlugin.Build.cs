@@ -8,6 +8,11 @@ public class ActorInteractionPlugin : ModuleRules
 	public ActorInteractionPlugin(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
+		bEnforceIWYU = true;
+		
+		PrecompileForTargets = PrecompileTargetsType.Any;
+		bPrecompile = true;
+		bUsePrecompiled = true;
 		
 		PublicIncludePaths.AddRange(
 			new string[] {
