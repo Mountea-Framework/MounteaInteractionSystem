@@ -54,7 +54,9 @@ public class ActorInteractionPluginEditor : ModuleRules
 				
 				"MainFrame",
 				"ToolMenus",
-				"InputCore"
+				"InputCore",
+				
+				"UMG"
 			}
 		);
 		

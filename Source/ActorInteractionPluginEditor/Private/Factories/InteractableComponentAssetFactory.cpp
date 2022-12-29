@@ -65,37 +65,28 @@ UObject* UInteractableComponentAssetFactory::FactoryCreateNew(UClass* Class, UOb
 	
 	if (const auto DefaultWidgetClass = UActorInteractionFunctionLibrary::GetInteractableDefaultWidgetClass())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[FactoryCreateNew] Trying to set Default Widget"))
-		
-		FClassProperty* WidgetClassProperty = FindFProperty<FClassProperty>(Class, "WidgetClass");
-
-		if (WidgetClassProperty->GetClass() == nullptr)
+		if (FClassProperty* WidgetClassProperty = FindFProperty<FClassProperty>(Class, "WidgetClass"))
 		{
 			WidgetClassProperty->SetPropertyClass(DefaultWidgetClass);
-			//NewObject->Modify(true);
 			bModified = true;
 		}
 	}
 
 	if (const auto DefaultTable = UActorInteractionFunctionLibrary::GetInteractableDefaultDataTable())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[FactoryCreateNew] Trying to set Default Data Table"))
-		
 		FStructProperty* DataTableProperty = FindFProperty<FStructProperty>(Class, "InteractableData");
 		if(DataTableProperty->Struct->IsChildOf(FDataTableRowHandle::StaticStruct()))
 		{
 			if (FDataTableRowHandle* Value = DataTableProperty->ContainerPtrToValuePtr<FDataTableRowHandle>(DataTableProperty))
 			{
-				if (Value->IsNull())
-				{
-					Value->DataTable = DefaultTable;
-					bModified = true;
-				}
+				Value->DataTable = DefaultTable;
+				bModified = true;
 			}
 		}	
 	}
 	
-	NewObject->Modify(true);
+	if (bModified) NewObject->Modify(true);
+	
 	return NewObject;
 }
 
