@@ -66,26 +66,6 @@ UActorInteractableComponentBase::UActorInteractableComponentBase()
 
 	CachedInteractionWeight = InteractionWeight;
 
-	// Setup default Data Table
-	if (InteractableData.IsNull())
-	{
-		const auto DefaultTable = UActorInteractionFunctionLibrary::GetInteractableDefaultDataTable();
-		if (DefaultTable != nullptr)
-		{
-			InteractableData.DataTable = DefaultTable;
-		}
-	}
-
-	// Setup default Widget Class
-	if (GetWidgetClass() == nullptr)
-	{
-		const auto DefaultWidgetClass = UActorInteractionFunctionLibrary::GetInteractableDefaultWidgetClass();
-		if (DefaultWidgetClass != nullptr)
-		{
-			SetWidgetClass(DefaultWidgetClass.Get());
-		}
-	}
-
 #if WITH_EDITORONLY_DATA
 	bVisualizeComponent = true;
 #endif
@@ -476,7 +456,8 @@ void UActorInteractableComponentBase::SetState(const EInteractableStateV2 NewSta
 				case EInteractableStateV2::EIS_Disabled:
 					{
 						InteractableState = NewState;
-						
+
+						// Replacing Cleanup
 						StopHighlight();
 						OnInteractableStateChanged.Broadcast(InteractableState);
 						if (GetWorld()) GetWorld()->GetTimerManager().ClearAllTimersForObject(this);
@@ -507,7 +488,8 @@ void UActorInteractableComponentBase::SetState(const EInteractableStateV2 NewSta
 				case EInteractableStateV2::EIS_Disabled:
 					{
 						InteractableState = NewState;
-						
+
+						// Replacing Cleanup
 						StopHighlight();
 						OnInteractableStateChanged.Broadcast(InteractableState);
 						if (GetWorld()) GetWorld()->GetTimerManager().ClearAllTimersForObject(this);
@@ -556,7 +538,8 @@ void UActorInteractableComponentBase::SetState(const EInteractableStateV2 NewSta
 				case EInteractableStateV2::EIS_Asleep:
 					{
 						InteractableState = NewState;
-						
+
+						// Replacing Cleanup
 						StopHighlight();
 						OnInteractableStateChanged.Broadcast(InteractableState);
 						if (GetWorld()) GetWorld()->GetTimerManager().ClearAllTimersForObject(this);
