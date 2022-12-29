@@ -25,22 +25,33 @@ class ACTORINTERACTIONPLUGIN_API UActorInteractionPluginSettings : public UDevel
 	}
 
 	/* Defines how often is the Interaction widget updated per second.*/
-	UPROPERTY(config, EditAnywhere, Category = "Widgets", meta=(Units="s", UIMin=0.001, ClampMin=0.001))
+	UPROPERTY(config, EditAnywhere, Category = "Widgets", meta=(Units="s", UIMin=0.001, ClampMin=0.001, ConfigRestartRequired = true))
 	float WidgetUpdateFrequency = 0.05f;
 
 	/* Defines default Interactable Widget class.*/
-	UPROPERTY(config, EditAnywhere, Category = "Widgets", meta=(AllowedClasses="UserWidget", MustImplement="ActorInteractionWidget"))
+	UPROPERTY(config, EditAnywhere, Category = "Widgets", meta=(AllowedClasses="UserWidget", MustImplement="ActorInteractionWidget", ConfigRestartRequired = true))
 	TSoftClassPtr<UUserWidget>InteractableDefaultWidgetClass;
 	
 	/* Defines default DataTable which contains Interactable data values.*/
-	UPROPERTY(config, EditAnywhere, Category = "Interaction Data", meta=(AllowedClasses = "DataTable"))
+	UPROPERTY(config, EditAnywhere, Category = "Interaction Data", meta=(AllowedClasses = "DataTable", ConfigRestartRequired = true))
 	TSoftObjectPtr<UDataTable> InteractableDefaultDataTable;
 	
-	
+#if WITH_EDITOR
+	virtual FText GetSectionText() const override
+	{
+		return NSLOCTEXT("ActorInteractionPlugin", "MounteaSettingsDescription", "Interaction");
+	}
+
+	virtual FText GetSectionDescription() const override
+	{
+		return NSLOCTEXT("ActorInteractionPlugin", "MounteaSettingsDescription", "Default values for Mountea Plugins.");
+	}
+
 	virtual FName GetContainerName() const override
 	{
 		return "Project";
 	}
+#endif
 
 public:
 
