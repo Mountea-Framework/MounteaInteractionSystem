@@ -48,7 +48,7 @@ UObject* UInteractableComponentAssetFactory::FactoryCreateNew(UClass* Class, UOb
 		FMessageDialog::Open(EAppMsgType::Ok, FText::Format(NSLOCTEXT("UnrealEd", "CannotCreateBlueprintFromClass", "Cannot create a blueprint based on the class '{0}'."), Args));
 		return nullptr;
 	}
-
+	
 	// Create new Blueprint
 	UObject* NewObject = 
 	FKismetEditorUtilities::CreateBlueprint(
@@ -60,15 +60,13 @@ UObject* UInteractableComponentAssetFactory::FactoryCreateNew(UClass* Class, UOb
 		UBlueprintGeneratedClass::StaticClass(),
 		NAME_None
 	);
-
-	bool bModified = false;
 	
 	if (const auto DefaultWidgetClass = UActorInteractionFunctionLibrary::GetInteractableDefaultWidgetClass())
 	{
 		if (FClassProperty* WidgetClassProperty = FindFProperty<FClassProperty>(Class, "WidgetClass"))
 		{
+			UE_LOG(LogTemp, Warning, TEXT("[FactoryCreateNew] Using default Widget Class"))
 			WidgetClassProperty->SetPropertyClass(DefaultWidgetClass);
-			bModified = true;
 		}
 	}
 
@@ -79,13 +77,13 @@ UObject* UInteractableComponentAssetFactory::FactoryCreateNew(UClass* Class, UOb
 		{
 			if (FDataTableRowHandle* Value = DataTableProperty->ContainerPtrToValuePtr<FDataTableRowHandle>(DataTableProperty))
 			{
+				UE_LOG(LogTemp, Warning, TEXT("[FactoryCreateNew] Using default Data Table"))
 				Value->DataTable = DefaultTable;
-				bModified = true;
 			}
 		}	
 	}
 	
-	if (bModified) NewObject->Modify(true);
+	NewObject->Modify(true);
 	
 	return NewObject;
 }
