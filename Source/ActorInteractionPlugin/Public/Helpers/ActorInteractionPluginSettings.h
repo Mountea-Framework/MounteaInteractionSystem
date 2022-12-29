@@ -21,7 +21,7 @@ class ACTORINTERACTIONPLUGIN_API UActorInteractionPluginSettings : public UDevel
 	UActorInteractionPluginSettings()
 	{
 		CategoryName = TEXT("Mountea Framework");
-		SectionName = TEXT("Interaction");
+		SectionName = TEXT("Actor Interaction Plugin");
 	}
 
 	/* Defines how often is the Interaction widget updated per second.*/
@@ -39,7 +39,7 @@ class ACTORINTERACTIONPLUGIN_API UActorInteractionPluginSettings : public UDevel
 #if WITH_EDITOR
 	virtual FText GetSectionText() const override
 	{
-		return NSLOCTEXT("ActorInteractionPlugin", "MounteaSettingsDescription", "Interaction");
+		return NSLOCTEXT("ActorInteractionPlugin", "MounteaSettingsDescription", "Actor Interaction Plugin");
 	}
 
 	virtual FText GetSectionDescription() const override
