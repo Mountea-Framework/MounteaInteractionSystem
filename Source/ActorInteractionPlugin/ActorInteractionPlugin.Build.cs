@@ -10,10 +10,6 @@ public class ActorInteractionPlugin : ModuleRules
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 		bEnforceIWYU = true;
 		
-		PrecompileForTargets = PrecompileTargetsType.Any;
-		bPrecompile = true;
-		bUsePrecompiled = true;
-		
 		PublicIncludePaths.AddRange(
 			new string[] {
 				// ... add public include paths required here ...
