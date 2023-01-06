@@ -6,6 +6,7 @@
 #include "Utilities/ActorInteractionEditorUtilities.h"
 
 #include "Components/ActorInteractableComponentBase.h"
+#include "Helpers/ActorInteractionFunctionLibrary.h"
 #include "Kismet2/KismetEditorUtilities.h"
 
 #define LOCTEXT_NAMESPACE "ActorInteraction"
@@ -47,9 +48,10 @@ UObject* UInteractableComponentAssetFactory::FactoryCreateNew(UClass* Class, UOb
 		FMessageDialog::Open(EAppMsgType::Ok, FText::Format(NSLOCTEXT("UnrealEd", "CannotCreateBlueprintFromClass", "Cannot create a blueprint based on the class '{0}'."), Args));
 		return nullptr;
 	}
-
+	
 	// Create new Blueprint
-	return FKismetEditorUtilities::CreateBlueprint(
+	UObject* NewObject = 
+	FKismetEditorUtilities::CreateBlueprint(
 		ParentClass,
 		InParent,
 		Name,
@@ -58,6 +60,32 @@ UObject* UInteractableComponentAssetFactory::FactoryCreateNew(UClass* Class, UOb
 		UBlueprintGeneratedClass::StaticClass(),
 		NAME_None
 	);
+	
+	if (const auto DefaultWidgetClass = UActorInteractionFunctionLibrary::GetInteractableDefaultWidgetClass())
+	{
+		if (FClassProperty* WidgetClassProperty = FindFProperty<FClassProperty>(Class, "WidgetClass"))
+		{
+			UE_LOG(LogTemp, Warning, TEXT("[FactoryCreateNew] Using default Widget Class"))
+			WidgetClassProperty->SetPropertyClass(DefaultWidgetClass);
+		}
+	}
+
+	if (const auto DefaultTable = UActorInteractionFunctionLibrary::GetInteractableDefaultDataTable())
+	{
+		FStructProperty* DataTableProperty = FindFProperty<FStructProperty>(Class, "InteractableData");
+		if(DataTableProperty->Struct->IsChildOf(FDataTableRowHandle::StaticStruct()))
+		{
+			if (FDataTableRowHandle* Value = DataTableProperty->ContainerPtrToValuePtr<FDataTableRowHandle>(DataTableProperty))
+			{
+				UE_LOG(LogTemp, Warning, TEXT("[FactoryCreateNew] Using default Data Table"))
+				Value->DataTable = DefaultTable;
+			}
+		}	
+	}
+	
+	NewObject->Modify(true);
+	
+	return NewObject;
 }
 
 #undef LOCTEXT_NAMESPACE

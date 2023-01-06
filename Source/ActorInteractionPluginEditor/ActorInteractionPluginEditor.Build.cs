@@ -9,6 +9,10 @@ public class ActorInteractionPluginEditor : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 		bEnforceIWYU = true;
+		
+		PrecompileForTargets = PrecompileTargetsType.None;
+        bPrecompile = false;
+        bUsePrecompiled = false;
 
 		PublicDependencyModuleNames.AddRange
 			(
@@ -50,7 +54,9 @@ public class ActorInteractionPluginEditor : ModuleRules
 				
 				"MainFrame",
 				"ToolMenus",
-				"InputCore"
+				"InputCore",
+				
+				"UMG"
 			}
 		);
 		

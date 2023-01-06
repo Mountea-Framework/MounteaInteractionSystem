@@ -75,3 +75,5 @@ DerivedDataCache/*
 
 # Visual Studio
 .vscode/*
+.idea/*
+Config/UpdateConfig.ini
