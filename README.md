@@ -27,14 +27,13 @@ The things you need before running this plugin.
 Download the plugin (either from Releases or from Marketplace). For more detailed guide take a look at Wiki page.
 
 1. Download the branch release you are interested in
-2. Instal the plugin to your Game Project (within /Plugin folder)
-
+2. Install the plugin to your Game Project (within /Plugin folder)
 
 ## Usage
 
-A best way to describe the usage is to take a look or play the demo build.
+A best way to describe the usage is to take a look at video showcase or play the demo build.
 * Video: https://youtu.be/OCCcxqhCBkY
-* Build: https://drive.google.com/drive/u/1/folders/1AhKcrNtkHOD7D8MU5CzvJpjbR9l_Vi1p
+* Build: https://drive.google.com/file/d/1u7Ur9K5ipMTa3VuXbaYGWZ_OJSn_-fPw/
 
 ### Branches
 

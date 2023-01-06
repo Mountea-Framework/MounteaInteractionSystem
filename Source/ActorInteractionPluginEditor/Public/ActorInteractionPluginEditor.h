@@ -29,7 +29,7 @@ private:
 
 	TSharedPtr<class FInteractorComponentAssetActions> InteractorComponentAssetActions;
 	TSharedPtr<class FInteractableComponentAssetActions> InteractableComponentAssetActions;
-	
+
 public:
 	
 	/** This function will be bound to Command. */
