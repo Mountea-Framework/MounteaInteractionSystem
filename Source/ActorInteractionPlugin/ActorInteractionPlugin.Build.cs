@@ -8,6 +8,7 @@ public class ActorInteractionPlugin : ModuleRules
 	public ActorInteractionPlugin(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
+		bEnforceIWYU = true;
 		
 		PublicIncludePaths.AddRange(
 			new string[] {
@@ -50,14 +51,13 @@ public class ActorInteractionPlugin : ModuleRules
 				"InputCore",
 
 				"InteractionEditorNotifications",
-				
+
 #if UE_4_26_OR_LATER
 				"DeveloperSettings",
 #endif
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);
-		
 		
 		DynamicallyLoadedModuleNames.AddRange(
 			new string[]

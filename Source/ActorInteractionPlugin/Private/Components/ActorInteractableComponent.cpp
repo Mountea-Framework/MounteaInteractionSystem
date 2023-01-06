@@ -727,7 +727,6 @@ void UActorInteractableComponent::GetLifetimeReplicatedProps(TArray<FLifetimePro
 #pragma endregion Replication
 
 #if WITH_EDITOR
-
 void UActorInteractableComponent::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);

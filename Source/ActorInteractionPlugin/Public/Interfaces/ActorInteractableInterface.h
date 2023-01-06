@@ -278,7 +278,7 @@ public:
 	virtual void SetCollisionChannel(const ECollisionChannel& NewChannel) = 0;
 
 	virtual EInteractableLifecycle GetLifecycleMode() const = 0;
-	virtual void SetLifecycleMode(const EInteractableLifecycle& NewMode) = 0;
+	virtual void SetLifecycleMode(const EInteractableLifecycle NewMode) = 0;
 
 	virtual int32 GetLifecycleCount() const = 0;
 	virtual void SetLifecycleCount(const int32 NewLifecycleCount) = 0;
@@ -359,6 +359,8 @@ public:
 
 	virtual void InteractableDependencyStartedCallback(const TScriptInterface<IActorInteractableInterface>& NewMaster) = 0;
 	virtual void InteractableDependencyStoppedCallback(const TScriptInterface<IActorInteractableInterface>& FormerMaster) = 0;
+
+	virtual void SetDefaults() = 0;
 	
 	virtual FOnInteractableSelected& GetOnInteractableSelectedHandle() = 0;
 	virtual FInteractorFound& GetOnInteractorFoundHandle() = 0;
