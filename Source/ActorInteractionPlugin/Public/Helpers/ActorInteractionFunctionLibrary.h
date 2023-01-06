@@ -71,4 +71,18 @@ public:
 		AIntP_LOG(Error, TEXT("[GetInteractableDefaultWidgetClass] Cannot load ActorInteractionPluginSettings! Using null value."))
 		return nullptr;
 	}
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction", meta=(CompactNodeTitle="Default Interactable Data"))
+	static bool IsEditorDebugEnabled()
+	{
+		const UActorInteractionPluginSettings* Settings = GetMutableDefault<UActorInteractionPluginSettings>();
+
+		if (Settings)
+		{
+			return Settings->IsEditorDebugEnabled();
+		}
+		
+		AIntP_LOG(Error, TEXT("[GetInteractableDefaultWidgetClass] Cannot load ActorInteractionPluginSettings! Using null value."))
+		return false;
+	}
 };

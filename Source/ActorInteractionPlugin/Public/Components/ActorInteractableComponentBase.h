@@ -557,6 +557,14 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void SetComparisonMethod(const ETimingComparison Value) override;
 
+	/**
+	 * Finds default values from Developer settings and tries to set them for this component.
+	 * Will override current settings!
+	 * Will set those values only if not null.
+	 */
+	UFUNCTION(BlueprintCallable, CallInEditor, Category="Interaction", meta=(DisplayName="SetDefaults"))
+	virtual void SetDefaults() override;
+
 #pragma endregion
 
 #pragma region EventFunctions
@@ -573,9 +581,7 @@ protected:
 	virtual void InteractableSelected(const TScriptInterface<IActorInteractableInterface>& Interactable) override;
 
 	/**
-	 * Event called once Interactor is lost. Provides info which Interactor is lost.
-	 * This event is usually the first one in chain leading to Interaction Canceled.
-	 * Called by OnInteractorLost.
+	 * 
 	 */
 	UFUNCTION(Category="Interaction")
 	virtual void InteractableLost(const TScriptInterface<IActorInteractableInterface>& Interactable) override;
@@ -860,7 +866,7 @@ protected:
 	virtual void CleanupComponent();
 	virtual void FindAndAddCollisionShapes() override;
 	virtual void FindAndAddHighlightableMeshes() override;
-
+	
 	virtual bool TriggerCooldown() override;
 
 	UFUNCTION()	virtual void ToggleWidgetVisibility(const bool IsVisible) override;
@@ -919,8 +925,8 @@ protected:
 	bool ValidateInteractable() const;
 
 	virtual void UpdateInteractionWidget();
-
-	UFUNCTION()	void OnCooldownCompletedCallback();
+	
+	UFUNCTION()	virtual void OnCooldownCompletedCallback();
 	UFUNCTION() virtual void InteractableDependencyStartedCallback(const TScriptInterface<IActorInteractableInterface>& NewMaster) override;
 	UFUNCTION() virtual void InteractableDependencyStoppedCallback(const TScriptInterface<IActorInteractableInterface>& FormerMaster) override;
 
@@ -1029,7 +1035,7 @@ protected:
 	FInteractionCycleCompleted OnInteractionCycleCompleted;
 
 	/**
-	 * Event called once Interaction Starts.
+	 * Event called once Interaction Starts. 
 	 * Called by OnInteractionStarted
 	 */
 	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Interaction")
@@ -1207,11 +1213,12 @@ protected:
 
 	virtual FTimerHandle& GetCooldownHandle() override
 	{ return Timer_Cooldown; };
+
+	virtual FInteractableStateChanged& GetInteractableStateChanged() override
+	{ return OnInteractableStateChanged; };
 	
 	virtual FOnWidgetUpdated& WidgetUpdatedHandle()
 	{ return OnWidgetUpdated; };
-	virtual FInteractableStateChanged& GetInteractableStateChanged() override
-	{ return OnInteractableStateChanged; };
 
 #pragma endregion 
 
@@ -1337,7 +1344,7 @@ protected:
 	/**
 	 * List of Interactable Classes which are ignored
 	 */
-	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Optional", meta=(NoResetToDefault, AllowAbstract=false, MustImplement="ActorInteractorInterface", BlueprintBaseOnly))
+	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Optional", meta=(NoResetToDefault, AllowAbstract=false, MustImplement="/Script/ActorInteractionPlugin.ActorInteractorInterface", BlueprintBaseOnly))
 	TArray<TSoftClassPtr<UObject>> IgnoredClasses;
 	
 	/**
@@ -1516,6 +1523,8 @@ protected:
 	
 	virtual void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;
 	virtual EDataValidationResult IsDataValid(TArray<FText>& ValidationErrors) override;
+
+	virtual bool Modify(bool bAlwaysMarkDirty) override;
 
 #endif
 	

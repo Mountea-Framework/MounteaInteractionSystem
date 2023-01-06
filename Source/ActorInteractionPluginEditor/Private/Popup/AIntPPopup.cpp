@@ -52,7 +52,7 @@ void AIntPPopup::Open()
 		return;
 	}
 
-	TSharedRef<SBorder> WindowContent = SNew(SBorder)
+	const TSharedRef<SBorder> WindowContent = SNew(SBorder)
 			.BorderImage(FCoreStyle::Get().GetBrush("ToolPanel.GroupBorder"))
 			.Padding(FMargin(8.0f, 8.0f));
 
@@ -71,7 +71,7 @@ void AIntPPopup::Open()
 	const FSlateFontInfo HeadingFont = FCoreStyle::GetDefaultFontStyle("Regular", 24);
 	const FSlateFontInfo ContentFont = FCoreStyle::GetDefaultFontStyle("Regular", 12);
 
-	TSharedRef<SVerticalBox> InnerContent = SNew(SVerticalBox)
+	const TSharedRef<SVerticalBox> InnerContent = SNew(SVerticalBox)
 		// Default settings example
 		+ SVerticalBox::Slot()
 		  .AutoHeight()
@@ -99,7 +99,7 @@ void AIntPPopup::Open()
 
 First thing first, if you've been enjoying using it, it would mean a lot if you could just drop <a id="browser" href="https://bit.ly/AIntP_UE4Marketplace">a small review on the marketplace page</> :).
 
-I also made a paid <a id="browser" href="https://bit.ly/ModularSwordsPack_UE4Marketplace">Modular Sword Pack</>. It's a simple yet powerful tool which allows creating thousands upon thousands unique swords with simple click, not coming with free upgrade of Modular Scabbard System!
+I also made a paid <a id="browser" href="https://bit.ly/ModularSwordsPack_UE4Marketplace">Modular Sword Pack</>. It's a simple yet powerful tool that allows creating thousands upon thousands of unique swords with a simple click, now with a free upgrade of Modular Scabbard System!
 					
 But let's keep it short, here are the cool new features (and bugfixes) of version 3.0!
 
@@ -189,7 +189,7 @@ But let's keep it short, here are the cool new features (and bugfixes) of versio
 			+ SHorizontalBox::Slot().FillWidth(1.0f)
 			[
 				SNew(SButton)
-				.Text(FText::FromString("Close this window"))
+				.Text(FText::FromString("Close window"))
 				.HAlign(HAlign_Center)
 				.OnClicked_Lambda([Window]()
 				{
