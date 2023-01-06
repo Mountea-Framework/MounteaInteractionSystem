@@ -557,6 +557,14 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void SetComparisonMethod(const ETimingComparison Value) override;
 
+	/**
+	 * Finds default values from Developer settings and tries to set them for this component.
+	 * Will override current settings!
+	 * Will set those values only if not null.
+	 */
+	UFUNCTION(BlueprintCallable, CallInEditor, Category="Interaction", meta=(DisplayName="SetDefaults"))
+	virtual void SetDefaults() override;
+
 #pragma endregion
 
 #pragma region EventFunctions
@@ -1517,6 +1525,8 @@ protected:
 	
 	virtual void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;
 	virtual EDataValidationResult IsDataValid(TArray<FText>& ValidationErrors) override;
+
+	virtual bool Modify(bool bAlwaysMarkDirty) override;
 
 #endif
 	
