@@ -1346,7 +1346,7 @@ protected:
 	/**
 	 * List of Interactable Classes which are ignored
 	 */
-	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Optional", meta=(NoResetToDefault, AllowAbstract=false, MustImplement="ActorInteractorInterface", BlueprintBaseOnly))
+	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Optional", meta=(NoResetToDefault, AllowAbstract=false, MustImplement="/Script/ActorInteractionPlugin.ActorInteractorInterface", BlueprintBaseOnly))
 	TArray<TSoftClassPtr<UObject>> IgnoredClasses;
 	
 	/**
