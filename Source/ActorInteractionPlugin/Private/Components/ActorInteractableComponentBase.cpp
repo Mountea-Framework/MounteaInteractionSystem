@@ -168,7 +168,7 @@ void UActorInteractableComponentBase::OnRegister()
 		SpriteComponent->RegisterComponent();
 	}
 #endif
-
+	
 	Super::OnRegister();
 }
 
@@ -1129,6 +1129,22 @@ ETimingComparison UActorInteractableComponentBase::GetComparisonMethod() const
 void UActorInteractableComponentBase::SetComparisonMethod(const ETimingComparison Value)
 { ComparisonMethod = Value; }
 
+void UActorInteractableComponentBase::SetDefaults()
+{
+	if (const auto DefaultTable = UActorInteractionFunctionLibrary::GetInteractableDefaultDataTable())
+	{
+		InteractableData.DataTable = DefaultTable;
+	}
+	
+	if (const auto DefaultWidgetClass = UActorInteractionFunctionLibrary::GetInteractableDefaultWidgetClass())
+	{
+		if (DefaultWidgetClass != nullptr)
+		{
+			SetWidgetClass(DefaultWidgetClass.Get());
+		}
+	}
+}
+
 void UActorInteractableComponentBase::InteractorFound(const TScriptInterface<IActorInteractorInterface>& FoundInteractor)
 {
 	if (CanBeTriggered())
@@ -1996,6 +2012,56 @@ EDataValidationResult UActorInteractableComponentBase::IsDataValid(TArray<FText>
 	
 	return bAnyError ? EDataValidationResult::Invalid : DefaultValue;
 }
+
+bool UActorInteractableComponentBase::Modify(bool bAlwaysMarkDirty)
+{
+	const bool bResult = Super::Modify(bAlwaysMarkDirty);
+
+	const bool bShouldNotify =
+	{
+		GetOwner() != nullptr &&
+		UActorInteractionFunctionLibrary::IsEditorDebugEnabled() &&
+		(
+			InteractableData.DataTable == nullptr ||
+			GetWidgetClass() == nullptr
+		)
+	};
+
+	if (bShouldNotify)
+	{
+		FString interactableName = GetName();
+		// Format Name
+		{
+			if (interactableName.Contains(TEXT("_GEN_VARIABLE")))
+			{
+				interactableName.ReplaceInline(TEXT("_GEN_VARIABLE"), TEXT(""));
+			}
+			if (interactableName.Contains(TEXT("SKEL_")))
+			{
+				interactableName.ReplaceInline(TEXT("SKEL_"), TEXT(""));
+			}
+			if(interactableName.EndsWith(TEXT("_C")) && interactableName.StartsWith(TEXT("Default__")))
+			{
+		
+				interactableName.RightChopInline(9);
+				interactableName.LeftChopInline(2);
+			}
+		}
+
+		FString ownerName;
+		GetOwner()->GetName(ownerName);
+		
+		const FText ErrorMessage = FText::FromString
+		(
+			interactableName.Append(" from ").Append(ownerName).Append(TEXT(": Interactable Data or Widget Class are not valid! Use 'SetDefaults' to avoid issues!"))
+		);
+		FEditorHelper::DisplayEditorNotification(ErrorMessage, SNotificationItem::CS_Fail, 5.f, 2.f, TEXT("Icons.Info"));
+
+	}
+	
+	return bResult;
+}
+
 #endif
 
 void UActorInteractableComponentBase::DrawDebug()

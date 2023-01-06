@@ -337,6 +337,8 @@ public:
 
 	virtual void InteractableDependencyStartedCallback(const TScriptInterface<IActorInteractableInterface>& NewMaster) = 0;
 	virtual void InteractableDependencyStoppedCallback(const TScriptInterface<IActorInteractableInterface>& FormerMaster) = 0;
+
+	virtual void SetDefaults() = 0;
 	
 	virtual FOnInteractableSelected& GetOnInteractableSelectedHandle() = 0;
 	virtual FInteractorFound& GetOnInteractorFoundHandle() = 0;

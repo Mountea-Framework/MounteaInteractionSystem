@@ -24,12 +24,16 @@ class ACTORINTERACTIONPLUGIN_API UActorInteractionPluginSettings : public UDevel
 		SectionName = TEXT("Actor Interaction Plugin");
 	}
 
+	/* Defines whether in-editor debug is enabled. */
+	UPROPERTY(config, EditAnywhere, Category="Editor")
+	uint8 bEditorDebugEnabled : 1;
+
 	/* Defines how often is the Interaction widget updated per second.*/
 	UPROPERTY(config, EditAnywhere, Category = "Widgets", meta=(Units="s", UIMin=0.001, ClampMin=0.001, ConfigRestartRequired = true))
 	float WidgetUpdateFrequency = 0.05f;
 
 	/* Defines default Interactable Widget class.*/
-	UPROPERTY(config, EditAnywhere, Category = "Widgets", meta=(AllowedClasses="UserWidget", MustImplement="ActorInteractionWidget", ConfigRestartRequired = true))
+	UPROPERTY(config, EditAnywhere, Category = "Widgets", meta=(AllowedClasses="UserWidget", MustImplement="/Script/ActorInteractionPlugin.ActorInteractionWidget", ConfigRestartRequired = true))
 	TSoftClassPtr<UUserWidget>InteractableDefaultWidgetClass;
 	
 	/* Defines default DataTable which contains Interactable data values.*/
@@ -54,6 +58,9 @@ class ACTORINTERACTIONPLUGIN_API UActorInteractionPluginSettings : public UDevel
 #endif
 
 public:
+
+	bool IsEditorDebugEnabled() const
+	{ return bEditorDebugEnabled; };
 
 	float GetWidgetUpdateFrequency() const
 	{ return WidgetUpdateFrequency; }
