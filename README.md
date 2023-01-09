@@ -34,7 +34,7 @@ Download the plugin (either from Releases or from Marketplace). For more detaile
 
 A best way to describe the usage is to take a look or play the demo build.
 * Video: https://youtu.be/OCCcxqhCBkY
-* Build: https://drive.google.com/drive/u/1/folders/1AhKcrNtkHOD7D8MU5CzvJpjbR9l_Vi1p
+* Build: https://bit.ly/Mountea_InteractionDemo
 
 ### Branches
 
