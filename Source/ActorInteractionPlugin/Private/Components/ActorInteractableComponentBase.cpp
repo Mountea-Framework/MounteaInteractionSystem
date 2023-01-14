@@ -249,34 +249,10 @@ bool UActorInteractableComponentBase::WakeUpInteractable(FString& ErrorMessage)
 
 bool UActorInteractableComponentBase::SnoozeInteractable(FString& ErrorMessage)
 {
-	const EInteractableStateV2 CachedState = GetState();
+	DeactivateInteractable();
 
-	SetState(EInteractableStateV2::EIS_Asleep);
-
-	switch (CachedState)
-	{
-		case EInteractableStateV2::EIS_Asleep:
-			ErrorMessage.Append(TEXT("Interactable Component is already Asleep"));
-			break;
-		case EInteractableStateV2::EIS_Awake:
-		case EInteractableStateV2::EIS_Suppressed:
-		case EInteractableStateV2::EIS_Active:
-		case EInteractableStateV2::EIS_Disabled:
-			ErrorMessage.Append(TEXT("Interactable Component has been Asleep"));
-			return true;
-		case EInteractableStateV2::EIS_Cooldown:
-			ErrorMessage.Append(TEXT("Interactable Component has been Asleep"));
-			return true;
-		case EInteractableStateV2::EIS_Completed:
-			ErrorMessage.Append(TEXT("Interactable Component cannot be Asleep"));
-			break;
-		case EInteractableStateV2::Default: 
-		default:
-			ErrorMessage.Append(TEXT("Interactable Component cannot proces activation request, invalid state"));
-			break;
-	}
-	
-	return false;
+	ErrorMessage.Append(TEXT("Interactable Component has been Deactivated. Asleep state is now deprecated."));
+	return true;
 }
 
 bool UActorInteractableComponentBase::CompleteInteractable(FString& ErrorMessage)

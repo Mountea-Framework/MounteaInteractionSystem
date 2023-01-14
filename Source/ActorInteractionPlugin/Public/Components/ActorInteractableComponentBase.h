@@ -86,7 +86,7 @@ public:
 	 * If fails, returns False and updates ErrorMessage
 	 * @param ErrorMessage Short explanation.
 	 */
-	UFUNCTION(BlueprintCallable, Category="Interaction")
+	UFUNCTION(BlueprintCallable, Category="Interaction", meta = (DeprecatedFunction, DeprecationMessage = "Please use UActorInteractableComponentBase::DeactivateInteractable instead."))
 	virtual bool SnoozeInteractable(FString& ErrorMessage) override;
 	/**
 	 * Tries to set state of this Interactable to Completed. 
