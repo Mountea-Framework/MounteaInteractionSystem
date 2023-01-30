@@ -29,8 +29,8 @@ UActorInteractableComponentBase::UActorInteractableComponentBase()
 	
 	SetupType = ESetupType::EST_Quick;
 
-	InteractableState = EInteractableStateV2::EIS_Asleep;
-	DefaultInteractableState = EInteractableStateV2::EIS_Asleep;
+	InteractableState = EInteractableStateV2::EIS_Awake;
+	DefaultInteractableState = EInteractableStateV2::EIS_Awake;
 	InteractionWeight = 1;
 	
 	bInteractionHighlight = true;

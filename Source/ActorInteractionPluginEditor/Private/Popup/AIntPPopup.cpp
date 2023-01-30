@@ -20,7 +20,7 @@ void AIntPPopup::Register()
 {
 	const FString PluginDirectory = IPluginManager::Get().FindPlugin(TEXT("ActorInteractionPlugin"))->GetBaseDir();
 	const FString UpdatedConfigFile = PluginDirectory + "/Config/UpdateConfig.ini";
-	const FString CurrentPluginVersion = "3.0";
+	const FString CurrentPluginVersion = "3.1";
 
 	UAIntPPopupConfig* AIntPPopupConfig = GetMutableDefault<UAIntPPopupConfig>();
 
@@ -79,7 +79,7 @@ void AIntPPopup::Open()
 		[
 			SNew(STextBlock)
 			.Font(HeadingFont)
-			.Text(FText::FromString("Actor Interaction Plugin v3.0"))
+			.Text(FText::FromString("Actor Interaction Plugin v3.1"))
 			.Justification(ETextJustify::Center)
 		]
 		+ SVerticalBox::Slot()
@@ -101,7 +101,21 @@ First thing first, if you've been enjoying using it, it would mean a lot if you 
 
 I also made a paid <a id="browser" href="https://bit.ly/ModularSwordsPack_UE4Marketplace">Modular Sword Pack</>. It's a simple yet powerful tool that allows creating thousands upon thousands of unique swords with a simple click, now with a free upgrade of Modular Scabbard System!
 					
-But let's keep it short, here are the cool new features (and bugfixes) of version 3.0!
+But let's keep it short, here are the cool new features (and bugfixes) of version 3.1!
+
+<LargeText>Version 3.1</>
+
+<RichTextBlock.Bold>Features</>
+
+* Improved performance for Consoles and Mobile devices
+
+<RichTextBlock.Bold>Bugfixes</>
+
+* Fixed issue when swapping states of Interactable returns to Default state
+
+<RichTextBlock.Bold>Updates</>
+* Add <RichTextBlock.Bold>DEPRECATED</> to SnoozeInteractable
+* <RichTextBlock.Bold>DEPRECATED</> Interactable State <RichTextBlock.Italic>Asleep</>
 
 <LargeText>Version 3.0</>
 
@@ -118,6 +132,8 @@ But let's keep it short, here are the cool new features (and bugfixes) of versio
 <RichTextBlock.Bold>Bugfixes</>
 
 * Fix missed descriptions
+
+<RichTextBlock.Bold>Updates</>
 * Add <RichTextBlock.Bold>DEPRECATED</> to old Component Classes
 )"))
 					.TextStyle(FEditorStyle::Get(), "NormalText")
@@ -176,6 +192,19 @@ But let's keep it short, here are the cool new features (and bugfixes) of versio
 				.OnClicked_Lambda([]()
 				{
 					const FString URL = "https://discord.gg/2vXWEEN";
+					FPlatformProcess::LaunchURL(*URL, nullptr, nullptr);
+
+					return FReply::Handled();
+				})
+			]
+			+ SHorizontalBox::Slot().FillWidth(1.0f)
+			[
+				SNew(SButton)
+				.Text(FText::FromString("Unreal Bucket"))
+				.HAlign(HAlign_Center)
+				.OnClicked_Lambda([Window]()
+				{
+					const FString URL = "https://www.unrealengine.com/marketplace/en-US/product/3ce48046720d4a66b4f804b0d135a820";
 					FPlatformProcess::LaunchURL(*URL, nullptr, nullptr);
 
 					return FReply::Handled();
