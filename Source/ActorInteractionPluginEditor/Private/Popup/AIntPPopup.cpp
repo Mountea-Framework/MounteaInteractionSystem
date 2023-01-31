@@ -197,6 +197,11 @@ But let's keep it short, here are the cool new features (and bugfixes) of versio
 					return FReply::Handled();
 				})
 			]
+			+ SHorizontalBox::Slot().AutoWidth()
+			[
+				SNew(SSpacer)
+				.Size(FVector2D(20, 10))
+			]
 			+ SHorizontalBox::Slot().FillWidth(1.0f)
 			[
 				SNew(SButton)
