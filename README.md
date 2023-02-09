@@ -16,11 +16,22 @@ Developed with Game Developers in mind to allow as easy as possible implementati
 
 Join support and community Discord!
 
-### Prerequisites
+### Compatible Engine Version
 
-The things you need before running this plugin.
+## Legend
+🟩 - Supported
+🟨 - WIP
+🟪 - Deprecated
+🟥 - Partially supported
 
-* Unreal Engine (supports from 4.26 to newest version)
+## Suport Table
+Engine Version | Plugin Version | Support
+-------------- | -------------- | ----
+UE 4.25 | 2.0.0.0 | 🟪
+UE 4.26 | 3.0.1.2 | 🟥
+UE 4.27 | 3.0.1.2 | 🟩
+UE 5.00 | 3.0.1.2 | 🟩
+UE 5.1 | 3.0.1.2 | 🟩
 
 ### Installation
 
