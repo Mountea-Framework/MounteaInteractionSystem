@@ -103,13 +103,13 @@ public:
 	 * @param InputKey Optional Key. Some Interactions might require this value to perform checks.
 	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
-	virtual void StartInteraction(const float StartTime, const FKey& InputKey) override;
+	virtual void StartInteraction(const float StartTime, FKey InputKey) override;
 	/**
 	 * Function to stop interaction.
 	 * No conditions required.
 	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
-	virtual void StopInteraction(const float StartTime, const FKey& InputKey) override;
+	virtual void StopInteraction(const float StartTime, FKey InputKey) override;
 
 
 	/**
