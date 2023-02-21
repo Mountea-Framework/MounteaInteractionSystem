@@ -29,8 +29,8 @@ UActorInteractableComponentBase::UActorInteractableComponentBase()
 	
 	SetupType = ESetupType::EST_Quick;
 
-	InteractableState = EInteractableStateV2::EIS_Asleep;
-	DefaultInteractableState = EInteractableStateV2::EIS_Asleep;
+	InteractableState = EInteractableStateV2::EIS_Awake;
+	DefaultInteractableState = EInteractableStateV2::EIS_Awake;
 	InteractionWeight = 1;
 	
 	bInteractionHighlight = true;
@@ -249,34 +249,10 @@ bool UActorInteractableComponentBase::WakeUpInteractable(FString& ErrorMessage)
 
 bool UActorInteractableComponentBase::SnoozeInteractable(FString& ErrorMessage)
 {
-	const EInteractableStateV2 CachedState = GetState();
+	DeactivateInteractable();
 
-	SetState(EInteractableStateV2::EIS_Asleep);
-
-	switch (CachedState)
-	{
-		case EInteractableStateV2::EIS_Asleep:
-			ErrorMessage.Append(TEXT("Interactable Component is already Asleep"));
-			break;
-		case EInteractableStateV2::EIS_Awake:
-		case EInteractableStateV2::EIS_Suppressed:
-		case EInteractableStateV2::EIS_Active:
-		case EInteractableStateV2::EIS_Disabled:
-			ErrorMessage.Append(TEXT("Interactable Component has been Asleep"));
-			return true;
-		case EInteractableStateV2::EIS_Cooldown:
-			ErrorMessage.Append(TEXT("Interactable Component has been Asleep"));
-			return true;
-		case EInteractableStateV2::EIS_Completed:
-			ErrorMessage.Append(TEXT("Interactable Component cannot be Asleep"));
-			break;
-		case EInteractableStateV2::Default: 
-		default:
-			ErrorMessage.Append(TEXT("Interactable Component cannot proces activation request, invalid state"));
-			break;
-	}
-	
-	return false;
+	ErrorMessage.Append(TEXT("Interactable Component has been Deactivated. Asleep state is now deprecated."));
+	return true;
 }
 
 bool UActorInteractableComponentBase::CompleteInteractable(FString& ErrorMessage)
@@ -1913,7 +1889,7 @@ void UActorInteractableComponentBase::PostEditChangeChainProperty(FPropertyChang
 		(
 			interactableName.Append(TEXT(": UI Space changed! Component Scale has been updated. Update 'DrawSize' to match new Widget Space!"))
 		);
-		FEditorHelper::DisplayEditorNotification(ErrorMessage, SNotificationItem::CS_Fail, 5.f, 2.f, TEXT("Icons.Info"));
+		FEditorHelper::DisplayEditorNotification(ErrorMessage, SNotificationItem::CS_Fail, 5.f, 2.f, TEXT("NotificationList.DefaultMessage"));
 	}
 }
 
@@ -2055,7 +2031,7 @@ bool UActorInteractableComponentBase::Modify(bool bAlwaysMarkDirty)
 		(
 			interactableName.Append(" from ").Append(ownerName).Append(TEXT(": Interactable Data or Widget Class are not valid! Use 'SetDefaults' to avoid issues!"))
 		);
-		FEditorHelper::DisplayEditorNotification(ErrorMessage, SNotificationItem::CS_Fail, 5.f, 2.f, TEXT("Icons.Info"));
+		FEditorHelper::DisplayEditorNotification(ErrorMessage, SNotificationItem::CS_Fail, 5.f, 2.f, TEXT("NotificationList.DefaultMessage"));
 
 	}
 	
