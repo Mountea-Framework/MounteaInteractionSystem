@@ -20,7 +20,7 @@ void AIntPPopup::Register()
 {
 	const FString PluginDirectory = IPluginManager::Get().FindPlugin(TEXT("ActorInteractionPlugin"))->GetBaseDir();
 	const FString UpdatedConfigFile = PluginDirectory + "/Config/UpdateConfig.ini";
-	const FString CurrentPluginVersion = "3.0";
+	const FString CurrentPluginVersion = "3.0.1.3";
 
 	UAIntPPopupConfig* AIntPPopupConfig = GetMutableDefault<UAIntPPopupConfig>();
 
@@ -79,7 +79,7 @@ void AIntPPopup::Open()
 		[
 			SNew(STextBlock)
 			.Font(HeadingFont)
-			.Text(FText::FromString("Actor Interaction Plugin v3.0"))
+			.Text(FText::FromString("Actor Interaction Plugin v3.1"))
 			.Justification(ETextJustify::Center)
 		]
 		+ SVerticalBox::Slot()
@@ -99,9 +99,24 @@ void AIntPPopup::Open()
 
 First thing first, if you've been enjoying using it, it would mean a lot if you could just drop <a id="browser" href="https://bit.ly/AIntP_UE4Marketplace">a small review on the marketplace page</> :).
 
-I also made a paid <a id="browser" href="https://bit.ly/ModularSwordsPack_UE4Marketplace">Modular Sword Pack</>. It's a simple yet powerful tool which allows creating thousands upon thousands unique swords with simple click, not coming with free upgrade of Modular Scabbard System!
+I also made a paid <a id="browser" href="https://bit.ly/ModularSwordsPack_UE4Marketplace">Modular Sword Pack</>. It's a simple yet powerful tool that allows creating thousands upon thousands of unique swords with a simple click, now with a free upgrade of Modular Scabbard System!
 					
-But let's keep it short, here are the cool new features (and bugfixes) of version 3.0!
+But let's keep it short, here are the cool new features (and bugfixes) of version 3.1!
+
+<LargeText>Version 3.1</>
+
+<RichTextBlock.Bold>Features</>
+
+* Improved performance for Consoles and Mobile devices
+
+<RichTextBlock.Bold>Bugfixes</>
+
+* Fixed issue when swapping states of Interactable returns to Default state
+
+<RichTextBlock.Bold>Updates</>
+* Add <RichTextBlock.Bold>DEPRECATED</> to SnoozeInteractable
+* <RichTextBlock.Bold>DEPRECATED</> Interactable State <RichTextBlock.Italic>Asleep</>
+* Interactor does not longer require <RichTextBlock.Bold>Key</> input and it has become optional
 
 <LargeText>Version 3.0</>
 
@@ -118,6 +133,8 @@ But let's keep it short, here are the cool new features (and bugfixes) of versio
 <RichTextBlock.Bold>Bugfixes</>
 
 * Fix missed descriptions
+
+<RichTextBlock.Bold>Updates</>
 * Add <RichTextBlock.Bold>DEPRECATED</> to old Component Classes
 )"))
 					.TextStyle(FEditorStyle::Get(), "NormalText")
