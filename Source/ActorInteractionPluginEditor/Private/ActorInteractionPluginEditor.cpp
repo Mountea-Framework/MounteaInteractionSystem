@@ -20,6 +20,7 @@
 #include "Utilities/ActorInteractionEditorUtilities.h"
 
 #include "ToolMenus.h"
+#include "Helpers/ActorInteractionPluginLog.h"
 
 #include "Interfaces/IMainFrameModule.h"
 
@@ -194,6 +195,7 @@ void FActorInteractionPluginEditor::HandleNewInteractorBlueprintCreated(UBluepri
 	}
 	
 	Blueprint->BlueprintCategory = FString("Interaction");
+	Blueprint->BroadcastChanged();
 }
 
 void FActorInteractionPluginEditor::HandleNewInteractableBlueprintCreated(UBlueprint* Blueprint)
@@ -210,12 +212,14 @@ void FActorInteractionPluginEditor::HandleNewInteractableBlueprintCreated(UBluep
 		GET_FUNCTION_NAME_CHECKED(UActorInteractableComponentBase, CanInteractEvent),
 		UActorInteractableComponentBase::StaticClass()
 	);
+	
 	if (FunctionGraph)
 	{
 		Blueprint->LastEditedDocuments.Add(FunctionGraph);
 	}
 
 	Blueprint->BlueprintCategory = FString("Interaction");
+	Blueprint->BroadcastChanged();
 }
 
 void FActorInteractionPluginEditor::PluginButtonClicked()

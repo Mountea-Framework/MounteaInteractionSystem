@@ -67,26 +67,6 @@ UActorInteractableComponentBase::UActorInteractableComponentBase()
 
 	CachedInteractionWeight = InteractionWeight;
 
-	// Setup default Data Table
-	if (InteractableData.IsNull())
-	{
-		const auto DefaultTable = UActorInteractionFunctionLibrary::GetInteractableDefaultDataTable();
-		if (DefaultTable != nullptr)
-		{
-			InteractableData.DataTable = DefaultTable;
-		}
-	}
-
-	// Setup default Widget Class
-	if (GetWidgetClass() == nullptr)
-	{
-		const auto DefaultWidgetClass = UActorInteractionFunctionLibrary::GetInteractableDefaultWidgetClass();
-		if (DefaultWidgetClass != nullptr)
-		{
-			SetWidgetClass(DefaultWidgetClass.Get());
-		}
-	}
-
 #if WITH_EDITORONLY_DATA
 	bVisualizeComponent = true;
 #endif
@@ -172,6 +152,10 @@ void UActorInteractableComponentBase::InitWidget()
 
 void UActorInteractableComponentBase::OnRegister()
 {
+	
+#if WITH_EDITOR
+	//FindAndSetDefaults();
+#endif
 	
 #if WITH_EDITORONLY_DATA
 	if (bVisualizeComponent && SpriteComponent == nullptr && GetOwner() && !GetWorld()->IsGameWorld() )
@@ -481,7 +465,12 @@ void UActorInteractableComponentBase::SetState(const EInteractableStateV2 NewSta
 				case EInteractableStateV2::EIS_Disabled:
 					{
 						InteractableState = NewState;
-						CleanupComponent();
+
+						// Replacing Cleanup
+						StopHighlight();
+						OnInteractableStateChanged.Broadcast(InteractableState);
+						if (GetWorld()) GetWorld()->GetTimerManager().ClearAllTimersForObject(this);
+						OnInteractorLost.Broadcast(Interactor);
 						
 						for (const auto Itr : CollisionComponents)
 						{
@@ -508,7 +497,12 @@ void UActorInteractableComponentBase::SetState(const EInteractableStateV2 NewSta
 				case EInteractableStateV2::EIS_Disabled:
 					{
 						InteractableState = NewState;
-						CleanupComponent();
+
+						// Replacing Cleanup
+						StopHighlight();
+						OnInteractableStateChanged.Broadcast(InteractableState);
+						if (GetWorld()) GetWorld()->GetTimerManager().ClearAllTimersForObject(this);
+						OnInteractorLost.Broadcast(Interactor);
 						
 						for (const auto Itr : CollisionComponents)
 						{
@@ -553,7 +547,12 @@ void UActorInteractableComponentBase::SetState(const EInteractableStateV2 NewSta
 				case EInteractableStateV2::EIS_Asleep:
 					{
 						InteractableState = NewState;
-						CleanupComponent();
+
+						// Replacing Cleanup
+						StopHighlight();
+						OnInteractableStateChanged.Broadcast(InteractableState);
+						if (GetWorld()) GetWorld()->GetTimerManager().ClearAllTimersForObject(this);
+						OnInteractorLost.Broadcast(Interactor);
 						
 						for (const auto Itr : CollisionComponents)
 						{
@@ -884,7 +883,7 @@ TArray<UPrimitiveComponent*> UActorInteractableComponentBase::GetCollisionCompon
 EInteractableLifecycle UActorInteractableComponentBase::GetLifecycleMode() const
 {	return LifecycleMode;}
 
-void UActorInteractableComponentBase::SetLifecycleMode(const EInteractableLifecycle& NewMode)
+void UActorInteractableComponentBase::SetLifecycleMode(const EInteractableLifecycle NewMode)
 {
 	LifecycleMode = NewMode;
 
@@ -1189,6 +1188,22 @@ ETimingComparison UActorInteractableComponentBase::GetComparisonMethod() const
 
 void UActorInteractableComponentBase::SetComparisonMethod(const ETimingComparison Value)
 { ComparisonMethod = Value; }
+
+void UActorInteractableComponentBase::SetDefaults()
+{
+	if (const auto DefaultTable = UActorInteractionFunctionLibrary::GetInteractableDefaultDataTable())
+	{
+		InteractableData.DataTable = DefaultTable;
+	}
+	
+	if (const auto DefaultWidgetClass = UActorInteractionFunctionLibrary::GetInteractableDefaultWidgetClass())
+	{
+		if (DefaultWidgetClass != nullptr)
+		{
+			SetWidgetClass(DefaultWidgetClass.Get());
+		}
+	}
+}
 
 void UActorInteractableComponentBase::InteractorFound(const TScriptInterface<IActorInteractorInterface>& FoundInteractor)
 {
@@ -1959,7 +1974,7 @@ void UActorInteractableComponentBase::PostEditChangeChainProperty(FPropertyChang
 		(
 			interactableName.Append(TEXT(": UI Space changed! Component Scale has been updated. Update 'DrawSize' to match new Widget Space!"))
 		);
-		FEditorHelper::DisplayEditorNotification(ErrorMessage, SNotificationItem::CS_Fail, 5.f, 2.f, TEXT("Icons.Info"));
+		FEditorHelper::DisplayEditorNotification(ErrorMessage, SNotificationItem::CS_Fail, 5.f, 2.f, TEXT("NotificationList.DefaultMessage"));
 	}
 }
 
@@ -2058,6 +2073,56 @@ EDataValidationResult UActorInteractableComponentBase::IsDataValid(TArray<FText>
 	
 	return bAnyError ? EDataValidationResult::Invalid : DefaultValue;
 }
+
+bool UActorInteractableComponentBase::Modify(bool bAlwaysMarkDirty)
+{
+	const bool bResult = Super::Modify(bAlwaysMarkDirty);
+
+	const bool bShouldNotify =
+	{
+		GetOwner() != nullptr &&
+		UActorInteractionFunctionLibrary::IsEditorDebugEnabled() &&
+		(
+			InteractableData.DataTable == nullptr ||
+			GetWidgetClass() == nullptr
+		)
+	};
+
+	if (bShouldNotify)
+	{
+		FString interactableName = GetName();
+		// Format Name
+		{
+			if (interactableName.Contains(TEXT("_GEN_VARIABLE")))
+			{
+				interactableName.ReplaceInline(TEXT("_GEN_VARIABLE"), TEXT(""));
+			}
+			if (interactableName.Contains(TEXT("SKEL_")))
+			{
+				interactableName.ReplaceInline(TEXT("SKEL_"), TEXT(""));
+			}
+			if(interactableName.EndsWith(TEXT("_C")) && interactableName.StartsWith(TEXT("Default__")))
+			{
+		
+				interactableName.RightChopInline(9);
+				interactableName.LeftChopInline(2);
+			}
+		}
+
+		FString ownerName;
+		GetOwner()->GetName(ownerName);
+		
+		const FText ErrorMessage = FText::FromString
+		(
+			interactableName.Append(" from ").Append(ownerName).Append(TEXT(": Interactable Data or Widget Class are not valid! Use 'SetDefaults' to avoid issues!"))
+		);
+		FEditorHelper::DisplayEditorNotification(ErrorMessage, SNotificationItem::CS_Fail, 5.f, 2.f, TEXT("NotificationList.DefaultMessage"));
+
+	}
+	
+	return bResult;
+}
+
 #endif
 
 void UActorInteractableComponentBase::DrawDebug()
