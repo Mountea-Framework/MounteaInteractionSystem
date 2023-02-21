@@ -20,8 +20,8 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractableSelected, const TScript
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractableFound, const TScriptInterface<IActorInteractableInterface>&, FoundInteractable);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractableLost, const TScriptInterface<IActorInteractableInterface>&, LostInteractable);
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FInteractionKeyPressed, const float&, TimeKeyPressed, const FKey&, PressedKey);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FInteractionKeyReleased, const float&, TimeKeyReleased, const FKey&, ReleasedKey);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FInteractionKeyPressed, const float&, TimeKeyPressed,  FKey, PressedKey);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FInteractionKeyReleased, const float&, TimeKeyReleased,  FKey, ReleasedKey);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FIgnoredActorAdded, const AActor*, AddedActor);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FIgnoredActorRemoved, const AActor*, RemovedActor);
@@ -80,7 +80,7 @@ public:
 	 * @param PressedKey Key which was pressed
 	 */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Interaction")
-	void OnInteractionKeyPressedEvent(const float& TimeKeyPressed, const FKey& PressedKey);
+	void OnInteractionKeyPressedEvent(const float& TimeKeyPressed, FKey PressedKey);
 	void OnInteractionKeyPressedEvent_Implementation(const float& TimeKeyPressed, const FKey& PressedKey)
 	{
 		StartInteraction(TimeKeyPressed, PressedKey);
@@ -95,7 +95,7 @@ public:
 	 * @param ReleasedKey Key which was released
 	 */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Interaction")
-	void OnInteractionKeyReleasedEvent(const float& TimeKeyReleased, const FKey& ReleasedKey);
+	void OnInteractionKeyReleasedEvent(const float& TimeKeyReleased, FKey ReleasedKey);
 	void OnInteractionKeyReleasedEvent_Implementation(const float& TimeKeyReleased, const FKey& ReleasedKey)
 	{
 		StopInteraction(TimeKeyReleased, ReleasedKey);
@@ -158,8 +158,8 @@ public:
 
 	virtual bool IsValidInteractor() const = 0;
 		
-	virtual void StartInteraction(const float StartTime, const FKey& InputKey) = 0;
-	virtual void StopInteraction(const float StartTime, const FKey& InputKey) = 0;
+	virtual void StartInteraction(const float StartTime, FKey InputKey) = 0;
+	virtual void StopInteraction(const float StartTime, FKey InputKey) = 0;
 	
 	virtual bool ActivateInteractor(FString& ErrorMessage) = 0;
 	virtual bool WakeUpInteractor(FString& ErrorMessage) = 0;
