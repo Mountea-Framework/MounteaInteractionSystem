@@ -20,7 +20,7 @@ void AIntPPopup::Register()
 {
 	const FString PluginDirectory = IPluginManager::Get().FindPlugin(TEXT("ActorInteractionPlugin"))->GetBaseDir();
 	const FString UpdatedConfigFile = PluginDirectory + "/Config/UpdateConfig.ini";
-	const FString CurrentPluginVersion = "3.1";
+	const FString CurrentPluginVersion = "3.0.1.3";
 
 	UAIntPPopupConfig* AIntPPopupConfig = GetMutableDefault<UAIntPPopupConfig>();
 
@@ -116,6 +116,7 @@ But let's keep it short, here are the cool new features (and bugfixes) of versio
 <RichTextBlock.Bold>Updates</>
 * Add <RichTextBlock.Bold>DEPRECATED</> to SnoozeInteractable
 * <RichTextBlock.Bold>DEPRECATED</> Interactable State <RichTextBlock.Italic>Asleep</>
+* Interactor does not longer require <RichTextBlock.Bold>Key</> input and it has become optional
 
 <LargeText>Version 3.0</>
 
