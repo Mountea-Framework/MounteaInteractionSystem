@@ -452,7 +452,7 @@ void UActorInteractorComponentTrace::PostEditChangeChainProperty(FPropertyChange
 			(
 				InteractorName.Append(TEXT(": TraceInterval is more than 3s! This might be unintentional and cause gameplay issues."))
 			);
-			FEditorHelper::DisplayEditorNotification(ErrorMessage, SNotificationItem::CS_Fail, 5.f, 2.f, TEXT("Icons.Warning"));
+			FEditorHelper::DisplayEditorNotification(ErrorMessage, SNotificationItem::CS_Fail, 5.f, 2.f, TEXT("NotificationList.DefaultMessage"));
 		}
 	}
 
@@ -475,7 +475,7 @@ void UActorInteractorComponentTrace::PostEditChangeChainProperty(FPropertyChange
 			(
 				InteractorName.Append(TEXT(": TraceRange is more than 5000cm! This might be unintentional and cause gameplay issues."))
 			);
-			FEditorHelper::DisplayEditorNotification(ErrorMessage, SNotificationItem::CS_Fail, 5.f, 2.f, TEXT("Icons.Warning"));
+			FEditorHelper::DisplayEditorNotification(ErrorMessage, SNotificationItem::CS_Fail, 5.f, 2.f, TEXT("NotificationList.DefaultMessage"));
 		}
 	}
 
@@ -487,7 +487,7 @@ void UActorInteractorComponentTrace::PostEditChangeChainProperty(FPropertyChange
 			(
 				InteractorName.Append(TEXT(": TraceShapeHalfSize is more than 25cm! This might be unintentional and cause gameplay issues."))
 			);
-			FEditorHelper::DisplayEditorNotification(ErrorMessage, SNotificationItem::CS_Fail, 5.f, 2.f, TEXT("Icons.Warning"));
+			FEditorHelper::DisplayEditorNotification(ErrorMessage, SNotificationItem::CS_Fail, 5.f, 2.f, TEXT("NotificationList.DefaultMessage"));
 		}
 	}
 }
