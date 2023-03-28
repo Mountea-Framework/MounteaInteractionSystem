@@ -20,7 +20,7 @@ void AIntPPopup::Register()
 {
 	const FString PluginDirectory = IPluginManager::Get().FindPlugin(TEXT("ActorInteractionPlugin"))->GetBaseDir();
 	const FString UpdatedConfigFile = PluginDirectory + "/Config/UpdateConfig.ini";
-	const FString CurrentPluginVersion = "3.0.1.3";
+	const FString CurrentPluginVersion = "3.0.1.4";
 
 	UAIntPPopupConfig* AIntPPopupConfig = GetMutableDefault<UAIntPPopupConfig>();
 
