@@ -290,6 +290,35 @@ void UActorInteractableComponentBase::DeactivateInteractable()
 	SetState(EInteractableStateV2::EIS_Disabled);
 }
 
+void UActorInteractableComponentBase::PauseInteraction(const float ExpirationTime, const FKey UsedKey, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
+{
+	if (!GetWorld()) return;
+	
+	SetState(EInteractableStateV2::EIS_Paused);
+	const bool bIsUnlimited = FMath::IsWithinInclusive(InteractionProgressExpiration, -1.f, 0.f) || FMath::IsNearlyZero(InteractionProgressExpiration, 0.001f);
+	
+	if (bIsUnlimited)
+	{
+		GetWorld()->GetTimerManager().PauseTimer(Timer_Interaction);
+		return;
+	}
+	
+	if (!bIsUnlimited)
+	{
+		FTimerDelegate TimerDelegate_ProgressExpiration;
+		TimerDelegate_ProgressExpiration.BindUFunction(this, "OnInteractionProgressExpired", ExpirationTime, UsedKey, CausingInteractor);
+
+		const float ClampedExpiration = FMath::Max(InteractionProgressExpiration, 0.01f);
+		
+		GetWorld()->GetTimerManager().SetTimer(Timer_ProgressExpiration, TimerDelegate_ProgressExpiration, ClampedExpiration, false);
+		GetWorld()->GetTimerManager().PauseTimer(Timer_Interaction);
+	}
+	else
+	{
+		OnInteractionProgressExpired(ExpirationTime, UsedKey, CausingInteractor);
+	}
+}
+
 bool UActorInteractableComponentBase::CanInteract() const
 {
 	if (!GetWorld()) return false;
@@ -298,6 +327,7 @@ bool UActorInteractableComponentBase::CanInteract() const
 	{
 		case EInteractableStateV2::EIS_Awake:
 		case EInteractableStateV2::EIS_Active:
+		case EInteractableStateV2::EIS_Paused:
 			return GetInteractor().GetInterface() != nullptr;
 		case EInteractableStateV2::EIS_Asleep:
 		case EInteractableStateV2::EIS_Disabled:
@@ -319,6 +349,7 @@ bool UActorInteractableComponentBase::CanBeTriggered() const
 	{
 		case EInteractableStateV2::EIS_Awake:
 		case EInteractableStateV2::EIS_Active:
+		case EInteractableStateV2::EIS_Paused:
 			return true;
 		//	return !(GetWorld()->GetTimerManager().IsTimerActive(Timer_Interaction));
 		case EInteractableStateV2::EIS_Asleep:
@@ -383,6 +414,7 @@ void UActorInteractableComponentBase::SetState(const EInteractableStateV2 NewSta
 		case EInteractableStateV2::EIS_Active:
 			switch (InteractableState)
 			{
+				case EInteractableStateV2::EIS_Paused:
 				case EInteractableStateV2::EIS_Awake:
 					InteractableState = NewState;
 					OnInteractableStateChanged.Broadcast(InteractableState);
@@ -406,6 +438,7 @@ void UActorInteractableComponentBase::SetState(const EInteractableStateV2 NewSta
 				case EInteractableStateV2::EIS_Suppressed:
 				case EInteractableStateV2::EIS_Cooldown:
 				case EInteractableStateV2::EIS_Disabled:
+				case EInteractableStateV2::EIS_Paused:
 					{
 						InteractableState = NewState;
 						OnInteractableStateChanged.Broadcast(InteractableState);
@@ -426,6 +459,7 @@ void UActorInteractableComponentBase::SetState(const EInteractableStateV2 NewSta
 			switch (InteractableState)
 			{
 				case EInteractableStateV2::EIS_Active:
+				case EInteractableStateV2::EIS_Paused:
 				case EInteractableStateV2::EIS_Awake:
 				case EInteractableStateV2::EIS_Suppressed:
 				case EInteractableStateV2::EIS_Cooldown:
@@ -477,6 +511,7 @@ void UActorInteractableComponentBase::SetState(const EInteractableStateV2 NewSta
 						}
 					}
 					break;
+				case EInteractableStateV2::EIS_Paused:
 				case EInteractableStateV2::EIS_Cooldown:
 				case EInteractableStateV2::EIS_Completed:
 				case EInteractableStateV2::EIS_Asleep:
@@ -494,6 +529,7 @@ void UActorInteractableComponentBase::SetState(const EInteractableStateV2 NewSta
 					}
 					break;
 				case EInteractableStateV2::EIS_Completed:
+				case EInteractableStateV2::EIS_Paused:
 				case EInteractableStateV2::EIS_Suppressed:
 				case EInteractableStateV2::EIS_Awake:
 				case EInteractableStateV2::EIS_Cooldown:
@@ -507,6 +543,7 @@ void UActorInteractableComponentBase::SetState(const EInteractableStateV2 NewSta
 			switch (InteractableState)
 			{
 				case EInteractableStateV2::EIS_Active:
+				case EInteractableStateV2::EIS_Paused:
 				case EInteractableStateV2::EIS_Completed:
 				case EInteractableStateV2::EIS_Awake:
 				case EInteractableStateV2::EIS_Suppressed:
@@ -539,6 +576,7 @@ void UActorInteractableComponentBase::SetState(const EInteractableStateV2 NewSta
 				case EInteractableStateV2::EIS_Awake:
 				case EInteractableStateV2::EIS_Asleep:
 				case EInteractableStateV2::EIS_Disabled:
+				case EInteractableStateV2::EIS_Paused:
 					OnInteractionCanceled.Broadcast();
 					InteractableState = NewState;
 					StopHighlight();
@@ -551,6 +589,26 @@ void UActorInteractableComponentBase::SetState(const EInteractableStateV2 NewSta
 					OnInteractableStateChanged.Broadcast(InteractableState);
 					GetWorld()->GetTimerManager().ClearTimer(Timer_Cooldown);
 					break;
+				case EInteractableStateV2::EIS_Completed:
+				case EInteractableStateV2::EIS_Suppressed:
+				case EInteractableStateV2::Default:
+				default: break;
+			}
+			break;
+		case EInteractableStateV2::EIS_Paused:
+			switch (InteractableState)
+			{
+				case EInteractableStateV2::EIS_Active:
+					{
+						InteractableState = NewState;
+						OnInteractableStateChanged.Broadcast(InteractableState);
+						break;
+					}
+				case EInteractableStateV2::EIS_Paused:
+				case EInteractableStateV2::EIS_Awake:
+				case EInteractableStateV2::EIS_Asleep:
+				case EInteractableStateV2::EIS_Disabled:
+				case EInteractableStateV2::EIS_Cooldown:
 				case EInteractableStateV2::EIS_Completed:
 				case EInteractableStateV2::EIS_Suppressed:
 				case EInteractableStateV2::Default:
@@ -757,7 +815,7 @@ float UActorInteractableComponentBase::GetInteractionProgress() const
 {
 	if (!GetWorld()) return -1;
 
-	if (GetWorld()->GetTimerManager().IsTimerActive(Timer_Interaction))
+	if (Timer_Interaction.IsValid())
 	{
 		return GetWorld()->GetTimerManager().GetTimerElapsed(Timer_Interaction) / InteractionPeriod;
 	}
@@ -1140,6 +1198,7 @@ void UActorInteractableComponentBase::InteractorLost(const TScriptInterface<IAct
 	if (Interactor == LostInteractor)
 	{
 		GetWorld()->GetTimerManager().ClearTimer(Timer_Interaction);
+		GetWorld()->GetTimerManager().ClearTimer(Timer_ProgressExpiration);
 		
 		ToggleWidgetVisibility(false);
 
@@ -1157,6 +1216,7 @@ void UActorInteractableComponentBase::InteractorLost(const TScriptInterface<IAct
 				break;
 			case EInteractableStateV2::EIS_Active:
 			case EInteractableStateV2::EIS_Awake:
+			case EInteractableStateV2::EIS_Paused:
 				SetState(DefaultInteractableState);
 				break;
 			case EInteractableStateV2::EIS_Completed:
@@ -1204,6 +1264,9 @@ void UActorInteractableComponentBase::InteractionStarted(const float& TimeStarte
 {
 	if (CanInteract())
 	{
+		GetWorld()->GetTimerManager().ClearTimer(Timer_ProgressExpiration);
+		
+		SetState(EInteractableStateV2::EIS_Active);
 		Execute_OnInteractionStartedEvent(this, TimeStarted, PressedKey, CausingInteractor);
 	}
 }
@@ -1211,10 +1274,8 @@ void UActorInteractableComponentBase::InteractionStarted(const float& TimeStarte
 void UActorInteractableComponentBase::InteractionStopped(const float& TimeStarted, const FKey& PressedKey, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
 {
 	if (!GetWorld()) return;
-	
-	GetWorld()->GetTimerManager().ClearTimer(Timer_Interaction);
-	
-	Execute_OnInteractionStoppedEvent(this, TimeStarted, PressedKey, CausingInteractor);
+
+	PauseInteraction(TimeStarted, PressedKey, CausingInteractor);
 }
 
 void UActorInteractableComponentBase::InteractionCanceled()
@@ -1224,7 +1285,8 @@ void UActorInteractableComponentBase::InteractionCanceled()
 		ToggleWidgetVisibility(false);
 		
 		GetWorld()->GetTimerManager().ClearTimer(Timer_Interaction);
-
+		GetWorld()->GetTimerManager().ClearTimer(Timer_ProgressExpiration);
+		
 		switch (GetState())
 		{
 			case EInteractableStateV2::EIS_Cooldown:
@@ -1398,6 +1460,38 @@ void UActorInteractableComponentBase::OnInteractableTraced(UPrimitiveComponent* 
 	}
 }
 
+void UActorInteractableComponentBase::OnInteractionProgressExpired(const float ExpirationTime, const FKey UsedKey, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
+{
+	if (!GetWorld()) return;
+	
+	switch (GetState())
+	{
+		case EInteractableStateV2::EIS_Paused:
+			{
+				GetWorld()->GetTimerManager().ClearTimer(Timer_Interaction);
+				GetWorld()->GetTimerManager().ClearTimer(Timer_ProgressExpiration);
+				
+				if (DoesHaveInteractor() && GetInteractor()->GetActiveInteractable() == this)
+				{
+					SetState(EInteractableStateV2::EIS_Active);
+				}
+				else
+				{
+					Execute_OnInteractionStoppedEvent(this, ExpirationTime, UsedKey, CausingInteractor);
+				}
+			}
+			break;
+		case EInteractableStateV2::EIS_Active: break;
+		case EInteractableStateV2::EIS_Awake: break;
+		case EInteractableStateV2::EIS_Cooldown: break;
+		case EInteractableStateV2::EIS_Completed: break;
+		case EInteractableStateV2::EIS_Disabled: break;
+		case EInteractableStateV2::EIS_Suppressed: break;
+		case EInteractableStateV2::EIS_Asleep: break;
+		case EInteractableStateV2::Default: break;
+	}
+}
+
 void UActorInteractableComponentBase::InteractableSelected(const TScriptInterface<IActorInteractableInterface>& Interactable)
 {
  	if (Interactable == this)
@@ -1409,14 +1503,6 @@ void UActorInteractableComponentBase::InteractableSelected(const TScriptInterfac
  	}
 	else
 	{
-		/*
-		if (Interactor.GetInterface() != nullptr)
-		{
-			Interactor->GetOnInteractableSelectedHandle().RemoveDynamic(this, &UActorInteractableComponentBase::InteractableSelected);
-			Interactor->GetOnInteractableLostHandle().RemoveDynamic(this, &UActorInteractableComponentBase::InteractableLost);
-		}
-		*/
-
 		OnInteractionCanceled.Broadcast();
 		
 		SetState(DefaultInteractableState);

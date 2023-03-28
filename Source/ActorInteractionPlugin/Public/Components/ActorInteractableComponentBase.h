@@ -102,7 +102,11 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void DeactivateInteractable() override;
-
+	/**
+	 * Tries to Pause Interaction.
+	 */
+	UFUNCTION(BlueprintCallable, Category="Interaction")
+	virtual void PauseInteraction(const float ExpirationTime, const FKey UsedKey, const TScriptInterface<IActorInteractorInterface>& CausingInteractor) override;
 	
 	/**
 	 * Optimized request for Interactables.
@@ -700,6 +704,8 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
 	void OnWidgetUpdatedEvent();
 
+	UFUNCTION()
+	void OnInteractionProgressExpired(const float ExpirationTime, const FKey UsedKey, const TScriptInterface<IActorInteractorInterface>& CausingInteractor);
 #pragma endregion
 
 #pragma region IgnoredClassesEvents
@@ -1394,6 +1400,13 @@ protected:
 	*/
 	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Optional", meta=(NoResetToDefault))
 	TMap<FString, FInteractionKeySetup> InteractionKeysPerPlatform;
+
+	/**
+	 * Provides a simple way to determine how fast Interaction Progress is kept before interaction is cancelled.
+	 * * -1 means never while Interactor is valid
+	 */
+	UPROPERTY(SaveGame, EditAnywhere, BlueprintReadOnly,  Category="Interaction|Optional", meta=(UIMin=-1.f, ClampMin=-1.f))
+	float InteractionProgressExpiration = 0.f;
 	
 	/**
 	 * Interactable Data.
@@ -1491,9 +1504,10 @@ protected:
 	
 	UPROPERTY()
 	FTimerHandle Timer_Interaction;
-
 	UPROPERTY()
 	FTimerHandle Timer_Cooldown;
+	UPROPERTY()
+	FTimerHandle Timer_ProgressExpiration;
 
 private:
 	
