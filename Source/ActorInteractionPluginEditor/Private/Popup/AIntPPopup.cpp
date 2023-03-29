@@ -20,7 +20,7 @@ void AIntPPopup::Register()
 {
 	const FString PluginDirectory = IPluginManager::Get().FindPlugin(TEXT("ActorInteractionPlugin"))->GetBaseDir();
 	const FString UpdatedConfigFile = PluginDirectory + "/Config/UpdateConfig.ini";
-	const FString CurrentPluginVersion = "3.0.1.3";
+	const FString CurrentPluginVersion = "3.0.1.4";
 
 	UAIntPPopupConfig* AIntPPopupConfig = GetMutableDefault<UAIntPPopupConfig>();
 
@@ -193,6 +193,24 @@ But let's keep it short, here are the cool new features (and bugfixes) of versio
 				.OnClicked_Lambda([]()
 				{
 					const FString URL = "https://discord.gg/2vXWEEN";
+					FPlatformProcess::LaunchURL(*URL, nullptr, nullptr);
+
+					return FReply::Handled();
+				})
+			]
+			+ SHorizontalBox::Slot().AutoWidth()
+			[
+				SNew(SSpacer)
+				.Size(FVector2D(20, 10))
+			]
+			+ SHorizontalBox::Slot().FillWidth(1.0f)
+			[
+				SNew(SButton)
+				.Text(FText::FromString("Unreal Bucket"))
+				.HAlign(HAlign_Center)
+				.OnClicked_Lambda([Window]()
+				{
+					const FString URL = "https://www.unrealengine.com/marketplace/en-US/product/3ce48046720d4a66b4f804b0d135a820";
 					FPlatformProcess::LaunchURL(*URL, nullptr, nullptr);
 
 					return FReply::Handled();
