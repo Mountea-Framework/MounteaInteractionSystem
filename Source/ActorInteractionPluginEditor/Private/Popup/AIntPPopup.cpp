@@ -20,7 +20,7 @@ void AIntPPopup::Register()
 {
 	const FString PluginDirectory = IPluginManager::Get().FindPlugin(TEXT("ActorInteractionPlugin"))->GetBaseDir();
 	const FString UpdatedConfigFile = PluginDirectory + "/Config/UpdateConfig.ini";
-	const FString CurrentPluginVersion = "3.0.1.4";
+	const FString CurrentPluginVersion = "3.0.1.5";
 
 	UAIntPPopupConfig* AIntPPopupConfig = GetMutableDefault<UAIntPPopupConfig>();
 
@@ -117,6 +117,7 @@ But let's keep it short, here are the cool new features (and bugfixes) of versio
 * Add <RichTextBlock.Bold>DEPRECATED</> to SnoozeInteractable
 * <RichTextBlock.Bold>DEPRECATED</> Interactable State <RichTextBlock.Italic>Asleep</>
 * Interactor does not longer require <RichTextBlock.Bold>Key</> input and it has become optional
+* Ability to Pause interaction while Interactor is Valid (most useful for Hold/Overlap interactions)
 
 <LargeText>Version 3.0</>
 
