@@ -265,7 +265,7 @@ public:
 template<typename TEnum>
 static FString GetEnumValueAsString(const FString& Name, TEnum Value)
 {
- const UEnum* enumPtr = FindObject<UEnum>(ANY_PACKAGE, *Name, true);
+ const UEnum* enumPtr = FindFirstObject<UEnum>(*Name, EFindFirstObjectOptions::None);
  if (!enumPtr) return FString("invalid");
  return enumPtr->GetDisplayNameTextByValue((int64)Value).ToString();
 }
