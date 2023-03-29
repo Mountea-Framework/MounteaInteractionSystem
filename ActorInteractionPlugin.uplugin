@@ -10,7 +10,7 @@
 	"DocsURL": "https://github.com/Mountea-Framework/ActorInteractionPlugin/wiki",
 	"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/product/ca842c00ec0d4db0b3aad17701e1637b",
 	"SupportURL": "https://bit.ly/DominikPavlicek_SupportServer",
-	"EngineVersion": "4.27.0",
+	"EngineVersion": "5.0.0",
 	"CanContainContent": true,
 	"IsBetaVersion": false,
 	"IsExperimentalVersion": false,
@@ -22,12 +22,8 @@
 			"LoadingPhase": "PreDefault",
 			"WhitelistPlatforms": [
 				"Win64",
-				"Win32",
 				"Mac",
-				"Linux",
-				"PS4",
-				"XboxOne",
-				"Switch"
+				"Linux"
 			]
 		},
 		{

@@ -12,14 +12,14 @@
 bool FActorInteractionEditorUtilities::PickChildrenOfClass(const FText& TitleText, UClass*& OutChosenClass, UClass* Class)
 {
 	// Create filter
-	TSharedPtr<FActorInteractionClassViewerFilter> Filter = MakeShareable(new FActorInteractionClassViewerFilter);
+	const TSharedPtr<FActorInteractionClassViewerFilter> Filter = MakeShareable(new FActorInteractionClassViewerFilter);
 	Filter->AllowedChildrenOfClasses.Add(Class);
 
 	// Fill in options
 	FClassViewerInitializationOptions Options;
 	Options.Mode = EClassViewerMode::ClassPicker;
 	Options.DisplayMode = EClassViewerDisplayMode::ListView;
-	Options.ClassFilter = Filter;
+	Options.ClassFilters.Add(Filter.ToSharedRef());
 	
 	Options.bShowUnloadedBlueprints = true;
 	Options.bExpandRootNodes = false;
