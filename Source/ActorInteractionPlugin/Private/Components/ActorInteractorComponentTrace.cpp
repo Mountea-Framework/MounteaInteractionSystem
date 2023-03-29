@@ -226,6 +226,8 @@ void UActorInteractorComponentTrace::ProcessTrace()
 #endif
 	
 	ResumeTracing();
+
+	
 }
 
 void UActorInteractorComponentTrace::ProcessTrace_Precise(FInteractionTraceDataV2& InteractionTraceData)

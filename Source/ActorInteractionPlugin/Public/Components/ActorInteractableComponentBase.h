@@ -86,7 +86,7 @@ public:
 	 * If fails, returns False and updates ErrorMessage
 	 * @param ErrorMessage Short explanation.
 	 */
-	UFUNCTION(BlueprintCallable, Category="Interaction")
+	UFUNCTION(BlueprintCallable, Category="Interaction", meta = (DeprecatedFunction, DeprecationMessage = "Please use UActorInteractableComponentBase::DeactivateInteractable instead."))
 	virtual bool SnoozeInteractable(FString& ErrorMessage) override;
 	/**
 	 * Tries to set state of this Interactable to Completed. 
@@ -102,7 +102,11 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void DeactivateInteractable() override;
-
+	/**
+	 * Tries to Pause Interaction.
+	 */
+	UFUNCTION(BlueprintCallable, Category="Interaction")
+	virtual void PauseInteraction(const float ExpirationTime, const FKey UsedKey, const TScriptInterface<IActorInteractorInterface>& CausingInteractor) override;
 	
 	/**
 	 * Optimized request for Interactables.
@@ -581,9 +585,7 @@ protected:
 	virtual void InteractableSelected(const TScriptInterface<IActorInteractableInterface>& Interactable) override;
 
 	/**
-	 * Event called once Interactor is lost. Provides info which Interactor is lost.
-	 * This event is usually the first one in chain leading to Interaction Canceled.
-	 * Called by OnInteractorLost.
+	 * 
 	 */
 	UFUNCTION(Category="Interaction")
 	virtual void InteractableLost(const TScriptInterface<IActorInteractableInterface>& Interactable) override;
@@ -702,6 +704,8 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
 	void OnWidgetUpdatedEvent();
 
+	UFUNCTION()
+	void OnInteractionProgressExpired(const float ExpirationTime, const FKey UsedKey, const TScriptInterface<IActorInteractorInterface>& CausingInteractor);
 #pragma endregion
 
 #pragma region IgnoredClassesEvents
@@ -868,11 +872,11 @@ protected:
 	virtual void CleanupComponent();
 	virtual void FindAndAddCollisionShapes() override;
 	virtual void FindAndAddHighlightableMeshes() override;
-
+	
 	virtual bool TriggerCooldown() override;
 
 	UFUNCTION()	virtual void ToggleWidgetVisibility(const bool IsVisible) override;
-	
+
 	/**
 	 * Binds Collision Events for specified Primitive Component.
 	 * Caches Primitive Component collision settings.
@@ -928,7 +932,7 @@ protected:
 
 	virtual void UpdateInteractionWidget();
 	
-	UFUNCTION()	void OnCooldownCompletedCallback();
+	UFUNCTION()	virtual void OnCooldownCompletedCallback();
 	UFUNCTION() virtual void InteractableDependencyStartedCallback(const TScriptInterface<IActorInteractableInterface>& NewMaster) override;
 	UFUNCTION() virtual void InteractableDependencyStoppedCallback(const TScriptInterface<IActorInteractableInterface>& FormerMaster) override;
 
@@ -1037,7 +1041,7 @@ protected:
 	FInteractionCycleCompleted OnInteractionCycleCompleted;
 
 	/**
-	 * Event called once Interaction Starts.
+	 * Event called once Interaction Starts. 
 	 * Called by OnInteractionStarted
 	 */
 	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Interaction")
@@ -1396,6 +1400,13 @@ protected:
 	*/
 	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Optional", meta=(NoResetToDefault))
 	TMap<FString, FInteractionKeySetup> InteractionKeysPerPlatform;
+
+	/**
+	 * Provides a simple way to determine how fast Interaction Progress is kept before interaction is cancelled.
+	 * * -1 means never while Interactor is valid
+	 */
+	UPROPERTY(SaveGame, EditAnywhere, BlueprintReadOnly,  Category="Interaction|Optional", meta=(UIMin=-1.f, ClampMin=-1.f))
+	float InteractionProgressExpiration = 0.f;
 	
 	/**
 	 * Interactable Data.
@@ -1493,9 +1504,10 @@ protected:
 	
 	UPROPERTY()
 	FTimerHandle Timer_Interaction;
-
 	UPROPERTY()
 	FTimerHandle Timer_Cooldown;
+	UPROPERTY()
+	FTimerHandle Timer_ProgressExpiration;
 
 private:
 	

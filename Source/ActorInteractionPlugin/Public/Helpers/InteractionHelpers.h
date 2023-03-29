@@ -114,15 +114,16 @@ enum class EInteractorPrecision : uint8
 UENUM(BlueprintType, meta=(ScriptName="InteractableState"))
 enum class EInteractableStateV2 : uint8
 {
- EIS_Active     UMETA(DisplayName = "Active",      Tooltip = "Interactable is awaken and being interacted with."),
- EIS_Awake      UMETA(DisplayName = "Awake",       ToolTip = "Interactable is awaken and can be interacted with. Will react to Interactors."),
- EIS_Asleep     UMETA(DisplayName = "Inactive",    Tooltip = "Interactable is asleep, but can be awaken. Default state. Doesn't react to Interactors."),
- EIS_Cooldown   UMETA(DisplayName = "Cooldown",    Tooltip = "Interactable is disabled during cooldown period. Then will be awaken again. Doesn't react to Interactors."),
- EIS_Completed  UMETA(DisplayName = "Finished",    Tooltip = "Interactable is disabled after sucesful interaction. Doesn't react to Interactors. Cannot be activated again."),
- EIS_Disabled   UMETA(DisplayName = "Disabled",    Tooltip = "Interactable is disabled. Can be awaken. Doesn't react to Interactors."),
- EIS_Suppressed UMETA(DisplayName = "Suppressed",  Tooltip = "Interactable is suppressed and cannot be interacted with. Can be awaken. Doesn't react to Interactors."),
+ EIS_Active          UMETA(DisplayName = "Active",           Tooltip = "Interactable is awaken and being interacted with."),
+ EIS_Awake         UMETA(DisplayName = "Awake",          ToolTip = "Interactable is awaken and can be interacted with. Will react to Interactors."),
+ EIS_Cooldown     UMETA(DisplayName = "Cooldown",      Tooltip = "Interactable is disabled during cooldown period. Then will be awaken again. Doesn't react to Interactors."),
+ EIS_Paused        UMETA(DisplayName = "Paused",         Tooltip = "Interactable is paused during pause period. Does react to Interactors and continues in the progress."),
+ EIS_Completed    UMETA(DisplayName = "Finished",       Tooltip = "Interactable is disabled after sucesful interaction. Doesn't react to Interactors. Cannot be activated again."),
+ EIS_Disabled       UMETA(DisplayName = "Disabled",       Tooltip = "Interactable is disabled. Can be awaken. Doesn't react to Interactors."),
+ EIS_Suppressed  UMETA(DisplayName = "Suppressed",  Tooltip = "Interactable is suppressed and cannot be interacted with. Can be awaken. Doesn't react to Interactors."),
 
- Default      UMETA(Hidden)
+ EIS_Asleep         UMETA(Hidden),
+ Default                UMETA(Hidden)
 };
 
 UENUM(BlueprintType, meta=(ScriptName="InteractorState"))
