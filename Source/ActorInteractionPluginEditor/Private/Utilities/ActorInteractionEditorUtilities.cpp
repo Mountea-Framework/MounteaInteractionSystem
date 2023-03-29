@@ -12,7 +12,7 @@
 bool FActorInteractionEditorUtilities::PickChildrenOfClass(const FText& TitleText, UClass*& OutChosenClass, UClass* Class)
 {
 	// Create filter
-	TSharedPtr<FActorInteractionClassViewerFilter> Filter = MakeShareable(new FActorInteractionClassViewerFilter);
+	const TSharedPtr<FActorInteractionClassViewerFilter> Filter = MakeShareable(new FActorInteractionClassViewerFilter);
 	Filter->AllowedChildrenOfClasses.Add(Class);
 
 	// Fill in options

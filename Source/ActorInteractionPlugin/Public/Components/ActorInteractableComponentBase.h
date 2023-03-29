@@ -86,7 +86,7 @@ public:
 	 * If fails, returns False and updates ErrorMessage
 	 * @param ErrorMessage Short explanation.
 	 */
-	UFUNCTION(BlueprintCallable, Category="Interaction")
+	UFUNCTION(BlueprintCallable, Category="Interaction", meta = (DeprecatedFunction, DeprecationMessage = "Please use UActorInteractableComponentBase::DeactivateInteractable instead."))
 	virtual bool SnoozeInteractable(FString& ErrorMessage) override;
 	/**
 	 * Tries to set state of this Interactable to Completed. 
@@ -102,7 +102,11 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	virtual void DeactivateInteractable() override;
-
+	/**
+	 * Tries to Pause Interaction.
+	 */
+	UFUNCTION(BlueprintCallable, Category="Interaction")
+	virtual void PauseInteraction(const float ExpirationTime, const FKey UsedKey, const TScriptInterface<IActorInteractorInterface>& CausingInteractor) override;
 	
 	/**
 	 * Optimized request for Interactables.
@@ -338,7 +342,7 @@ public:
 	 * @param NewMode New Lifecycle Mode to be used for this Interactable. 
 	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
-	virtual void SetLifecycleMode(const EInteractableLifecycle NewMode) override;
+	virtual void SetLifecycleMode(const EInteractableLifecycle& NewMode) override;
 
 
 	/**
@@ -545,32 +549,6 @@ public:
 	virtual void SetInteractableName(const FText& NewName) override;
 
 	/**
-	 * Return Highlightable Type of this Interactable Component.
-	 */
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
-	virtual EHighlightType GetHighlightType() const override;
-	/**
-	 * Tries to set new Highlight Type.
-	 *
-	 * @param NewHighlightType	Value of Highlight type.
-	 */
-	UFUNCTION(BlueprintCallable, Category="Interaction")
-	virtual void SetHighlightType(const EHighlightType NewHighlightType) override;
-	/**
-	 * Returns Highlight Material if any specified.
-	 */
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
-	virtual UMaterialInterface* GetHighlightMaterial() const override;
-	/**
-	 * Tries to set new Highlight Material.
-	 *
-	 * @param NewHighlightMaterial	Material Instance to be used as new HighlightMaterial.
-	 */
-	UFUNCTION(BlueprintCallable, Category="Interaction")
-	virtual void SetHighlightMaterial(UMaterialInterface* NewHighlightMaterial) override;
-
-	
-	/**
 	 * Returns value of Comparison Method.
 	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
@@ -607,9 +585,7 @@ protected:
 	virtual void InteractableSelected(const TScriptInterface<IActorInteractableInterface>& Interactable) override;
 
 	/**
-	 * Event called once Interactor is lost. Provides info which Interactor is lost.
-	 * This event is usually the first one in chain leading to Interaction Canceled.
-	 * Called by OnInteractorLost.
+	 * 
 	 */
 	UFUNCTION(Category="Interaction")
 	virtual void InteractableLost(const TScriptInterface<IActorInteractableInterface>& Interactable) override;
@@ -728,18 +704,8 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
 	void OnWidgetUpdatedEvent();
 
-	/**
-	* Event called once Highlight Type has changed.
-	*/
-	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
-	void OnHighlightTypeChangedEvent(const EHighlightType& NewHighlightType);
-
-	/**
-	* Event called once Highlight Material has changed.
-	*/
-	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
-	void OnHighlightMaterialChangedEvent(const UMaterialInterface* NewHighlightMaterial);
-
+	UFUNCTION()
+	void OnInteractionProgressExpired(const float ExpirationTime, const FKey UsedKey, const TScriptInterface<IActorInteractorInterface>& CausingInteractor);
 #pragma endregion
 
 #pragma region IgnoredClassesEvents
@@ -906,7 +872,7 @@ protected:
 	virtual void CleanupComponent();
 	virtual void FindAndAddCollisionShapes() override;
 	virtual void FindAndAddHighlightableMeshes() override;
-
+	
 	virtual bool TriggerCooldown() override;
 
 	UFUNCTION()	virtual void ToggleWidgetVisibility(const bool IsVisible) override;
@@ -965,8 +931,8 @@ protected:
 	bool ValidateInteractable() const;
 
 	virtual void UpdateInteractionWidget();
-
-	UFUNCTION()	void OnCooldownCompletedCallback();
+	
+	UFUNCTION()	virtual void OnCooldownCompletedCallback();
 	UFUNCTION() virtual void InteractableDependencyStartedCallback(const TScriptInterface<IActorInteractableInterface>& NewMaster) override;
 	UFUNCTION() virtual void InteractableDependencyStoppedCallback(const TScriptInterface<IActorInteractableInterface>& FormerMaster) override;
 
@@ -1075,7 +1041,7 @@ protected:
 	FInteractionCycleCompleted OnInteractionCycleCompleted;
 
 	/**
-	 * Event called once Interaction Starts.
+	 * Event called once Interaction Starts. 
 	 * Called by OnInteractionStarted
 	 */
 	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Interaction")
@@ -1214,18 +1180,6 @@ protected:
 	UPROPERTY(BlueprintAssignable, Category="Interaction")
 	FInteractorChanged OnInteractorChanged;
 
-	/**
-	 * Event called once HighlightType has changed.
-	 */
-	UPROPERTY(BlueprintAssignable, Category="Interaction")
-	FHighlightTypeChanged OnHighlightTypeChanged;
-
-	/**
-	 * Event called once HighlightMaterial has changed.
-	 */
-	UPROPERTY(BlueprintAssignable, Category="Interaction")
-	FHighlightMaterialChanged OnHighlightMaterialChanged;
-
 	FInteractableDependencyStarted InteractableDependencyStarted;
 
 	FInteractableDependencyStopped InteractableDependencyStopped;
@@ -1258,10 +1212,6 @@ protected:
 	{ return OnInteractionCanceled; };
 	virtual FInteractableDependencyChanged& GetInteractableDependencyChangedHandle() override
 	{ return OnInteractableDependencyChanged; };
-	virtual FHighlightTypeChanged& GetHighlightTypeChanged() override
-	{ return OnHighlightTypeChanged; };
-	virtual FHighlightMaterialChanged& GetHighlightMaterialChanged() override
-	{ return OnHighlightMaterialChanged; };
 	virtual FInteractableDependencyStarted& GetInteractableDependencyStarted() override
 	{ return InteractableDependencyStarted; };
 	virtual FInteractableDependencyStopped& GetInteractableDependencyStopped() override
@@ -1269,7 +1219,7 @@ protected:
 
 	virtual FTimerHandle& GetCooldownHandle() override
 	{ return Timer_Cooldown; };
-	
+
 	virtual FInteractableStateChanged& GetInteractableStateChanged() override
 	{ return OnInteractableStateChanged; };
 	
@@ -1435,14 +1385,6 @@ protected:
 	 */
 	UPROPERTY(SaveGame, EditAnywhere, BlueprintReadOnly,  Category="Interaction|Optional")
 	uint8 bInteractionHighlight : 1;
-
-	/**
-	* Defines what Highlight Type is used.
-	*/
-	UPROPERTY(SaveGame, EditAnywhere, BlueprintReadOnly,  Category="Interaction|Optional")
-	EHighlightType HighlightType;
-	UPROPERTY(SaveGame, EditAnywhere, BlueprintReadOnly,  Category="Interaction|Optional", meta=(EditCondition="bInteractionHighlight == true && HighlightType==EHighlightType::EHT_OverlayMaterial"))
-	UMaterialInterface* HighlightMaterial = nullptr;
 	
 	/**
 	 * Defines what Stencil ID should be used to highlight the Primitive Mesh Components.
@@ -1458,6 +1400,13 @@ protected:
 	*/
 	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Optional", meta=(NoResetToDefault))
 	TMap<FString, FInteractionKeySetup> InteractionKeysPerPlatform;
+
+	/**
+	 * Provides a simple way to determine how fast Interaction Progress is kept before interaction is cancelled.
+	 * * -1 means never while Interactor is valid
+	 */
+	UPROPERTY(SaveGame, EditAnywhere, BlueprintReadOnly,  Category="Interaction|Optional", meta=(UIMin=-1.f, ClampMin=-1.f))
+	float InteractionProgressExpiration = 0.f;
 	
 	/**
 	 * Interactable Data.
@@ -1555,9 +1504,10 @@ protected:
 	
 	UPROPERTY()
 	FTimerHandle Timer_Interaction;
-
 	UPROPERTY()
 	FTimerHandle Timer_Cooldown;
+	UPROPERTY()
+	FTimerHandle Timer_ProgressExpiration;
 
 private:
 	
@@ -1587,6 +1537,7 @@ protected:
 	
 	virtual void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;
 	virtual EDataValidationResult IsDataValid(TArray<FText>& ValidationErrors) override;
+
 	virtual bool Modify(bool bAlwaysMarkDirty) override;
 
 #endif

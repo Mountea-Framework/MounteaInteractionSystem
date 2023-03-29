@@ -5,7 +5,7 @@
 
 #include "Interfaces/ActorInteractableInterface.h"
 #include "Kismet/KismetMathLibrary.h"
-#include "TimerManager.h"
+
 #include "Components/ShapeComponent.h"
 #include "Helpers/ActorInteractionPluginLog.h"
 #include "Helpers/InteractionHelpers.h"
@@ -226,6 +226,8 @@ void UActorInteractorComponentTrace::ProcessTrace()
 #endif
 	
 	ResumeTracing();
+
+	
 }
 
 void UActorInteractorComponentTrace::ProcessTrace_Precise(FInteractionTraceDataV2& InteractionTraceData)
@@ -343,7 +345,14 @@ void UActorInteractorComponentTrace::SetCustomTraceStart(const FTransform TraceS
 {
 	if (bUseCustomStartTransform)
 	{
+		const FTracingData OldData = GetLastTracingData();
+		FTracingData NewData = GetLastTracingData();
+		NewData.CustomTracingTransform = TraceStart;
+		
 		CustomTraceTransform = TraceStart;
+
+		LastTracingData = NewData;
+		OnTraceDataChanged.Broadcast(NewData, OldData);
 	}
 }
 
