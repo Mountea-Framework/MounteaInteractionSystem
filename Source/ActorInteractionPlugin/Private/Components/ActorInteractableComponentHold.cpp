@@ -2,7 +2,7 @@
 
 
 #include "Components/ActorInteractableComponentHold.h"
-#include "TimerManager.h"
+
 #include "Interfaces/ActorInteractorInterface.h"
 
 #include "Helpers/ActorInteractionPluginLog.h"
@@ -26,23 +26,31 @@ void UActorInteractableComponentHold::InteractionStarted(const float& TimeStarte
 {
 	Super::InteractionStarted(TimeStarted, PressedKey, CausingInteractor);
 	
+	if (!GetWorld()) return;
+	
 	if (CanInteract())
 	{
 		// Force Interaction Period to be at least 0.1s
 		const float TempInteractionPeriod = FMath::Max(0.1f, InteractionPeriod);
 
-		if (!GetWorld()) return;
-	
-		FTimerDelegate Delegate;
-		Delegate.BindUObject(this, &UActorInteractableComponentHold::OnInteractionCompletedCallback);
+		// Either unpause or start from start
+		if (GetWorld()->GetTimerManager().IsTimerPaused(Timer_Interaction))
+		{
+			GetWorld()->GetTimerManager().UnPauseTimer(Timer_Interaction);
+		}
+		else
+		{
+			FTimerDelegate Delegate;
+			Delegate.BindUObject(this, &UActorInteractableComponentHold::OnInteractionCompletedCallback);
 
-		GetWorld()->GetTimerManager().SetTimer
-		(
-			Timer_Interaction,
-			Delegate,
-			TempInteractionPeriod,
-			false
-		);
+			GetWorld()->GetTimerManager().SetTimer
+			(
+				Timer_Interaction,
+				Delegate,
+				TempInteractionPeriod,
+				false
+			);
+		}
 	}
 }
 

@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
-#include "Engine/HitResult.h"
 #include "ActorInteractableInterface.generated.h"
 
 // This class does not need to be modified.
@@ -41,19 +40,6 @@ enum class ETimingComparison : uint8 // TODO: rename, because name is used
 
 	Default			 UMETA(Hidden)
    };
-#pragma endregion 
-
-#pragma region HighlightType
-
-UENUM(BlueprintType)
-enum class EHighlightType : uint8
-{
-	EHT_PostProcessing		UMETA(DisplayName="PostProcessing",			Tooltip="PostProcessing Material will be used. This option is highly optimised, however, requires Project setup."),
-	EHT_OverlayMaterial		UMETA(DisplayName="Overlay Material",		Tooltip="Overlay Material will be used. Unique for 5.1 and newer versions. For very complex meshes might cause performance issues."),
-
-	EHT_Default		UMETA(Hidden)
-};
-
 #pragma endregion 
 
 class IActorInteractableInterface;
@@ -102,9 +88,6 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FHighlightableComponentAdded, const 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCollisionComponentAdded, const UPrimitiveComponent*, NewCollisionComp);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FHighlightableComponentRemoved, const UMeshComponent*, RemovedHighlightableComp);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCollisionComponentRemoved, const UPrimitiveComponent*, RemovedCollisionComp);
-
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FHighlightTypeChanged, const EHighlightType&, NewHighlightType);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FHighlightMaterialChanged, const UMaterialInterface*, NewHighlightMaterial);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractableDependencyStarted, const TScriptInterface<IActorInteractableInterface>&, NewMaster);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractableDependencyStopped, const TScriptInterface<IActorInteractableInterface>&, FormerMaster);
@@ -232,6 +215,7 @@ public:
 	virtual bool SnoozeInteractable(FString& ErrorMessage) = 0;
 	virtual bool CompleteInteractable(FString& ErrorMessage) = 0;
 	virtual void DeactivateInteractable() = 0;
+	virtual void PauseInteraction(const float ExpirationTime, const FKey UsedKey, const TScriptInterface<IActorInteractorInterface>& CausingInteractor) = 0;
 
 	virtual void InteractableSelected(const TScriptInterface<IActorInteractableInterface>& Interactable) = 0;
 	virtual void InteractableLost(const TScriptInterface<IActorInteractableInterface>& LostInteractable) = 0;
@@ -278,7 +262,7 @@ public:
 	virtual void SetCollisionChannel(const ECollisionChannel& NewChannel) = 0;
 
 	virtual EInteractableLifecycle GetLifecycleMode() const = 0;
-	virtual void SetLifecycleMode(const EInteractableLifecycle NewMode) = 0;
+	virtual void SetLifecycleMode(const EInteractableLifecycle& NewMode) = 0;
 
 	virtual int32 GetLifecycleCount() const = 0;
 	virtual void SetLifecycleCount(const int32 NewLifecycleCount) = 0;
@@ -352,11 +336,6 @@ public:
 	virtual FDataTableRowHandle GetInteractableData() = 0;
 	virtual void SetInteractableData(FDataTableRowHandle NewData) = 0;
 
-	virtual EHighlightType GetHighlightType() const = 0;
-	virtual void SetHighlightType(const EHighlightType NewHighlightType) = 0;
-	virtual UMaterialInterface* GetHighlightMaterial() const = 0;
-	virtual void SetHighlightMaterial(UMaterialInterface* NewHighlightMaterial) = 0;
-
 	virtual void InteractableDependencyStartedCallback(const TScriptInterface<IActorInteractableInterface>& NewMaster) = 0;
 	virtual void InteractableDependencyStoppedCallback(const TScriptInterface<IActorInteractableInterface>& FormerMaster) = 0;
 
@@ -374,9 +353,6 @@ public:
 	virtual FInteractionStopped& GetOnInteractionStoppedHandle() = 0;
 	virtual FInteractionCanceled& GetOnInteractionCanceledHandle() = 0;
 	virtual FInteractableDependencyChanged& GetInteractableDependencyChangedHandle() = 0;
-
-	virtual FHighlightTypeChanged& GetHighlightTypeChanged() = 0;
-	virtual FHighlightMaterialChanged& GetHighlightMaterialChanged() = 0;
 
 	virtual FInteractableDependencyStarted& GetInteractableDependencyStarted() = 0;
 	virtual FInteractableDependencyStopped& GetInteractableDependencyStopped() = 0;
