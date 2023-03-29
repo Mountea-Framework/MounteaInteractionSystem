@@ -20,7 +20,7 @@ void AIntPPopup::Register()
 {
 	const FString PluginDirectory = IPluginManager::Get().FindPlugin(TEXT("ActorInteractionPlugin"))->GetBaseDir();
 	const FString UpdatedConfigFile = PluginDirectory + "/Config/UpdateConfig.ini";
-	const FString CurrentPluginVersion = "3.0.1.3";
+	const FString CurrentPluginVersion = "3.0.1.5";
 
 	UAIntPPopupConfig* AIntPPopupConfig = GetMutableDefault<UAIntPPopupConfig>();
 
@@ -52,7 +52,7 @@ void AIntPPopup::Open()
 		return;
 	}
 
-	TSharedRef<SBorder> WindowContent = SNew(SBorder)
+	const TSharedRef<SBorder> WindowContent = SNew(SBorder)
 			.BorderImage(FCoreStyle::Get().GetBrush("ToolPanel.GroupBorder"))
 			.Padding(FMargin(8.0f, 8.0f));
 
@@ -71,7 +71,7 @@ void AIntPPopup::Open()
 	const FSlateFontInfo HeadingFont = FCoreStyle::GetDefaultFontStyle("Regular", 24);
 	const FSlateFontInfo ContentFont = FCoreStyle::GetDefaultFontStyle("Regular", 12);
 
-	TSharedRef<SVerticalBox> InnerContent = SNew(SVerticalBox)
+	const TSharedRef<SVerticalBox> InnerContent = SNew(SVerticalBox)
 		// Default settings example
 		+ SVerticalBox::Slot()
 		  .AutoHeight()
@@ -117,6 +117,7 @@ But let's keep it short, here are the cool new features (and bugfixes) of versio
 * Add <RichTextBlock.Bold>DEPRECATED</> to SnoozeInteractable
 * <RichTextBlock.Bold>DEPRECATED</> Interactable State <RichTextBlock.Italic>Asleep</>
 * Interactor does not longer require <RichTextBlock.Bold>Key</> input and it has become optional
+* Ability to Pause interaction while Interactor is Valid (most useful for Hold/Overlap interactions)
 
 <LargeText>Version 3.0</>
 
@@ -206,7 +207,25 @@ But let's keep it short, here are the cool new features (and bugfixes) of versio
 			+ SHorizontalBox::Slot().FillWidth(1.0f)
 			[
 				SNew(SButton)
-				.Text(FText::FromString("Close this window"))
+				.Text(FText::FromString("Unreal Bucket"))
+				.HAlign(HAlign_Center)
+				.OnClicked_Lambda([Window]()
+				{
+					const FString URL = "https://www.unrealengine.com/marketplace/en-US/product/3ce48046720d4a66b4f804b0d135a820";
+					FPlatformProcess::LaunchURL(*URL, nullptr, nullptr);
+
+					return FReply::Handled();
+				})
+			]
+			+ SHorizontalBox::Slot().AutoWidth()
+			[
+				SNew(SSpacer)
+				.Size(FVector2D(20, 10))
+			]
+			+ SHorizontalBox::Slot().FillWidth(1.0f)
+			[
+				SNew(SButton)
+				.Text(FText::FromString("Close window"))
 				.HAlign(HAlign_Center)
 				.OnClicked_Lambda([Window]()
 				{

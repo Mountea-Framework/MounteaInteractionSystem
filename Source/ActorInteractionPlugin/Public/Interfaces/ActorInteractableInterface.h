@@ -215,6 +215,7 @@ public:
 	virtual bool SnoozeInteractable(FString& ErrorMessage) = 0;
 	virtual bool CompleteInteractable(FString& ErrorMessage) = 0;
 	virtual void DeactivateInteractable() = 0;
+	virtual void PauseInteraction(const float ExpirationTime, const FKey UsedKey, const TScriptInterface<IActorInteractorInterface>& CausingInteractor) = 0;
 
 	virtual void InteractableSelected(const TScriptInterface<IActorInteractableInterface>& Interactable) = 0;
 	virtual void InteractableLost(const TScriptInterface<IActorInteractableInterface>& LostInteractable) = 0;

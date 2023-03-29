@@ -66,7 +66,7 @@ void UActorInteractableComponent::BeginPlay()
 		AIP_LOG(Error, TEXT("[BeginPlay] Cannot get Owner reference. Please report this bug."))
 		
 		UnregisterComponent();
-		MarkAsGarbage();
+		MarkPendingKill();
 		return;
 	}
 	if(!GetWorld())
@@ -74,7 +74,7 @@ void UActorInteractableComponent::BeginPlay()
 		AIP_LOG(Error, TEXT("[BeginPlay] Cannot get World reference. Please report this bug."))
 		
 		UnregisterComponent();
-		MarkAsGarbage();
+		MarkPendingKill();
 		return;
 	}
 	if (InteractableWidgetClass.Get() == nullptr)
