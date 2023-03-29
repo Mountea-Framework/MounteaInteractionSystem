@@ -134,21 +134,33 @@ protected:
 	virtual void BeginPlay() override;
 
 protected:
-	
+
+	/**
+	 * Disables Tracing. Can be Enabled again. Clears all timers.
+	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction|Tracing")
 	virtual void DisableTracing();
+	/**
+	 * Tries to enable Tracing. Could fail if non valid state.
+	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction|Tracing")
 	virtual void EnableTracing();
+	/**
+	 * Pauses Tracing if already active.
+	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction|Tracing")
 	virtual void PauseTracing();
 	UFUNCTION()
 	virtual void ResumeTracing();
 
-	UFUNCTION()
-	virtual void ProcessTrace();
+	UFUNCTION()	virtual void ProcessTrace();
 	virtual void ProcessTrace_Precise(FInteractionTraceDataV2& InteractionTraceData);
 	virtual void ProcessTrace_Loose(FInteractionTraceDataV2& InteractionTraceData);
 
+	/**
+	 * Returns whether Tracing is allowed or not.
+	 */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual bool CanTrace() const;
 
 	/**

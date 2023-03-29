@@ -21,7 +21,7 @@ class ACTORINTERACTIONPLUGIN_API UActorInteractionPluginSettings : public UDevel
 	UActorInteractionPluginSettings()
 	{
 		CategoryName = TEXT("Mountea Framework");
-		SectionName = TEXT("Interaction");
+		SectionName = TEXT("Actor Interaction Plugin");
 	}
 
 	/* Defines whether in-editor debug is enabled. */
@@ -71,4 +71,3 @@ public:
 	TSoftClassPtr<UUserWidget> GetInteractableDefaultWidgetClass() const
 	{ return InteractableDefaultWidgetClass; };
 };
-
