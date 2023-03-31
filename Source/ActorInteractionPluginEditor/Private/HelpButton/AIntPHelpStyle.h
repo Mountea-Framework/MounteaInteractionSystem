@@ -16,6 +16,11 @@ public:
 	/** reloads textures used by slate renderer */
 	static void ReloadTextures();
 
+	static const FSlateBrush * GetBrush(FName PropertyName, const ANSICHAR* Specifier = NULL)
+	{
+		return StyleInstance->GetBrush(PropertyName, Specifier);
+	};
+
 	/** @return The Slate style set for the Actor Interaction Plugin Help Button */
 	static const ISlateStyle& Get();
 
