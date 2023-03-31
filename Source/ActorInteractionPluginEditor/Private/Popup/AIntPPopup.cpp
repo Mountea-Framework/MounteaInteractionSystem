@@ -4,6 +4,7 @@
 #include "Widgets/Layout/SScrollBox.h"
 #include "Widgets/Text/SRichTextBlock.h"
 #include "SWebBrowser.h"
+#include "HelpButton/AIntPHelpStyle.h"
 #include "Interfaces/IPluginManager.h"
 
 void AIntPPopup::OnBrowserLinkClicked(const FSlateHyperlinkRun::FMetadata& Metadata)
@@ -153,15 +154,37 @@ But let's keep it short, here are the cool new features (and bugfixes) of versio
 			+ SHorizontalBox::Slot().FillWidth(1.0f)
 			[
 				SNew(SButton)
-				.Text(FText::FromString("Leave a review <3"))
 				.HAlign(HAlign_Center)
 				.OnClicked_Lambda([]()
 				{
-					const FString URL = "https://bit.ly/AIntP_UE4Marketplace";
+					const FString URL = "https://www.unrealengine.com/marketplace/en-US/product/ca842c00ec0d4db0b3aad17701e1637b";
 					FPlatformProcess::LaunchURL(*URL, nullptr, nullptr);
 
 					return FReply::Handled();
 				})
+				[
+					SNew(SHorizontalBox)
+					+ SHorizontalBox::Slot()
+					.AutoWidth()
+					[
+						SNew(STextBlock)
+						.Text(FText::FromString("Leave a review"))
+					]
+
+					+ SHorizontalBox::Slot()
+					[
+						SNew(SSpacer)
+						.Size(FVector2D(5, 0))
+					]
+			
+					+ SHorizontalBox::Slot()
+					.AutoWidth()
+					[
+						SNew(SImage)
+						.ColorAndOpacity(FLinearColor::Red)
+						.Image(FAIntPHelpStyle::GetBrush("AIntPStyleSet.Icon.HeartIcon"))
+					]
+				]
 			]
 			+ SHorizontalBox::Slot().AutoWidth()
 			[
@@ -171,15 +194,36 @@ But let's keep it short, here are the cool new features (and bugfixes) of versio
 			+ SHorizontalBox::Slot().FillWidth(1.0f)
 			[
 				SNew(SButton)
-				.Text(FText::FromString("Support our work"))
 				.HAlign(HAlign_Center)
 				.OnClicked_Lambda([]()
 				{
-					const FString URL = "https://bit.ly/AIntP_GitHubDonate";
+					const FString URL = "https://bit.ly/MounteaFramework_Sponsors";
 					FPlatformProcess::LaunchURL(*URL, nullptr, nullptr);
 
 					return FReply::Handled();
 				})
+				[
+					SNew(SHorizontalBox)
+					+ SHorizontalBox::Slot()
+					.AutoWidth()
+					[
+						SNew(STextBlock)
+						.Text(FText::FromString("Support Us"))
+					]
+
+					+ SHorizontalBox::Slot()
+					[
+						SNew(SSpacer)
+						.Size(FVector2D(5, 0))
+					]
+			
+					+ SHorizontalBox::Slot()
+					.AutoWidth()
+					[
+						SNew(SImage)
+						.Image(FAIntPHelpStyle::GetBrush("AIntPStyleSet.Icon.MoneyIcon"))
+					]
+				]
 			]
 			+ SHorizontalBox::Slot().AutoWidth()
 			[
@@ -189,7 +233,6 @@ But let's keep it short, here are the cool new features (and bugfixes) of versio
 			+ SHorizontalBox::Slot().FillWidth(1.0f)
 			[
 				SNew(SButton)
-				.Text(FText::FromString("Join support Discord"))
 				.HAlign(HAlign_Center)
 				.OnClicked_Lambda([]()
 				{
@@ -198,6 +241,28 @@ But let's keep it short, here are the cool new features (and bugfixes) of versio
 
 					return FReply::Handled();
 				})
+				[
+					SNew(SHorizontalBox)
+					+ SHorizontalBox::Slot()
+					.AutoWidth()
+					[
+						SNew(STextBlock)
+						.Text(FText::FromString("Support Discord"))
+					]
+
+					+ SHorizontalBox::Slot()
+					[
+						SNew(SSpacer)
+						.Size(FVector2D(5, 0))
+					]
+			
+					+ SHorizontalBox::Slot()
+					.AutoWidth()
+					[
+						SNew(SImage)
+						.Image(FAIntPHelpStyle::GetBrush("AIntPStyleSet.Icon.SupportDiscord"))
+					]
+				]
 			]
 			+ SHorizontalBox::Slot().AutoWidth()
 			[
@@ -207,7 +272,6 @@ But let's keep it short, here are the cool new features (and bugfixes) of versio
 			+ SHorizontalBox::Slot().FillWidth(1.0f)
 			[
 				SNew(SButton)
-				.Text(FText::FromString("Unreal Bucket"))
 				.HAlign(HAlign_Center)
 				.OnClicked_Lambda([Window]()
 				{
@@ -216,6 +280,28 @@ But let's keep it short, here are the cool new features (and bugfixes) of versio
 
 					return FReply::Handled();
 				})
+				[
+					SNew(SHorizontalBox)
+					+ SHorizontalBox::Slot()
+					.AutoWidth()
+					[
+						SNew(STextBlock)
+						.Text(FText::FromString("Unreal Bucket"))
+					]
+
+					+ SHorizontalBox::Slot()
+					[
+						SNew(SSpacer)
+						.Size(FVector2D(5, 0))
+					]
+			
+					+ SHorizontalBox::Slot()
+					.AutoWidth()
+					[
+						SNew(SImage)
+						.Image(FAIntPHelpStyle::GetBrush("AIntPStyleSet.Icon.UBIcon"))
+					]
+				]
 			]
 			+ SHorizontalBox::Slot().AutoWidth()
 			[
@@ -225,7 +311,6 @@ But let's keep it short, here are the cool new features (and bugfixes) of versio
 			+ SHorizontalBox::Slot().FillWidth(1.0f)
 			[
 				SNew(SButton)
-				.Text(FText::FromString("Close window"))
 				.HAlign(HAlign_Center)
 				.OnClicked_Lambda([Window]()
 				{
@@ -233,6 +318,29 @@ But let's keep it short, here are the cool new features (and bugfixes) of versio
 
 					return FReply::Handled();
 				})
+				[
+					SNew(SHorizontalBox)
+					+ SHorizontalBox::Slot()
+					.AutoWidth()
+					[
+						SNew(STextBlock)
+						.Text(FText::FromString("Close window"))
+					]
+
+					+ SHorizontalBox::Slot()
+					[
+						SNew(SSpacer)
+						.Size(FVector2D(5, 0))
+					]
+			
+					+ SHorizontalBox::Slot()
+					.AutoWidth()
+					[
+						SNew(SImage)
+						.ColorAndOpacity(FLinearColor::Red)
+						.Image(FAIntPHelpStyle::GetBrush("AIntPStyleSet.Icon.Close"))
+					]
+				]
 			]
 		];
 
