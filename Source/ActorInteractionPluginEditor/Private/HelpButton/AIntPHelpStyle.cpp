@@ -50,6 +50,7 @@ FName FAIntPHelpStyle::GetStyleSetName()
 #define TTF_FONT( RelativePath, ... ) FSlateFontInfo( Style->RootToContentDir( RelativePath, TEXT(".ttf") ), __VA_ARGS__ )
 #define OTF_FONT( RelativePath, ... ) FSlateFontInfo( Style->RootToContentDir( RelativePath, TEXT(".otf") ), __VA_ARGS__ )
 
+const FVector2D Icon12x12(12.0f, 12.0f);
 const FVector2D Icon16x16(16.0f, 16.0f);
 const FVector2D Icon20x20(20.0f, 20.0f);
 const FVector2D Icon40x40(40.0f, 40.0f);
@@ -61,6 +62,12 @@ TSharedRef<FSlateStyleSet> FAIntPHelpStyle::Create()
 
 	Style->Set("AIntPSupport.PluginAction", new IMAGE_BRUSH(TEXT("Mountea_Logo"), Icon40x40));
 	Style->Set("AIntPSupport.PluginAction.small", new IMAGE_BRUSH(TEXT("HelpIcon"), Icon20x20));
+
+	Style->Set("AIntPStyleSet.Icon.Close", new IMAGE_BRUSH(TEXT("CloseIcon"), Icon12x12));
+	Style->Set("AIntPStyleSet.Icon.SupportDiscord", new IMAGE_BRUSH(TEXT("DiscordIcon"), Icon12x12));
+	Style->Set("AIntPStyleSet.Icon.HeartIcon", new IMAGE_BRUSH(TEXT("HeartIcon"), Icon12x12));
+	Style->Set("AIntPStyleSet.Icon.UBIcon", new IMAGE_BRUSH(TEXT("UnrealBucketIcon"), Icon12x12));
+	Style->Set("AIntPStyleSet.Icon.MoneyIcon", new IMAGE_BRUSH(TEXT("MoneyIcon"), Icon12x12));
 
 	return Style;
 }
