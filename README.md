@@ -28,10 +28,10 @@ Join support and community Discord!
 Engine Version | Plugin Version | Support
 -------------- | -------------- | ----
 UE 4.25 | 2.0.0.0 | 🟪
-UE 4.26 | 3.0.1.2 | 🟥
-UE 4.27 | 3.0.1.2 | 🟩
-UE 5.00 | 3.0.1.2 | 🟩
-UE 5.1 | 3.0.1.2 | 🟩
+UE 4.26 | 3.0.1.5 | 🟥
+UE 4.27 | 3.0.1.5 | 🟩
+UE 5.00 | 3.0.1.5 | 🟩
+UE 5.1 | 3.0.1.5 | 🟩
 
 ### Installation
 
