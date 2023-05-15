@@ -8,7 +8,6 @@ public class ActorInteractionPluginEditor : ModuleRules
 	public ActorInteractionPluginEditor(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
-		bEnforceIWYU = true;
 		
 		PrecompileForTargets = PrecompileTargetsType.None;
 		bPrecompile = false;
