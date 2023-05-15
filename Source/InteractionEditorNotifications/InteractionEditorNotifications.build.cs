@@ -8,7 +8,6 @@ public class InteractionEditorNotifications : ModuleRules
 	public InteractionEditorNotifications(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
-		bEnforceIWYU = true;
 		
 		PrecompileForTargets = PrecompileTargetsType.None;
 		bPrecompile = false;
