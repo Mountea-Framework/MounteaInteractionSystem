@@ -40,7 +40,7 @@ UPrimitiveComponent* UActorInteractorComponentOverlap::FindComponentByName(const
 	TArray<UActorComponent*> Components;
 	GetOwner()->GetComponents(UPrimitiveComponent::StaticClass(), Components);
 
-	for (const auto Itr : Components)
+	for (const auto& Itr : Components)
 	{
 		if (Itr && Itr->GetName().Equals(CollisionComponentName.ToString()))
 		{
@@ -64,7 +64,7 @@ void UActorInteractorComponentOverlap::SetupInteractorOverlap()
 
 void UActorInteractorComponentOverlap::BindCollisions()
 {
-	for (const auto Itr : CollisionShapes)
+	for (const auto& Itr : CollisionShapes)
 	{
 		BindCollision(Itr);
 	}
@@ -98,7 +98,7 @@ void UActorInteractorComponentOverlap::BindCollision(UPrimitiveComponent* Compon
 
 void UActorInteractorComponentOverlap::UnbindCollisions()
 {
-	for (const auto Itr : CollisionShapes)
+	for (const auto& Itr : CollisionShapes)
 	{
 		UnbindCollision(Itr);
 	}
@@ -135,7 +135,7 @@ void UActorInteractorComponentOverlap::AddCollisionComponent(UPrimitiveComponent
 
 void UActorInteractorComponentOverlap::AddCollisionComponents(TArray<UPrimitiveComponent*> CollisionComponents)
 {
-	for (const auto Itr : CollisionComponents)
+	for (const auto& Itr : CollisionComponents)
 	{
 		AddCollisionComponent(Itr);
 	}
@@ -154,7 +154,7 @@ void UActorInteractorComponentOverlap::RemoveCollisionComponent(UPrimitiveCompon
 
 void UActorInteractorComponentOverlap::RemoveCollisionComponents(TArray<UPrimitiveComponent*> CollisionComponents)
 {
-	for (const auto Itr : CollisionComponents)
+	for (const auto& Itr : CollisionComponents)
 	{
 		RemoveCollisionComponent(Itr);
 	}

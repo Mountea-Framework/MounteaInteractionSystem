@@ -56,7 +56,7 @@ void UActorInteractorComponentBase::InteractableFound(const TScriptInterface<IAc
 
 	if (FoundInteractable != ActiveInteractable)
 	{
-		for (const auto Itr : InteractionDependencies)
+		for (const auto& Itr : InteractionDependencies)
 		{
 			if (Itr.GetInterface())
 			{
@@ -269,7 +269,7 @@ void UActorInteractorComponentBase::AddIgnoredActor(AActor* IgnoredActor)
 
 void UActorInteractorComponentBase::AddIgnoredActors(const TArray<AActor*> IgnoredActors)
 {
-	for (const auto Itr : IgnoredActors)
+	for (const auto& Itr : IgnoredActors)
 	{
 		AddIgnoredActor(Itr);
 	}
@@ -288,7 +288,7 @@ void UActorInteractorComponentBase::RemoveIgnoredActor(AActor* UnignoredActor)
 
 void UActorInteractorComponentBase::RemoveIgnoredActors(const TArray<AActor*> UnignoredActors)
 {
-	for (const auto Itr : UnignoredActors)
+	for (const auto& Itr : UnignoredActors)
 	{
 		RemoveIgnoredActor(Itr);
 	}
@@ -327,7 +327,7 @@ void UActorInteractorComponentBase::ProcessDependencies()
 {
 	if (InteractionDependencies.Num() == 0) return;
 	
-	for (const auto Itr : InteractionDependencies)
+	for (const auto& Itr : InteractionDependencies)
 	{
 		switch (InteractorState)
 		{
