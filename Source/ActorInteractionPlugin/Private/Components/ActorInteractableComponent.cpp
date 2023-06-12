@@ -83,7 +83,7 @@ void UActorInteractableComponent::BeginPlay()
 	}
 	if (CollisionShapes.Num())
 	{
-		for (const auto Itr : CollisionShapes)
+		for (const auto& Itr : CollisionShapes)
 		{
 			BindCollisionEvents(Itr);
 		}

@@ -443,7 +443,7 @@ void UActorInteractableComponentBase::SetState(const EInteractableStateV2 NewSta
 						InteractableState = NewState;
 						OnInteractableStateChanged.Broadcast(InteractableState);
 
-						for (const auto Itr : CollisionComponents)
+						for (const auto& Itr : CollisionComponents)
 						{
 							BindCollisionShape(Itr);
 						}
@@ -473,7 +473,7 @@ void UActorInteractableComponentBase::SetState(const EInteractableStateV2 NewSta
 						if (GetWorld()) GetWorld()->GetTimerManager().ClearAllTimersForObject(this);
 						OnInteractorLost.Broadcast(Interactor);
 						
-						for (const auto Itr : CollisionComponents)
+						for (const auto& Itr : CollisionComponents)
 						{
 							UnbindCollisionShape(Itr);
 						}
@@ -505,7 +505,7 @@ void UActorInteractableComponentBase::SetState(const EInteractableStateV2 NewSta
 						if (GetWorld()) GetWorld()->GetTimerManager().ClearAllTimersForObject(this);
 						OnInteractorLost.Broadcast(Interactor);
 						
-						for (const auto Itr : CollisionComponents)
+						for (const auto& Itr : CollisionComponents)
 						{
 							UnbindCollisionShape(Itr);
 						}
@@ -558,7 +558,7 @@ void UActorInteractableComponentBase::SetState(const EInteractableStateV2 NewSta
 						if (GetWorld()) GetWorld()->GetTimerManager().ClearAllTimersForObject(this);
 						OnInteractorLost.Broadcast(Interactor);
 						
-						for (const auto Itr : CollisionComponents)
+						for (const auto& Itr : CollisionComponents)
 						{
 							UnbindCollisionShape(Itr);
 						}
@@ -627,7 +627,7 @@ void UActorInteractableComponentBase::SetState(const EInteractableStateV2 NewSta
 void UActorInteractableComponentBase::StartHighlight()
 {
 	SetHiddenInGame(false, true);
-	for (const auto Itr : HighlightableComponents)
+	for (const auto& Itr : HighlightableComponents)
 	{
 		Itr->SetRenderCustomDepth(bInteractionHighlight);
 		Itr->SetCustomDepthStencilValue(StencilID);
@@ -637,7 +637,7 @@ void UActorInteractableComponentBase::StartHighlight()
 void UActorInteractableComponentBase::StopHighlight()
 {
 	SetHiddenInGame(true, true);
-	for (const auto Itr : HighlightableComponents)
+	for (const auto& Itr : HighlightableComponents)
 	{
 		//Itr->SetRenderCustomDepth(false);
 		Itr->SetCustomDepthStencilValue(0);
@@ -667,7 +667,7 @@ void UActorInteractableComponentBase::AddIgnoredClass(TSoftClassPtr<UObject> Add
 
 void UActorInteractableComponentBase::AddIgnoredClasses(TArray<TSoftClassPtr<UObject>> AddIgnoredClasses)
 {
-	for (const auto Itr : AddIgnoredClasses)
+	for (const auto& Itr : AddIgnoredClasses)
 	{
 		AddIgnoredClass(Itr);
 	}
@@ -686,7 +686,7 @@ void UActorInteractableComponentBase::RemoveIgnoredClass(TSoftClassPtr<UObject> 
 
 void UActorInteractableComponentBase::RemoveIgnoredClasses(TArray<TSoftClassPtr<UObject>> RemoveIgnoredClasses)
 {
-	for (const auto Itr : RemoveIgnoredClasses)
+	for (const auto& Itr : RemoveIgnoredClasses)
 	{
 		RemoveIgnoredClass(Itr);
 	}
@@ -724,7 +724,7 @@ void UActorInteractableComponentBase::ProcessDependencies()
 	if (InteractionDependencies.Num() == 0) return;
 
 	auto Dependencies = InteractionDependencies;
-	for (const auto Itr : Dependencies)
+	for (const auto& Itr : Dependencies)
 	{
 		switch (InteractableState)
 		{
@@ -1071,7 +1071,7 @@ UMeshComponent* UActorInteractableComponentBase::FindMeshByName(const FName Name
 	TArray<UMeshComponent*> MeshComponents;
 	GetOwner()->GetComponents(MeshComponents);
 
-	for (const auto Itr : MeshComponents)
+	for (const auto& Itr : MeshComponents)
 	{
 		if (Itr && Itr->GetName().Equals(Name.ToString()))
 		{
@@ -1089,7 +1089,7 @@ UMeshComponent* UActorInteractableComponentBase::FindMeshByTag(const FName Tag) 
 	TArray<UMeshComponent*> MeshComponents;
 	GetOwner()->GetComponents(MeshComponents);
 
-	for (const auto Itr : MeshComponents)
+	for (const auto& Itr : MeshComponents)
 	{
 		if (Itr && Itr->ComponentHasTag(Tag))
 		{
@@ -1107,7 +1107,7 @@ UPrimitiveComponent* UActorInteractableComponentBase::FindPrimitiveByName(const 
 	TArray<UPrimitiveComponent*> PrimitiveComponents;
 	GetOwner()->GetComponents(PrimitiveComponents);
 
-	for (const auto Itr : PrimitiveComponents)
+	for (const auto& Itr : PrimitiveComponents)
 	{
 		if (Itr && Itr->GetName().Equals(Name.ToString()))
 		{
@@ -1125,7 +1125,7 @@ UPrimitiveComponent* UActorInteractableComponentBase::FindPrimitiveByTag(const F
 	TArray<UPrimitiveComponent*> PrimitiveComponents;
 	GetOwner()->GetComponents(PrimitiveComponents);
 
-	for (const auto Itr : PrimitiveComponents)
+	for (const auto& Itr : PrimitiveComponents)
 	{
 		if (Itr && Itr->ComponentHasTag(Tag))
 		{
@@ -1358,7 +1358,7 @@ void UActorInteractableComponentBase::OnInteractableBeginOverlap(UPrimitiveCompo
 
 	if (InteractorComponents.Num() == 0) return;
 	
-	for (const auto Itr : InteractorComponents)
+	for (const auto& Itr : InteractorComponents)
 	{
 		TScriptInterface<IActorInteractorInterface> FoundInteractor;
 		if (IgnoredClasses.Contains(Itr->StaticClass())) continue;
@@ -1397,7 +1397,7 @@ void UActorInteractableComponentBase::OnInteractableStopOverlap(UPrimitiveCompon
 
 	if (InteractorComponents.Num() == 0) return;
 
-	for (const auto Itr : InteractorComponents)
+	for (const auto& Itr : InteractorComponents)
 	{
 		TScriptInterface<IActorInteractorInterface> LostInteractor;
 		if (IgnoredClasses.Contains(Itr->StaticClass())) continue;
@@ -1431,7 +1431,7 @@ void UActorInteractableComponentBase::OnInteractableTraced(UPrimitiveComponent* 
 
 	if (InteractorComponents.Num() == 0) return;
 	
-	for (const auto Itr : InteractorComponents)
+	for (const auto& Itr : InteractorComponents)
 	{
 		TScriptInterface<IActorInteractorInterface> FoundInteractor;
 		if (IgnoredClasses.Contains(Itr->StaticClass())) continue;
@@ -1540,7 +1540,7 @@ void UActorInteractableComponentBase::InteractableLost(const TScriptInterface<IA
 
 void UActorInteractableComponentBase::FindAndAddCollisionShapes()
 {
-	for (const auto Itr : CollisionOverrides)
+	for (const auto& Itr : CollisionOverrides)
 	{
 		if (const auto NewCollision = FindPrimitiveByName(Itr))
 		{
@@ -1561,7 +1561,7 @@ void UActorInteractableComponentBase::FindAndAddCollisionShapes()
 
 void UActorInteractableComponentBase::FindAndAddHighlightableMeshes()
 {
-	for (const auto Itr : HighlightableOverrides)
+	for (const auto& Itr : HighlightableOverrides)
 	{
 		if (const auto NewMesh = FindMeshByName(Itr))
 		{
@@ -1605,7 +1605,7 @@ bool UActorInteractableComponentBase::TriggerCooldown()
 			false
 		);
 
-		for (const auto Itr : CollisionComponents)
+		for (const auto& Itr : CollisionComponents)
 		{
 			UnbindCollisionShape(Itr);
 		}
@@ -1708,7 +1708,7 @@ void UActorInteractableComponentBase::AutoSetup()
 				TArray<UMeshComponent*> OwnerMeshes;
 				GetOwner()->GetComponents(OwnerMeshes);
 
-				for (const auto Itr : OwnerPrimitives)
+				for (const auto& Itr : OwnerPrimitives)
 				{
 					if (Itr)
 					{
@@ -1716,7 +1716,7 @@ void UActorInteractableComponentBase::AutoSetup()
 					}
 				}
 
-				for (const auto Itr : OwnerMeshes)
+				for (const auto& Itr : OwnerMeshes)
 				{
 					if (Itr)
 					{
@@ -1734,7 +1734,7 @@ void UActorInteractableComponentBase::AutoSetup()
 				// Iterate over them and assign them properly
 				if (ParentComponents.Num() > 0)
 				{
-					for (const auto Itr : ParentComponents)
+					for (const auto& Itr : ParentComponents)
 					{
 						if (UPrimitiveComponent* PrimitiveComp = Cast<UPrimitiveComponent>(Itr))
 						{
@@ -1781,7 +1781,7 @@ void UActorInteractableComponentBase::OnCooldownCompletedCallback()
 		return;
 	}
 	
-	for (const auto Itr : CollisionComponents)
+	for (const auto& Itr : CollisionComponents)
 	{
 		BindCollisionShape(Itr);
 	}
@@ -2130,7 +2130,7 @@ void UActorInteractableComponentBase::DrawDebug()
 {
 	if (DebugSettings.DebugMode)
 	{
-		for (const auto Itr : CollisionComponents)
+		for (const auto& Itr : CollisionComponents)
 		{
 			Itr->SetHiddenInGame(false);
 		}

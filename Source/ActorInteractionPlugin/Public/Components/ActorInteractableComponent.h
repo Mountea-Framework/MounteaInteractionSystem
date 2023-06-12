@@ -454,7 +454,7 @@ public:
 	{
 		if(NewCollisionShapes.Num())
 		{
-			for (const auto Itr : NewCollisionShapes)
+			for (const auto& Itr : NewCollisionShapes)
 			{
 				AddCollisionShape(Itr);
 			}
@@ -505,7 +505,7 @@ public:
 	{
 		if(RemoveCollisionShapes.Num())
 		{
-			for (const auto Itr : RemoveCollisionShapes)
+			for (const auto& Itr : RemoveCollisionShapes)
 			{
 				RemoveCollisionShape(Itr);
 			}
@@ -588,7 +588,7 @@ public:
 	{
 		if(NewHighlightableMeshes.Num())
 		{
-			for (const auto Itr : NewHighlightableMeshes)
+			for (const auto& Itr : NewHighlightableMeshes)
 			{
 				AddHighlightableMesh(Itr);
 			}
@@ -634,7 +634,7 @@ public:
 	{
 		if(RemoveHighlightableMeshes.Num())
 		{
-			for (const auto Itr : RemoveHighlightableMeshes)
+			for (const auto& Itr : RemoveHighlightableMeshes)
 			{
 				RemoveHighlightableMesh(Itr);
 			}
