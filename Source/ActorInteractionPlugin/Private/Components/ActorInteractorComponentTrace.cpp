@@ -161,7 +161,7 @@ void UActorInteractorComponentTrace::ProcessTrace()
 		if (const AActor* HitActor = HitResult.GetActor())
 		{
 			auto InteractableComponents = HitActor->GetComponentsByInterface(UActorInteractableInterface::StaticClass());
-			for (const auto Itr : InteractableComponents)
+			for (const auto& Itr : InteractableComponents)
 			{
 				if (Itr && Itr->Implements<UActorInteractableInterface>())
 				{
