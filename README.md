@@ -1,4 +1,4 @@
-# Actor Interaction Plugin
+# Mountea Interaction System
 
 Actor Interaction Plugin is an Open-source Mountea Framework components-based simple framework providing utilities for smart Actor Interaction with other Actors.
 Developed with Game Developers in mind to allow as easy as possible implementation while maintaining high scalability and diverse options to tweak everything.
@@ -56,4 +56,9 @@ A best way to describe the usage is to take a look or play the demo build.
 ## Additional Documentation and Acknowledgments
 
 * Roadmap: https://github.com/orgs/Mountea-Framework/projects/2
-* Documentation: https://sites.google.com/view/dominikpavlicek/home/documentation 
+* Documentation: https://sites.google.com/view/dominikpavlicek/home/documentation
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=Mountea-Framework/MounteaInteractionSystem&type=Date)](https://star-history.com/#Mountea-Framework/MounteaInteractionSystem&Date)
+
