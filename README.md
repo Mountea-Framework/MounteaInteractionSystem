@@ -24,19 +24,20 @@ Join support and community Discord!
 🟪 - Deprecated
 🟥 - Partially supported
 
-## Suport Table
+## Support Table
 Engine Version | Plugin Version | Support
 -------------- | -------------- | ----
 UE 4.25 | 2.0.0.0 | 🟪
-UE 4.26 | 3.0.1.5 | 🟥
-UE 4.27 | 3.0.1.5 | 🟥
-UE 5.00 | 3.0.1.5 | 🟩
+UE 4.26 | 3.0.1.5 | 🟪
+UE 4.27 | 3.0.1.5 | 🟪
+UE 5.00 | 3.0.1.5 | 🟥
 UE 5.1 | 3.0.1.5 | 🟩
 UE 5.2 | 3.0.1.5 | 🟩
+UE 5.3 | 3.0.1.3 | 🟩
 
 ### Installation
 
-Download the plugin (either from Releases or from Marketplace). For more detailed guide take a look at Wiki page.
+Download the plugin (either from Releases or from Marketplace). For a more detailed guide take a look at the Wiki page.
 
 1. Download the branch release you are interested in
 2. Instal the plugin to your Game Project (within /Plugin folder)
@@ -44,14 +45,14 @@ Download the plugin (either from Releases or from Marketplace). For more detaile
 
 ## Usage
 
-A best way to describe the usage is to take a look or play the demo build.
+The best way to describe the usage is to take a look or play the demo build.
 * Video: https://youtu.be/OCCcxqhCBkY
 * Build: https://bit.ly/Mountea_InteractionDemo
 
 ### Branches
 
-* Master: A development branch, should be always relevant to most current Engine version.
-* Version Branch: A development branch for specified Engine version
+* Master: A development branch, that should always be relevant to the most current Engine version.
+* Version Branch: A development branch for a specified Engine version
 
 ## Additional Documentation and Acknowledgments
 
