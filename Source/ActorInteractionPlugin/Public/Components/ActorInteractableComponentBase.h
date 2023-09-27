@@ -15,6 +15,9 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnWidgetUpdated);
 
+#if WITH_EDITORONLY_DATA
+DECLARE_DYNAMIC_DELEGATE(FResetDefaultValues);
+#endif
 
 /**
  * Actor Interactable Base Component
@@ -1280,7 +1283,7 @@ protected:
 	 * * Cooldown
 	 */
 	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Required", meta=(NoResetToDefault))
-	EInteractableStateV2 DefaultInteractableState;
+	 EInteractableStateV2 DefaultInteractableState;
 	
 	/**
 	 * If set to true, Interactable will automatically assigns owning Component in Hierarchy as Highlightable Meshes and Collision Shapes.
@@ -1536,7 +1539,7 @@ private:
 protected:
 	
 	virtual void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;
-	virtual EDataValidationResult IsDataValid(TArray<FText>& ValidationErrors) override;
+	virtual EDataValidationResult IsDataValid(FDataValidationContext& Context) const override;
 
 	virtual bool Modify(bool bAlwaysMarkDirty) override;
 
@@ -1545,7 +1548,16 @@ protected:
 	virtual void DrawDebug();
 
 #endif
+
+#if WITH_EDITORONLY_DATA
+
+	FResetDefaultValues ResetDefaultValues;
 	
+	UFUNCTION()
+	virtual void ResetDefaultValuesImpl();
+
+#endif
+		
 #pragma endregion 
 };
 

@@ -374,7 +374,7 @@ protected:
 	 * This state will be propagated to Interactor State.
 	 */
 	UPROPERTY(EditAnywhere, Category="Interaction|Required", meta=(NoResetToDefault))
-	EInteractorStateV2 DefaultInteractorState;
+	mutable EInteractorStateV2 DefaultInteractorState;
 
 	/**
 	 * A list of Actors that won't be taken in count when interacting.
@@ -407,7 +407,7 @@ private:
 protected:
 
 	virtual void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;
-	virtual EDataValidationResult IsDataValid(TArray<FText>& ValidationErrors) override;
+	virtual EDataValidationResult IsDataValid(FDataValidationContext& Context) const override;
 
 #endif
 	

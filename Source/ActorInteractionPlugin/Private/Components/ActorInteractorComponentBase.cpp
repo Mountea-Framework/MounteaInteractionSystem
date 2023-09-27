@@ -10,6 +10,7 @@
 
 #include "Helpers/InteractionHelpers.h"
 #include "Interfaces/ActorInteractableInterface.h"
+#include "Misc/DataValidation.h"
 
 UActorInteractorComponentBase::UActorInteractorComponentBase()
 {
@@ -556,9 +557,9 @@ void UActorInteractorComponentBase::PostEditChangeChainProperty(FPropertyChanged
 	}
 }
 
-EDataValidationResult UActorInteractorComponentBase::IsDataValid(TArray<FText>& ValidationErrors)
+EDataValidationResult UActorInteractorComponentBase::IsDataValid(FDataValidationContext& Context) const
 {
-	const auto DefaultValue = Super::IsDataValid(ValidationErrors);
+	const auto DefaultValue = Super::IsDataValid(Context);
 	bool bAnyError = false;
 
 	FString InteractorName = GetName();
@@ -586,10 +587,10 @@ EDataValidationResult UActorInteractorComponentBase::IsDataValid(TArray<FText>& 
 		(
 			InteractorName.Append(TEXT(": DefaultInteractorState cannot be")).Append(GetEnumValueAsString("EInteractorStateV2", DefaultInteractorState)).Append(TEXT("!"))
 		);
-
+		
 		DefaultInteractorState = EInteractorStateV2::EIS_Awake;
 		
-		ValidationErrors.Add(ErrorMessage);
+		Context.AddWarning(ErrorMessage);
 		bAnyError = true;
 	}
 	

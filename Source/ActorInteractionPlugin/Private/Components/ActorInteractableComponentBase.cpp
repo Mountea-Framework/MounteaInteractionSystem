@@ -16,6 +16,7 @@
 #include "Components/WidgetComponent.h"
 #include "Helpers/ActorInteractionFunctionLibrary.h"
 #include "Interfaces/ActorInteractorInterface.h"
+#include "Misc/DataValidation.h"
 
 #define LOCTEXT_NAMESPACE "InteractableComponentBase"
 
@@ -68,7 +69,9 @@ UActorInteractableComponentBase::UActorInteractableComponentBase()
 
 #if WITH_EDITORONLY_DATA
 	bVisualizeComponent = true;
+	ResetDefaultValues.BindUFunction(this, FName("ResetDefaultValuesImpl"));	
 #endif
+	
 }
 
 void UActorInteractableComponentBase::BeginPlay()
@@ -1979,9 +1982,9 @@ void UActorInteractableComponentBase::PostEditChangeChainProperty(FPropertyChang
 	}
 }
 
-EDataValidationResult UActorInteractableComponentBase::IsDataValid(TArray<FText>& ValidationErrors)
+EDataValidationResult UActorInteractableComponentBase::IsDataValid(FDataValidationContext& Context) const
 {
-	const auto DefaultValue = Super::IsDataValid(ValidationErrors);
+	const auto DefaultValue = Super::IsDataValid(Context);
 	bool bAnyError = false;
 
 	FString interactableName = GetName();
@@ -2010,10 +2013,8 @@ EDataValidationResult UActorInteractableComponentBase::IsDataValid(TArray<FText>
 		(
 			interactableName.Append(TEXT(": DefaultInteractableState cannot be")).Append(GetEnumValueAsString("EInteractableStateV2", DefaultInteractableState)).Append(TEXT("!"))
 		);
-
-		DefaultInteractableState = EInteractableStateV2::EIS_Awake;
 		
-		ValidationErrors.Add(ErrorMessage);
+		Context.AddError(ErrorMessage);
 		bAnyError = true;
 	}
 
@@ -2023,10 +2024,8 @@ EDataValidationResult UActorInteractableComponentBase::IsDataValid(TArray<FText>
 		(
 			interactableName.Append(TEXT(": DefaultInteractableState cannot be lesser than -1!"))
 		);
-
-		InteractionPeriod = -1.f;
 		
-		ValidationErrors.Add(ErrorMessage);
+		Context.AddError(ErrorMessage);
 		bAnyError = true;
 	}
 	
@@ -2036,11 +2035,8 @@ EDataValidationResult UActorInteractableComponentBase::IsDataValid(TArray<FText>
 		(
 			interactableName.Append(TEXT(":")).Append(TEXT(" LifecycleCount cannot be %d!"), LifecycleCount)
 		);
-			
-		LifecycleCount = 2.f;
-		RemainingLifecycleCount = LifecycleCount;
 		
-		ValidationErrors.Add(ErrorMessage);
+		Context.AddError(ErrorMessage);
 		bAnyError = true;
 	}
 
@@ -2051,7 +2047,7 @@ EDataValidationResult UActorInteractableComponentBase::IsDataValid(TArray<FText>
 			interactableName.Append(TEXT(": Widget Class is NULL!"))
 		);
 
-		ValidationErrors.Add(ErrorMessage);
+		Context.AddError(ErrorMessage);
 		bAnyError = true;
 	}
 	else
@@ -2064,12 +2060,15 @@ EDataValidationResult UActorInteractableComponentBase::IsDataValid(TArray<FText>
 				(
 					interactableName.Append(TEXT(" : Widget Class must either implement 'ActorInteractionWidget Interface' or inherit from 'ActorInteractableWidget' class!"))
 				);
-
-				SetWidgetClass(nullptr);
-				ValidationErrors.Add(ErrorMessage);
+				Context.AddError(ErrorMessage);
 				bAnyError = true;
 			}
 		}
+	}
+
+	if (bAnyError)
+	{
+		ResetDefaultValues.ExecuteIfBound();
 	}
 	
 	return bAnyError ? EDataValidationResult::Invalid : DefaultValue;
@@ -2122,6 +2121,42 @@ bool UActorInteractableComponentBase::Modify(bool bAlwaysMarkDirty)
 	}
 	
 	return bResult;
+}
+
+void UActorInteractableComponentBase::ResetDefaultValuesImpl()
+{
+	if
+	(
+		DefaultInteractableState == EInteractableStateV2::EIS_Active ||
+		DefaultInteractableState == EInteractableStateV2::EIS_Completed ||
+		DefaultInteractableState == EInteractableStateV2::EIS_Cooldown
+	)
+	{
+		DefaultInteractableState = EInteractableStateV2::EIS_Awake;
+	}
+
+	if (InteractionPeriod < -1.f)
+	{
+		InteractionPeriod = -1.f;
+	}
+
+	if (LifecycleMode == EInteractableLifecycle::EIL_Cycled && (LifecycleCount == 0 || LifecycleCount == 1))
+	{
+		LifecycleCount = 2.f;
+		RemainingLifecycleCount = LifecycleCount;
+	}
+
+	if
+	( GetWidgetClass()	)
+	{
+		if (!GetWidgetClass()->IsChildOf(UActorInteractableWidget::StaticClass()))
+		{
+			if (GetWidgetClass()->ImplementsInterface(UActorInteractionWidget::StaticClass()) == false)
+			{
+				SetWidgetClass(nullptr);
+			}
+		}
+	}
 }
 
 #endif
