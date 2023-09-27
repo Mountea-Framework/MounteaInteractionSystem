@@ -31,7 +31,7 @@ enum class EInteractableType : uint8
  * 
  * Machine States of the Interactable Actor Component.
  */
-UENUM(BlueprintType)
+UENUM(BlueprintType, meta=(ScriptName="InteractableState (Deprecated)"))
 enum class EInteractableState : uint8
 {
  EIS_Standby  UMETA(DisplayName = "StandBy", ToolTip = "Interactable is enabled"),
@@ -78,7 +78,7 @@ enum class EInteractorType : uint8
  * 
  * Machine States of the Interactor Actor Component.
  */
-UENUM(BlueprintType)
+UENUM(BlueprintType, meta=(ScriptName="InteractorState (Deprecated)"))
 enum class EInteractorState : uint8
 {
  EIS_Disabled UMETA(DisplayName = "Disabled", Tooltip = "Interactor is disabled"),
