@@ -67,7 +67,7 @@ UActorInteractableComponentBase::UActorInteractableComponentBase()
 
 	CachedInteractionWeight = InteractionWeight;
 
-#if WITH_EDITORONLY_DATA
+#if WITH_EDITOR
 	bVisualizeComponent = true;
 	ResetDefaultValues.BindUFunction(this, FName("ResetDefaultValuesImpl"));	
 #endif

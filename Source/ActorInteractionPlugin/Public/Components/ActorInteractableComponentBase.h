@@ -16,7 +16,9 @@
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnWidgetUpdated);
 
 #if WITH_EDITORONLY_DATA
+
 DECLARE_DYNAMIC_DELEGATE(FResetDefaultValues);
+
 #endif
 
 /**
@@ -1549,11 +1551,11 @@ protected:
 
 #endif
 
-#if WITH_EDITORONLY_DATA
+#if WITH_EDITOR
 
 	FResetDefaultValues ResetDefaultValues;
 	
-	UFUNCTION()
+	UFUNCTION(meta=(DevelopmentOnly))
 	virtual void ResetDefaultValuesImpl();
 
 #endif
