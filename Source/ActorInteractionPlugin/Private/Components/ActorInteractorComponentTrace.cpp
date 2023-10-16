@@ -6,7 +6,7 @@
 #include "Interfaces/ActorInteractableInterface.h"
 #include "Kismet/KismetMathLibrary.h"
 
-#include "Components/ShapeComponent.h"
+#include "TimerManager.h"
 #include "Helpers/ActorInteractionPluginLog.h"
 #include "Helpers/InteractionHelpers.h"
 
