@@ -6,6 +6,7 @@
 #include "Blueprint/UserWidget.h"
 
 #include "Helpers/InteractionHelpers.h"
+#include "Interfaces/ActorInteractionWidget.h"
 
 #include "ActorInteractableWidget.generated.h"
 
@@ -13,7 +14,7 @@ class UTextBlock;
 class UImage;
 class UBorder;
 
-class UActorInteractableComponent;
+class UDEPRECATED_ActorInteractableComponent;
 
 /**
  * Implement an Interactable Actor Widget.
@@ -29,7 +30,7 @@ class UActorInteractableComponent;
  * @see [InteractableWidget](https://sites.google.com/view/dominikpavlicek/home/documentation)
  */
 UCLASS()
-class ACTORINTERACTIONPLUGIN_API UActorInteractableWidget final : public UUserWidget
+class ACTORINTERACTIONPLUGIN_API UActorInteractableWidget final : public UUserWidget, public IActorInteractionWidget
 {
 	GENERATED_BODY()
 	
@@ -39,16 +40,15 @@ public:
 	 * Custom Initialize to pass down some required values for Widget to work correctly.
 	 * @note Widget won't work unless Initialized.
 	 */
-	UFUNCTION(BlueprintCallable, Category="Interaction")
+	UE_DEPRECATED(5.0, "Please, use `UpdateWidget` instead") // UFUNCTION(BlueprintCallable, Category="Interaction", meta=(DeprecatedFunction, DeprecatedMessage="Please, use `UpdateWidget` instead"))
 	void InitializeInteractionWidget(const FText& NewInteractableKey, const FText& NewInteractableName, const FText& NewInteractionAction,
-	                                 UActorInteractableComponent* NewOwningComponent, UTexture2D* NewInteractionTexture);
+	UDEPRECATED_ActorInteractableComponent* NewOwningComponent, UTexture2D* NewInteractionTexture);
 
 	/**
 	 * Use this Event to Toggle Visibility;
 	 * Call Parent function to ensure caching previous Visibility!
 	 */
-	UFUNCTION(BlueprintNativeEvent, Category="Interaction")
-	void ToggleVisibility();
+	virtual void ToggleVisibility_Implementation() override;
 
 	virtual bool Initialize() override;
 
@@ -60,16 +60,16 @@ public:
 
 	/**
 	 * Returns owning Interactable Component or any of its child classes.
-	 * @return	Owning Component of UActorInteractableComponent
+	 * @return	Owning Component of UDEPRECATED_ActorInteractableComponent
 	 */
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
-	FORCEINLINE UActorInteractableComponent* GetOwningComponent() const {return OwningComponent; };
+	UE_DEPRECATED(5.0, "") // UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction", meta=(DeprecatedFunction))
+	FORCEINLINE UDEPRECATED_ActorInteractableComponent* GetOwningComponent() const {return OwningComponent; };
 
 	/**
 	 * Returns values between 0 and 1, where 1 means 100% and 0 means 0%
 	 * @return InteractionProgress float
 	 */
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction", meta=(DeprecatedFunction, DeprecatedMessage="Please, use `GetProgress` instead"))
 	FORCEINLINE float GetInteractionProgress() const {return InteractionProgress;	};
 
 	/**
@@ -78,7 +78,7 @@ public:
 	 * @note	Do not use this function unless you really want to set values by hand.
 	 * @param NewInteractionProgress	A value of Interaction Progress to be set manually. Will be clamped to fit between 0 and 1.
 	 */
-	UFUNCTION(BlueprintCallable, Category="Interaction")
+	UFUNCTION(BlueprintCallable, Category="Interaction", meta=(DeprecatedFunction, DeprecatedMessage="Please, use `SetProgress` instead"))
 	void SetInteractionProgress(float NewInteractionProgress);
 
 	/**
@@ -90,18 +90,19 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category="Interaction")
 	void OnInteractionProgressChanged(float DeltaInteractionProgress);
 
+	
 	/**
 	 * Helper function that returns Interactable Key Text Block.
 	 * @return Interactable Key
 	 */
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction", meta=(DeprecatedFunction, DeprecatedMessage="Please, use `GetKeyText` instead"))
 	FORCEINLINE UTextBlock* GetInteractableKey() const {return InteractableKey; };
 
 	/**
 	 * Helper function that returns Interactable Name Text Block.
 	 * @return	Interactable Name
 	 */
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction", meta=(DeprecatedFunction, DeprecatedMessage="Please, use `GetTitleText` instead"))
 	FORCEINLINE UTextBlock* GetInteractableName() const {return InteractableName; };
 
 	/**
@@ -123,10 +124,6 @@ public:
 	 */
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category="Interaction")
 	void OnUpdateInteractionWidget();
-	
-protected:
-	
-	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 	
 protected:
 	
@@ -163,8 +160,8 @@ private:
 	/**
 	 * Owning Interactable Actor Component.
 	 */
-	UPROPERTY(VisibleAnywhere, Category="Interaction|Debug")
-	UActorInteractableComponent* OwningComponent = nullptr;
+	UE_DEPRECATED(5.0, "")  //UPROPERTY(VisibleAnywhere, Category="Interaction|Debug", meta=(DeprecatedProperty, DeprecationMessage="This is deprecated"))
+	UDEPRECATED_ActorInteractableComponent* OwningComponent = nullptr;
 
 	/**
 	 * Value between 0 and 1, that represents how far in the progress the interaction is.
