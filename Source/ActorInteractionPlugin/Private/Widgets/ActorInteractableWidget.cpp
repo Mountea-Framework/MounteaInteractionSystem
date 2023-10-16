@@ -26,42 +26,9 @@ bool UActorInteractableWidget::Initialize()
 	return bSuccess;
 }
 
-void UActorInteractableWidget::InitializeInteractionWidget(const FText& NewInteractableKey, const FText& NewInteractableName,
-                                                           const FText& NewInteractionAction, UActorInteractableComponent* NewOwningComponent, UTexture2D* NewInteractionTexture)
+void UActorInteractableWidget::InitializeInteractionWidget(const FText& NewInteractableKey, const FText& NewInteractableName, const FText& NewInteractionAction, UDEPRECATED_ActorInteractableComponent* NewOwningComponent, UTexture2D* NewInteractionTexture)
 {
-	OwningComponent = NewOwningComponent;
-
-	if (!OwningComponent)
-	{
-		AIP_LOG(Error, TEXT("[InitializeInteractionWidget] Interactable Widget has no owning Component. Please, report this bug."))
-		return;
-	}
-
-	InteractableKey->SetText(NewInteractableKey);
-	InteractableName->SetText(NewInteractableName);
-	InteractionAction->SetText(NewInteractionAction);
-	InteractionTexture->SetBrushFromTexture(NewInteractionTexture);
-
-	// Hide if empty
-	if (InteractableKey == nullptr || InteractableKey->GetText().IsEmpty())
-	{
-		InteractableKey->SetVisibility(ESlateVisibility::Hidden);
-	}
-	if (InteractableName == nullptr || InteractableName->GetText().IsEmpty())
-	{
-		InteractableName->SetVisibility(ESlateVisibility::Hidden);
-	}
-	if (InteractionAction == nullptr || InteractionAction->GetText().IsEmpty())
-	{
-		InteractionAction->SetVisibility(ESlateVisibility::Hidden);
-	}
-	if (NewInteractionTexture == nullptr)
-	{
-		InteractionTexture->SetVisibility(ESlateVisibility::Hidden);
-	}
-
-	TimeRemainder = OwningComponent->GetLastInteractionTime();
-	SetInteractionProgress(1.f);
+	AIP_LOG(Error, TEXT("[InitializeInteractionWidget] This function is Deprecated. Use `UpdateWidget` instead."))
 }
 
 void UActorInteractableWidget::ToggleVisibility_Implementation()
@@ -90,32 +57,14 @@ void UActorInteractableWidget::ToggleVisibility_Implementation()
 
 void UActorInteractableWidget::CalculateRemainingTime(float InDeltaTime)
 {
-	if (!OwningComponent)
-	{
-		AIP_LOG(Error, TEXT("[CalculateRemainingTime] Interactable Widget has no owning Component. Please, report this bug."))
-		return;
-	}
-
-	if (!OwningComponent->IsInUse()) return;
-
-	const float InteractionTime = OwningComponent->GetInteractionTime();
-	const float WorldTimeSeconds = GetWorld()->GetTimeSeconds();
-	const float InteractionFinishTime = OwningComponent->GetLastInteractionTime() + InteractionTime;
-	const float DeltaTime = InteractionFinishTime - WorldTimeSeconds;
-
-	SetInteractionProgress(DeltaTime / InteractionTime);
+	AIP_LOG(Error, TEXT("[InitializeInteractionWidget] This function is Deprecated. Use `SetProgress` or `GetProgress` instead."))
 }
 
 void UActorInteractableWidget::SetInteractionProgress(const float NewInteractionProgress)
 {
+	AIP_LOG(Warning, TEXT("[InitializeInteractionWidget] This function is Deprecated. Use `SetProgress` instead."))
+	
 	InteractionProgress = FMath::Clamp(NewInteractionProgress, 0.f, 1.f);
 
 	OnInteractionProgressChanged(InteractionProgress);
-}
-
-void UActorInteractableWidget::NativeTick(const FGeometry& MyGeometry, const float InDeltaTime)
-{
-	Super::NativeTick(MyGeometry, InDeltaTime);
-
-	CalculateRemainingTime(InDeltaTime);
 }
