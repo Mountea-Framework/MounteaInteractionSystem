@@ -11,7 +11,7 @@
 #include "Interfaces/ActorInteractionWidget.h"
 #include "Widgets/ActorInteractableWidget.h"
 
-#include "Components/ActorInteractableComponent.h"
+#include "TimerManager.h"
 #include "Components/BillboardComponent.h"
 #include "Components/WidgetComponent.h"
 #include "Helpers/ActorInteractionFunctionLibrary.h"
@@ -1822,11 +1822,6 @@ void UActorInteractableComponentBase::UpdateInteractionWidget()
 			InteractionWidget.SetInterface(Cast<IActorInteractionWidget>(UserWidget));
 
 			InteractionWidget->Execute_UpdateWidget(UserWidget, this);
-		}
-		else if (UActorInteractableWidget* InteractableWidget = Cast<UActorInteractableWidget>(UserWidget))
-		{
-			InteractableWidget->InitializeInteractionWidget(FText::FromString("E"), FText::FromString("Object"), FText::FromString("Use"), nullptr, nullptr);
-			InteractableWidget->SetInteractionProgress(GetInteractionProgress());
 		}
 	}
 }
