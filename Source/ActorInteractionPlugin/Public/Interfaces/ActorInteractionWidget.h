@@ -37,8 +37,9 @@ public:
 	/**
 	 * This event should be called when you want to Hide/Unhide the Widget.
 	 */
-	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category="Interaction")
-	void ToggleVisibility();
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category="Interaction")
+	 void ToggleVisibility();
+	virtual void ToggleVisibility_Implementation() = 0;
 
 	/**
 	 * Sets new Title Text.

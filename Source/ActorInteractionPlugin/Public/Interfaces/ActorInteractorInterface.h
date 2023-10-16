@@ -4,6 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
+
+#include "InputCoreTypes.h"
+#include "Engine/EngineTypes.h"
+
 #include "ActorInteractorInterface.generated.h"
 
 // This class does not need to be modified.
