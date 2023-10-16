@@ -2,6 +2,7 @@
 
 
 #include "Components/ActorInteractableComponentAutomatic.h"
+#include "TimerManager.h"
 
 #include "Helpers/ActorInteractionPluginLog.h"
 

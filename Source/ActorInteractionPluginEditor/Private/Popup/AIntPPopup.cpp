@@ -21,7 +21,7 @@ void AIntPPopup::Register()
 {
 	const FString PluginDirectory = IPluginManager::Get().FindPlugin(TEXT("ActorInteractionPlugin"))->GetBaseDir();
 	const FString UpdatedConfigFile = PluginDirectory + "/Config/UpdateConfig.ini";
-	const FString CurrentPluginVersion = "3.0.1.5";
+	const FString CurrentPluginVersion = "3.0.1.7";
 
 	UAIntPPopupConfig* AIntPPopupConfig = GetMutableDefault<UAIntPPopupConfig>();
 
@@ -103,6 +103,21 @@ First thing first, if you've been enjoying using it, it would mean a lot if you 
 I also made a paid <a id="browser" href="https://bit.ly/ModularSwordsPack_UE4Marketplace">Modular Sword Pack</>. It's a simple yet powerful tool that allows creating thousands upon thousands of unique swords with a simple click, now with a free upgrade of Modular Scabbard System!
 					
 But let's keep it short, here are the cool new features (and bugfixes) of version 3.1!
+
+<LargeText>Version 3.1.0.7</>
+
+<RichTextBlock.Bold>Features</>
+
+* -
+
+<RichTextBlock.Bold>Bugfixes</>
+
+* Fixed issue for Old Enums causing builds to crash
+
+<RichTextBlock.Bold>Updates</>
+* <RichTextBlock.Bold>DEPRECATED</> ActorInteractableComponent
+* <RichTextBlock.Bold>DEPRECATED</> ActorInteractorComponent
+* <RichTextBlock.Bold>DEPRECATED</> ActorInteractableWidget (would still work, however, needs some touches with the Interface)
 
 <LargeText>Version 3.1</>
 
