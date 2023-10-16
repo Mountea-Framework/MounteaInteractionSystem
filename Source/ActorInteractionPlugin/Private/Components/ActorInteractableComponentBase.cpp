@@ -11,7 +11,7 @@
 #include "Interfaces/ActorInteractionWidget.h"
 #include "Widgets/ActorInteractableWidget.h"
 
-#include "Components/ActorInteractableComponent.h"
+#include "TimerManager.h"
 #include "Components/BillboardComponent.h"
 #include "Components/WidgetComponent.h"
 #include "Helpers/ActorInteractionFunctionLibrary.h"

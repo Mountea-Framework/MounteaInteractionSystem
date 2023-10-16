@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "InputCoreTypes.h"
+#include "Engine/EngineTypes.h"
 #include "InteractionHelpers.generated.h"
 
 #define INTERACTOR_TAG_NAME   TEXT("Interactor")
