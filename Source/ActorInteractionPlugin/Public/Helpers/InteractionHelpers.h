@@ -14,7 +14,7 @@
  * 
  * Defines how is interaction processed with Interactable Actor.
  */
-UENUM(BlueprintType, meta=(DisplayName="DEPRECATED_InteractableType"))
+UENUM(BlueprintType, meta=(DisplayName="DEPRECATED_InteractableType", Deprecated))
 enum class EInteractableType : uint8
 {
  EIT_Hold    UMETA(DisplayName = "Hold", Tooltip = "Press and hold the button."),
@@ -31,7 +31,7 @@ enum class EInteractableType : uint8
  * 
  * Machine States of the Interactable Actor Component.
  */
-UENUM(BlueprintType, meta=(DisplayName="DEPRECATED_InteractableState"))
+UENUM(BlueprintType, meta=(DisplayName="DEPRECATED_InteractableState", Deprecated))
 enum class EInteractableState : uint8
 {
  EIS_Standby  UMETA(DisplayName = "StandBy", ToolTip = "Interactable is enabled"),
@@ -63,7 +63,7 @@ enum class EInteractableLifecycle : uint8
  * 
  * Defines how Interactor Actor Component does process interaction.
  */
-UENUM(BlueprintType, meta=(DisplayName="DEPRECATED_InteractorType"))
+UENUM(BlueprintType, meta=(DisplayName="DEPRECATED_InteractorType", Deprecated))
 enum class EInteractorType : uint8
 {
  EIT_Active  UMETA(DisplayName = "Active", ToolTip = "Interaction is allowed only if the tracing is colliding with collision box of the Interactable Actor Component."),
@@ -78,7 +78,7 @@ enum class EInteractorType : uint8
  * 
  * Machine States of the Interactor Actor Component.
  */
-UENUM(BlueprintType, meta=(DisplayName="DEPRECATED_InteractorState"))
+UENUM(BlueprintType, meta=(DisplayName="DEPRECATED_InteractorState", Deprecated))
 enum class EInteractorState : uint8
 {
  EIS_Disabled UMETA(DisplayName = "Disabled", Tooltip = "Interactor is disabled"),

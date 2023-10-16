@@ -1820,11 +1820,6 @@ void UActorInteractableComponentBase::UpdateInteractionWidget()
 
 			InteractionWidget->Execute_UpdateWidget(UserWidget, this);
 		}
-		else if (UActorInteractableWidget* InteractableWidget = Cast<UActorInteractableWidget>(UserWidget))
-		{
-			InteractableWidget->InitializeInteractionWidget(FText::FromString("E"), FText::FromString("Object"), FText::FromString("Use"), nullptr, nullptr);
-			InteractableWidget->SetInteractionProgress(GetInteractionProgress());
-		}
 	}
 }
 
