@@ -7,15 +7,12 @@
 #include "Engine/EngineTypes.h"
 #include "InteractionHelpers.generated.h"
 
-#define INTERACTOR_TAG_NAME   TEXT("Interactor")
-#define INTERACTABLE_TAG_NAME TEXT("Interactable")
-
 /**
  * Type of Interactable Actor Component.
  * 
  * Defines how is interaction processed with Interactable Actor.
  */
-UENUM(BlueprintType, meta=(DisplayName="DEPRECATED_InteractableType", Deprecated))
+UENUM(BlueprintType, meta=(DisplayName="DEPRECATED_InteractableType", Deprecated, ScriptName="DEPRECATED_InteractableType"))
 enum class EInteractableType : uint8
 {
  EIT_Hold    UMETA(DisplayName = "Hold", Tooltip = "Press and hold the button."),
@@ -32,7 +29,7 @@ enum class EInteractableType : uint8
  * 
  * Machine States of the Interactable Actor Component.
  */
-UENUM(BlueprintType, meta=(DisplayName="DEPRECATED_InteractableState", Deprecated))
+UENUM(BlueprintType, meta=(DisplayName="DEPRECATED_InteractableState", Deprecated, ScriptName="DEPRECATED_InteractableState"))
 enum class EInteractableState : uint8
 {
  EIS_Standby  UMETA(DisplayName = "StandBy", ToolTip = "Interactable is enabled"),
@@ -64,7 +61,7 @@ enum class EInteractableLifecycle : uint8
  * 
  * Defines how Interactor Actor Component does process interaction.
  */
-UENUM(BlueprintType, meta=(DisplayName="DEPRECATED_InteractorType", Deprecated))
+UENUM(BlueprintType, meta=(DisplayName="DEPRECATED_InteractorType", Deprecated, ScriptName="DEPRECATED_InteractorType"))
 enum class EInteractorType : uint8
 {
  EIT_Active  UMETA(DisplayName = "Active", ToolTip = "Interaction is allowed only if the tracing is colliding with collision box of the Interactable Actor Component."),
@@ -79,7 +76,7 @@ enum class EInteractorType : uint8
  * 
  * Machine States of the Interactor Actor Component.
  */
-UENUM(BlueprintType, meta=(DisplayName="DEPRECATED_InteractorState", Deprecated))
+UENUM(BlueprintType, meta=(DisplayName="DEPRECATED_InteractorState", Deprecated, ScriptName="DEPRECATED_InteractorState"))
 enum class EInteractorState : uint8
 {
  EIS_Disabled UMETA(DisplayName = "Disabled", Tooltip = "Interactor is disabled"),

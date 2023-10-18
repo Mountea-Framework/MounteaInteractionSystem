@@ -4,15 +4,17 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DeveloperSettings.h"
+#include "Materials/MaterialInterface.h"
 #include "ActorInteractionPluginSettings.generated.h"
 
 class UDataTable;
+class UMaterialInterface;
 class UUserWidget;
 
 /**
- * Actor Interaction Plugin global settings.
+ * Mountea Interaction System global settings.
  */
-UCLASS(config = MounteaSettings, meta = (DisplayName = "Actor Interaction Plugin Settings"))
+UCLASS(config = MounteaSettings, meta = (DisplayName = "Mountea Interaction System Settings"))
 class ACTORINTERACTIONPLUGIN_API UActorInteractionPluginSettings : public UDeveloperSettings
 {
 	
@@ -21,7 +23,9 @@ class ACTORINTERACTIONPLUGIN_API UActorInteractionPluginSettings : public UDevel
 	UActorInteractionPluginSettings()
 	{
 		CategoryName = TEXT("Mountea Framework");
-		SectionName = TEXT("Actor Interaction Plugin");
+		SectionName = TEXT("Mountea Interaction System");
+
+  		bEditorDebugEnabled = 0;
 	}
 
 	/* Defines whether in-editor debug is enabled. */
@@ -29,21 +33,25 @@ class ACTORINTERACTIONPLUGIN_API UActorInteractionPluginSettings : public UDevel
 	uint8 bEditorDebugEnabled : 1;
 
 	/* Defines how often is the Interaction widget updated per second.*/
-	UPROPERTY(config, EditAnywhere, Category = "Widgets", meta=(Units="s", UIMin=0.001, ClampMin=0.001, ConfigRestartRequired = true))
+	UPROPERTY(config, EditAnywhere, Category = "Widgets", meta=(Units="s", UIMin=0.001, ClampMin=0.001))
 	float WidgetUpdateFrequency = 0.05f;
 
 	/* Defines default Interactable Widget class.*/
-	UPROPERTY(config, EditAnywhere, Category = "Widgets", meta=(AllowedClasses="UserWidget", MustImplement="/Script/ActorInteractionPlugin.ActorInteractionWidget", ConfigRestartRequired = true))
+	UPROPERTY(config, EditAnywhere, Category = "Widgets", meta=(AllowedClasses="/Script/UMG.UserWidget", MustImplement="/Script/ActorInteractionPlugin.ActorInteractionWidget"))
 	TSoftClassPtr<UUserWidget>InteractableDefaultWidgetClass;
 	
 	/* Defines default DataTable which contains Interactable data values.*/
-	UPROPERTY(config, EditAnywhere, Category = "Interaction Data", meta=(AllowedClasses = "DataTable", ConfigRestartRequired = true))
+	UPROPERTY(config, EditAnywhere, Category = "Interaction Data", meta=(AllowedClasses = "/Script/Engine.DataTable"))
 	TSoftObjectPtr<UDataTable> InteractableDefaultDataTable;
+
+	/* Defines default DataTable which contains Interactable data values.*/
+	UPROPERTY(config, EditAnywhere, Category = "Interaction Data")
+	TSoftObjectPtr<UMaterialInterface> InteractableDefaultHighlightMaterial;
 	
 #if WITH_EDITOR
 	virtual FText GetSectionText() const override
 	{
-		return NSLOCTEXT("ActorInteractionPlugin", "MounteaSettingsDescription", "Actor Interaction Plugin");
+		return NSLOCTEXT("ActorInteractionPlugin", "MounteaSettingsDescription", "Mountea Interaction System");
 	}
 
 	virtual FText GetSectionDescription() const override
@@ -70,4 +78,7 @@ public:
 
 	TSoftClassPtr<UUserWidget> GetInteractableDefaultWidgetClass() const
 	{ return InteractableDefaultWidgetClass; };
+
+	UMaterialInterface* GetDefaultHighlightMaterial() const
+	{ return InteractableDefaultHighlightMaterial.LoadSynchronous(); };
 };
