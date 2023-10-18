@@ -104,6 +104,20 @@ I also made a paid <a id="browser" href="https://bit.ly/ModularSwordsPack_UE4Mar
 					
 But let's keep it short, here are the cool new features (and bugfixes) of version 3.1!
 
+<LargeText>Version 3.1.0.8</>
+
+<RichTextBlock.Bold>Features</>
+
+* -
+
+<RichTextBlock.Bold>Bugfixes</>
+
+* Overlay Material for Interactables has been returned
+
+<RichTextBlock.Bold>Updates</>
+* Added default Overlay Material section to Plugin Settings
+* Exposed all Handle Getters for C++
+
 <LargeText>Version 3.1.0.7</>
 
 <RichTextBlock.Bold>Features</>
