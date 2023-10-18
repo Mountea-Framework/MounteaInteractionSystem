@@ -549,6 +549,31 @@ public:
 	virtual void SetInteractableName(const FText& NewName) override;
 
 	/**
+	 * Return Highlightable Type of this Interactable Component.
+	 */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
+	virtual EHighlightType GetHighlightType() const override;
+	/**
+	 * Tries to set new Highlight Type.
+	 *
+	 * @param NewHighlightType	Value of Highlight type.
+	 */
+	UFUNCTION(BlueprintCallable, Category="Interaction")
+	virtual void SetHighlightType(const EHighlightType NewHighlightType) override;
+	/**
+	 * Returns Highlight Material if any specified.
+	 */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
+	virtual UMaterialInterface* GetHighlightMaterial() const override;
+	/**
+	 * Tries to set new Highlight Material.
+	 *
+	 * @param NewHighlightMaterial	Material Instance to be used as new HighlightMaterial.
+	 */
+	UFUNCTION(BlueprintCallable, Category="Interaction")
+	virtual void SetHighlightMaterial(UMaterialInterface* NewHighlightMaterial) override;
+	
+	/**
 	 * Returns value of Comparison Method.
 	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
@@ -704,6 +729,18 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
 	void OnWidgetUpdatedEvent();
 
+	/**
+	* Event called once Highlight Type has changed.
+	*/
+	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	void OnHighlightTypeChangedEvent(const EHighlightType& NewHighlightType);
+
+	/**
+	* Event called once Highlight Material has changed.
+	*/
+	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	void OnHighlightMaterialChangedEvent(const UMaterialInterface* NewHighlightMaterial);
+	
 	UFUNCTION()
 	void OnInteractionProgressExpired(const float ExpirationTime, const FKey UsedKey, const TScriptInterface<IActorInteractorInterface>& CausingInteractor);
 #pragma endregion
@@ -1180,6 +1217,18 @@ protected:
 	UPROPERTY(BlueprintAssignable, Category="Interaction")
 	FInteractorChanged OnInteractorChanged;
 
+	/**
+	 * Event called once HighlightType has changed.
+	 */
+	UPROPERTY(BlueprintAssignable, Category="Interaction")
+	FHighlightTypeChanged OnHighlightTypeChanged;
+
+	/**
+	 * Event called once HighlightMaterial has changed.
+	 */
+	UPROPERTY(BlueprintAssignable, Category="Interaction")
+	FHighlightMaterialChanged OnHighlightMaterialChanged;
+
 	FInteractableDependencyStarted InteractableDependencyStarted;
 
 	FInteractableDependencyStopped InteractableDependencyStopped;
@@ -1187,6 +1236,8 @@ protected:
 #pragma endregion 
 
 #pragma region Handles
+
+public:
 
 	virtual FOnInteractableSelected& GetOnInteractableSelectedHandle() override
 	{ return OnInteractableSelected; };
@@ -1212,6 +1263,10 @@ protected:
 	{ return OnInteractionCanceled; };
 	virtual FInteractableDependencyChanged& GetInteractableDependencyChangedHandle() override
 	{ return OnInteractableDependencyChanged; };
+	virtual FHighlightTypeChanged& GetHighlightTypeChanged() override
+	{ return OnHighlightTypeChanged; };
+	virtual FHighlightMaterialChanged& GetHighlightMaterialChanged() override
+	{ return OnHighlightMaterialChanged; };
 	virtual FInteractableDependencyStarted& GetInteractableDependencyStarted() override
 	{ return InteractableDependencyStarted; };
 	virtual FInteractableDependencyStopped& GetInteractableDependencyStopped() override
@@ -1229,7 +1284,7 @@ protected:
 #pragma endregion 
 
 #pragma region Widget
-
+	
 	/**
 	 * Event called any time any value of 'UserInterfaceSettings' has changed.
 	 */
@@ -1394,6 +1449,14 @@ protected:
 	UPROPERTY(SaveGame, EditAnywhere, BlueprintReadOnly,  Category="Interaction|Optional", meta=(EditCondition="bInteractionHighlight == true", UIMin=0, ClampMin=0, UIMax=255, ClampMax=255))
 	int32 StencilID;
 
+	/**
+	* Defines what Highlight Type is used.
+	*/
+	UPROPERTY(SaveGame, EditAnywhere, BlueprintReadOnly,  Category="Interaction|Optional")
+	EHighlightType HighlightType;
+	UPROPERTY(SaveGame, EditAnywhere, BlueprintReadOnly,  Category="Interaction|Optional", meta=(EditCondition="bInteractionHighlight == true && HighlightType==EHighlightType::EHT_OverlayMaterial"))
+	UMaterialInterface* HighlightMaterial = nullptr;
+	
 	/**
 	* List of Interaction Keys for each platform.
 	* There is no validation for Keys validation! Nothing stops you from setting Keyboard keys for Consoles. Please, be careful with this variable!
