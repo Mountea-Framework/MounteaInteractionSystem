@@ -20,7 +20,7 @@ void AIntPPopup::Register()
 {
 	const FString PluginDirectory = IPluginManager::Get().FindPlugin(TEXT("ActorInteractionPlugin"))->GetBaseDir();
 	const FString UpdatedConfigFile = PluginDirectory + "/Config/UpdateConfig.ini";
-	const FString CurrentPluginVersion = "3.0.1.7";
+	const FString CurrentPluginVersion = "3.0.1.8";
 
 	UAIntPPopupConfig* AIntPPopupConfig = GetMutableDefault<UAIntPPopupConfig>();
 
@@ -62,7 +62,7 @@ void AIntPPopup::Open()
 				.SupportsMinimize(false)
 				.SizingRule(ESizingRule::FixedSize)
 				.ClientSize(FVector2D(800, 600))
-				.Title(FText::FromString("Actor Interaction Plugin"))
+				.Title(FText::FromString("Mountea Interaction System"))
 				.IsTopmostWindow(true)
 	[
 		WindowContent
@@ -79,7 +79,7 @@ void AIntPPopup::Open()
 		[
 			SNew(STextBlock)
 			.Font(HeadingFont)
-			.Text(FText::FromString("Actor Interaction Plugin v3.1"))
+			.Text(FText::FromString("Mountea Interaction System"))
 			.Justification(ETextJustify::Center)
 		]
 		+ SVerticalBox::Slot()
@@ -95,13 +95,27 @@ void AIntPPopup::Open()
 				[
 					SNew(SRichTextBlock)
 					.Text(FText::FromString(R"(
-<LargeText>Hello and thank you for using Actor Interaction Plugin!</>
+<LargeText>Hello and thank you for using Mountea Interaction System!</>
 
 First thing first, if you've been enjoying using it, it would mean a lot if you could just drop <a id="browser" href="https://bit.ly/AIntP_UE4Marketplace">a small review on the marketplace page</> :).
 
 I also made a paid <a id="browser" href="https://bit.ly/ModularSwordsPack_UE4Marketplace">Modular Sword Pack</>. It's a simple yet powerful tool that allows creating thousands upon thousands of unique swords with a simple click, now with a free upgrade of Modular Scabbard System!
 					
 But let's keep it short, here are the cool new features (and bugfixes) of version 3.1!
+
+<LargeText>Version 3.1.0.8</>
+
+<RichTextBlock.Bold>Features</>
+
+* -
+
+<RichTextBlock.Bold>Bugfixes</>
+
+* Overlay Material for Interactables has been returned
+
+<RichTextBlock.Bold>Updates</>
+* Added default Overlay Material section to Plugin Settings
+* Exposed all Handle Getters for C++
 
 <LargeText>Version 3.1.0.7</>
 
