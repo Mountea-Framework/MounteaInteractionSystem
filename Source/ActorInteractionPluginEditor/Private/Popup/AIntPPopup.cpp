@@ -21,7 +21,7 @@ void AIntPPopup::Register()
 {
 	const FString PluginDirectory = IPluginManager::Get().FindPlugin(TEXT("ActorInteractionPlugin"))->GetBaseDir();
 	const FString UpdatedConfigFile = PluginDirectory + "/Config/UpdateConfig.ini";
-	const FString CurrentPluginVersion = "3.0.1.7";
+	const FString CurrentPluginVersion = "3.0.1.8";
 
 	UAIntPPopupConfig* AIntPPopupConfig = GetMutableDefault<UAIntPPopupConfig>();
 
@@ -63,7 +63,7 @@ void AIntPPopup::Open()
 				.SupportsMinimize(false)
 				.SizingRule(ESizingRule::FixedSize)
 				.ClientSize(FVector2D(800, 600))
-				.Title(FText::FromString("Actor Interaction Plugin"))
+				.Title(FText::FromString("Mountea Interaction System"))
 				.IsTopmostWindow(true)
 	[
 		WindowContent
@@ -80,7 +80,7 @@ void AIntPPopup::Open()
 		[
 			SNew(STextBlock)
 			.Font(HeadingFont)
-			.Text(FText::FromString("Actor Interaction Plugin v3.1"))
+			.Text(FText::FromString("Mountea Interaction System"))
 			.Justification(ETextJustify::Center)
 		]
 		+ SVerticalBox::Slot()
@@ -96,7 +96,7 @@ void AIntPPopup::Open()
 				[
 					SNew(SRichTextBlock)
 					.Text(FText::FromString(R"(
-<LargeText>Hello and thank you for using Actor Interaction Plugin!</>
+<LargeText>Hello and thank you for using Mountea Interaction System!</>
 
 First thing first, if you've been enjoying using it, it would mean a lot if you could just drop <a id="browser" href="https://bit.ly/AIntP_UE4Marketplace">a small review on the marketplace page</> :).
 
