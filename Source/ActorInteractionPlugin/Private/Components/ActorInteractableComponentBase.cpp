@@ -35,6 +35,9 @@ UActorInteractableComponentBase::UActorInteractableComponentBase()
 	
 	bInteractionHighlight = true;
 	StencilID = 133;
+	bInteractionHighlight = true;
+	HighlightType = EHighlightType::EHT_OverlayMaterial;
+	StencilID = 133;
 
 	LifecycleMode = EInteractableLifecycle::EIL_Cycled;
 	LifecycleCount = -1;
@@ -120,6 +123,10 @@ void UActorInteractableComponentBase::BeginPlay()
 
 	// Widget
 	OnWidgetUpdated.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnWidgetUpdatedEvent);
+	
+	// Highlight
+	OnHighlightTypeChanged.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnHighlightTypeChangedEvent);
+	OnHighlightMaterialChanged.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnHighlightMaterialChangedEvent);
 
 	// Dependency
 	InteractableDependencyStarted.AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractableDependencyStartedCallback);
@@ -627,20 +634,51 @@ void UActorInteractableComponentBase::SetState(const EInteractableStateV2 NewSta
 void UActorInteractableComponentBase::StartHighlight()
 {
 	SetHiddenInGame(false, true);
-	for (const auto& Itr : HighlightableComponents)
+	switch (HighlightType)
 	{
-		Itr->SetRenderCustomDepth(bInteractionHighlight);
-		Itr->SetCustomDepthStencilValue(StencilID);
+	case EHighlightType::EHT_PostProcessing:
+		{
+			for (const auto Itr : HighlightableComponents)
+			{
+				Itr->SetRenderCustomDepth(bInteractionHighlight);
+				Itr->SetCustomDepthStencilValue(StencilID);
+			}
+		}
+		break;
+	case EHighlightType::EHT_OverlayMaterial:
+		{
+			for (const auto Itr : HighlightableComponents)
+			{
+				Itr->SetOverlayMaterial(HighlightMaterial);
+			}
+		}
+	case EHighlightType::EHT_Default:
+	default: break;
 	}
 }
 
 void UActorInteractableComponentBase::StopHighlight()
 {
 	SetHiddenInGame(true, true);
-	for (const auto& Itr : HighlightableComponents)
+	switch (HighlightType)
 	{
-		//Itr->SetRenderCustomDepth(false);
-		Itr->SetCustomDepthStencilValue(0);
+	case EHighlightType::EHT_PostProcessing:
+		{
+			for (const auto Itr : HighlightableComponents)
+			{
+				Itr->SetCustomDepthStencilValue(0);
+			}
+		}
+		break;
+	case EHighlightType::EHT_OverlayMaterial:
+		{
+			for (const auto Itr : HighlightableComponents)
+			{
+				Itr->SetOverlayMaterial(nullptr);
+			}
+		}
+	case EHighlightType::EHT_Default:
+	default: break;
 	}
 }
 
@@ -1155,6 +1193,26 @@ void UActorInteractableComponentBase::SetInteractableName(const FText& NewName)
 {
 	if (NewName.IsEmpty()) return;
 	InteractableName = NewName;
+}
+
+EHighlightType UActorInteractableComponentBase::GetHighlightType() const
+{ return HighlightType; }
+
+void UActorInteractableComponentBase::SetHighlightType(const EHighlightType NewHighlightType)
+{
+	HighlightType = NewHighlightType;
+
+	OnHighlightTypeChanged.Broadcast(NewHighlightType);
+}
+
+UMaterialInterface* UActorInteractableComponentBase::GetHighlightMaterial() const
+{ return HighlightMaterial; }
+
+void UActorInteractableComponentBase::SetHighlightMaterial(UMaterialInterface* NewHighlightMaterial)
+{
+	HighlightMaterial = NewHighlightMaterial;
+
+	OnHighlightMaterialChanged.Broadcast(NewHighlightMaterial);
 }
 
 ETimingComparison UActorInteractableComponentBase::GetComparisonMethod() const

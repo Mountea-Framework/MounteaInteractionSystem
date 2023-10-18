@@ -37,6 +37,8 @@ protected:
 	virtual void InteractionStarted(const float& TimeStarted, const FKey& PressedKey, const TScriptInterface<IActorInteractorInterface>& CausingInteractor) override;
 	virtual void InteractionStopped(const float& TimeStarted, const FKey& PressedKey, const TScriptInterface<IActorInteractorInterface>& CausingInteractor) override;
 
+public:
+	
 	virtual FInteractionStarted& GetOnInteractionStartedHandle() override;
 	virtual FInteractionStopped& GetOnInteractionStoppedHandle() override;
 
