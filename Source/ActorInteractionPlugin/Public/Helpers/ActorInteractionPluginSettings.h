@@ -12,7 +12,7 @@ class UUserWidget;
 /**
  * Actor Interaction Plugin global settings.
  */
-UCLASS(config = MounteaSettings, meta = (DisplayName = "Actor Interaction Plugin Settings"))
+UCLASS(config = MounteaSettings, DefaultConfig, meta = (DisplayName = "Actor Interaction Plugin Settings"))
 class ACTORINTERACTIONPLUGIN_API UActorInteractionPluginSettings : public UDeveloperSettings
 {
 	
