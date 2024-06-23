@@ -30,8 +30,8 @@ protected:
 
 	virtual void BeginPlay() override;
 
-	virtual void InteractionStarted(const float& TimeStarted, const FKey& PressedKey, const TScriptInterface<IActorInteractorInterface>& CausingInteractor) override;
-	virtual void InteractionStopped(const float& TimeStarted, const FKey& PressedKey, const TScriptInterface<IActorInteractorInterface>& CausingInteractor) override;
+	virtual void InteractionStarted(const float& TimeStarted, const TScriptInterface<IActorInteractorInterface>& CausingInteractor) override;
+	virtual void InteractionStopped(const float& TimeStarted, const TScriptInterface<IActorInteractorInterface>& CausingInteractor) override;
 	virtual void InteractionCanceled() override;
 
 	virtual void InteractorFound(const TScriptInterface<IActorInteractorInterface>& FoundInteractor) override;

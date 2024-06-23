@@ -14,7 +14,7 @@ class UUserWidget;
 /**
  * Mountea Interaction System global settings.
  */
-UCLASS(config = MounteaSettings, meta = (DisplayName = "Mountea Interaction System Settings"))
+UCLASS(config = MounteaSettings, defaultconfig, meta = (DisplayName = "Mountea Interaction System Settings"))
 class ACTORINTERACTIONPLUGIN_API UActorInteractionPluginSettings : public UDeveloperSettings
 {
 	

@@ -27,9 +27,9 @@ void UActorInteractableComponentPress::BeginPlay()
 	Timer_Interaction.Invalidate();
 }
 
-void UActorInteractableComponentPress::InteractionStarted(const float& TimeStarted, const FKey& PressedKey, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
+void UActorInteractableComponentPress::InteractionStarted(const float& TimeStarted, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
 {
-	Super::InteractionStarted(TimeStarted, PressedKey, CausingInteractor);
+	Super::InteractionStarted(TimeStarted, CausingInteractor);
 	
 	if (CanInteract())
 	{

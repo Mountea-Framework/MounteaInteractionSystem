@@ -297,7 +297,7 @@ void UActorInteractableComponentBase::DeactivateInteractable()
 	SetState(EInteractableStateV2::EIS_Disabled);
 }
 
-void UActorInteractableComponentBase::PauseInteraction(const float ExpirationTime, const FKey UsedKey, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
+void UActorInteractableComponentBase::PauseInteraction(const float ExpirationTime, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
 {
 	if (!GetWorld()) return;
 	
@@ -313,7 +313,7 @@ void UActorInteractableComponentBase::PauseInteraction(const float ExpirationTim
 	if (!bIsUnlimited)
 	{
 		FTimerDelegate TimerDelegate_ProgressExpiration;
-		TimerDelegate_ProgressExpiration.BindUFunction(this, "OnInteractionProgressExpired", ExpirationTime, UsedKey, CausingInteractor);
+		TimerDelegate_ProgressExpiration.BindUFunction(this, "OnInteractionProgressExpired", ExpirationTime, CausingInteractor);
 
 		const float ClampedExpiration = FMath::Max(InteractionProgressExpiration, 0.01f);
 		
@@ -322,7 +322,7 @@ void UActorInteractableComponentBase::PauseInteraction(const float ExpirationTim
 	}
 	else
 	{
-		OnInteractionProgressExpired(ExpirationTime, UsedKey, CausingInteractor);
+		OnInteractionProgressExpired(ExpirationTime, CausingInteractor);
 	}
 }
 
@@ -1318,22 +1318,22 @@ void UActorInteractableComponentBase::InteractionCycleCompleted(const float& Com
 	Execute_OnInteractionCycleCompletedEvent(this, CompletedTime, CyclesRemaining, CausingInteractor);
 }
 
-void UActorInteractableComponentBase::InteractionStarted(const float& TimeStarted, const FKey& PressedKey, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
+void UActorInteractableComponentBase::InteractionStarted(const float& TimeStarted, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
 {
 	if (CanInteract())
 	{
 		GetWorld()->GetTimerManager().ClearTimer(Timer_ProgressExpiration);
 		
 		SetState(EInteractableStateV2::EIS_Active);
-		Execute_OnInteractionStartedEvent(this, TimeStarted, PressedKey, CausingInteractor);
+		Execute_OnInteractionStartedEvent(this, TimeStarted, CausingInteractor);
 	}
 }
 
-void UActorInteractableComponentBase::InteractionStopped(const float& TimeStarted, const FKey& PressedKey, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
+void UActorInteractableComponentBase::InteractionStopped(const float& TimeStarted, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
 {
 	if (!GetWorld()) return;
 
-	PauseInteraction(TimeStarted, PressedKey, CausingInteractor);
+	PauseInteraction(TimeStarted, CausingInteractor);
 }
 
 void UActorInteractableComponentBase::InteractionCanceled()
@@ -1518,7 +1518,7 @@ void UActorInteractableComponentBase::OnInteractableTraced(UPrimitiveComponent* 
 	}
 }
 
-void UActorInteractableComponentBase::OnInteractionProgressExpired(const float ExpirationTime, const FKey UsedKey, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
+void UActorInteractableComponentBase::OnInteractionProgressExpired(const float ExpirationTime, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
 {
 	if (!GetWorld()) return;
 	
@@ -1535,7 +1535,7 @@ void UActorInteractableComponentBase::OnInteractionProgressExpired(const float E
 				}
 				else
 				{
-					Execute_OnInteractionStoppedEvent(this, ExpirationTime, UsedKey, CausingInteractor);
+					Execute_OnInteractionStoppedEvent(this, ExpirationTime, CausingInteractor);
 				}
 			}
 			break;

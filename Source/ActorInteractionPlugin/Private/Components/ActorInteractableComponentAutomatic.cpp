@@ -35,12 +35,12 @@ void UActorInteractableComponentAutomatic::InteractableSelected(const TScriptInt
 	{
 		if (GetWorld()->GetTimerManager().IsTimerActive(Timer_Interaction) == false)
 		{
-			OnInteractionStarted.Broadcast(GetWorld()->GetTimeSeconds(), FKey(""), GetInteractor());
+			OnInteractionStarted.Broadcast(GetWorld()->GetTimeSeconds(), GetInteractor());
 		}
 	}
 }
 
-void UActorInteractableComponentAutomatic::InteractionStarted(const float& TimeStarted, const FKey& PressedKey, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
+void UActorInteractableComponentAutomatic::InteractionStarted(const float& TimeStarted, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
 {
 	if (!GetWorld()) return;
 
@@ -60,13 +60,13 @@ void UActorInteractableComponentAutomatic::InteractionStarted(const float& TimeS
 			false
 		);
 
-		Super::InteractionStarted(TimeStarted, PressedKey, CausingInteractor);
+		Super::InteractionStarted(TimeStarted, CausingInteractor);
 		
 		UpdateInteractionWidget();
 	}
 }
 
-void UActorInteractableComponentAutomatic::InteractionStopped(const float& TimeStarted, const FKey& PressedKey, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
+void UActorInteractableComponentAutomatic::InteractionStopped(const float& TimeStarted, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
 {
 #if WITH_EDITOR
 	AIntP_LOG(Warning, TEXT("[InteractionStopped] This function does nothing in UActorInteractableComponentAutomatic"))

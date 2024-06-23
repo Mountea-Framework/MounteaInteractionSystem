@@ -71,9 +71,9 @@ void UActorInteractableComponentMash::CleanupComponent()
 	}
 }
 
-void UActorInteractableComponentMash::InteractionStarted(const float& TimeStarted, const FKey& PressedKey, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
+void UActorInteractableComponentMash::InteractionStarted(const float& TimeStarted, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
 {
-	Super::InteractionStarted(TimeStarted, PressedKey, CausingInteractor);
+	Super::InteractionStarted(TimeStarted, CausingInteractor);
 	
 	if (CanInteract())
 	{
@@ -115,13 +115,13 @@ void UActorInteractableComponentMash::InteractionStarted(const float& TimeStarte
 	}
 }
 
-void UActorInteractableComponentMash::InteractionStopped(const float& TimeStarted, const FKey& PressedKey, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
+void UActorInteractableComponentMash::InteractionStopped(const float& TimeStarted, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
 {
 	if (GetWorld())
 	{
 		if (!GetWorld()->GetTimerManager().IsTimerActive(TimerHandle_Mashed))
 		{
-			Super::InteractionStopped(TimeStarted, PressedKey, CausingInteractor);
+			Super::InteractionStopped(TimeStarted, CausingInteractor);
 		}
 	}
 }

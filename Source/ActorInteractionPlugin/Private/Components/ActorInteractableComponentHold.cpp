@@ -22,9 +22,9 @@ void UActorInteractableComponentHold::BeginPlay()
 	Super::BeginPlay();
 }
 
-void UActorInteractableComponentHold::InteractionStarted(const float& TimeStarted, const FKey& PressedKey, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
+void UActorInteractableComponentHold::InteractionStarted(const float& TimeStarted, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
 {
-	Super::InteractionStarted(TimeStarted, PressedKey, CausingInteractor);
+	Super::InteractionStarted(TimeStarted, CausingInteractor);
 	
 	if (!GetWorld()) return;
 	
@@ -54,9 +54,9 @@ void UActorInteractableComponentHold::InteractionStarted(const float& TimeStarte
 	}
 }
 
-void UActorInteractableComponentHold::InteractionStopped(const float& TimeStarted, const FKey& PressedKey, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
+void UActorInteractableComponentHold::InteractionStopped(const float& TimeStarted, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
 {
-	Super::InteractionStopped(TimeStarted, PressedKey, CausingInteractor);
+	Super::InteractionStopped(TimeStarted, CausingInteractor);
 }
 
 void UActorInteractableComponentHold::InteractionCanceled()

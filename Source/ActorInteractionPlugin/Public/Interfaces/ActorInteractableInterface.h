@@ -75,8 +75,8 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(FInteractorStopOverlap, UPrimitive
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FInteractionCompleted, const float&, FinishTime, const TScriptInterface<IActorInteractorInterface>&, CausingInteractor);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FInteractionCycleCompleted, const float&, FinishTime, const int32, RemainingLifecycles, const TScriptInterface<IActorInteractorInterface>&, CausingInteractor);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FInteractionStarted, const float&, StartTime, const FKey&, PressedKey, const TScriptInterface<IActorInteractorInterface>&, CausingInteractor);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FInteractionStopped, const float&, StartTime, const FKey&, PressedKey, const TScriptInterface<IActorInteractorInterface>&, CausingInteractor);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FInteractionStarted, const float&, StartTime, const TScriptInterface<IActorInteractorInterface>&, CausingInteractor);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FInteractionStopped, const float&, StartTime, const TScriptInterface<IActorInteractorInterface>&, CausingInteractor);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FInteractionCanceled);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FLifecycleCompleted);
@@ -192,13 +192,13 @@ protected:
 	 * Event bound to OnInteractionStarted.
 	 */
 	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
-	void OnInteractionStartedEvent(const float& StartTime, const FKey& PressedKey, const TScriptInterface<IActorInteractorInterface>& CausingInteractor);
+	void OnInteractionStartedEvent(const float& StartTime, const TScriptInterface<IActorInteractorInterface>& CausingInteractor);
 
 	/**
 	 * Event bound to OnInteractionStopped.
 	 */
 	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
-	void OnInteractionStoppedEvent(const float& TimeStarted, const FKey& PressedKey, const TScriptInterface<IActorInteractorInterface>& CausingInteractor);
+	void OnInteractionStoppedEvent(const float& TimeStarted, const TScriptInterface<IActorInteractorInterface>& CausingInteractor);
 
 	/**
 	 * Event bound to OnInteractionCanceled.
@@ -231,7 +231,7 @@ public:
 	virtual bool SnoozeInteractable(FString& ErrorMessage) = 0;
 	virtual bool CompleteInteractable(FString& ErrorMessage) = 0;
 	virtual void DeactivateInteractable() = 0;
-	virtual void PauseInteraction(const float ExpirationTime, const FKey UsedKey, const TScriptInterface<IActorInteractorInterface>& CausingInteractor) = 0;
+	virtual void PauseInteraction(const float ExpirationTime, const TScriptInterface<IActorInteractorInterface>& CausingInteractor) = 0;
 
 	virtual void InteractableSelected(const TScriptInterface<IActorInteractableInterface>& Interactable) = 0;
 	virtual void InteractableLost(const TScriptInterface<IActorInteractableInterface>& LostInteractable) = 0;
@@ -240,8 +240,8 @@ public:
 
 	virtual void InteractionCompleted(const float& TimeCompleted, const TScriptInterface<IActorInteractorInterface>& CausingInteractor) = 0;
 	virtual void InteractionCycleCompleted(const float& CompletedTime, const int32 CyclesRemaining, const TScriptInterface<IActorInteractorInterface>& CausingInteractor) = 0;
-	virtual void InteractionStarted(const float& TimeStarted, const FKey& PressedKey, const TScriptInterface<IActorInteractorInterface>& CausingInteractor) = 0;
-	virtual void InteractionStopped(const float& TimeStarted, const FKey& PressedKey, const TScriptInterface<IActorInteractorInterface>& CausingInteractor) = 0;
+	virtual void InteractionStarted(const float& TimeStarted, const TScriptInterface<IActorInteractorInterface>& CausingInteractor) = 0;
+	virtual void InteractionStopped(const float& TimeStarted, const TScriptInterface<IActorInteractorInterface>& CausingInteractor) = 0;
 	virtual void InteractionCanceled() = 0;
 	virtual void InteractionLifecycleCompleted() = 0;
 	virtual void InteractionCooldownCompleted() = 0;

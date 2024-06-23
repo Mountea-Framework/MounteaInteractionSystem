@@ -1,9 +1,6 @@
 // Copyright Dominik Pavlicek 2022. All Rights Reserved.
 
 #include "Widgets/ActorInteractableWidget.h"
-#include "Components/ActorInteractableComponent.h"
-#include "Components/Image.h"
-#include "Components/TextBlock.h"
 
 #include "Helpers/ActorInteractionPluginLog.h"
 
@@ -24,11 +21,6 @@ bool UActorInteractableWidget::Initialize()
 	}
 	
 	return bSuccess;
-}
-
-void UActorInteractableWidget::InitializeInteractionWidget(const FText& NewInteractableKey, const FText& NewInteractableName, const FText& NewInteractionAction, UDEPRECATED_ActorInteractableComponent* NewOwningComponent, UTexture2D* NewInteractionTexture)
-{
-	AIP_LOG(Error, TEXT("[InitializeInteractionWidget] This function is Deprecated. Use `UpdateWidget` instead."))
 }
 
 void UActorInteractableWidget::ToggleVisibility_Implementation()

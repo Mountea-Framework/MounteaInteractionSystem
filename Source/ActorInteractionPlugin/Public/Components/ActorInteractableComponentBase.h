@@ -106,7 +106,7 @@ public:
 	 * Tries to Pause Interaction.
 	 */
 	UFUNCTION(BlueprintCallable, Category="Interaction")
-	virtual void PauseInteraction(const float ExpirationTime, const FKey UsedKey, const TScriptInterface<IActorInteractorInterface>& CausingInteractor) override;
+	virtual void PauseInteraction(const float ExpirationTime, const TScriptInterface<IActorInteractorInterface>& CausingInteractor) override;
 	
 	/**
 	 * Optimized request for Interactables.
@@ -652,7 +652,7 @@ protected:
 	 * Calls OnInteractionStartedEvent
 	 */
 	UFUNCTION(Category="Interaction")
-	virtual void InteractionStarted(const float& TimeStarted, const FKey& PressedKey, const TScriptInterface<IActorInteractorInterface>& CausingInteractor) override;
+	virtual void InteractionStarted(const float& TimeStarted, const TScriptInterface<IActorInteractorInterface>& CausingInteractor) override;
 
 	/**
 	 * Event called once Interaction Stops.
@@ -660,7 +660,7 @@ protected:
 	 * Calls OnInteractionStoppedEvent
 	 */
 	UFUNCTION(Category="Interaction")
-	virtual void InteractionStopped(const float& TimeStarted, const FKey& PressedKey, const TScriptInterface<IActorInteractorInterface>& CausingInteractor) override;
+	virtual void InteractionStopped(const float& TimeStarted, const TScriptInterface<IActorInteractorInterface>& CausingInteractor) override;
 
 	/**
 	 * Event called once Interaction is Canceled.
@@ -742,7 +742,7 @@ protected:
 	void OnHighlightMaterialChangedEvent(const UMaterialInterface* NewHighlightMaterial);
 	
 	UFUNCTION()
-	void OnInteractionProgressExpired(const float ExpirationTime, const FKey UsedKey, const TScriptInterface<IActorInteractorInterface>& CausingInteractor);
+	void OnInteractionProgressExpired(const float ExpirationTime, const TScriptInterface<IActorInteractorInterface>& CausingInteractor);
 #pragma endregion
 
 #pragma region IgnoredClassesEvents

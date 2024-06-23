@@ -26,9 +26,9 @@ protected:
 
 	virtual void BeginPlay() override;
 
-	virtual void SetState(const EInteractorStateV2 NewState) override;
+	virtual void SetState_Implementation(const EInteractorStateV2 NewState) override;
 
-	virtual UPrimitiveComponent* FindComponentByName(const FName& CollisionComponentName);
+	virtual UPrimitiveComponent* FindComponentByName(const FName& CollisionComponentName); // TODO: Move to helper function library!
 	virtual void SetupInteractorOverlap();
 	virtual void BindCollisions();
 	virtual void BindCollision(UPrimitiveComponent* Component);

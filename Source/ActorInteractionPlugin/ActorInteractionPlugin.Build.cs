@@ -49,6 +49,7 @@ public class ActorInteractionPlugin : ModuleRules
 				"SlateCore",
 				"Projects",
 				"InputCore",
+				"GameplayTags",
 
 				"InteractionEditorNotifications",
 

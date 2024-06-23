@@ -13,7 +13,7 @@ void UActorInteractorComponentOverlap::BeginPlay()
 	Super::BeginPlay();
 }
 
-void UActorInteractorComponentOverlap::SetState(const EInteractorStateV2 NewState)
+void UActorInteractorComponentOverlap::SetState_Implementation(const EInteractorStateV2 NewState)
 {
 	Super::SetState(NewState);
 

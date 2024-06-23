@@ -15,13 +15,9 @@
 #include "DrawDebugHelpers.h"
 #endif
 
-UActorInteractorComponentTrace::UActorInteractorComponentTrace()
+UActorInteractorComponentTrace::UActorInteractorComponentTrace() : TraceType(ETraceType::ETT_Loose), TraceInterval(0.1f), TraceRange(250.f), TraceShapeHalfSize(5.f), bUseCustomStartTransform(false)
 {
-	TraceType = ETraceType::ETT_Loose;
-	TraceInterval = 0.01f;
-	TraceRange = 250.f;
-	TraceShapeHalfSize = 5.f;
-	bUseCustomStartTransform = false;
+	ComponentTags.Add(FName("Trace"));
 }
 
 void UActorInteractorComponentTrace::BeginPlay()
@@ -359,12 +355,12 @@ void UActorInteractorComponentTrace::SetCustomTraceStart(const FTransform TraceS
 FTransform UActorInteractorComponentTrace::GetCustomTraceStart() const
 { return CustomTraceTransform; }
 
-bool UActorInteractorComponentTrace::CanInteract() const
+bool UActorInteractorComponentTrace::CanInteract_Implementation() const
 {
 	return Super::CanInteract();
 }
 
-void UActorInteractorComponentTrace::SetState(const EInteractorStateV2 NewState)
+void UActorInteractorComponentTrace::SetState_Implementation(const EInteractorStateV2 NewState)
 {
 	Super::SetState(NewState);
 

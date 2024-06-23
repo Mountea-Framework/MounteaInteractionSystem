@@ -255,8 +255,8 @@ protected:
 	
 protected:
 	
-	virtual bool CanInteract() const override;
-	virtual void SetState(const EInteractorStateV2 NewState) override;
+	virtual bool CanInteract_Implementation() const override;
+	virtual void SetState_Implementation(const EInteractorStateV2 NewState) override;
 	
 	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
 	void OnTraceDataChangedEvent(const FTracingData& NewType, const FTracingData& OldType);
