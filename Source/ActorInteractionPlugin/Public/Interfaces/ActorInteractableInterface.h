@@ -485,8 +485,8 @@ public:
 	 * @param NewInteractor Value to be set as a new Interactor. Can be null.
 	 */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactable")
-	void SetInteractor(const TScriptInterface<IActorInteractorInterface> NewInteractor);
-	virtual void SetInteractor_Implementation(const TScriptInterface<IActorInteractorInterface> NewInteractor) = 0;
+	void SetInteractor(const TScriptInterface<IActorInteractorInterface>& NewInteractor);
+	virtual void SetInteractor_Implementation(const TScriptInterface<IActorInteractorInterface>& NewInteractor) = 0;
 
 	/**
 	 * Returns Interactable Weight.
@@ -541,8 +541,8 @@ public:
 	 * For usage and setup, take a look at 'Examples' project from Mountea Framework GitHub page.
 	 */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactable")
-	void SetCollisionChannel(const ECollisionChannel& NewChannel);
-	virtual void SetCollisionChannel_Implementation(const ECollisionChannel& NewChannel) = 0;
+	void SetCollisionChannel(const TEnumAsByte<ECollisionChannel>& NewChannel);
+	virtual void SetCollisionChannel_Implementation(const TEnumAsByte<ECollisionChannel>& NewChannel) = 0;
 
 	/**
 	 * Returns Lifecycle Mode.
@@ -620,8 +620,8 @@ public:
 	 * @param InteractionDependency Dependency which will be added. Null or duplicates are not allowed.
 	 */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactable")
-	void AddInteractionDependency(const TScriptInterface<IActorInteractableInterface> InteractionDependency);
-	virtual void AddInteractionDependency_Implementation(const TScriptInterface<IActorInteractableInterface> InteractionDependency) = 0;
+	void AddInteractionDependency(const TScriptInterface<IActorInteractableInterface>& InteractionDependency);
+	virtual void AddInteractionDependency_Implementation(const TScriptInterface<IActorInteractableInterface>& InteractionDependency) = 0;
 
 	/**
 	 * Will remove Interaction Dependency from List of Dependencies.
@@ -632,8 +632,8 @@ public:
 	 * @param InteractionDependency Dependency which will be removed.
 	 */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactable")
-	void RemoveInteractionDependency(const TScriptInterface<IActorInteractableInterface> InteractionDependency);
-	virtual void RemoveInteractionDependency_Implementation(const TScriptInterface<IActorInteractableInterface> InteractionDependency) = 0;
+	void RemoveInteractionDependency(const TScriptInterface<IActorInteractableInterface>& InteractionDependency);
+	virtual void RemoveInteractionDependency_Implementation(const TScriptInterface<IActorInteractableInterface>& InteractionDependency) = 0;
 
 	/**
 	 * Return List of Dependencies.
@@ -682,8 +682,8 @@ public:
 	 * @param NewIgnoredClasses New array of Ignored Classes. Can be given empty array.
 	 */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactable")
-	void SetIgnoredClasses(const TArray<TSoftClassPtr<UObject>> NewIgnoredClasses);
-	virtual void SetIgnoredClasses_Implementation(const TArray<TSoftClassPtr<UObject>> NewIgnoredClasses) = 0;
+	void SetIgnoredClasses(const TArray<TSoftClassPtr<UObject>>& NewIgnoredClasses);
+	virtual void SetIgnoredClasses_Implementation(const TArray<TSoftClassPtr<UObject>>& NewIgnoredClasses) = 0;
 
 	/**
 	 * Will add a class to Ignored Class List.
@@ -692,8 +692,8 @@ public:
 	 * Only objects implementing ActorInteractorInterface will be affected!
 	 */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactable")
-	void AddIgnoredClass(TSoftClassPtr<UObject> AddIgnoredClass);
-	virtual void AddIgnoredClass_Implementation(TSoftClassPtr<UObject> AddIgnoredClass) = 0;
+	void AddIgnoredClass(const TSoftClassPtr<UObject>& AddIgnoredClass);
+	virtual void AddIgnoredClass_Implementation(const TSoftClassPtr<UObject>& AddIgnoredClass) = 0;
 
 	/**
 	 * Will add classes to Ignored Class List.
@@ -702,24 +702,24 @@ public:
 	 * Only objects implementing ActorInteractorInterface will be affected!
 	 */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactable")
-	void AddIgnoredClasses(TArray<TSoftClassPtr<UObject>> AddIgnoredClasses);
-	virtual void AddIgnoredClasses_Implementation(TArray<TSoftClassPtr<UObject>> AddIgnoredClasses) = 0;
+	void AddIgnoredClasses(const TArray<TSoftClassPtr<UObject>>& AddIgnoredClasses);
+	virtual void AddIgnoredClasses_Implementation(const TArray<TSoftClassPtr<UObject>>& AddIgnoredClasses) = 0;
 
 	/**
 	 * Will remove a class from Ignored Class List.
 	 * @param RemoveIgnoredClass Class to be accepted.
 	 */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactable")
-	void RemoveIgnoredClass(TSoftClassPtr<UObject> RemoveIgnoredClass);
-	virtual void RemoveIgnoredClass_Implementation(TSoftClassPtr<UObject> RemoveIgnoredClass) = 0;
+	void RemoveIgnoredClass(const TSoftClassPtr<UObject>& RemoveIgnoredClass);
+	virtual void RemoveIgnoredClass_Implementation(const TSoftClassPtr<UObject>& RemoveIgnoredClass) = 0;
 
 	/**
 	 * Will remove classes from Ignored Class List.
 	 * @param RemoveIgnoredClasses Array of classes to be accepted.
 	 */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactable")
-	void RemoveIgnoredClasses(TArray<TSoftClassPtr<UObject>> RemoveIgnoredClasses);
-	virtual void RemoveIgnoredClasses_Implementation(TArray<TSoftClassPtr<UObject>> RemoveIgnoredClasses) = 0;
+	void RemoveIgnoredClasses(const TArray<TSoftClassPtr<UObject>>& RemoveIgnoredClasses);
+	virtual void RemoveIgnoredClasses_Implementation(const TArray<TSoftClassPtr<UObject>>& RemoveIgnoredClasses) = 0;
 
 	/**
 	 * Returns all Collision Components.
@@ -741,11 +741,11 @@ public:
 	/**
 	 * Tries to add Collision Components. Calls AddCollisionComponent for each component.
 	 * OnCollisionComponentAddedEvent is called for each component added.  No duplicates allowed. Nulls are not accepted.
-	 * @param NewCollisionComponents List of components to be added into list of Collision Components.
+	 * @param CollisionComponents			List of components to be added into list of Collision Components.
 	 */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactable")
-	void AddCollisionComponents(const TArray<UPrimitiveComponent*> CollisionComponents);
-	virtual void AddCollisionComponents_Implementation(const TArray<UPrimitiveComponent*> CollisionComponents) = 0;
+	void AddCollisionComponents(const TArray<UPrimitiveComponent*>& CollisionComponents);
+	virtual void AddCollisionComponents_Implementation(const TArray<UPrimitiveComponent*>& CollisionComponents) = 0;
 
 	/**
 	 * Tries to remove Collision Component if registered. Null is not accepted.
@@ -762,8 +762,8 @@ public:
 	 * @param CollisionComponents List of components to be removed from list of Collision Components.
 	 */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactable")
-	void RemoveCollisionComponents(const TArray<UPrimitiveComponent*> CollisionComponents);
-	virtual void RemoveCollisionComponents_Implementation(const TArray<UPrimitiveComponent*> CollisionComponents)  = 0;
+	void RemoveCollisionComponents(const TArray<UPrimitiveComponent*>& CollisionComponents);
+	virtual void RemoveCollisionComponents_Implementation(const TArray<UPrimitiveComponent*>& CollisionComponents)  = 0;
 
 	/**
 	 * Returns array of Highlightable Components.
@@ -789,8 +789,8 @@ public:
 	 * @param HighlightableComponents List of Mesh Components to be added to List of Highlightable Components
 	 */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactable")
-	void AddHighlightableComponents(const TArray<UMeshComponent*> HighlightableComponents);
-	virtual void AddHighlightableComponents_Implementation(const TArray<UMeshComponent*> HighlightableComponents)  = 0;
+	void AddHighlightableComponents(const TArray<UMeshComponent*>& HighlightableComponents);
+	virtual void AddHighlightableComponents_Implementation(const TArray<UMeshComponent*>& HighlightableComponents)  = 0;
 
 	/**
 	 * Tries to remove Highlightable Component.
@@ -808,8 +808,8 @@ public:
 	 * @param HighlightableComponents List of Mesh Components to be removed from List of Highlightable Components
 	 */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactable")
-	void RemoveHighlightableComponents(const TArray<UMeshComponent*> HighlightableComponents);
-	virtual void RemoveHighlightableComponents_Implementation(const TArray<UMeshComponent*> HighlightableComponents)  = 0;
+	void RemoveHighlightableComponents(const TArray<UMeshComponent*>& HighlightableComponents);
+	virtual void RemoveHighlightableComponents_Implementation(const TArray<UMeshComponent*>& HighlightableComponents)  = 0;
 
 	/**
 	 * Returns all Collision Overrides.
@@ -838,7 +838,7 @@ public:
 	 */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactable")
 	void SetInteractableName(const FText& NewName);
-	virtual void SetInteractableName_Implementation(const FText& NewName) const = 0;
+	virtual void SetInteractableName_Implementation(const FText& NewName) = 0;
 
 	/**
 	 * Development Only.
@@ -846,7 +846,7 @@ public:
 	 */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, CallInEditor, Category="Mountea|Interaction|Interactable", meta=(DevelopmentOnly))
 	void ToggleDebug();
-	virtual void ToggleDebug_Implementation() const = 0;
+	virtual void ToggleDebug_Implementation() = 0;
 
 	/**
 	 * Helper function.
@@ -855,7 +855,7 @@ public:
 	 */
 	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactable")
 	void FindAndAddCollisionShapes();
-	virtual void FindAndAddCollisionShapes_Implementation() const = 0;
+	virtual void FindAndAddCollisionShapes_Implementation() = 0;
 
 	/**
 	 * Helper function.
@@ -864,7 +864,7 @@ public:
 	 */
 	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactable")
 	void FindAndAddHighlightableMeshes();
-	virtual void FindAndAddHighlightableMeshes_Implementation() const = 0;
+	virtual void FindAndAddHighlightableMeshes_Implementation() = 0;
 
 	/**
 	 * Binds Collision Events for specified Primitive Component.
@@ -923,7 +923,7 @@ public:
 	 */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactable")
 	void SetInteractableData(FDataTableRowHandle NewData);
-	virtual void SetInteractableData_Implementation(FDataTableRowHandle NewData) const = 0;
+	virtual void SetInteractableData_Implementation(FDataTableRowHandle NewData) = 0;
 
 	/**
 	 * Return Highlightable Type of this Interactable Component.
@@ -938,7 +938,7 @@ public:
 	 */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactable")
 	void SetHighlightType(const EHighlightType NewHighlightType);
-	virtual void SetHighlightType_Implementation(const EHighlightType NewHighlightType) const = 0;
+	virtual void SetHighlightType_Implementation(const EHighlightType NewHighlightType) = 0;
 
 	/**
 	 * Returns Highlight Material if any specified.
@@ -953,7 +953,7 @@ public:
 	 */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactable")
 	void SetHighlightMaterial(UMaterialInterface* NewHighlightMaterial);
-	virtual void SetHighlightMaterial_Implementation(UMaterialInterface* NewHighlightMaterial) const = 0;
+	virtual void SetHighlightMaterial_Implementation(UMaterialInterface* NewHighlightMaterial) = 0;
 
 	/**
 	 * Callback function when Interactable Dependency starts.
@@ -961,7 +961,7 @@ public:
 	 */
 	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactable")
 	void InteractableDependencyStartedCallback(const TScriptInterface<IActorInteractableInterface>& NewMaster);
-	virtual void InteractableDependencyStartedCallback_Implementation(const TScriptInterface<IActorInteractableInterface>& NewMaster) const = 0;
+	virtual void InteractableDependencyStartedCallback_Implementation(const TScriptInterface<IActorInteractableInterface>& NewMaster) = 0;
 
 	/**
 	 * Callback function when Interactable Dependency stops.
@@ -969,7 +969,7 @@ public:
 	 */
 	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactable")
 	void InteractableDependencyStoppedCallback(const TScriptInterface<IActorInteractableInterface>& FormerMaster);
-	virtual void InteractableDependencyStoppedCallback_Implementation(const TScriptInterface<IActorInteractableInterface>& FormerMaster) const = 0;
+	virtual void InteractableDependencyStoppedCallback_Implementation(const TScriptInterface<IActorInteractableInterface>& FormerMaster) = 0;
 
 	/**
 	 * Finds default values from Developer settings and tries to set them for this component.
@@ -978,7 +978,7 @@ public:
 	 */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, CallInEditor, Category="Mountea|Interaction|Interactable", meta=(DisplayName="SetDefaults"))
 	void SetDefaults();
-	virtual void SetDefaults_Implementation() const = 0;
+	virtual void SetDefaults_Implementation()  = 0;
 
 
 	virtual FOnInteractableSelected& GetOnInteractableSelectedHandle() = 0;

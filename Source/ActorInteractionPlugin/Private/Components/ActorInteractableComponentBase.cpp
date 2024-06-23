@@ -678,14 +678,14 @@ void UActorInteractableComponentBase::StopHighlight_Implementation()
 TArray<TSoftClassPtr<UObject>> UActorInteractableComponentBase::GetIgnoredClasses_Implementation() const
 { return IgnoredClasses; }
 
-void UActorInteractableComponentBase::SetIgnoredClasses_Implementation(const TArray<TSoftClassPtr<UObject>> NewIgnoredClasses)
+void UActorInteractableComponentBase::SetIgnoredClasses_Implementation(const TArray<TSoftClassPtr<UObject>>& NewIgnoredClasses)
 {
 	IgnoredClasses.Empty();
 
 	IgnoredClasses = NewIgnoredClasses;
 }
 
-void UActorInteractableComponentBase::AddIgnoredClass_Implementation(TSoftClassPtr<UObject> AddIgnoredClass)
+void UActorInteractableComponentBase::AddIgnoredClass_Implementation(const TSoftClassPtr<UObject>& AddIgnoredClass)
 {
 	if (AddIgnoredClass == nullptr) return;
 
@@ -696,7 +696,7 @@ void UActorInteractableComponentBase::AddIgnoredClass_Implementation(TSoftClassP
 	OnIgnoredInteractorClassAdded.Broadcast(AddIgnoredClass);
 }
 
-void UActorInteractableComponentBase::AddIgnoredClasses_Implementation(TArray<TSoftClassPtr<UObject>> AddIgnoredClasses)
+void UActorInteractableComponentBase::AddIgnoredClasses_Implementation(const TArray<TSoftClassPtr<UObject>>& AddIgnoredClasses)
 {
 	for (const auto& Itr : AddIgnoredClasses)
 	{
@@ -704,7 +704,7 @@ void UActorInteractableComponentBase::AddIgnoredClasses_Implementation(TArray<TS
 	}
 }
 
-void UActorInteractableComponentBase::RemoveIgnoredClass_Implementation(TSoftClassPtr<UObject> RemoveIgnoredClass)
+void UActorInteractableComponentBase::RemoveIgnoredClass_Implementation(const TSoftClassPtr<UObject>& RemoveIgnoredClass)
 {
 	if (RemoveIgnoredClass == nullptr) return;
 
@@ -715,7 +715,7 @@ void UActorInteractableComponentBase::RemoveIgnoredClass_Implementation(TSoftCla
 	OnIgnoredInteractorClassRemoved.Broadcast(RemoveIgnoredClass);
 }
 
-void UActorInteractableComponentBase::RemoveIgnoredClasses_Implementation(TArray<TSoftClassPtr<UObject>> RemoveIgnoredClasses)
+void UActorInteractableComponentBase::RemoveIgnoredClasses_Implementation(const TArray<TSoftClassPtr<UObject>>& RemoveIgnoredClasses)
 {
 	for (const auto& Itr : RemoveIgnoredClasses)
 	{
@@ -723,7 +723,7 @@ void UActorInteractableComponentBase::RemoveIgnoredClasses_Implementation(TArray
 	}
 }
 
-void UActorInteractableComponentBase::AddInteractionDependency_Implementation(const TScriptInterface<IActorInteractableInterface> InteractionDependency)
+void UActorInteractableComponentBase::AddInteractionDependency_Implementation(const TScriptInterface<IActorInteractableInterface>& InteractionDependency)
 {
 	if (InteractionDependency.GetObject() == nullptr) return;
 	if (InteractionDependencies.Contains(InteractionDependency)) return;
@@ -735,7 +735,7 @@ void UActorInteractableComponentBase::AddInteractionDependency_Implementation(co
 	InteractionDependency->GetInteractableDependencyStarted().Broadcast(this);
 }
 
-void UActorInteractableComponentBase::RemoveInteractionDependency_Implementation(const TScriptInterface<IActorInteractableInterface> InteractionDependency)
+void UActorInteractableComponentBase::RemoveInteractionDependency_Implementation(const TScriptInterface<IActorInteractableInterface>& InteractionDependency)
 {
 	if (InteractionDependency.GetObject() == nullptr) return;
 	if (!InteractionDependencies.Contains(InteractionDependency)) return;
@@ -817,7 +817,7 @@ void UActorInteractableComponentBase::ProcessDependencies_Implementation()
 TScriptInterface<IActorInteractorInterface> UActorInteractableComponentBase::GetInteractor_Implementation() const
 { return Interactor; }
 
-void UActorInteractableComponentBase::SetInteractor_Implementation(const TScriptInterface<IActorInteractorInterface> NewInteractor)
+void UActorInteractableComponentBase::SetInteractor_Implementation(const TScriptInterface<IActorInteractorInterface>& NewInteractor)
 {
 	const TScriptInterface<IActorInteractorInterface> OldInteractor = Interactor;
 
@@ -895,7 +895,7 @@ void UActorInteractableComponentBase::SetInteractableOwner_Implementation(AActor
 ECollisionChannel UActorInteractableComponentBase::GetCollisionChannel_Implementation() const
 { return CollisionChannel; }
 
-void UActorInteractableComponentBase::SetCollisionChannel_Implementation(const ECollisionChannel& NewChannel)
+void UActorInteractableComponentBase::SetCollisionChannel_Implementation(const TEnumAsByte<ECollisionChannel>& NewChannel)
 {
 	CollisionChannel = NewChannel;
 
@@ -977,7 +977,7 @@ void UActorInteractableComponentBase::AddCollisionComponent_Implementation(UPrim
 	OnCollisionComponentAdded.Broadcast(CollisionComp);
 }
 
-void UActorInteractableComponentBase::AddCollisionComponents_Implementation(const TArray<UPrimitiveComponent*> NewCollisionComponents)
+void UActorInteractableComponentBase::AddCollisionComponents_Implementation(const TArray<UPrimitiveComponent*>& NewCollisionComponents)
 {
 	for (UPrimitiveComponent* const Itr : NewCollisionComponents)
 	{
@@ -997,7 +997,7 @@ void UActorInteractableComponentBase::RemoveCollisionComponent_Implementation(UP
 	OnCollisionComponentRemoved.Broadcast(CollisionComp);
 }
 
-void UActorInteractableComponentBase::RemoveCollisionComponents_Implementation(const TArray<UPrimitiveComponent*> RemoveCollisionComponents)
+void UActorInteractableComponentBase::RemoveCollisionComponents_Implementation(const TArray<UPrimitiveComponent*>& RemoveCollisionComponents)
 {
 	for (UPrimitiveComponent* const Itr : RemoveCollisionComponents)
 	{
@@ -1020,7 +1020,7 @@ void UActorInteractableComponentBase::AddHighlightableComponent_Implementation(U
 	OnHighlightableComponentAdded.Broadcast(MeshComponent);
 }
 
-void UActorInteractableComponentBase::AddHighlightableComponents_Implementation(const TArray<UMeshComponent*> AddMeshComponents)
+void UActorInteractableComponentBase::AddHighlightableComponents_Implementation(const TArray<UMeshComponent*>& AddMeshComponents)
 {
 	for (UMeshComponent* const Itr : HighlightableComponents)
 	{
@@ -1040,11 +1040,11 @@ void UActorInteractableComponentBase::RemoveHighlightableComponent_Implementatio
 	OnHighlightableComponentRemoved.Broadcast(MeshComponent);
 }
 
-void UActorInteractableComponentBase::RemoveHighlightableComponents_Implementation(const TArray<UMeshComponent*> RemoveMeshComponents)
+void UActorInteractableComponentBase::RemoveHighlightableComponents_Implementation(const TArray<UMeshComponent*>& RemoveMeshComponents)
 {
 	for (UMeshComponent* const Itr : RemoveMeshComponents)
 	{
-		RemoveHighlightableComponent(Itr);
+		Execute_RemoveHighlightableComponent(this, Itr);
 	}
 }
 
@@ -1117,7 +1117,7 @@ void UActorInteractableComponentBase::InteractorFound_Implementation(const TScri
 	{
 		ToggleWidgetVisibility(true);
 		
-		SetInteractor(FoundInteractor);
+		Execute_SetInteractor(this, FoundInteractor);
 		
 		Execute_OnInteractorFoundEvent(this, FoundInteractor);
 	}
@@ -1163,7 +1163,7 @@ void UActorInteractableComponentBase::InteractorLost_Implementation(const TScrip
 			Interactor->GetOnInteractableLostHandle().RemoveDynamic(this, &UActorInteractableComponentBase::InteractableLost);
 		}
 		
-		SetInteractor(nullptr);
+		Execute_SetInteractor(this, nullptr);
 		Execute_OnInteractorLostEvent(this, LostInteractor);
 
 		OnInteractionCanceled.Broadcast();
@@ -1305,7 +1305,7 @@ void UActorInteractableComponentBase::OnInteractableBeginOverlap(UPrimitiveCompo
 			{
 				case EInteractorStateV2::EIS_Active:
 				case EInteractorStateV2::EIS_Awake:
-					if (FoundInteractor->GetResponseChannel() != GetCollisionChannel()) continue;
+					if (FoundInteractor->GetResponseChannel() != Execute_GetCollisionChannel(this)) continue;
 					FoundInteractor->GetOnInteractableLostHandle().AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractableLost);
 					FoundInteractor->GetOnInteractableSelectedHandle().AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractableSelected);
 					OnInteractorFound.Broadcast(FoundInteractor);
@@ -1377,7 +1377,7 @@ void UActorInteractableComponentBase::OnInteractableTraced(UPrimitiveComponent* 
 			case EInteractorStateV2::EIS_Active:
 			case EInteractorStateV2::EIS_Awake:
 				if (FoundInteractor->CanInteract() == false) return;
-				if (FoundInteractor->GetResponseChannel() != GetCollisionChannel()) continue;
+				if (FoundInteractor->GetResponseChannel() != Execute_GetCollisionChannel(this)) continue;
 				FoundInteractor->GetOnInteractableLostHandle().AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractableLost);
 				FoundInteractor->GetOnInteractableSelectedHandle().AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractableSelected);
 				OnInteractorFound.Broadcast(FoundInteractor);

@@ -23,10 +23,10 @@ protected:
 
 	virtual void BeginPlay() override;
 
-	virtual void BindCollisionShape(UPrimitiveComponent* PrimitiveComponent) const override;
-	virtual void UnbindCollisionShape(UPrimitiveComponent* PrimitiveComponent) const override;
+	virtual void BindCollisionShape_Implementation(UPrimitiveComponent* PrimitiveComponent) const override;
+	virtual void UnbindCollisionShape_Implementation(UPrimitiveComponent* PrimitiveComponent) const override;
 
-	virtual bool CanInteract() const override;
+	virtual bool CanInteract_Implementation() const override;
 
 	
 	UFUNCTION()

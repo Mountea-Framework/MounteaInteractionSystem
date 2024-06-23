@@ -9,7 +9,6 @@
 
 #define LOCTEXT_NAMESPACE "InteractableComponentPress"
 
-// Sets default values for this component's properties
 UActorInteractableComponentPress::UActorInteractableComponentPress()
 {
 	bInteractionHighlight = true;
@@ -27,7 +26,7 @@ void UActorInteractableComponentPress::BeginPlay()
 	Timer_Interaction.Invalidate();
 }
 
-void UActorInteractableComponentPress::InteractionStarted(const float& TimeStarted, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
+void UActorInteractableComponentPress::InteractionStarted_Implementation(const float& TimeStarted, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
 {
 	Super::InteractionStarted(TimeStarted, CausingInteractor);
 	

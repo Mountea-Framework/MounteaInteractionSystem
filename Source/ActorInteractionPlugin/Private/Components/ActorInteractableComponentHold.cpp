@@ -17,12 +17,7 @@ UActorInteractableComponentHold::UActorInteractableComponentHold()
 	InteractableName = LOCTEXT("InteractableComponentHold", "Hold");
 }
 
-void UActorInteractableComponentHold::BeginPlay()
-{
-	Super::BeginPlay();
-}
-
-void UActorInteractableComponentHold::InteractionStarted(const float& TimeStarted, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
+void UActorInteractableComponentHold::InteractionStarted_Implementation(const float& TimeStarted, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
 {
 	Super::InteractionStarted(TimeStarted, CausingInteractor);
 	
@@ -52,31 +47,6 @@ void UActorInteractableComponentHold::InteractionStarted(const float& TimeStarte
 			);
 		}
 	}
-}
-
-void UActorInteractableComponentHold::InteractionStopped(const float& TimeStarted, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
-{
-	Super::InteractionStopped(TimeStarted, CausingInteractor);
-}
-
-void UActorInteractableComponentHold::InteractionCanceled()
-{
-	Super::InteractionCanceled();
-}
-
-void UActorInteractableComponentHold::InteractorFound(const TScriptInterface<IActorInteractorInterface>& FoundInteractor)
-{
-	Super::InteractorFound(FoundInteractor);
-}
-
-void UActorInteractableComponentHold::InteractorLost(const TScriptInterface<IActorInteractorInterface>& LostInteractor)
-{
-	Super::InteractorLost(LostInteractor);
-}
-
-float UActorInteractableComponentHold::GetInteractionProgress() const
-{
-	return Super::GetInteractionProgress();
 }
 
 void UActorInteractableComponentHold::OnInteractionCompletedCallback()

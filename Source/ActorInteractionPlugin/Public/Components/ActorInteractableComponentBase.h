@@ -75,7 +75,7 @@ public:
 	virtual void StartHighlight_Implementation() override;
 	virtual void StopHighlight_Implementation() override;
 	virtual TScriptInterface<IActorInteractorInterface> GetInteractor_Implementation() const override;
-	virtual void SetInteractor_Implementation(const TScriptInterface<IActorInteractorInterface> NewInteractor) override;
+	virtual void SetInteractor_Implementation(const TScriptInterface<IActorInteractorInterface>& NewInteractor) override;
 	virtual float GetInteractionProgress_Implementation() const override;
 	virtual float GetInteractionPeriod_Implementation() const override;
 	virtual void SetInteractionPeriod_Implementation(const float NewPeriod) override;
@@ -84,7 +84,7 @@ public:
 	virtual AActor* GetInteractableOwner_Implementation() const override;
 	virtual void SetInteractableOwner_Implementation(AActor* NewOwner) override;
 	virtual ECollisionChannel GetCollisionChannel_Implementation() const override;
-	virtual void SetCollisionChannel_Implementation(const ECollisionChannel& NewChannel) override;
+	virtual void SetCollisionChannel_Implementation(const TEnumAsByte<ECollisionChannel>& NewChannel) override;
 	virtual EInteractableLifecycle GetLifecycleMode_Implementation() const override;
 	virtual void SetLifecycleMode_Implementation(const EInteractableLifecycle& NewMode) override;
 	virtual int32 GetLifecycleCount_Implementation() const override;
@@ -96,8 +96,8 @@ public:
 	virtual ETimingComparison GetComparisonMethod_Implementation() const override;
 	virtual void SetComparisonMethod_Implementation(const ETimingComparison Value) override;
 	
-	virtual void AddInteractionDependency_Implementation(const TScriptInterface<IActorInteractableInterface> InteractionDependency) override;
-	virtual void RemoveInteractionDependency_Implementation(const TScriptInterface<IActorInteractableInterface> InteractionDependency) override;
+	virtual void AddInteractionDependency_Implementation(const TScriptInterface<IActorInteractableInterface>& InteractionDependency) override;
+	virtual void RemoveInteractionDependency_Implementation(const TScriptInterface<IActorInteractableInterface>& InteractionDependency) override;
 	virtual TArray<TScriptInterface<IActorInteractableInterface>> GetInteractionDependencies_Implementation() const override;
 	virtual void ProcessDependencies_Implementation() override;
 	
@@ -105,23 +105,23 @@ public:
 	virtual void ToggleWidgetVisibility_Implementation(const bool IsVisible) override;
 	
 	virtual TArray<TSoftClassPtr<UObject>> GetIgnoredClasses_Implementation() const override;
-	virtual void SetIgnoredClasses_Implementation(const TArray<TSoftClassPtr<UObject>> NewIgnoredClasses) override;
-	virtual void AddIgnoredClass_Implementation(TSoftClassPtr<UObject> AddIgnoredClass) override;
-	virtual void AddIgnoredClasses_Implementation(TArray<TSoftClassPtr<UObject>> AddIgnoredClasses) override;
-	virtual void RemoveIgnoredClass_Implementation(TSoftClassPtr<UObject> AddIgnoredClass) override;
-	virtual void RemoveIgnoredClasses_Implementation(TArray<TSoftClassPtr<UObject>> AddIgnoredClasses) override;
+	virtual void SetIgnoredClasses_Implementation(const TArray<TSoftClassPtr<UObject>>& NewIgnoredClasses) override;
+	virtual void AddIgnoredClass_Implementation(const TSoftClassPtr<UObject>& AddIgnoredClass) override;
+	virtual void AddIgnoredClasses_Implementation(const TArray<TSoftClassPtr<UObject>>& AddIgnoredClasses) override;
+	virtual void RemoveIgnoredClass_Implementation(const TSoftClassPtr<UObject>& AddIgnoredClass) override;
+	virtual void RemoveIgnoredClasses_Implementation(const TArray<TSoftClassPtr<UObject>>& AddIgnoredClasses) override;
 	
 	virtual TArray<UPrimitiveComponent*> GetCollisionComponents_Implementation() const override;
 	virtual void AddCollisionComponent_Implementation(UPrimitiveComponent* CollisionComp) override;
-	virtual void AddCollisionComponents_Implementation(const TArray<UPrimitiveComponent*> CollisionComponents) override;
+	virtual void AddCollisionComponents_Implementation(const TArray<UPrimitiveComponent*>& CollisionComponents) override;
 	virtual void RemoveCollisionComponent_Implementation(UPrimitiveComponent* CollisionComp) override;
-	virtual void RemoveCollisionComponents_Implementation(const TArray<UPrimitiveComponent*> CollisionComponents) override;
+	virtual void RemoveCollisionComponents_Implementation(const TArray<UPrimitiveComponent*>& CollisionComponents) override;
 	
 	virtual TArray<UMeshComponent*> GetHighlightableComponents_Implementation() const override;
 	virtual void AddHighlightableComponent_Implementation(UMeshComponent* HighlightableComp) override;
-	virtual void AddHighlightableComponents_Implementation(const TArray<UMeshComponent*> HighlightableComponents) override;
+	virtual void AddHighlightableComponents_Implementation(const TArray<UMeshComponent*>& HighlightableComponents) override;
 	virtual void RemoveHighlightableComponent_Implementation(UMeshComponent* HighlightableComp) override;
-	virtual void RemoveHighlightableComponents_Implementation(const TArray<UMeshComponent*> HighlightableComponents) override;
+	virtual void RemoveHighlightableComponents_Implementation(const TArray<UMeshComponent*>& HighlightableComponents) override;
 
 	virtual TArray<FName> GetCollisionOverrides_Implementation() const override;
 	virtual TArray<FName> GetHighlightableOverrides_Implementation() const override;

@@ -32,10 +32,10 @@ protected:
 	
 	virtual void OnInteractionCompletedCallback();
 
-	virtual void InteractableSelected(const TScriptInterface<IActorInteractableInterface>& Interactable) override;
+	virtual void InteractableSelected_Implementation(const TScriptInterface<IActorInteractableInterface>& Interactable) override;
 	
-	virtual void InteractionStarted(const float& TimeStarted, const TScriptInterface<IActorInteractorInterface>& CausingInteractor) override;
-	virtual void InteractionStopped(const float& TimeStarted, const TScriptInterface<IActorInteractorInterface>& CausingInteractor) override;
+	virtual void InteractionStarted_Implementation(const float& TimeStarted, const TScriptInterface<IActorInteractorInterface>& CausingInteractor) override;
+	virtual void InteractionStopped_Implementation(const float& TimeStarted, const TScriptInterface<IActorInteractorInterface>& CausingInteractor) override;
 
 public:
 	

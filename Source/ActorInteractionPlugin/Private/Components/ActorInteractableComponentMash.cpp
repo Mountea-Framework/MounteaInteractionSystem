@@ -8,13 +8,13 @@
 
 #define LOCTEXT_NAMESPACE "ActorInteractableComponentMash"
 
-UActorInteractableComponentMash::UActorInteractableComponentMash()
+UActorInteractableComponentMash::UActorInteractableComponentMash() :
+		MinMashAmountRequired(5),
+		KeystrokeTimeThreshold(1.f),
+		ActualMashAmount(0)
 {
 	bInteractionHighlight = true;
 	DefaultInteractableState = EInteractableStateV2::EIS_Awake;
-	MinMashAmountRequired = 5;
-	KeystrokeTimeThreshold = 1.f;
-	ActualMashAmount = 0;
 	InteractionPeriod = 3.f;
 	InteractableName = LOCTEXT("ActorInteractableComponentMash", "Mash");
 }
@@ -23,8 +23,8 @@ void UActorInteractableComponentMash::BeginPlay()
 {
 	Super::BeginPlay();
 
-	OnInteractionFailed.AddUniqueDynamic(this, &UActorInteractableComponentMash::InteractionFailed);
-	OnKeyMashed.AddUniqueDynamic(this, &UActorInteractableComponentMash::OnKeyMashedEvent);
+	OnInteractionFailed.		AddUniqueDynamic(this, &UActorInteractableComponentMash::InteractionFailed);
+	OnKeyMashed.				AddUniqueDynamic(this, &UActorInteractableComponentMash::OnKeyMashedEvent);
 }
 
 void UActorInteractableComponentMash::InteractionFailed()
@@ -71,7 +71,7 @@ void UActorInteractableComponentMash::CleanupComponent()
 	}
 }
 
-void UActorInteractableComponentMash::InteractionStarted(const float& TimeStarted, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
+void UActorInteractableComponentMash::InteractionStarted_Implementation(const float& TimeStarted, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
 {
 	Super::InteractionStarted(TimeStarted, CausingInteractor);
 	
@@ -115,7 +115,7 @@ void UActorInteractableComponentMash::InteractionStarted(const float& TimeStarte
 	}
 }
 
-void UActorInteractableComponentMash::InteractionStopped(const float& TimeStarted, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
+void UActorInteractableComponentMash::InteractionStopped_Implementation(const float& TimeStarted, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
 {
 	if (GetWorld())
 	{
@@ -126,14 +126,14 @@ void UActorInteractableComponentMash::InteractionStopped(const float& TimeStarte
 	}
 }
 
-void UActorInteractableComponentMash::InteractionCanceled()
+void UActorInteractableComponentMash::InteractionCanceled_Implementation()
 {
 	Super::InteractionCanceled();
 
 	CleanupComponent();
 }
 
-void UActorInteractableComponentMash::InteractionCompleted(const float& TimeCompleted, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
+void UActorInteractableComponentMash::InteractionCompleted_Implementation(const float& TimeCompleted, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
 {
 	if (ActualMashAmount >= MinMashAmountRequired)
 	{

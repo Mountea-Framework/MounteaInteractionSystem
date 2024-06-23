@@ -26,7 +26,7 @@ void UActorInteractableComponentAutomatic::BeginPlay()
 	OnInteractionStopped.RemoveAll(this);
 }
 
-void UActorInteractableComponentAutomatic::InteractableSelected(const TScriptInterface<IActorInteractableInterface>& Interactable)
+void UActorInteractableComponentAutomatic::InteractableSelected_Implementation(const TScriptInterface<IActorInteractableInterface>& Interactable)
 {
 	if(!GetWorld()) return;
 	Super::InteractableSelected(Interactable);
@@ -40,7 +40,7 @@ void UActorInteractableComponentAutomatic::InteractableSelected(const TScriptInt
 	}
 }
 
-void UActorInteractableComponentAutomatic::InteractionStarted(const float& TimeStarted, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
+void UActorInteractableComponentAutomatic::InteractionStarted_Implementation(const float& TimeStarted, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
 {
 	if (!GetWorld()) return;
 
@@ -66,7 +66,7 @@ void UActorInteractableComponentAutomatic::InteractionStarted(const float& TimeS
 	}
 }
 
-void UActorInteractableComponentAutomatic::InteractionStopped(const float& TimeStarted, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
+void UActorInteractableComponentAutomatic::InteractionStopped_Implementation(const float& TimeStarted, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
 {
 #if WITH_EDITOR
 	AIntP_LOG(Warning, TEXT("[InteractionStopped] This function does nothing in UActorInteractableComponentAutomatic"))
