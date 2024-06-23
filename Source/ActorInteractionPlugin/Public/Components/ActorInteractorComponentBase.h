@@ -9,6 +9,7 @@
 #include "ActorInteractorComponentBase.generated.h"
 
 struct FDebugSettings;
+class UInputMappingContext;
 
 /**
  * Actor Interactor Base Component
@@ -95,6 +96,8 @@ public:
 	virtual void ToggleDebug_Implementation() override;
 	virtual FGameplayTag GetInteractorTag_Implementation() const override;
 	virtual void SetInteractorTag_Implementation(const FGameplayTag& NewInteractorTag) override;
+	virtual UInputMappingContext* GetInteractionInputMapping_Implementation() const override;
+	virtual void SetInteractionInputMapping_Implementation(UInputMappingContext* NewMappingContext) override;
 
 public:
 
@@ -167,7 +170,7 @@ protected:
 	 * Requires match in Interactable's `Interactable Tags` container.
 	 */
 	UPROPERTY(EditAnywhere, Category="Interaction|Optional", meta=(NoResetToDefault))
-	FGameplayTag InteractorTag;
+	FGameplayTag											InteractorTag;
 
 	/**
 	 * If active, debug can be drawn.
@@ -176,7 +179,7 @@ protected:
 	 * Does not affect Shipping builds by default C++ implementation.
 	 */
 	UPROPERTY(EditAnywhere, Category="Interaction|Debug", meta=(ShowOnlyInnerProperties))
-	FDebugSettings DebugSettings;
+	FDebugSettings											DebugSettings;
 	
 	/**
 	 * Response Collision Channel this Interactor is interacting against.
@@ -187,14 +190,14 @@ protected:
 	 * * etc.
 	 */
 	UPROPERTY(EditAnywhere, Category="Interaction|Required", meta=(NoResetToDefault))
-	TEnumAsByte<ECollisionChannel> CollisionChannel;
+	TEnumAsByte<ECollisionChannel>				CollisionChannel;
 	
 	/**
 	 * New and easier way to set Default State.
 	 * This state will be propagated to Interactor State.
 	 */
 	UPROPERTY(EditAnywhere, Category="Interaction|Required", meta=(NoResetToDefault))
-	EInteractorStateV2 DefaultInteractorState;
+	EInteractorStateV2										DefaultInteractorState;
 
 	/**
 	 * A list of Actors that won't be taken in count when interacting.
@@ -202,8 +205,11 @@ protected:
 	 * If using multiple Actors (a gun, for instance), all those child/attached Actors should be ignored.
 	 */
 	UPROPERTY(EditAnywhere, Category="Interaction|Optional", meta=(NoResetToDefault, DisplayThumbnail=false))
-	TArray<AActor*> ListOfIgnoredActors;
+	TArray<TObjectPtr<AActor>>					ListOfIgnoredActors;
 
+	UPROPERTY(EditAnywhere, Category="Interaction|Optional", meta=(NoResetToDefault))
+	TSoftObjectPtr<UInputMappingContext>		InteractionMapping;
+	
 private:
 
 	/**

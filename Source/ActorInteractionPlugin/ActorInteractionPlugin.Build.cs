@@ -50,6 +50,7 @@ public class ActorInteractionPlugin : ModuleRules
 				"Projects",
 				"InputCore",
 				"GameplayTags",
+				"EnhancedInput",
 
 				"InteractionEditorNotifications",
 

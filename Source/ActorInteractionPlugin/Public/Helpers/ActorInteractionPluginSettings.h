@@ -4,9 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DeveloperSettings.h"
-#include "Materials/MaterialInterface.h"
+
 #include "ActorInteractionPluginSettings.generated.h"
 
+class UInputMappingContext;
 class UDataTable;
 class UMaterialInterface;
 class UUserWidget;
@@ -20,13 +21,7 @@ class ACTORINTERACTIONPLUGIN_API UActorInteractionPluginSettings : public UDevel
 	
   GENERATED_BODY()
 
-	UActorInteractionPluginSettings()
-	{
-		CategoryName = TEXT("Mountea Framework");
-		SectionName = TEXT("Mountea Interaction System");
-
-  		bEditorDebugEnabled = 0;
-	}
+	UActorInteractionPluginSettings();
 
 	/* Defines whether in-editor debug is enabled. */
 	UPROPERTY(config, EditAnywhere, Category="Editor")
@@ -34,19 +29,22 @@ class ACTORINTERACTIONPLUGIN_API UActorInteractionPluginSettings : public UDevel
 
 	/* Defines how often is the Interaction widget updated per second.*/
 	UPROPERTY(config, EditAnywhere, Category = "Widgets", meta=(Units="s", UIMin=0.001, ClampMin=0.001))
-	float WidgetUpdateFrequency = 0.05f;
+	float WidgetUpdateFrequency =					0.05f;
 
 	/* Defines default Interactable Widget class.*/
 	UPROPERTY(config, EditAnywhere, Category = "Widgets", meta=(AllowedClasses="/Script/UMG.UserWidget", MustImplement="/Script/ActorInteractionPlugin.ActorInteractionWidget"))
-	TSoftClassPtr<UUserWidget>InteractableDefaultWidgetClass;
+	TSoftClassPtr<UUserWidget>						InteractableDefaultWidgetClass;
 	
 	/* Defines default DataTable which contains Interactable data values.*/
 	UPROPERTY(config, EditAnywhere, Category = "Interaction Data", meta=(AllowedClasses = "/Script/Engine.DataTable"))
-	TSoftObjectPtr<UDataTable> InteractableDefaultDataTable;
+	TSoftObjectPtr<UDataTable>						InteractableDefaultDataTable;
 
 	/* Defines default DataTable which contains Interactable data values.*/
 	UPROPERTY(config, EditAnywhere, Category = "Interaction Data")
-	TSoftObjectPtr<UMaterialInterface> InteractableDefaultHighlightMaterial;
+	TSoftObjectPtr<UMaterialInterface>			InteractableDefaultHighlightMaterial;
+
+	UPROPERTY(config, EditAnywhere, Category = "Interaction Data")
+	TSoftObjectPtr<UInputMappingContext>		InteractionInputMapping;
 	
 #if WITH_EDITOR
 	virtual FText GetSectionText() const override
@@ -76,9 +74,9 @@ public:
 	TSoftObjectPtr<UDataTable> GetInteractableDefaultDataTable() const
 	{ return InteractableDefaultDataTable; };
 
-	TSoftClassPtr<UUserWidget> GetInteractableDefaultWidgetClass() const
-	{ return InteractableDefaultWidgetClass; };
+	TSoftClassPtr<UUserWidget> GetInteractableDefaultWidgetClass() const;
 
-	UMaterialInterface* GetDefaultHighlightMaterial() const
-	{ return InteractableDefaultHighlightMaterial.LoadSynchronous(); };
+	UMaterialInterface* GetDefaultHighlightMaterial() const;
+
+	UInputMappingContext* GetDefaultInputMappingContext() const;
 };

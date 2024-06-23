@@ -4,6 +4,8 @@
 #include "Components/ActorInteractorComponentBase.h"
 
 #include "Helpers/ActorInteractionPluginLog.h"
+#include "InputMappingContext.h"
+
 #if WITH_EDITOR
 #include "EditorHelper.h"
 #endif
@@ -15,6 +17,7 @@ UActorInteractorComponentBase::UActorInteractorComponentBase() :
 		DebugSettings(false),
 		CollisionChannel(CollisionChannel),
 		DefaultInteractorState(EInteractorStateV2::EIS_Awake),
+		InteractionMapping(nullptr),
 		InteractorState(EInteractorStateV2::EIS_Asleep)
 {
 	bAutoActivate = true;
@@ -48,7 +51,7 @@ void UActorInteractorComponentBase::BeginPlay()
 		AddIgnoredActor(GetOwner());
 	}
 	
-	SetState(DefaultInteractorState);
+	Execute_SetState(this, DefaultInteractorState);
 }
 
 void UActorInteractorComponentBase::InteractableSelected_Implementation(const TScriptInterface<IActorInteractableInterface>& SelectedInteractable)
@@ -70,7 +73,7 @@ void UActorInteractorComponentBase::InteractableFound_Implementation(const TScri
 			}
 		}
 	
-		EvaluateInteractable(FoundInteractable);
+		Execute_EvaluateInteractable(this, FoundInteractable);
 
 		Execute_OnInteractableFoundEvent(this, FoundInteractable);
 	}
@@ -82,11 +85,11 @@ void UActorInteractorComponentBase::InteractableLost_Implementation(const TScrip
 	
 	if (LostInteractable == ActiveInteractable)
 	{
-		SetState(EInteractorStateV2::EIS_Awake);
+		Execute_SetState(this, EInteractorStateV2::EIS_Awake);
 		
-		SetActiveInteractable(nullptr);
+		Execute_SetActiveInteractable(this, nullptr);
 		
-		Execute_OnInteractableLostEvent(this, LostInteractable);
+		OnInteractableLostEvent(LostInteractable);
 	}
 }
 
@@ -108,7 +111,7 @@ bool UActorInteractorComponentBase::IsValidInteractor_Implementation() const
 
 void UActorInteractorComponentBase::EvaluateInteractable_Implementation(const TScriptInterface<IActorInteractableInterface>& FoundInteractable)
 {
-	if (!IsValidInteractor()) return;
+	if (!Execute_IsValidInteractor(this)) return;
 	
 	if (FoundInteractable.GetInterface() == nullptr)
 	{
@@ -118,7 +121,7 @@ void UActorInteractorComponentBase::EvaluateInteractable_Implementation(const TS
 	
 	if (ActiveInteractable.GetInterface() == nullptr)
 	{
-		SetActiveInteractable(FoundInteractable);
+		Execute_SetActiveInteractable(this, FoundInteractable);
 		OnInteractableSelected.Broadcast(FoundInteractable);
 
 		return;
@@ -130,7 +133,7 @@ void UActorInteractorComponentBase::EvaluateInteractable_Implementation(const TS
 	 */
 	if (ActiveInteractable != FoundInteractable)
 	{
-		if (FoundInteractable->GetInteractableWeight() > ActiveInteractable->GetInteractableWeight())
+		if (FoundInteractable->Execute_GetInteractableWeight(FoundInteractable.GetObject()) > ActiveInteractable->Execute_GetInteractableWeight(FoundInteractable.GetObject()))
 		{
 			if (ActiveInteractable.GetInterface() != nullptr)
 			{
@@ -138,7 +141,7 @@ void UActorInteractorComponentBase::EvaluateInteractable_Implementation(const TS
 			}
 			
 			
-			SetActiveInteractable(FoundInteractable);
+			Execute_SetActiveInteractable(this, FoundInteractable);
 			OnInteractableSelected.Broadcast(FoundInteractable);
 		}
 		else
@@ -153,25 +156,25 @@ void UActorInteractorComponentBase::EvaluateInteractable_Implementation(const TS
 	}
 	else
 	{
-		SetActiveInteractable(FoundInteractable);
+		Execute_SetActiveInteractable(this, FoundInteractable);
 		OnInteractableSelected.Broadcast(FoundInteractable);
 	}
 }
 
 void UActorInteractorComponentBase::StartInteraction_Implementation(const float StartTime)
 {
-	if (CanInteract() && ActiveInteractable.GetInterface())
+	if (Execute_CanInteract(this) && ActiveInteractable.GetInterface())
 	{
-		SetState(EInteractorStateV2::EIS_Active);
+		Execute_SetState(this, EInteractorStateV2::EIS_Active);
 		ActiveInteractable->GetOnInteractionStartedHandle().Broadcast(StartTime, this);
 	}
 }
 
 void UActorInteractorComponentBase::StopInteraction_Implementation(const float StartTime)
 {
-	if (CanInteract() && ActiveInteractable.GetInterface())
+	if (Execute_CanInteract(this) && ActiveInteractable.GetInterface())
 	{
-		SetState(DefaultInteractorState);
+		Execute_SetState(this, DefaultInteractorState);
 		ActiveInteractable->GetOnInteractionStoppedHandle().Broadcast(StartTime, this);
 	}
 }
@@ -530,6 +533,16 @@ FGameplayTag UActorInteractorComponentBase::GetInteractorTag_Implementation() co
 void UActorInteractorComponentBase::SetInteractorTag_Implementation(const FGameplayTag& NewInteractorTag)
 {
 	// TODO: Replicated setup
+}
+
+UInputMappingContext* UActorInteractorComponentBase::GetInteractionInputMapping_Implementation() const
+{
+	return InteractionMapping.LoadSynchronous();
+}
+
+void UActorInteractorComponentBase::SetInteractionInputMapping_Implementation(UInputMappingContext* NewMappingContext)
+{
+	// TODO: Can this be Client only?
 }
 
 #if WITH_EDITOR

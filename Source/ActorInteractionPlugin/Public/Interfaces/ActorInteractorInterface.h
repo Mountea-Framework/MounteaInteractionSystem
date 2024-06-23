@@ -6,12 +6,12 @@
 #include "GameplayTagContainer.h"
 #include "UObject/Interface.h"
 
-#include "InputCoreTypes.h"
 #include "Engine/EngineTypes.h"
 
 #include "ActorInteractorInterface.generated.h"
 
 struct FGameplayTag;
+class UInputMappingContext;
 
 // This class does not need to be modified.
 UINTERFACE(BlueprintType, Blueprintable, MinimalAPI)
@@ -448,6 +448,23 @@ public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
 	void SetInteractorTag(const FGameplayTag& NewInteractorTag);
 	virtual void SetInteractorTag_Implementation(const FGameplayTag& NewInteractorTag) = 0;
+
+	/**
+	 * 
+	 * @return 
+	 */
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
+	UInputMappingContext* GetInteractionInputMapping() const;
+	virtual UInputMappingContext* GetInteractionInputMapping_Implementation() const = 0;
+
+	/**
+	 * 
+	 * @param NewMappingContext 
+	 */
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
+	void SetInteractionInputMapping(UInputMappingContext* NewMappingContext);
+	virtual void SetInteractionInputMapping_Implementation(UInputMappingContext* NewMappingContext) = 0;
+	
 
 	virtual FInteractableSelected& GetOnInteractableSelectedHandle() = 0;
 	virtual FInteractableFound& GetOnInteractableFoundHandle() = 0;
