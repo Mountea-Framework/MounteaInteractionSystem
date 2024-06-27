@@ -19,7 +19,7 @@ UActorInteractableComponentHold::UActorInteractableComponentHold()
 
 void UActorInteractableComponentHold::InteractionStarted_Implementation(const float& TimeStarted, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
 {
-	Super::InteractionStarted(TimeStarted, CausingInteractor);
+	Super::InteractionStarted_Implementation(TimeStarted, CausingInteractor);
 	
 	if (!GetWorld()) return;
 	

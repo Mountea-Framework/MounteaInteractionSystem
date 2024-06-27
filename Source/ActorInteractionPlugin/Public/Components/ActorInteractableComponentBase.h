@@ -766,42 +766,7 @@ protected:
 	 */
 	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Required", meta=(NoResetToDefault))
 	TEnumAsByte<ECollisionChannel> CollisionChannel;
-		
-	/**
-	 * Weight of this Interactable.
-	 * Useful with multiple overlapping Interactables withing the same Actor. Interactor will always prefer the one with highest Weight value.
-	 *
-	 * Default value: 1
-	 * Clamped in setter function to be at least 0 or higher.
-	 */
-	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Required", meta=(UIMin=0, ClampMin=0))
-	int32 InteractionWeight;
-
-	/**
-	 * Defines Lifecycle Mode of this Interactable.
-	 * Cycled:
-	 * * Can be used multiple times
-	 * * Good for NPCs
-	 * Once:
-	 * * Can be used only once
-	 * * Good for pickup items
-	 */
-	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Required", meta=(NoResetToDefault))
-	EInteractableLifecycle LifecycleMode;
-
-	/**
-	 * How many times this Interactable can be used.
-	 *
-	 * Clamped in Setter.
-	 * Expected range:
-	 * * -1 | Can be used forever
-	 * *  0 | Invalid, will be set to 2
-	 * *  1 | Invalid, will be set to 2
-	 * * 2+ | Will be used defined number of times
-	 */
-	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Required", meta=(NoResetToDefault, EditCondition = "LifecycleMode == EInteractableLifecycle::EIL_Cycled", UIMin=-1, ClampMin=-1, Units="times"))
-	int32 LifecycleCount;
-
+	
 	/**
 	 * How long it takes for Cooldown to finish.
 	 * After this period of time the Interactable will be Awake again, unless no Interactor.
@@ -931,6 +896,31 @@ protected:
 	 */
 	UPROPERTY(SaveGame, VisibleAnywhere, Category="Interaction|Read Only")
 	EInteractableStateV2 InteractableState;
+	
+	/**
+	 * Defines Lifecycle Mode of this Interactable.
+	 * Cycled:
+	 * * Can be used multiple times
+	 * * Good for NPCs
+	 * Once:
+	 * * Can be used only once
+	 * * Good for pickup items
+	 */
+	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Required", meta=(NoResetToDefault))
+	EInteractableLifecycle LifecycleMode;
+
+	/**
+	 * How many times this Interactable can be used.
+	 *
+	 * Clamped in Setter.
+	 * Expected range:
+	 * * -1 | Can be used forever
+	 * *  0 | Invalid, will be set to 2
+	 * *  1 | Invalid, will be set to 2
+	 * * 2+ | Will be used defined number of times
+	 */
+	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Required", meta=(NoResetToDefault, EditCondition = "LifecycleMode == EInteractableLifecycle::EIL_Cycled", UIMin=-1, ClampMin=-1, Units="times"))
+	int32 LifecycleCount;
 
 	/**
 	 * How many Lifecycles remain until this Interactable is Finished.
@@ -953,7 +943,7 @@ protected:
 	 * Once Collision Shape is unregistered, it reads its cached settings and returns to pre-interaction Collision Settings.
 	 */
 	UPROPERTY(SaveGame, VisibleAnywhere, Category="Interaction|Read Only", meta=(DisplayThumbnail = false, ShowOnlyInnerProperties))
-	mutable TMap<UPrimitiveComponent*, FCollisionShapeCache> CachedCollisionShapesSettings;
+	mutable TMap<TObjectPtr<UPrimitiveComponent>, FCollisionShapeCache> CachedCollisionShapesSettings;
 	
 	/**
 	 * List of Highlightable Components.
@@ -961,7 +951,7 @@ protected:
 	 * * Response to Collision Channel to overlap
 	 */
 	UPROPERTY(SaveGame, VisibleAnywhere, Category="Interaction|Read Only")
-	TArray<UMeshComponent*> HighlightableComponents;
+	TArray<TObjectPtr<UMeshComponent>> HighlightableComponents;
 	
 	/**
 	 * List of Collision Components.
@@ -971,6 +961,16 @@ protected:
 	 */
 	UPROPERTY(SaveGame, VisibleAnywhere, Category="Interaction|Read Only")
 	TArray<UPrimitiveComponent*> CollisionComponents;
+
+	/**
+	 * Weight of this Interactable.
+	 * Useful with multiple overlapping Interactables withing the same Actor. Interactor will always prefer the one with highest Weight value.
+	 *
+	 * Default value: 1
+	 * Clamped in setter function to be at least 0 or higher.
+	 */
+	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Required", meta=(UIMin=0, ClampMin=0))
+	int32 InteractionWeight;
 
 	/**
 	 * Cached value which is by default set to Interaction Weight.
@@ -1014,8 +1014,6 @@ protected:
 	
 	virtual void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;
 	virtual EDataValidationResult IsDataValid(TArray<FText>& ValidationErrors) override;
-
-	virtual bool Modify(bool bAlwaysMarkDirty) override;
 
 #endif
 	

@@ -20,7 +20,7 @@
 #include "Utilities/ActorInteractionEditorUtilities.h"
 
 #include "ToolMenus.h"
-#include "Helpers/ActorInteractionPluginLog.h"
+#include "Helpers/MounteaInteractionSystemEditorLog.h"
 
 #include "Interfaces/IMainFrameModule.h"
 

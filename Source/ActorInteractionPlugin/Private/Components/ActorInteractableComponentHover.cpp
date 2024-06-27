@@ -24,7 +24,7 @@ void UActorInteractableComponentHover::BeginPlay()
 
 void UActorInteractableComponentHover::BindCollisionShape_Implementation(UPrimitiveComponent* PrimitiveComponent) const
 {
-	Super::BindCollisionShape(PrimitiveComponent);
+	Super::BindCollisionShape_Implementation(PrimitiveComponent);
 
 	if (PrimitiveComponent)
 	{
@@ -35,7 +35,7 @@ void UActorInteractableComponentHover::BindCollisionShape_Implementation(UPrimit
 
 void UActorInteractableComponentHover::UnbindCollisionShape_Implementation(UPrimitiveComponent* PrimitiveComponent) const
 {
-	Super::UnbindCollisionShape(PrimitiveComponent);
+	Super::UnbindCollisionShape_Implementation(PrimitiveComponent);
 
 	if (PrimitiveComponent)
 	{

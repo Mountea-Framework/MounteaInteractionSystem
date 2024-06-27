@@ -29,7 +29,7 @@ void UActorInteractableComponentMash::BeginPlay()
 
 void UActorInteractableComponentMash::InteractionFailed()
 {
-	SetState(GetDefaultState());
+	Execute_SetState(this, GetDefaultState());
 	
 	CleanupComponent();
 	
@@ -73,7 +73,7 @@ void UActorInteractableComponentMash::CleanupComponent()
 
 void UActorInteractableComponentMash::InteractionStarted_Implementation(const float& TimeStarted, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
 {
-	Super::InteractionStarted(TimeStarted, CausingInteractor);
+	Super::InteractionStarted_Implementation(TimeStarted, CausingInteractor);
 	
 	if (CanInteract())
 	{
@@ -121,14 +121,14 @@ void UActorInteractableComponentMash::InteractionStopped_Implementation(const fl
 	{
 		if (!GetWorld()->GetTimerManager().IsTimerActive(TimerHandle_Mashed))
 		{
-			Super::InteractionStopped(TimeStarted, CausingInteractor);
+			Super::InteractionStopped_Implementation(TimeStarted, CausingInteractor);
 		}
 	}
 }
 
 void UActorInteractableComponentMash::InteractionCanceled_Implementation()
 {
-	Super::InteractionCanceled();
+	Super::InteractionCanceled_Implementation();
 
 	CleanupComponent();
 }
@@ -137,7 +137,7 @@ void UActorInteractableComponentMash::InteractionCompleted_Implementation(const 
 {
 	if (ActualMashAmount >= MinMashAmountRequired)
 	{
-		Super::InteractionCompleted(TimeCompleted, CausingInteractor);
+		Super::InteractionCompleted_Implementation(TimeCompleted, CausingInteractor);
 	}
 	else
 	{

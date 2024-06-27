@@ -15,7 +15,12 @@
 #include "DrawDebugHelpers.h"
 #endif
 
-UActorInteractorComponentTrace::UActorInteractorComponentTrace() : TraceType(ETraceType::ETT_Loose), TraceInterval(0.1f), TraceRange(250.f), TraceShapeHalfSize(5.f), bUseCustomStartTransform(false)
+UActorInteractorComponentTrace::UActorInteractorComponentTrace() :
+		TraceType(ETraceType::ETT_Loose),
+		TraceInterval(0.1f),
+		TraceRange(250.f),
+		TraceShapeHalfSize(5.f),
+		bUseCustomStartTransform(false)
 {
 	ComponentTags.Add(FName("Trace"));
 }
@@ -59,7 +64,7 @@ void UActorInteractorComponentTrace::EnableTracing()
 		case EInteractorStateV2::EIS_Disabled:
 		case EInteractorStateV2::Default: 
 		default:
-			AIntP_LOG(Warning, TEXT("[EnableTracing] Tracing not allowed for this state!"))
+			LOG_WARNING(TEXT("[EnableTracing] Tracing not allowed for this state!"))
 			return;
 	}
 	
@@ -357,12 +362,12 @@ FTransform UActorInteractorComponentTrace::GetCustomTraceStart() const
 
 bool UActorInteractorComponentTrace::CanInteract_Implementation() const
 {
-	return Super::CanInteract();
+	return Super::CanInteract_Implementation();
 }
 
 void UActorInteractorComponentTrace::SetState_Implementation(const EInteractorStateV2 NewState)
 {
-	Super::SetState(NewState);
+	Super::SetState_Implementation(NewState);
 
 	if (GetWorld())
 	{

@@ -15,7 +15,7 @@ void UActorInteractorComponentOverlap::BeginPlay()
 
 void UActorInteractorComponentOverlap::SetState_Implementation(const EInteractorStateV2 NewState)
 {
-	Super::SetState(NewState);
+	Super::SetState_Implementation(NewState);
 
 	switch (GetState())
 	{

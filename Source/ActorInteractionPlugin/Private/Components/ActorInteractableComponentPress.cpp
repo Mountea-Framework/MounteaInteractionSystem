@@ -28,7 +28,7 @@ void UActorInteractableComponentPress::BeginPlay()
 
 void UActorInteractableComponentPress::InteractionStarted_Implementation(const float& TimeStarted, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
 {
-	Super::InteractionStarted(TimeStarted, CausingInteractor);
+	Super::InteractionStarted_Implementation(TimeStarted, CausingInteractor);
 	
 	if (CanInteract())
 	{

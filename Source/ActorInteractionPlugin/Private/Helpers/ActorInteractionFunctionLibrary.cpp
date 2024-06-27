@@ -17,7 +17,7 @@ float UActorInteractionFunctionLibrary::GetDefaultWidgetUpdateFrequency()
 		return Settings->GetWidgetUpdateFrequency();
 	}
 
-	AIntP_LOG(Error, TEXT("[GetDefaultWidgetUpdateFrequency] Cannot load ActorInteractionPluginSettings! Using hardcoded value."))
+	LOG_ERROR(TEXT("[GetDefaultWidgetUpdateFrequency] Cannot load ActorInteractionPluginSettings! Using hardcoded value."))
 	return 0.1f;
 }
 
@@ -31,7 +31,7 @@ UDataTable* UActorInteractionFunctionLibrary::GetInteractableDefaultDataTable()
 		}
 	}
 
-	AIntP_LOG(Error, TEXT("[GetInteractableDefaultDataTable] Cannot load ActorInteractionPluginSettings! Using null value."))
+	LOG_ERROR(TEXT("[GetInteractableDefaultDataTable] Cannot load ActorInteractionPluginSettings! Using null value."))
 	return nullptr;
 }
 
@@ -43,7 +43,7 @@ TSubclassOf<UUserWidget> UActorInteractionFunctionLibrary::GetInteractableDefaul
 		return WidgetClass;
 	}
 		
-	AIntP_LOG(Error, TEXT("[GetInteractableDefaultWidgetClass] Cannot load ActorInteractionPluginSettings! Using null value."))
+	LOG_ERROR(TEXT("[GetInteractableDefaultWidgetClass] Cannot load ActorInteractionPluginSettings! Using null value."))
 	return nullptr;
 }
 
@@ -54,6 +54,6 @@ bool UActorInteractionFunctionLibrary::IsEditorDebugEnabled()
 		return Settings->IsEditorDebugEnabled();
 	}
 		
-	AIntP_LOG(Error, TEXT("[GetInteractableDefaultWidgetClass] Cannot load ActorInteractionPluginSettings! Using null value."))
+	LOG_ERROR(TEXT("[GetInteractableDefaultWidgetClass] Cannot load ActorInteractionPluginSettings! Using null value."))
 	return false;
 }

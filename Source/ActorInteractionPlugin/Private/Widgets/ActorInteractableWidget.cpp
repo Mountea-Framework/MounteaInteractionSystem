@@ -17,7 +17,7 @@ bool UActorInteractableWidget::Initialize()
 
 	if (!bSuccess)
 	{
-		AIP_LOG(Error, TEXT("[Initialize] Initialize has returned false. Please report this bug."))
+		LOG_ERROR(TEXT("[Initialize] Initialize has returned false. Please report this bug."))
 	}
 	
 	return bSuccess;
@@ -49,12 +49,12 @@ void UActorInteractableWidget::ToggleVisibility_Implementation()
 
 void UActorInteractableWidget::CalculateRemainingTime(float InDeltaTime)
 {
-	AIP_LOG(Error, TEXT("[InitializeInteractionWidget] This function is Deprecated. Use `SetProgress` or `GetProgress` instead."))
+	LOG_ERROR(TEXT("[InitializeInteractionWidget] This function is Deprecated. Use `SetProgress` or `GetProgress` instead."))
 }
 
 void UActorInteractableWidget::SetInteractionProgress(const float NewInteractionProgress)
 {
-	AIP_LOG(Warning, TEXT("[InitializeInteractionWidget] This function is Deprecated. Use `SetProgress` instead."))
+	LOG_WARNING(TEXT("[InitializeInteractionWidget] This function is Deprecated. Use `SetProgress` instead."))
 	
 	InteractionProgress = FMath::Clamp(NewInteractionProgress, 0.f, 1.f);
 

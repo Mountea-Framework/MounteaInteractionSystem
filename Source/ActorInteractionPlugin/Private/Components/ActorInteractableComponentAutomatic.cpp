@@ -29,7 +29,7 @@ void UActorInteractableComponentAutomatic::BeginPlay()
 void UActorInteractableComponentAutomatic::InteractableSelected_Implementation(const TScriptInterface<IActorInteractableInterface>& Interactable)
 {
 	if(!GetWorld()) return;
-	Super::InteractableSelected(Interactable);
+	Super::InteractableSelected_Implementation(Interactable);
 	
 	if (Interactable == this)
 	{
@@ -60,7 +60,7 @@ void UActorInteractableComponentAutomatic::InteractionStarted_Implementation(con
 			false
 		);
 
-		Super::InteractionStarted(TimeStarted, CausingInteractor);
+		Super::InteractionStarted_Implementation(TimeStarted, CausingInteractor);
 		
 		UpdateInteractionWidget();
 	}
@@ -69,14 +69,14 @@ void UActorInteractableComponentAutomatic::InteractionStarted_Implementation(con
 void UActorInteractableComponentAutomatic::InteractionStopped_Implementation(const float& TimeStarted, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
 {
 #if WITH_EDITOR
-	AIntP_LOG(Warning, TEXT("[InteractionStopped] This function does nothing in UActorInteractableComponentAutomatic"))
+	LOG_WARNING(TEXT("[InteractionStopped] This function does nothing in UActorInteractableComponentAutomatic"))
 #endif
 }
 
 FInteractionStarted& UActorInteractableComponentAutomatic::GetOnInteractionStartedHandle()
 {
 #if WITH_EDITOR
-	AIntP_LOG(Warning, TEXT("[GetOnInteractionStartedHandle] This handle is invalid in UActorInteractableComponentAutomatic"))
+	LOG_WARNING(TEXT("[GetOnInteractionStartedHandle] This handle is invalid in UActorInteractableComponentAutomatic"))
 #endif
 	
 	return EmptyHandle_Started;
@@ -85,7 +85,7 @@ FInteractionStarted& UActorInteractableComponentAutomatic::GetOnInteractionStart
 FInteractionStopped& UActorInteractableComponentAutomatic::GetOnInteractionStoppedHandle()
 {
 #if WITH_EDITOR
-	AIntP_LOG(Warning, TEXT("[GetOnInteractionStoppedHandle] This handle is invalid in UActorInteractableComponentAutomatic"))
+	LOG_WARNING(TEXT("[GetOnInteractionStoppedHandle] This handle is invalid in UActorInteractableComponentAutomatic"))
 #endif
 	
 	return EmptyHandle_Stopped;
