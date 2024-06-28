@@ -46,7 +46,7 @@ void UActorInteractableComponentHover::UnbindCollisionShape_Implementation(UPrim
 
 bool UActorInteractableComponentHover::CanInteract_Implementation() const
 {
-	return Super::CanInteract() && OverlappingComponent != nullptr;
+	return Super::CanInteract_Implementation() && OverlappingComponent != nullptr;
 }
 
 void UActorInteractableComponentHover::OnHoverBeginsEvent(UPrimitiveComponent* PrimitiveComponent)

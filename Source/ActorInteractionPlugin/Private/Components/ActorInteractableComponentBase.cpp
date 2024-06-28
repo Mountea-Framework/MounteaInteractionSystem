@@ -117,7 +117,6 @@ void UActorInteractableComponentBase::BeginPlay()
 	// Dependency
 	InteractableDependencyStarted.							AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractableDependencyStartedCallback);
 	InteractableDependencyStopped.							AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractableDependencyStoppedCallback);
-
 	
 	RemainingLifecycleCount = LifecycleCount;
 	
@@ -1222,7 +1221,7 @@ void UActorInteractableComponentBase::InteractionCycleCompleted_Implementation(c
 
 void UActorInteractableComponentBase::InteractionStarted_Implementation(const float& TimeStarted, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
 {
-	if (CanInteract())
+	if (Execute_CanInteract(this))
 	{
 		GetWorld()->GetTimerManager().ClearTimer(Timer_ProgressExpiration);
 		
@@ -1240,7 +1239,7 @@ void UActorInteractableComponentBase::InteractionStopped_Implementation(const fl
 
 void UActorInteractableComponentBase::InteractionCanceled_Implementation()
 {
-	if (CanInteract())
+	if (Execute_CanInteract(this))
 	{
 		Execute_ToggleWidgetVisibility(this, false);
 		
@@ -1286,7 +1285,7 @@ void UActorInteractableComponentBase::InteractionCooldownCompleted_Implementatio
 
 		Execute_SetState(this, DefaultInteractableState);
 		
-		if (Interactor->GetActiveInteractable() == this)
+		if (Interactor->Execute_GetActiveInteractable(Interactor.GetObject()) == this)
 		{
 			Execute_SetState(this, EInteractableStateV2::EIS_Active);
 		}
@@ -1327,13 +1326,13 @@ void UActorInteractableComponentBase::OnInteractableBeginOverlap(UPrimitiveCompo
 		FoundInteractor.SetObject(Itr);
 		FoundInteractor.SetInterface(Cast<IActorInteractorInterface>(Itr));
 
-		if (FoundInteractor->CanInteract())
+		if (FoundInteractor->Execute_CanInteract(FoundInteractor.GetObject()))
 		{
-			switch (FoundInteractor->GetState())
+			switch (FoundInteractor->Execute_GetState(FoundInteractor.GetObject()))
 			{
 				case EInteractorStateV2::EIS_Active:
 				case EInteractorStateV2::EIS_Awake:
-					if (FoundInteractor->GetResponseChannel() != Execute_GetCollisionChannel(this)) continue;
+					if (FoundInteractor->Execute_GetResponseChannel(FoundInteractor.GetObject()) != Execute_GetCollisionChannel(this)) continue;
 					FoundInteractor->GetOnInteractableLostHandle().AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractableLost);
 					FoundInteractor->GetOnInteractableSelectedHandle().AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractableSelected);
 					OnInteractorFound.Broadcast(FoundInteractor);
@@ -1366,7 +1365,7 @@ void UActorInteractableComponentBase::OnInteractableStopOverlap(UPrimitiveCompon
 		LostInteractor.SetObject(Itr);
 		LostInteractor.SetInterface(Cast<IActorInteractorInterface>(Itr));
 
-		if (LostInteractor->CanInteract())
+		if (LostInteractor->Execute_CanInteract(LostInteractor.GetObject()))
 		{
 			if (LostInteractor == Execute_GetInteractor(this))
 			{
@@ -1400,12 +1399,12 @@ void UActorInteractableComponentBase::OnInteractableTraced(UPrimitiveComponent* 
 		FoundInteractor.SetObject(Itr);
 		FoundInteractor.SetInterface(Cast<IActorInteractorInterface>(Itr));
 
-		switch (FoundInteractor->GetState())
+		switch (FoundInteractor->Execute_GetState(FoundInteractor.GetObject()))
 		{
 			case EInteractorStateV2::EIS_Active:
 			case EInteractorStateV2::EIS_Awake:
-				if (FoundInteractor->CanInteract() == false) return;
-				if (FoundInteractor->GetResponseChannel() != Execute_GetCollisionChannel(this)) continue;
+				if (FoundInteractor->Execute_CanInteract(FoundInteractor.GetObject()) == false) return;
+				if (FoundInteractor->Execute_GetResponseChannel(FoundInteractor.GetObject()) != Execute_GetCollisionChannel(this)) continue;
 				FoundInteractor->GetOnInteractableLostHandle().AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractableLost);
 				FoundInteractor->GetOnInteractableSelectedHandle().AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractableSelected);
 				OnInteractorFound.Broadcast(FoundInteractor);
@@ -1431,7 +1430,8 @@ void UActorInteractableComponentBase::OnInteractionProgressExpired(const float E
 				GetWorld()->GetTimerManager().ClearTimer(Timer_Interaction);
 				GetWorld()->GetTimerManager().ClearTimer(Timer_ProgressExpiration);
 				
-				if (DoesHaveInteractor() && Execute_GetInteractor(this)->GetActiveInteractable() == this)
+				auto localInteractor = Execute_GetInteractor(this);
+				if (Execute_DoesHaveInteractor(this) && localInteractor.GetObject() && localInteractor->Execute_GetActiveInteractable(localInteractor.GetObject()) == this)
 				{
 					Execute_SetState(this, EInteractableStateV2::EIS_Active);
 				}

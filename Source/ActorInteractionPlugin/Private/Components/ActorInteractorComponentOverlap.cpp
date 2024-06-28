@@ -17,7 +17,7 @@ void UActorInteractorComponentOverlap::SetState_Implementation(const EInteractor
 {
 	Super::SetState_Implementation(NewState);
 
-	switch (GetState())
+	switch (Execute_GetState(this))
 	{
 		case EInteractorStateV2::EIS_Active: 
 		case EInteractorStateV2::EIS_Awake:

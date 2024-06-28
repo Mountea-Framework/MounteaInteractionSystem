@@ -23,7 +23,7 @@ void UActorInteractableComponentHold::InteractionStarted_Implementation(const fl
 	
 	if (!GetWorld()) return;
 	
-	if (CanInteract())
+	if (Execute_CanInteract(this))
 	{
 		// Force Interaction Period to be at least 0.1s
 		const float TempInteractionPeriod = FMath::Max(0.1f, InteractionPeriod);

@@ -43,7 +43,7 @@ void UActorInteractableComponentAutomatic::InteractionStarted_Implementation(con
 {
 	if (!GetWorld()) return;
 
-	if (CanInteract() && !GetWorld()->GetTimerManager().IsTimerActive(Timer_Interaction))
+	if (Execute_CanInteract(this) && !GetWorld()->GetTimerManager().IsTimerActive(Timer_Interaction))
 	{
 		// Force Interaction Period to be at least 0.01s
 		const float TempInteractionPeriod = FMath::Max(0.01f, InteractionPeriod);

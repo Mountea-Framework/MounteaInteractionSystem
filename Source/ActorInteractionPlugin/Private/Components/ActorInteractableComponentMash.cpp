@@ -75,7 +75,7 @@ void UActorInteractableComponentMash::InteractionStarted_Implementation(const fl
 {
 	Super::InteractionStarted_Implementation(TimeStarted, CausingInteractor);
 	
-	if (CanInteract())
+	if (Execute_CanInteract(this))
 	{
 		if(!GetWorld()->GetTimerManager().IsTimerActive(Timer_Interaction))
 		{

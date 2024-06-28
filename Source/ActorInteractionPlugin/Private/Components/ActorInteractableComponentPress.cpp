@@ -21,7 +21,7 @@ void UActorInteractableComponentPress::BeginPlay()
 {
 	Super::BeginPlay();
 
-	SetInteractionPeriod(-1.f);
+	Execute_SetInteractionPeriod(this, -1.f);
 	
 	Timer_Interaction.Invalidate();
 }
@@ -30,7 +30,7 @@ void UActorInteractableComponentPress::InteractionStarted_Implementation(const f
 {
 	Super::InteractionStarted_Implementation(TimeStarted, CausingInteractor);
 	
-	if (CanInteract())
+	if (Execute_CanInteract(this))
 	{
 		if (LifecycleMode == EInteractableLifecycle::EIL_Cycled)
 		{

@@ -54,7 +54,7 @@ void UActorInteractorComponentTrace::DisableTracing()
 
 void UActorInteractorComponentTrace::EnableTracing()
 {
-	switch (GetState())
+	switch (Execute_GetState(this))
 	{
 		case EInteractorStateV2::EIS_Awake:
 		case EInteractorStateV2::EIS_Active:
@@ -104,11 +104,11 @@ void UActorInteractorComponentTrace::ProcessTrace()
 		DisableTracing();
 	}
 	
-	AddIgnoredActor(GetOwner());
+	Execute_AddIgnoredActor(this, GetOwner());
 	
 	FInteractionTraceDataV2 TraceData;
 	{
-		TraceData.CollisionChannel = GetResponseChannel();
+		TraceData.CollisionChannel = Execute_GetResponseChannel(this);
 	
 		TraceData.CollisionParams.AddIgnoredActors(ListOfIgnoredActors);
 		TraceData.CollisionParams.MobilityType = EQueryMobilityType::Any;
@@ -172,16 +172,16 @@ void UActorInteractorComponentTrace::ProcessTrace()
 
 					const bool bCanTraceWith =
 					(
-						Interactable->GetCollisionComponents().Contains(HitResult.GetComponent()) &&
-						Interactable->GetCollisionChannel() == GetResponseChannel() &&
-						Interactable->CanBeTriggered()
+						Interactable->Execute_GetCollisionComponents(Interactable.GetObject()).Contains(HitResult.GetComponent()) &&
+						Interactable->Execute_GetCollisionChannel(Interactable.GetObject()) == Execute_GetResponseChannel(this) &&
+						Interactable->Execute_CanBeTriggered(Interactable.GetObject())
 					);
 					
 					if (bCanTraceWith)
 					{
 						bAnyInteractable = true;
 
-						if (Interactable == GetActiveInteractable())
+						if (Interactable == Execute_GetActiveInteractable(this))
 						{
 							bFoundActiveAgain = true;
 						}
@@ -193,7 +193,7 @@ void UActorInteractorComponentTrace::ProcessTrace()
 						}
 						else
 						{
-							if (Interactable->GetInteractableWeight() > BestInteractable->GetInteractableWeight())
+							if (Interactable->Execute_GetInteractableWeight(Interactable.GetObject()) > BestInteractable->Execute_GetInteractableWeight(BestInteractable.GetObject()))
 							{
 								BestInteractable = Interactable;
 								BestHitResult = HitResult;
@@ -207,11 +207,11 @@ void UActorInteractorComponentTrace::ProcessTrace()
 		
 	if (bAnyInteractable == false)
 	{
-		OnInteractableLost.Broadcast(GetActiveInteractable());
+		OnInteractableLost.Broadcast(Execute_GetActiveInteractable(this));
 	}
 	else if (bFoundActiveAgain == false)
 	{
-		OnInteractableLost.Broadcast(GetActiveInteractable());
+		OnInteractableLost.Broadcast(Execute_GetActiveInteractable(this));
 	}
 	
 	if (bAnyInteractable)
@@ -261,7 +261,7 @@ void UActorInteractorComponentTrace::ProcessTrace_Loose(FInteractionTraceDataV2&
 
 bool UActorInteractorComponentTrace::CanTrace() const
 {
-	return CanInteract();
+	return Execute_CanInteract(this);
 }
 
 ETraceType UActorInteractorComponentTrace::GetTraceType() const
@@ -371,7 +371,7 @@ void UActorInteractorComponentTrace::SetState_Implementation(const EInteractorSt
 
 	if (GetWorld())
 	{
-		switch (GetState())
+		switch (Execute_GetState(this))
 		{
 			case EInteractorStateV2::EIS_Asleep:
 			case EInteractorStateV2::EIS_Disabled:

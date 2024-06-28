@@ -85,11 +85,11 @@ void UActorInteractorComponentBase::InteractableLost_Implementation(const TScrip
 	
 	if (LostInteractable == ActiveInteractable)
 	{
-		Execute_SetState(this,EInteractorStateV2::EIS_Awake);
+		Execute_SetState(this, EInteractorStateV2::EIS_Awake);
 		
 		Execute_SetActiveInteractable(this, nullptr);
 		
-		OnInteractableLostEvent(LostInteractable);
+		Execute_OnInteractableLostEvent(this, LostInteractable);
 	}
 }
 
