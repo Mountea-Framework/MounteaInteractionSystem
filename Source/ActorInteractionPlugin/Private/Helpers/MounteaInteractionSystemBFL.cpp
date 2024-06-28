@@ -74,3 +74,8 @@ UPrimitiveComponent* UMounteaInteractionSystemBFL::FindPrimitiveByName(const FNa
 
 	return nullptr;
 }
+
+UActorInteractionPluginSettings* UMounteaInteractionSystemBFL::GetInteractionSystemSettings()
+{
+	return GetMutableDefault<UActorInteractionPluginSettings>();
+}

@@ -98,10 +98,10 @@ void UActorInteractableComponentAutomatic::OnInteractionCompletedCallback()
 		return;
 	}
 
-	ToggleWidgetVisibility(false);
+	Execute_ToggleWidgetVisibility(this, false);
 	if (LifecycleMode == EInteractableLifecycle::EIL_Cycled)
 	{
-		if (TriggerCooldown()) return;
+		if (Execute_TriggerCooldown(this)) return;
 	}
 	
 	OnInteractionCompleted.Broadcast(GetWorld()->GetTimeSeconds(), GetInteractor());

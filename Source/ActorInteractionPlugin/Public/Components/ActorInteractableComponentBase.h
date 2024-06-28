@@ -160,9 +160,6 @@ public:
 	virtual void RemoveInteractableCompatibleTags_Implementation(const FGameplayTagContainer& Tags) override;
 	virtual void ClearInteractableCompatibleTags_Implementation() override;
 
-	virtual UInputMappingContext* GetInteractionInputMapping_Implementation() const override;
-	virtual void SetInteractionInputMapping_Implementation(UInputMappingContext* NewMappingContext) override;
-
 #pragma endregion
 
 #pragma region InteractableFunctions_Networking
@@ -812,12 +809,6 @@ protected:
 	 */
 	UPROPERTY(EditAnywhere, Category="Interaction|Optional", meta=(NoResetToDefault))
 	FGameplayTagContainer																					InteractableCompatibleTags;
-
-	/**
-	 * 
-	 */
-	UPROPERTY(EditAnywhere, Category="Interaction|Optional", meta=(NoResetToDefault))
-	TSoftObjectPtr<UInputMappingContext>															InteractionMapping;
 	
 	/**
 	 * List of Interactable Classes which are ignored
@@ -874,11 +865,13 @@ protected:
 	UPROPERTY(SaveGame, EditAnywhere, BlueprintReadOnly,  Category="Interaction|Optional", meta=(EditCondition="bInteractionHighlight == true && HighlightType==EHighlightType::EHT_OverlayMaterial"))
 	TObjectPtr<UMaterialInterface>																		HighlightMaterial = nullptr;
 
+	UPROPERTY(SaveGame, EditAnywhere, BlueprintReadOnly,  Category="Interaction|Optional")
+	uint8																												bCanPersist : 1;
 	/**
 	 * Provides a simple way to determine how fast Interaction Progress is kept before interaction is cancelled.
 	 * * -1 means never while Interactor is valid
 	 */
-	UPROPERTY(SaveGame, EditAnywhere, BlueprintReadOnly,  Category="Interaction|Optional", meta=(UIMin=-1.f, ClampMin=-1.f))
+	UPROPERTY(SaveGame, EditAnywhere, BlueprintReadOnly,  Category="Interaction|Optional", meta=(UIMin=-1.f, ClampMin=-1.f), meta=(EditCondition="bCanPersist==false"))
 	float																													InteractionProgressExpiration = 0.f;
 	
 	/**

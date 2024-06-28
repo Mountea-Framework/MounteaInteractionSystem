@@ -6,6 +6,8 @@
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "MounteaInteractionSystemBFL.generated.h"
 
+class UActorInteractionPluginSettings;
+
 /**
  * 
  */
@@ -33,4 +35,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Helpers")
 	static UPrimitiveComponent* FindPrimitiveByName(const FName Name, const AActor* Source);
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Helpers")
+	static UActorInteractionPluginSettings* GetInteractionSystemSettings();
 };

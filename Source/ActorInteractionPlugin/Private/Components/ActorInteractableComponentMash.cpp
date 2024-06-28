@@ -52,7 +52,7 @@ void UActorInteractableComponentMash::OnInteractionCompletedCallback()
 	
 	if (LifecycleMode == EInteractableLifecycle::EIL_Cycled)
 	{
-		if (TriggerCooldown()) return;
+		if (Execute_TriggerCooldown(this)) return;
 	}
 	
 	OnInteractionCompleted.Broadcast(GetWorld()->GetTimeSeconds(), GetInteractor());

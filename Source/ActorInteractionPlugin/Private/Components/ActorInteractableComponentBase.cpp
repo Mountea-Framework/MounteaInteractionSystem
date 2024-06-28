@@ -8,7 +8,7 @@
 #include "EditorHelper.h"
 #endif
 
-#include "InputMappingContext.h"
+
 #include "Interfaces/ActorInteractionWidget.h"
 #include "Widgets/ActorInteractableWidget.h"
 
@@ -38,6 +38,7 @@ UActorInteractableComponentBase::UActorInteractableComponentBase() :
 		TimeToStart(0.001f),
 		InteractableName(LOCTEXT("InteractableComponentBase", "Base")),
 		SetupType(ESetupType::EST_Quick),
+		bCanPersist(false),
 		DebugSettings(false)
 {
 	bAutoActivate = true;
@@ -281,17 +282,15 @@ void UActorInteractableComponentBase::PauseInteraction_Implementation(const floa
 	
 	Execute_SetState(this, EInteractableStateV2::EIS_Paused);
 	const bool bIsUnlimited = FMath::IsWithinInclusive(InteractionProgressExpiration, -1.f, 0.f) || FMath::IsNearlyZero(InteractionProgressExpiration, 0.001f);
-	
-	if (bIsUnlimited)
+
+	const float expirationTime = GetWorld()->GetTimeSeconds();
+	if (bCanPersist)
 	{
 		GetWorld()->GetTimerManager().PauseTimer(Timer_Interaction);
-		return;
-	}
-	
-	if (!bIsUnlimited)
-	{
+		
 		FTimerDelegate TimerDelegate_ProgressExpiration;
-		TimerDelegate_ProgressExpiration.BindUFunction(this, "OnInteractionProgressExpired", ExpirationTime, CausingInteractor);
+		
+		TimerDelegate_ProgressExpiration.BindUFunction(this, "OnInteractionProgressExpired", expirationTime, CausingInteractor);
 
 		const float ClampedExpiration = FMath::Max(InteractionProgressExpiration, 0.01f);
 		
@@ -300,7 +299,7 @@ void UActorInteractableComponentBase::PauseInteraction_Implementation(const floa
 	}
 	else
 	{
-		OnInteractionProgressExpired(ExpirationTime, CausingInteractor);
+		OnInteractionProgressExpired(expirationTime, CausingInteractor);
 	}
 }
 
@@ -1125,19 +1124,6 @@ void UActorInteractableComponentBase::ClearInteractableCompatibleTags_Implementa
 	InteractableCompatibleTags.Reset();
 }
 
-UInputMappingContext* UActorInteractableComponentBase::GetInteractionInputMapping_Implementation() const
-{
-	return InteractionMapping.LoadSynchronous();
-}
-
-void UActorInteractableComponentBase::SetInteractionInputMapping_Implementation(UInputMappingContext* NewMappingContext)
-{
-	if (NewMappingContext != InteractionMapping.Get())
-	{
-		InteractionMapping = NewMappingContext;
-	}
-}
-
 void UActorInteractableComponentBase::InteractorFound_Implementation(const TScriptInterface<IActorInteractorInterface>& FoundInteractor)
 {
 	if (Execute_CanBeTriggered(this))
@@ -1234,7 +1220,14 @@ void UActorInteractableComponentBase::InteractionStopped_Implementation(const fl
 {
 	if (!GetWorld()) return;
 
-	Execute_PauseInteraction(this, TimeStarted, CausingInteractor);
+	if (bCanPersist)
+	{
+		Execute_PauseInteraction(this, bCanPersist ? InteractionProgressExpiration : 0.f, CausingInteractor);
+	}
+	else
+	{
+		Execute_InteractionCanceled(this);
+	}
 }
 
 void UActorInteractableComponentBase::InteractionCanceled_Implementation()

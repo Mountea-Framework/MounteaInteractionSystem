@@ -448,22 +448,6 @@ public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
 	void SetInteractorTag(const FGameplayTag& NewInteractorTag);
 	virtual void SetInteractorTag_Implementation(const FGameplayTag& NewInteractorTag) = 0;
-
-	/**
-	 * 
-	 * @return 
-	 */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
-	UInputMappingContext* GetInteractionInputMapping() const;
-	virtual UInputMappingContext* GetInteractionInputMapping_Implementation() const = 0;
-
-	/**
-	 * 
-	 * @param NewMappingContext 
-	 */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
-	void SetInteractionInputMapping(UInputMappingContext* NewMappingContext);
-	virtual void SetInteractionInputMapping_Implementation(UInputMappingContext* NewMappingContext) = 0;
 	
 
 	virtual FInteractableSelected& GetOnInteractableSelectedHandle() = 0;

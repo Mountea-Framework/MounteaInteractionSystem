@@ -34,7 +34,7 @@ void UActorInteractableComponentPress::InteractionStarted_Implementation(const f
 	{
 		if (LifecycleMode == EInteractableLifecycle::EIL_Cycled)
 		{
-			if (TriggerCooldown()) return;
+			if (Execute_TriggerCooldown(this)) return;
 		}
 		
 		OnInteractionCompleted.Broadcast(TimeStarted, CausingInteractor);

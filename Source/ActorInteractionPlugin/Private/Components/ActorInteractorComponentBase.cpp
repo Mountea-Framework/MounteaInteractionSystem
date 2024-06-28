@@ -4,7 +4,7 @@
 #include "Components/ActorInteractorComponentBase.h"
 
 #include "Helpers/ActorInteractionPluginLog.h"
-#include "InputMappingContext.h"
+
 
 #if WITH_EDITOR
 #include "EditorHelper.h"
@@ -17,7 +17,6 @@ UActorInteractorComponentBase::UActorInteractorComponentBase() :
 		DebugSettings(false),
 		CollisionChannel(CollisionChannel),
 		DefaultInteractorState(EInteractorStateV2::EIS_Awake),
-		InteractionMapping(nullptr),
 		InteractorState(EInteractorStateV2::EIS_Asleep)
 {
 	bAutoActivate = true;
@@ -533,16 +532,6 @@ FGameplayTag UActorInteractorComponentBase::GetInteractorTag_Implementation() co
 void UActorInteractorComponentBase::SetInteractorTag_Implementation(const FGameplayTag& NewInteractorTag)
 {
 	// TODO: Replicated setup
-}
-
-UInputMappingContext* UActorInteractorComponentBase::GetInteractionInputMapping_Implementation() const
-{
-	return InteractionMapping.LoadSynchronous();
-}
-
-void UActorInteractorComponentBase::SetInteractionInputMapping_Implementation(UInputMappingContext* NewMappingContext)
-{
-	// TODO: Can this be Client only?
 }
 
 #if WITH_EDITOR

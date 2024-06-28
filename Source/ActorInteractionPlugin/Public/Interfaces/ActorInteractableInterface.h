@@ -1031,23 +1031,7 @@ public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, CallInEditor, Category="Mountea|Interaction|Interactable")
 	void ClearInteractableCompatibleTags();
 	virtual void ClearInteractableCompatibleTags_Implementation() = 0;
-
-	/**
-	 * 
-	 * @return 
-	 */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactable")
-	UInputMappingContext* GetInteractionInputMapping() const;
-	virtual UInputMappingContext* GetInteractionInputMapping_Implementation() const = 0;
-
-	/**
-	 * 
-	 * @param NewMappingContext 
-	 */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactable")
-	void SetInteractionInputMapping(UInputMappingContext* NewMappingContext);
-	virtual void SetInteractionInputMapping_Implementation(UInputMappingContext* NewMappingContext) = 0;
-
+	
 	
 	virtual FOnInteractableSelected& GetOnInteractableSelectedHandle() = 0;
 	virtual FInteractorFound& GetOnInteractorFoundHandle() = 0;

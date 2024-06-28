@@ -96,8 +96,6 @@ public:
 	virtual void ToggleDebug_Implementation() override;
 	virtual FGameplayTag GetInteractorTag_Implementation() const override;
 	virtual void SetInteractorTag_Implementation(const FGameplayTag& NewInteractorTag) override;
-	virtual UInputMappingContext* GetInteractionInputMapping_Implementation() const override;
-	virtual void SetInteractionInputMapping_Implementation(UInputMappingContext* NewMappingContext) override;
 
 public:
 
@@ -207,9 +205,6 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Interaction|Optional", meta=(NoResetToDefault, DisplayThumbnail=false))
 	TArray<TObjectPtr<AActor>>					ListOfIgnoredActors;
 
-	UPROPERTY(EditAnywhere, Category="Interaction|Optional", meta=(NoResetToDefault))
-	TSoftObjectPtr<UInputMappingContext>		InteractionMapping;
-	
 private:
 
 	/**
