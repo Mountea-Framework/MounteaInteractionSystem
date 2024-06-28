@@ -11,7 +11,6 @@
 UActorInteractableComponentAutomatic::UActorInteractableComponentAutomatic()
 {
 	InteractableName = LOCTEXT("ActorInteractableComponentAutomatic", "Auto");
-	InteractionKeysPerPlatform.Empty();
 
 	DefaultInteractableState = EInteractableStateV2::EIS_Awake;
 	InteractionPeriod = 1.f;

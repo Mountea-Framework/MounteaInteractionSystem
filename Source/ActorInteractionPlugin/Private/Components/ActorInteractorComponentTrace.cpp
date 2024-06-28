@@ -225,10 +225,10 @@ void UActorInteractorComponentTrace::ProcessTrace()
 		DrawTracingDebugEnd(TraceData);
 	}
 #endif
+
+	OnTraced.Broadcast();
 	
 	ResumeTracing();
-
-	
 }
 
 void UActorInteractorComponentTrace::ProcessTrace_Precise(FInteractionTraceDataV2& InteractionTraceData)

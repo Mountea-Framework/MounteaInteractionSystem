@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
 #include "UObject/Interface.h"
 #include "ActorInteractableInterface.generated.h"
 
@@ -515,16 +516,6 @@ public:
 	virtual AActor* GetInteractableOwner_Implementation() const = 0;
 
 	/**
-	 * Sets new InteractableOwner.
-	 *
-	 * @param NewOwner Value to be set as Interactable Owner. Is validated:
-	 * Nullptr is not allowed and will not be applied.
-	 */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactable")
-	void SetInteractableOwner(AActor* NewOwner);
-	virtual void SetInteractableOwner_Implementation(AActor* NewOwner) = 0;
-
-	/**
 	 * Returns Collision Channel.
 	 * Both Object and Trace Channels are allowed.
 	 */
@@ -980,7 +971,84 @@ public:
 	void SetDefaults();
 	virtual void SetDefaults_Implementation()  = 0;
 
+	/**
+	 *	Gets Interactable Filter Gameplay Tags.
+	 * 
+	 * @return		Container of allowed filter Gameplay Tags. 
+	 */
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, CallInEditor, Category="Mountea|Interaction|Interactable")
+	FGameplayTagContainer GetInteractableCompatibleTags() const;
+	virtual FGameplayTagContainer GetInteractableCompatibleTags_Implementation() const = 0;
 
+	/**
+	 * Sets the Interactable Filter Gameplay Tags.
+	 * 
+	 * @param Tags Container of tags to set.
+	 */
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, CallInEditor, Category="Mountea|Interaction|Interactable")
+	void SetInteractableCompatibleTags(const FGameplayTagContainer& Tags);
+	virtual void SetInteractableCompatibleTags_Implementation(const FGameplayTagContainer& Tags) = 0;
+
+	/**
+	 * Adds a tag to the Interactable Filter Gameplay Tags.
+	 * 
+	 * @param Tag Tag to add.
+	 */
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, CallInEditor, Category="Mountea|Interaction|Interactable")
+	void AddInteractableCompatibleTag(const FGameplayTag& Tag);
+	virtual void AddInteractableCompatibleTag_Implementation(const FGameplayTag& Tag) = 0;
+
+	/**
+	 * Adds multiple tags to the Interactable Filter Gameplay Tags.
+	 * 
+	 * @param Tags Container of tags to add.
+	 */
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, CallInEditor, Category="Mountea|Interaction|Interactable")
+	void AddInteractableCompatibleTags(const FGameplayTagContainer& Tags);
+	virtual void AddInteractableCompatibleTags_Implementation(const FGameplayTagContainer& Tags) = 0;
+
+	/**
+	 * Removes a tag from the Interactable Filter Gameplay Tags.
+	 * 
+	 * @param Tag Tag to remove.
+	 */
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, CallInEditor, Category="Mountea|Interaction|Interactable")
+	void RemoveInteractableCompatibleTag(const FGameplayTag& Tag);
+	virtual void RemoveInteractableCompatibleTag_Implementation(const FGameplayTag& Tag) = 0;
+
+	/**
+	 * Removes multiple tags from the Interactable Filter Gameplay Tags.
+	 * 
+	 * @param Tags Container of tags to remove.
+	 */
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, CallInEditor, Category="Mountea|Interaction|Interactable")
+	void RemoveInteractableCompatibleTags(const FGameplayTagContainer& Tags);
+	virtual void RemoveInteractableCompatibleTags_Implementation(const FGameplayTagContainer& Tags) = 0;
+
+	/**
+	 * Clears all tags from the Interactable Filter Gameplay Tags.
+	 */
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, CallInEditor, Category="Mountea|Interaction|Interactable")
+	void ClearInteractableCompatibleTags();
+	virtual void ClearInteractableCompatibleTags_Implementation() = 0;
+
+	/**
+	 * 
+	 * @return 
+	 */
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactable")
+	UInputMappingContext* GetInteractionInputMapping() const;
+	virtual UInputMappingContext* GetInteractionInputMapping_Implementation() const = 0;
+
+	/**
+	 * 
+	 * @param NewMappingContext 
+	 */
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactable")
+	void SetInteractionInputMapping(UInputMappingContext* NewMappingContext);
+	virtual void SetInteractionInputMapping_Implementation(UInputMappingContext* NewMappingContext) = 0;
+
+	
 	virtual FOnInteractableSelected& GetOnInteractableSelectedHandle() = 0;
 	virtual FInteractorFound& GetOnInteractorFoundHandle() = 0;
 	virtual FInteractorLost& GetOnInteractorLostHandle() = 0;

@@ -116,11 +116,12 @@ struct FTracingData
 #pragma endregion 
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FTracingDataChanged, const FTracingData&, NewTracingData, const FTracingData&, OldTracingData);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnTraced);
 
 /**
  * 
  */
-UCLASS(ClassGroup=(Interaction), Blueprintable, hideCategories=(Collision, AssetUserData, Cooking, ComponentTick, Activation, Rendering), meta=(BlueprintSpawnableComponent, DisplayName = "Interactor Component Trace"))
+UCLASS(ClassGroup=(Mountea), meta=(BlueprintSpawnableComponent, DisplayName = "Interactor Component Trace"))
 class ACTORINTERACTIONPLUGIN_API UActorInteractorComponentTrace : public UActorInteractorComponentBase
 {
 	GENERATED_BODY()
@@ -336,7 +337,13 @@ protected:
 	 * Will provide information about Old data and New data. Useful when debugging.
 	 */
 	UPROPERTY(BlueprintAssignable, Category="Interaction")
-	FTracingDataChanged OnTraceDataChanged;
+	FTracingDataChanged											OnTraceDataChanged;
+
+	/**
+	 * 
+	 */
+	UPROPERTY(BlueprintAssignable, Category="Interaction")
+	FOnTraced																OnTraced;
 
 #if WITH_EDITOR
 

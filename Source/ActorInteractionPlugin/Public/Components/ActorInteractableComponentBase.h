@@ -13,6 +13,7 @@
 
 #define LOCTEXT_NAMESPACE "InteractableComponent"
 
+class UInputMappingContext;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnWidgetUpdated);
 
 
@@ -26,7 +27,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnWidgetUpdated);
  *
  * @see https://github.com/Mountea-Framework/ActorInteractionPlugin/wiki/Actor-Interactable-Component-Base
  */
-UCLASS(Abstract, ClassGroup=(Interaction), Blueprintable, hideCategories=(Collision, AssetUserData, Cooking, Activation), meta=(BlueprintSpawnableComponent, DisplayName = "Interactable Component"))
+UCLASS(Abstract, ClassGroup=(Mountea), Blueprintable, BlueprintType, hideCategories=(Collision, AssetUserData, Cooking), meta=(BlueprintSpawnableComponent, DisplayName = "Interactable Component"))
 class ACTORINTERACTIONPLUGIN_API UActorInteractableComponentBase : public UWidgetComponent, public IActorInteractableInterface
 {
 	GENERATED_BODY()
@@ -82,7 +83,7 @@ public:
 	virtual int32 GetInteractableWeight_Implementation() const override;
 	virtual void SetInteractableWeight_Implementation(const int32 NewWeight) override;
 	virtual AActor* GetInteractableOwner_Implementation() const override;
-	virtual void SetInteractableOwner_Implementation(AActor* NewOwner) override;
+	
 	virtual ECollisionChannel GetCollisionChannel_Implementation() const override;
 	virtual void SetCollisionChannel_Implementation(const TEnumAsByte<ECollisionChannel>& NewChannel) override;
 	virtual EInteractableLifecycle GetLifecycleMode_Implementation() const override;
@@ -127,9 +128,10 @@ public:
 	virtual TArray<FName> GetHighlightableOverrides_Implementation() const override;
 	virtual FText GetInteractableName_Implementation() const override;
 	virtual void SetInteractableName_Implementation(const FText& NewName) override;
-	virtual void ToggleDebug_Implementation() override;
+		
 	virtual void FindAndAddCollisionShapes_Implementation() override;
 	virtual void FindAndAddHighlightableMeshes_Implementation() override;
+	
 	virtual void BindCollisionShape_Implementation(UPrimitiveComponent* PrimitiveComponent) const override;
 	virtual void UnbindCollisionShape_Implementation(UPrimitiveComponent* PrimitiveComponent) const override;
 	virtual void BindHighlightableMesh_Implementation(UMeshComponent* MeshComponent) const override;
@@ -137,13 +139,37 @@ public:
 
 	virtual FDataTableRowHandle GetInteractableData_Implementation() const override;
 	virtual void SetInteractableData_Implementation(FDataTableRowHandle NewData) override;
+	
 	virtual EHighlightType GetHighlightType_Implementation() const override;
 	virtual void SetHighlightType_Implementation(const EHighlightType NewHighlightType) override;
 	virtual UMaterialInterface* GetHighlightMaterial_Implementation() const override;
 	virtual void SetHighlightMaterial_Implementation(UMaterialInterface* NewHighlightMaterial) override;
+	
 	virtual void InteractableDependencyStartedCallback_Implementation(const TScriptInterface<IActorInteractableInterface>& NewMaster) override;
 	virtual void InteractableDependencyStoppedCallback_Implementation(const TScriptInterface<IActorInteractableInterface>& FormerMaster) override;
+
+	virtual void ToggleDebug_Implementation() override;
 	virtual void SetDefaults_Implementation() override;
+
+	virtual FGameplayTagContainer GetInteractableCompatibleTags_Implementation() const override;
+
+	virtual void SetInteractableCompatibleTags_Implementation(const FGameplayTagContainer& Tags) override;
+	virtual void AddInteractableCompatibleTag_Implementation(const FGameplayTag& Tag) override;
+	virtual void AddInteractableCompatibleTags_Implementation(const FGameplayTagContainer& Tags) override;
+	virtual void RemoveInteractableCompatibleTag_Implementation(const FGameplayTag& Tag) override;
+	virtual void RemoveInteractableCompatibleTags_Implementation(const FGameplayTagContainer& Tags) override;
+	virtual void ClearInteractableCompatibleTags_Implementation() override;
+
+	virtual UInputMappingContext* GetInteractionInputMapping_Implementation() const override;
+	virtual void SetInteractionInputMapping_Implementation(UInputMappingContext* NewMappingContext) override;
+
+#pragma endregion
+
+#pragma region InteractableFunctions_Networking
+
+protected:
+
+	
 
 #pragma endregion
 
@@ -722,10 +748,10 @@ protected:
 	 * Does not affect Shipping builds by default C++ implementation.
 	 */
 	UPROPERTY(EditAnywhere, Category="Interaction|Debug", meta=(ShowOnlyInnerProperties))
-	FDebugSettings DebugSettings;
+	FDebugSettings																								DebugSettings;
 
 #if WITH_EDITORONLY_DATA
-	UBillboardComponent* InteractableSpriteComponent = nullptr;
+	TObjectPtr<UBillboardComponent>																	InteractableSpriteComponent = nullptr;
 #endif
 #pragma endregion
 
@@ -739,7 +765,7 @@ protected:
 	 * - 0  = 0.1s
 	 */
 	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Required", meta=(UIMin=-1, ClampMin=-1, Units="seconds"))
-	float InteractionPeriod;
+	float																													InteractionPeriod;
 
 	/**
 	 * Default state of the Interactable to be set in BeginPlay.
@@ -749,14 +775,14 @@ protected:
 	 * * Cooldown
 	 */
 	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Required", meta=(NoResetToDefault))
-	EInteractableStateV2 DefaultInteractableState;
+	EInteractableStateV2																						DefaultInteractableState;
 	
 	/**
 	 * If set to true, Interactable will automatically assigns owning Component in Hierarchy as Highlightable Meshes and Collision Shapes.
 	 * This setup might be useful for simple Actors, might cause issues with more complex ones.
 	 */
 	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Required")
-	ESetupType SetupType;
+	ESetupType																										SetupType;
 
 	/**
 	 * Collision Channel which will be forced to all Collision Shapes as Overlap.
@@ -765,7 +791,7 @@ protected:
 	 * Could be either Trace or Object response.
 	 */
 	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Required", meta=(NoResetToDefault))
-	TEnumAsByte<ECollisionChannel> CollisionChannel;
+	TEnumAsByte<ECollisionChannel>																	CollisionChannel;
 	
 	/**
 	 * How long it takes for Cooldown to finish.
@@ -773,7 +799,7 @@ protected:
 	 * Clamped in Setter.
 	 */
 	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Required", meta=(NoResetToDefault, EditCondition = "LifecycleMode == EInteractableLifecycle::EIL_Cycled", UIMin=0.1, ClampMin=0.1, Units="Seconds"))
-	float CooldownPeriod;
+	float																													CooldownPeriod;
 
 #pragma endregion
 
@@ -782,10 +808,22 @@ protected:
 protected:
 	
 	/**
+	 * 
+	 */
+	UPROPERTY(EditAnywhere, Category="Interaction|Optional", meta=(NoResetToDefault))
+	FGameplayTagContainer																					InteractableCompatibleTags;
+
+	/**
+	 * 
+	 */
+	UPROPERTY(EditAnywhere, Category="Interaction|Optional", meta=(NoResetToDefault))
+	TSoftObjectPtr<UInputMappingContext>															InteractionMapping;
+	
+	/**
 	 * List of Interactable Classes which are ignored
 	 */
 	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Optional", meta=(NoResetToDefault, AllowAbstract=false, MustImplement="/Script/ActorInteractionPlugin.ActorInteractorInterface", BlueprintBaseOnly))
-	TArray<TSoftClassPtr<UObject>> IgnoredClasses;
+	TArray<TSoftClassPtr<UObject>>																	IgnoredClasses;
 	
 	/**
 	 * Expects: Actor Tags
@@ -795,7 +833,7 @@ protected:
 	 * Is used even with Auto Setup.
 	 */
 	UPROPERTY(EditAnywhere, Category="Interaction|Optional", meta=(NoResetToDefault))
-	TArray<FName> CollisionOverrides;
+	TArray<FName>																								CollisionOverrides;
 
 	/**
 	 * Expects: Actor Tags
@@ -805,7 +843,7 @@ protected:
 	 * Is used even with Auto Setup.
 	 */
 	UPROPERTY(EditAnywhere, Category="Interaction|Optional", meta=(NoResetToDefault))
-	TArray<FName> HighlightableOverrides;
+	TArray<FName>																								HighlightableOverrides;
 
 	/**
 	 * Defines whether Interactable should be highlighted with defined Material when Interaction is possible.
@@ -818,7 +856,7 @@ protected:
 	 * * * * * Set to value: Enabled with Stencil
 	 */
 	UPROPERTY(SaveGame, EditAnywhere, BlueprintReadOnly,  Category="Interaction|Optional")
-	uint8 bInteractionHighlight : 1;
+	uint8																												bInteractionHighlight : 1;
 	
 	/**
 	 * Defines what Stencil ID should be used to highlight the Primitive Mesh Components.
@@ -826,42 +864,35 @@ protected:
 	 * Default: 133
 	 */
 	UPROPERTY(SaveGame, EditAnywhere, BlueprintReadOnly,  Category="Interaction|Optional", meta=(EditCondition="bInteractionHighlight == true", UIMin=0, ClampMin=0, UIMax=255, ClampMax=255))
-	int32 StencilID;
+	int32																												StencilID;
 
 	/**
 	* Defines what Highlight Type is used.
 	*/
 	UPROPERTY(SaveGame, EditAnywhere, BlueprintReadOnly,  Category="Interaction|Optional")
-	EHighlightType HighlightType;
+	EHighlightType																									HighlightType;
 	UPROPERTY(SaveGame, EditAnywhere, BlueprintReadOnly,  Category="Interaction|Optional", meta=(EditCondition="bInteractionHighlight == true && HighlightType==EHighlightType::EHT_OverlayMaterial"))
-	UMaterialInterface* HighlightMaterial = nullptr;
-	
-	/**
-	* List of Interaction Keys for each platform.
-	* There is no validation for Keys validation! Nothing stops you from setting Keyboard keys for Consoles. Please, be careful with this variable!
-	*/
-	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Optional", meta=(NoResetToDefault))
-	TMap<FString, FInteractionKeySetup> InteractionKeysPerPlatform;
+	TObjectPtr<UMaterialInterface>																		HighlightMaterial = nullptr;
 
 	/**
 	 * Provides a simple way to determine how fast Interaction Progress is kept before interaction is cancelled.
 	 * * -1 means never while Interactor is valid
 	 */
 	UPROPERTY(SaveGame, EditAnywhere, BlueprintReadOnly,  Category="Interaction|Optional", meta=(UIMin=-1.f, ClampMin=-1.f))
-	float InteractionProgressExpiration = 0.f;
+	float																													InteractionProgressExpiration = 0.f;
 	
 	/**
 	 * Interactable Data.
 	 * Could be any Data Table.
 	 */
-	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Optional", meta=(ShowOnlyInnerProperties, NoResetToDefault))
-	FDataTableRowHandle InteractableData;
+	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Optional", meta=(ShowOnlyInnerProperties, NoResetToDefault)) //, RequiredAssetDataTags = "RowStructure=/Script/ActorInteractionSystem.InteractionData"))
+	FDataTableRowHandle																					InteractableData;
 
 	/**
 	 * Display Name.
 	 */
 	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Optional", meta=(NoResetToDefault))
-	FText InteractableName = LOCTEXT("InteractableComponentBase", "Default");
+	FText																												InteractableName = LOCTEXT("InteractableComponentBase", "Default");
 
 	/**
 	 * TODO
@@ -871,7 +902,7 @@ protected:
 	 * Currently has no logic tied to it!
 	 */
 	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Optional", meta=(NoResetToDefault))
-	ETimingComparison ComparisonMethod;
+	ETimingComparison																							ComparisonMethod;
 
 	/**
 	 * TODO
@@ -881,7 +912,7 @@ protected:
 	 * Currently has no logic tied to it!
 	 */
 	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Optional", meta=(UIMin=0.001, ClampMin=0.001, Units="seconds", EditCondition="ComparisonMethod!=ETimingComparison::ECM_None", NoResetToDefault))
-	float TimeToStart;
+	float																													TimeToStart;
 
 #pragma endregion 
 
@@ -895,7 +926,7 @@ protected:
 	 * @see [State Machine] https://github.com/Mountea-Framework/ActorInteractionPlugin/wiki/Actor-Interactable-Component-Validations#state-machine
 	 */
 	UPROPERTY(SaveGame, VisibleAnywhere, Category="Interaction|Read Only")
-	EInteractableStateV2 InteractableState;
+	EInteractableStateV2																						InteractableState;
 	
 	/**
 	 * Defines Lifecycle Mode of this Interactable.
@@ -907,7 +938,7 @@ protected:
 	 * * Good for pickup items
 	 */
 	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Required", meta=(NoResetToDefault))
-	EInteractableLifecycle LifecycleMode;
+	EInteractableLifecycle																						LifecycleMode;
 
 	/**
 	 * How many times this Interactable can be used.
@@ -920,13 +951,13 @@ protected:
 	 * * 2+ | Will be used defined number of times
 	 */
 	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Required", meta=(NoResetToDefault, EditCondition = "LifecycleMode == EInteractableLifecycle::EIL_Cycled", UIMin=-1, ClampMin=-1, Units="times"))
-	int32 LifecycleCount;
+	int32																												LifecycleCount;
 
 	/**
 	 * How many Lifecycles remain until this Interactable is Finished.
 	 */
 	UPROPERTY(SaveGame, VisibleAnywhere, Category="Interaction|Read Only")
-	int32 RemainingLifecycleCount;
+	int32																												RemainingLifecycleCount;
 
 	/**
 	 * List of Interactables which are dependant on this Interactable.
@@ -935,7 +966,7 @@ protected:
 	 * - RemoveInteractionDependency
 	 */
 	UPROPERTY(SaveGame, VisibleAnywhere, Category="Interaction|Read Only")
-	TArray<TScriptInterface<IActorInteractableInterface>> InteractionDependencies;
+	TArray<TScriptInterface<IActorInteractableInterface>>								InteractionDependencies;
 
 	/**
 	 * Cached Collision Shape Settings.
@@ -943,7 +974,7 @@ protected:
 	 * Once Collision Shape is unregistered, it reads its cached settings and returns to pre-interaction Collision Settings.
 	 */
 	UPROPERTY(SaveGame, VisibleAnywhere, Category="Interaction|Read Only", meta=(DisplayThumbnail = false, ShowOnlyInnerProperties))
-	mutable TMap<TObjectPtr<UPrimitiveComponent>, FCollisionShapeCache> CachedCollisionShapesSettings;
+	mutable TMap<TObjectPtr<UPrimitiveComponent>, FCollisionShapeCache>	CachedCollisionShapesSettings;
 	
 	/**
 	 * List of Highlightable Components.
@@ -951,7 +982,7 @@ protected:
 	 * * Response to Collision Channel to overlap
 	 */
 	UPROPERTY(SaveGame, VisibleAnywhere, Category="Interaction|Read Only")
-	TArray<TObjectPtr<UMeshComponent>> HighlightableComponents;
+	TArray<TObjectPtr<UMeshComponent>>														HighlightableComponents;
 	
 	/**
 	 * List of Collision Components.
@@ -960,7 +991,7 @@ protected:
 	 * * Use specific StencilID
 	 */
 	UPROPERTY(SaveGame, VisibleAnywhere, Category="Interaction|Read Only")
-	TArray<UPrimitiveComponent*> CollisionComponents;
+	TArray<TObjectPtr<UPrimitiveComponent>>													CollisionComponents;
 
 	/**
 	 * Weight of this Interactable.
@@ -970,37 +1001,29 @@ protected:
 	 * Clamped in setter function to be at least 0 or higher.
 	 */
 	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Required", meta=(UIMin=0, ClampMin=0))
-	int32 InteractionWeight;
+	int32																												InteractionWeight;
 
 	/**
 	 * Cached value which is by default set to Interaction Weight.
 	 * Used when removing Interactable from Dependencies.
 	 */
 	UPROPERTY(VisibleAnywhere, Category="Interaction|Read Only")
-	int32 CachedInteractionWeight;
+	int32																												CachedInteractionWeight;
 	
 	UPROPERTY()
-	FTimerHandle Timer_Interaction;
+	FTimerHandle																									Timer_Interaction;
 	UPROPERTY()
-	FTimerHandle Timer_Cooldown;
+	FTimerHandle																									Timer_Cooldown;
 	UPROPERTY()
-	FTimerHandle Timer_ProgressExpiration;
+	FTimerHandle																									Timer_ProgressExpiration;
 
 private:
-	
-	/**
-	 * Owning Actor of this Interactable.
-	 * By default its set to Owner.
-	 * Can be overriden.
-	 */
-	UPROPERTY(SaveGame, VisibleAnywhere, Category="Interaction|Read Only", meta=(DisplayThumbnail = false))
-	AActor* InteractionOwner = nullptr;
 
 	/**
 	 * Interactor which is using this Interactable.
 	 */
 	UPROPERTY(SaveGame, VisibleAnywhere, Category="Interaction|Read Only", meta=(DisplayThumbnail = false))
-	TScriptInterface<IActorInteractorInterface> Interactor = nullptr;
+	TScriptInterface<IActorInteractorInterface>													Interactor = nullptr;
 
 #pragma endregion
 

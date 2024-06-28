@@ -8,6 +8,7 @@
 #include "EditorHelper.h"
 #endif
 
+#include "InputMappingContext.h"
 #include "Interfaces/ActorInteractionWidget.h"
 #include "Widgets/ActorInteractableWidget.h"
 
@@ -36,24 +37,18 @@ UActorInteractableComponentBase::UActorInteractableComponentBase() :
 		ComparisonMethod(ETimingComparison::ECM_None),
 		TimeToStart(0.001f),
 		InteractableName(LOCTEXT("InteractableComponentBase", "Base")),
-		SetupType(ESetupType::EST_Quick)
+		SetupType(ESetupType::EST_Quick),
+		DebugSettings(false)
 {
-	PrimaryComponentTick.bCanEverTick = true;
+	bAutoActivate = true;
+	
 	SetIsReplicatedByDefault(true);
+	SetActiveFlag(true);
+
+	PrimaryComponentTick.bStartWithTickEnabled = false;
 	
 	DebugSettings.DebugMode = false;
 	DebugSettings.EditorDebugMode = false;
-
-	InteractionOwner = GetOwner();
-
-	const FInteractionKeySetup GamepadKeys = FKey("Gamepad_FaceButton_Bottom");
-	FInteractionKeySetup KeyboardKeys = GamepadKeys;
-	KeyboardKeys.Keys.Add("E");
-		
-	InteractionKeysPerPlatform.Add((TEXT("Windows")), KeyboardKeys);
-	InteractionKeysPerPlatform.Add((TEXT("Mac")), KeyboardKeys);
-	InteractionKeysPerPlatform.Add((TEXT("PS4")), GamepadKeys);
-	InteractionKeysPerPlatform.Add((TEXT("XboxOne")), GamepadKeys);
 
 	Space = EWidgetSpace::Screen;
 	DrawSize = FIntPoint(64, 64);
@@ -70,8 +65,6 @@ UActorInteractableComponentBase::UActorInteractableComponentBase() :
 void UActorInteractableComponentBase::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	InteractionOwner = GetOwner();
 
 	// Interaction Events
 	OnInteractableSelected.											AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableSelectedEvent);
@@ -190,7 +183,7 @@ void UActorInteractableComponentBase::ToggleAutoSetup_Implementation(const ESetu
 
 bool UActorInteractableComponentBase::ActivateInteractable_Implementation(FString& ErrorMessage)
 {
-	const EInteractableStateV2 CachedState = GetState();
+	const EInteractableStateV2 CachedState = InteractableState;
 
 	Execute_SetState(this, EInteractableStateV2::EIS_Active);
 
@@ -220,7 +213,7 @@ bool UActorInteractableComponentBase::ActivateInteractable_Implementation(FStrin
 
 bool UActorInteractableComponentBase::WakeUpInteractable_Implementation(FString& ErrorMessage)
 {
-	const EInteractableStateV2 CachedState = GetState();
+	const EInteractableStateV2 CachedState = InteractableState;
 
 	Execute_SetState(this, EInteractableStateV2::EIS_Awake);
 
@@ -250,7 +243,7 @@ bool UActorInteractableComponentBase::WakeUpInteractable_Implementation(FString&
 
 bool UActorInteractableComponentBase::CompleteInteractable_Implementation(FString& ErrorMessage)
 {
-	const EInteractableStateV2 CachedState = GetState();
+	const EInteractableStateV2 CachedState = InteractableState;
 
 	Execute_SetState(this, EInteractableStateV2::EIS_Completed);
 
@@ -321,7 +314,7 @@ bool UActorInteractableComponentBase::CanInteract_Implementation() const
 		case EInteractableStateV2::EIS_Awake:
 		case EInteractableStateV2::EIS_Active:
 		case EInteractableStateV2::EIS_Paused:
-			return GetInteractor().GetInterface() != nullptr;
+			return Execute_GetInteractor(this).GetInterface() != nullptr;
 		case EInteractableStateV2::EIS_Asleep:
 		case EInteractableStateV2::EIS_Disabled:
 		case EInteractableStateV2::EIS_Cooldown:
@@ -344,7 +337,6 @@ bool UActorInteractableComponentBase::CanBeTriggered_Implementation() const
 		case EInteractableStateV2::EIS_Active:
 		case EInteractableStateV2::EIS_Paused:
 			return true;
-		//	return !(GetWorld()->GetTimerManager().IsTimerActive(Timer_Interaction));
 		case EInteractableStateV2::EIS_Asleep:
 		case EInteractableStateV2::EIS_Disabled:
 		case EInteractableStateV2::EIS_Cooldown:
@@ -391,13 +383,13 @@ EInteractableStateV2 UActorInteractableComponentBase::GetState_Implementation() 
 
 void UActorInteractableComponentBase::CleanupComponent()
 {
-	StopHighlight();
+	Execute_StopHighlight(this);
 	OnInteractableStateChanged.Broadcast(InteractableState);
 	if (GetWorld()) GetWorld()->GetTimerManager().ClearAllTimersForObject(this);
 	OnInteractorLost.Broadcast(Interactor);
 
-	RemoveHighlightableComponents(HighlightableComponents);
-	RemoveCollisionComponents(CollisionComponents);
+	Execute_RemoveHighlightableComponents(this, HighlightableComponents);
+	Execute_RemoveCollisionComponents(this, CollisionComponents);
 }
 
 void UActorInteractableComponentBase::SetState_Implementation(const EInteractableStateV2 NewState)
@@ -438,7 +430,7 @@ void UActorInteractableComponentBase::SetState_Implementation(const EInteractabl
 
 						for (const auto& Itr : CollisionComponents)
 						{
-							BindCollisionShape(Itr);
+							Execute_BindCollisionShape(this, Itr);
 						}
 					}
 					break;
@@ -461,14 +453,14 @@ void UActorInteractableComponentBase::SetState_Implementation(const EInteractabl
 						InteractableState = NewState;
 
 						// Replacing Cleanup
-						StopHighlight();
+						Execute_StopHighlight(this);
 						OnInteractableStateChanged.Broadcast(InteractableState);
 						if (GetWorld()) GetWorld()->GetTimerManager().ClearAllTimersForObject(this);
 						OnInteractorLost.Broadcast(Interactor);
 						
 						for (const auto& Itr : CollisionComponents)
 						{
-							UnbindCollisionShape(Itr);
+							Execute_UnbindCollisionShape(this, Itr);
 						}
 					}
 					break;
@@ -484,7 +476,7 @@ void UActorInteractableComponentBase::SetState_Implementation(const EInteractabl
 				case EInteractableStateV2::EIS_Awake:
 				case EInteractableStateV2::EIS_Active:
 					InteractableState = NewState;
-					StopHighlight();
+					Execute_StopHighlight(this);
 					OnInteractableStateChanged.Broadcast(InteractableState);
 					break;
 				case EInteractableStateV2::EIS_Suppressed:
@@ -493,14 +485,14 @@ void UActorInteractableComponentBase::SetState_Implementation(const EInteractabl
 						InteractableState = NewState;
 
 						// Replacing Cleanup
-						StopHighlight();
+						Execute_StopHighlight(this);
 						OnInteractableStateChanged.Broadcast(InteractableState);
 						if (GetWorld()) GetWorld()->GetTimerManager().ClearAllTimersForObject(this);
 						OnInteractorLost.Broadcast(Interactor);
 						
 						for (const auto& Itr : CollisionComponents)
 						{
-							UnbindCollisionShape(Itr);
+							Execute_UnbindCollisionShape(this, Itr);
 						}
 					}
 					break;
@@ -546,14 +538,14 @@ void UActorInteractableComponentBase::SetState_Implementation(const EInteractabl
 						InteractableState = NewState;
 
 						// Replacing Cleanup
-						StopHighlight();
+						Execute_StopHighlight(this);
 						OnInteractableStateChanged.Broadcast(InteractableState);
 						if (GetWorld()) GetWorld()->GetTimerManager().ClearAllTimersForObject(this);
 						OnInteractorLost.Broadcast(Interactor);
 						
 						for (const auto& Itr : CollisionComponents)
 						{
-							UnbindCollisionShape(Itr);
+							Execute_UnbindCollisionShape(this, Itr);
 						}
 					}
 					break;
@@ -572,13 +564,13 @@ void UActorInteractableComponentBase::SetState_Implementation(const EInteractabl
 				case EInteractableStateV2::EIS_Paused:
 					OnInteractionCanceled.Broadcast();
 					InteractableState = NewState;
-					StopHighlight();
+					Execute_StopHighlight(this);
 					OnInteractableStateChanged.Broadcast(InteractableState);
 					break;
 				case EInteractableStateV2::EIS_Cooldown:
 					OnInteractionCanceled.Broadcast();
 					InteractableState = NewState;
-					StopHighlight();
+					Execute_StopHighlight(this);
 					OnInteractableStateChanged.Broadcast(InteractableState);
 					GetWorld()->GetTimerManager().ClearTimer(Timer_Cooldown);
 					break;
@@ -610,11 +602,11 @@ void UActorInteractableComponentBase::SetState_Implementation(const EInteractabl
 			break;
 		case EInteractableStateV2::Default: 
 		default:
-			StopHighlight();
+			Execute_StopHighlight(this);
 			break;
 	}
 	
-	ProcessDependencies();
+	Execute_ProcessDependencies(this);
 }
 
 void UActorInteractableComponentBase::StartHighlight_Implementation()
@@ -622,24 +614,25 @@ void UActorInteractableComponentBase::StartHighlight_Implementation()
 	SetHiddenInGame(false, true);
 	switch (HighlightType)
 	{
-	case EHighlightType::EHT_PostProcessing:
-		{
-			for (const auto Itr : HighlightableComponents)
+		case EHighlightType::EHT_PostProcessing:
 			{
-				Itr->SetRenderCustomDepth(bInteractionHighlight);
-				Itr->SetCustomDepthStencilValue(StencilID);
+				for (const auto Itr : HighlightableComponents)
+				{
+					Itr->SetRenderCustomDepth(bInteractionHighlight);
+					Itr->SetCustomDepthStencilValue(StencilID);
+				}
 			}
-		}
-		break;
-	case EHighlightType::EHT_OverlayMaterial:
-		{
-			for (const auto Itr : HighlightableComponents)
+			break;
+		case EHighlightType::EHT_OverlayMaterial:
 			{
-				Itr->SetOverlayMaterial(HighlightMaterial);
+				for (const auto Itr : HighlightableComponents)
+				{
+					Itr->SetOverlayMaterial(HighlightMaterial);
+				}
 			}
-		}
-	case EHighlightType::EHT_Default:
-	default: break;
+		case EHighlightType::EHT_Default:
+		default:
+			break;
 	}
 }
 
@@ -648,23 +641,24 @@ void UActorInteractableComponentBase::StopHighlight_Implementation()
 	SetHiddenInGame(true, true);
 	switch (HighlightType)
 	{
-	case EHighlightType::EHT_PostProcessing:
-		{
-			for (const auto Itr : HighlightableComponents)
+		case EHighlightType::EHT_PostProcessing:
 			{
-				Itr->SetCustomDepthStencilValue(0);
+				for (const auto Itr : HighlightableComponents)
+				{
+					Itr->SetCustomDepthStencilValue(0);
+				}
 			}
-		}
-		break;
-	case EHighlightType::EHT_OverlayMaterial:
-		{
-			for (const auto Itr : HighlightableComponents)
+			break;
+		case EHighlightType::EHT_OverlayMaterial:
 			{
-				Itr->SetOverlayMaterial(nullptr);
+				for (const auto Itr : HighlightableComponents)
+				{
+					Itr->SetOverlayMaterial(nullptr);
+				}
 			}
-		}
-	case EHighlightType::EHT_Default:
-	default: break;
+		case EHighlightType::EHT_Default:
+		default:
+			break;
 	}
 }
 
@@ -693,7 +687,7 @@ void UActorInteractableComponentBase::AddIgnoredClasses_Implementation(const TAr
 {
 	for (const auto& Itr : AddIgnoredClasses)
 	{
-		AddIgnoredClass(Itr);
+		Execute_AddIgnoredClass(this, Itr);
 	}
 }
 
@@ -712,7 +706,7 @@ void UActorInteractableComponentBase::RemoveIgnoredClasses_Implementation(const 
 {
 	for (const auto& Itr : RemoveIgnoredClasses)
 	{
-		RemoveIgnoredClass(Itr);
+		Execute_RemoveIgnoredClass(this, Itr);
 	}
 }
 
@@ -755,7 +749,7 @@ void UActorInteractableComponentBase::ProcessDependencies_Implementation()
 			case EInteractableStateV2::EIS_Active:
 			case EInteractableStateV2::EIS_Suppressed:
 				Itr->GetInteractableDependencyStarted().Broadcast(this);
-				switch (Itr->GetState())
+				switch (Itr->Execute_GetState(Itr.GetObject()))
 				{
 					case EInteractableStateV2::EIS_Active:
 					case EInteractableStateV2::EIS_Awake:
@@ -778,7 +772,7 @@ void UActorInteractableComponentBase::ProcessDependencies_Implementation()
 			case EInteractableStateV2::EIS_Awake:
 			case EInteractableStateV2::EIS_Asleep:
 				Itr->GetInteractableDependencyStarted().Broadcast(this);
-				switch (Itr->GetState())
+				switch (Itr->Execute_GetState(Itr.GetObject()))
 				{
 					
 					case EInteractableStateV2::EIS_Awake:
@@ -828,7 +822,7 @@ void UActorInteractableComponentBase::SetInteractor_Implementation(const TScript
 			OldInteractor->GetOnInteractableSelectedHandle().RemoveDynamic(this, &UActorInteractableComponentBase::InteractableSelected);
 		}
 
-		StopHighlight();
+		Execute_StopHighlight(this);
 	}
 
 	//Interactor = NewInteractor;
@@ -875,15 +869,8 @@ void UActorInteractableComponentBase::SetInteractableWeight_Implementation(const
 }
 
 AActor* UActorInteractableComponentBase::GetInteractableOwner_Implementation() const
-{ return InteractionOwner; }
+{ return GetOwner(); }
 
-void UActorInteractableComponentBase::SetInteractableOwner_Implementation(AActor* NewOwner)
-{
-	if (NewOwner == nullptr) return;
-	InteractionOwner = NewOwner;
-	
-	OnInteractableOwnerChanged.Broadcast(InteractionOwner);
-}
 
 ECollisionChannel UActorInteractableComponentBase::GetCollisionChannel_Implementation() const
 { return CollisionChannel; }
@@ -965,7 +952,7 @@ void UActorInteractableComponentBase::AddCollisionComponent_Implementation(UPrim
 	
 	CollisionComponents.Add(CollisionComp);
 	
-	BindCollisionShape(CollisionComp);
+	Execute_BindCollisionShape(this, CollisionComp);
 	
 	OnCollisionComponentAdded.Broadcast(CollisionComp);
 }
@@ -974,7 +961,7 @@ void UActorInteractableComponentBase::AddCollisionComponents_Implementation(cons
 {
 	for (UPrimitiveComponent* const Itr : NewCollisionComponents)
 	{
-		AddCollisionComponent(Itr);
+		Execute_AddCollisionComponent(this, Itr);
 	}
 }
 
@@ -985,7 +972,7 @@ void UActorInteractableComponentBase::RemoveCollisionComponent_Implementation(UP
 	
 	CollisionComponents.Remove(CollisionComp);
 
-	UnbindCollisionShape(CollisionComp);
+	Execute_UnbindCollisionShape(this, CollisionComp);
 	
 	OnCollisionComponentRemoved.Broadcast(CollisionComp);
 }
@@ -994,7 +981,7 @@ void UActorInteractableComponentBase::RemoveCollisionComponents_Implementation(c
 {
 	for (UPrimitiveComponent* const Itr : RemoveCollisionComponents)
 	{
-		RemoveCollisionComponent(Itr);
+		Execute_RemoveCollisionComponent(this, Itr);
 	}
 }
 
@@ -1008,7 +995,7 @@ void UActorInteractableComponentBase::AddHighlightableComponent_Implementation(U
 
 	HighlightableComponents.Add(MeshComponent);
 
-	BindHighlightableMesh(MeshComponent);
+	Execute_BindHighlightableMesh(this, MeshComponent);
 
 	OnHighlightableComponentAdded.Broadcast(MeshComponent);
 }
@@ -1017,7 +1004,7 @@ void UActorInteractableComponentBase::AddHighlightableComponents_Implementation(
 {
 	for (UMeshComponent* const Itr : HighlightableComponents)
 	{
-		AddHighlightableComponent(Itr);
+		Execute_AddHighlightableComponent(this, Itr);
 	}
 }
 
@@ -1028,7 +1015,7 @@ void UActorInteractableComponentBase::RemoveHighlightableComponent_Implementatio
 
 	HighlightableComponents.Remove(MeshComponent);
 
-	UnbindHighlightableMesh(MeshComponent);
+	Execute_UnbindHighlightableMesh(this, MeshComponent);
 
 	OnHighlightableComponentRemoved.Broadcast(MeshComponent);
 }
@@ -1104,11 +1091,59 @@ void UActorInteractableComponentBase::SetDefaults_Implementation()
 	}
 }
 
+FGameplayTagContainer UActorInteractableComponentBase::GetInteractableCompatibleTags_Implementation() const
+{
+	return InteractableCompatibleTags;
+}
+
+void UActorInteractableComponentBase::SetInteractableCompatibleTags_Implementation(const FGameplayTagContainer& Tags)
+{
+	InteractableCompatibleTags = Tags;
+}
+
+void UActorInteractableComponentBase::AddInteractableCompatibleTag_Implementation(const FGameplayTag& Tag)
+{
+	InteractableCompatibleTags.AddTag(Tag);
+}
+
+void UActorInteractableComponentBase::AddInteractableCompatibleTags_Implementation(const FGameplayTagContainer& Tags)
+{
+	InteractableCompatibleTags.AppendTags(Tags);
+}
+
+void UActorInteractableComponentBase::RemoveInteractableCompatibleTag_Implementation(const FGameplayTag& Tag)
+{
+	InteractableCompatibleTags.RemoveTag(Tag);
+}
+
+void UActorInteractableComponentBase::RemoveInteractableCompatibleTags_Implementation(const FGameplayTagContainer& Tags)
+{
+	InteractableCompatibleTags.RemoveTags(Tags);
+}
+
+void UActorInteractableComponentBase::ClearInteractableCompatibleTags_Implementation()
+{
+	InteractableCompatibleTags.Reset();
+}
+
+UInputMappingContext* UActorInteractableComponentBase::GetInteractionInputMapping_Implementation() const
+{
+	return InteractionMapping.LoadSynchronous();
+}
+
+void UActorInteractableComponentBase::SetInteractionInputMapping_Implementation(UInputMappingContext* NewMappingContext)
+{
+	if (NewMappingContext != InteractionMapping.Get())
+	{
+		InteractionMapping = NewMappingContext;
+	}
+}
+
 void UActorInteractableComponentBase::InteractorFound_Implementation(const TScriptInterface<IActorInteractorInterface>& FoundInteractor)
 {
-	if (CanBeTriggered())
+	if (Execute_CanBeTriggered(this))
 	{
-		ToggleWidgetVisibility(true);
+		Execute_ToggleWidgetVisibility(this, true);
 		
 		Execute_SetInteractor(this, FoundInteractor);
 		
@@ -1125,12 +1160,12 @@ void UActorInteractableComponentBase::InteractorLost_Implementation(const TScrip
 		GetWorld()->GetTimerManager().ClearTimer(Timer_Interaction);
 		GetWorld()->GetTimerManager().ClearTimer(Timer_ProgressExpiration);
 		
-		ToggleWidgetVisibility(false);
+		Execute_ToggleWidgetVisibility(this, false);
 
-		switch (GetState())
+		switch (InteractableState)
 		{
 			case EInteractableStateV2::EIS_Cooldown:
-				if (GetInteractor().GetObject() == nullptr)
+				if (Execute_GetInteractor(this).GetObject() == nullptr)
 				{
 					Execute_SetState(this, DefaultInteractableState);
 				}
@@ -1165,15 +1200,15 @@ void UActorInteractableComponentBase::InteractorLost_Implementation(const TScrip
 
 void UActorInteractableComponentBase::InteractionCompleted_Implementation(const float& TimeCompleted, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
 {
-	ToggleWidgetVisibility(false);
+	Execute_ToggleWidgetVisibility(this, false);
 	
 	if (LifecycleMode == EInteractableLifecycle::EIL_Cycled)
 	{
-		if (TriggerCooldown()) return;
+		if (Execute_TriggerCooldown(this)) return;
 	}
 	
 	FString ErrorMessage;
-	if( CompleteInteractable(ErrorMessage))
+	if( Execute_CompleteInteractable(this, ErrorMessage))
 	{
 		Execute_OnInteractionCompletedEvent(this, TimeCompleted, CausingInteractor);
 	}
@@ -1200,23 +1235,23 @@ void UActorInteractableComponentBase::InteractionStopped_Implementation(const fl
 {
 	if (!GetWorld()) return;
 
-	PauseInteraction(TimeStarted, CausingInteractor);
+	Execute_PauseInteraction(this, TimeStarted, CausingInteractor);
 }
 
 void UActorInteractableComponentBase::InteractionCanceled_Implementation()
 {
 	if (CanInteract())
 	{
-		ToggleWidgetVisibility(false);
+		Execute_ToggleWidgetVisibility(this, false);
 		
 		GetWorld()->GetTimerManager().ClearTimer(Timer_Interaction);
 		GetWorld()->GetTimerManager().ClearTimer(Timer_ProgressExpiration);
 		
-		switch (GetState())
+		switch (InteractableState)
 		{
 			case EInteractableStateV2::EIS_Cooldown:
 			case EInteractableStateV2::EIS_Awake:
-				if (GetInteractor().GetObject() == nullptr)
+				if (Execute_GetInteractor(this).GetObject() == nullptr)
 				{
 					Execute_SetState(this, DefaultInteractableState);
 				}
@@ -1247,7 +1282,7 @@ void UActorInteractableComponentBase::InteractionCooldownCompleted_Implementatio
 {
 	if (Interactor.GetInterface() != nullptr)
 	{
-		StartHighlight();
+		Execute_StartHighlight(this);
 
 		Execute_SetState(this, DefaultInteractableState);
 		
@@ -1257,13 +1292,13 @@ void UActorInteractableComponentBase::InteractionCooldownCompleted_Implementatio
 		}
 		else
 		{
-			StopHighlight();
+			Execute_StopHighlight(this);
 			Execute_SetState(this, DefaultInteractableState);
 		}
 	}
 	else
 	{
-		StopHighlight();
+		Execute_StopHighlight(this);
 		Execute_SetState(this, DefaultInteractableState);
 	}
 	
@@ -1272,8 +1307,8 @@ void UActorInteractableComponentBase::InteractionCooldownCompleted_Implementatio
 
 void UActorInteractableComponentBase::OnInteractableBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (!CanBeTriggered()) return;
-	if (IsInteracting()) return;
+	if (!Execute_CanBeTriggered(this)) return;
+	if (Execute_IsInteracting(this)) return;
 	if (!OtherActor) return;
 	if (!OtherComp) return;
 
@@ -1333,12 +1368,12 @@ void UActorInteractableComponentBase::OnInteractableStopOverlap(UPrimitiveCompon
 
 		if (LostInteractor->CanInteract())
 		{
-			if (LostInteractor == GetInteractor())
+			if (LostInteractor == Execute_GetInteractor(this))
 			{
-				GetInteractor()->GetOnInteractableLostHandle().RemoveDynamic(this, &UActorInteractableComponentBase::InteractableLost);
-				GetInteractor()->GetOnInteractableLostHandle().Broadcast(this);
+				Execute_GetInteractor(this)->GetOnInteractableLostHandle().RemoveDynamic(this, &UActorInteractableComponentBase::InteractableLost);
+				Execute_GetInteractor(this)->GetOnInteractableLostHandle().Broadcast(this);
 				
-				OnInteractorLost.Broadcast(GetInteractor());
+				OnInteractorLost.Broadcast(Execute_GetInteractor(this));
 				OnInteractorStopOverlap.Broadcast(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex);
 				
 				return;
@@ -1349,7 +1384,7 @@ void UActorInteractableComponentBase::OnInteractableStopOverlap(UPrimitiveCompon
 
 void UActorInteractableComponentBase::OnInteractableTraced(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-	if (!CanBeTriggered()) return;
+	if (!Execute_CanBeTriggered(this)) return;
 	if (!OtherActor) return;
 
 	TArray<UActorComponent*> InteractorComponents = OtherActor->GetComponentsByInterface(UActorInteractorInterface::StaticClass());
@@ -1389,14 +1424,14 @@ void UActorInteractableComponentBase::OnInteractionProgressExpired(const float E
 {
 	if (!GetWorld()) return;
 	
-	switch (GetState())
+	switch (InteractableState)
 	{
 		case EInteractableStateV2::EIS_Paused:
 			{
 				GetWorld()->GetTimerManager().ClearTimer(Timer_Interaction);
 				GetWorld()->GetTimerManager().ClearTimer(Timer_ProgressExpiration);
 				
-				if (DoesHaveInteractor() && GetInteractor()->GetActiveInteractable() == this)
+				if (DoesHaveInteractor() && Execute_GetInteractor(this)->GetActiveInteractable() == this)
 				{
 					Execute_SetState(this, EInteractableStateV2::EIS_Active);
 				}
@@ -1421,7 +1456,7 @@ void UActorInteractableComponentBase::InteractableSelected_Implementation(const 
 {
  	if (Interactable == this)
  	{
- 		StartHighlight();
+ 		Execute_StartHighlight(this);
  		
  		Execute_SetState(this, EInteractableStateV2::EIS_Active);
  		OnInteractableSelected.Broadcast(Interactable);
@@ -1431,7 +1466,7 @@ void UActorInteractableComponentBase::InteractableSelected_Implementation(const 
 		OnInteractionCanceled.Broadcast();
 		
 		Execute_SetState(this, DefaultInteractableState);
-		OnInteractorLost.Broadcast(GetInteractor());
+		OnInteractorLost.Broadcast(Execute_GetInteractor(this));
 	}
 }
 
@@ -1439,14 +1474,14 @@ void UActorInteractableComponentBase::InteractableLost_Implementation(const TScr
 {
 	if (Interactable == this)
 	{
-		switch (GetState())
+		switch (InteractableState)
 		{
 			case EInteractableStateV2::EIS_Active:
 				Execute_SetState(this, DefaultInteractableState);
 				break;
 			case EInteractableStateV2::EIS_Cooldown:
 			case EInteractableStateV2::EIS_Awake:
-				if (GetInteractor().GetObject() == nullptr)
+				if (Execute_GetInteractor(this).GetObject() == nullptr)
 				{
 					Execute_SetState(this, DefaultInteractableState);
 				}
@@ -1459,7 +1494,7 @@ void UActorInteractableComponentBase::InteractableLost_Implementation(const TScr
 			default: break;
 		}
 		
-		OnInteractorLost.Broadcast(GetInteractor());
+		OnInteractorLost.Broadcast(Execute_GetInteractor(this));
 	}
 }
 
@@ -1469,15 +1504,15 @@ void UActorInteractableComponentBase::FindAndAddCollisionShapes_Implementation()
 	{
 		if (const auto NewCollision = UMounteaInteractionSystemBFL::FindPrimitiveByName(Itr, GetOwner()))
 		{
-			AddCollisionComponent(NewCollision);
-			BindCollisionShape(NewCollision);
+			Execute_AddCollisionComponent(this, NewCollision);
+			Execute_BindCollisionShape(this, NewCollision);
 		}
 		else
 		{
 			if (const auto NewCollisionByTag = UMounteaInteractionSystemBFL::FindPrimitiveByTag(Itr, GetOwner()))
 			{
-				AddCollisionComponent(NewCollisionByTag);
-				BindCollisionShape(NewCollisionByTag);
+				Execute_AddCollisionComponent(this, NewCollisionByTag);
+				Execute_BindCollisionShape(this, NewCollisionByTag);
 			}
 			else LOG_ERROR(TEXT("[Actor Interactable Component] Primitive Component '%s' not found!"), *Itr.ToString())
 		}
@@ -1490,15 +1525,15 @@ void UActorInteractableComponentBase::FindAndAddHighlightableMeshes_Implementati
 	{
 		if (const auto NewMesh = UMounteaInteractionSystemBFL::FindMeshByName(Itr, GetOwner()))
 		{
-			AddHighlightableComponent(NewMesh);
-			BindHighlightableMesh(NewMesh);
+			Execute_AddHighlightableComponent(this, NewMesh);
+			Execute_BindHighlightableMesh(this, NewMesh);
 		}
 		else
 		{
 			if (const auto NewHighlightByTag = UMounteaInteractionSystemBFL::FindMeshByTag(Itr, GetOwner()))
 			{
-				AddHighlightableComponent(NewHighlightByTag);
-				BindHighlightableMesh(NewHighlightByTag);
+				Execute_AddHighlightableComponent(this, NewHighlightByTag);
+				Execute_BindHighlightableMesh(this, NewHighlightByTag);
 			}
 			else LOG_ERROR(TEXT("[Actor Interactable Component] Mesh Component '%s' not found!"), *Itr.ToString())
 		}
@@ -1532,10 +1567,10 @@ bool UActorInteractableComponentBase::TriggerCooldown_Implementation()
 
 		for (const auto& Itr : CollisionComponents)
 		{
-			UnbindCollisionShape(Itr);
+			Execute_UnbindCollisionShape(this, Itr);
 		}
 
-		OnInteractionCycleCompleted.Broadcast(GetWorld()->GetTimeSeconds(), RemainingLifecycleCount, GetInteractor());
+		OnInteractionCycleCompleted.Broadcast(GetWorld()->GetTimeSeconds(), RemainingLifecycleCount, Execute_GetInteractor(this));
 		return true;
 	}
 
@@ -1637,7 +1672,7 @@ void UActorInteractableComponentBase::AutoSetup()
 				{
 					if (Itr)
 					{
-						AddCollisionComponent(Itr);
+						Execute_AddCollisionComponent(this, Itr);
 					}
 				}
 
@@ -1645,7 +1680,7 @@ void UActorInteractableComponentBase::AutoSetup()
 				{
 					if (Itr)
 					{
-						AddHighlightableComponent(Itr);
+						Execute_AddHighlightableComponent(this, Itr);
 					}
 				}
 			}
@@ -1663,11 +1698,11 @@ void UActorInteractableComponentBase::AutoSetup()
 					{
 						if (UPrimitiveComponent* PrimitiveComp = Cast<UPrimitiveComponent>(Itr))
 						{
-							AddCollisionComponent(PrimitiveComp);
+							Execute_AddCollisionComponent(this, PrimitiveComp);
 
 							if (UMeshComponent* MeshComp = Cast<UMeshComponent>(PrimitiveComp))
 							{
-								AddHighlightableComponent(MeshComp);
+								Execute_AddHighlightableComponent(this, MeshComp);
 							}
 						}
 					}
@@ -1680,11 +1715,11 @@ void UActorInteractableComponentBase::AutoSetup()
 				{
 					if (UPrimitiveComponent* PrimitiveComp = Cast<UPrimitiveComponent>(ParentComponent))
 					{
-						AddCollisionComponent(PrimitiveComp);
+						Execute_AddCollisionComponent(this, PrimitiveComp);
 
 						if (UMeshComponent* MeshComp = Cast<UMeshComponent>(PrimitiveComp))
 						{
-							AddHighlightableComponent(MeshComp);
+							Execute_AddHighlightableComponent(this, MeshComp);
 						}
 					}
 				}
@@ -1694,8 +1729,8 @@ void UActorInteractableComponentBase::AutoSetup()
 			break;
 	}
 	
-	FindAndAddCollisionShapes();
-	FindAndAddHighlightableMeshes();
+	Execute_FindAndAddCollisionShapes(this);
+	Execute_FindAndAddHighlightableMeshes(this);
 }
 
 void UActorInteractableComponentBase::OnCooldownCompletedCallback()
@@ -1708,7 +1743,7 @@ void UActorInteractableComponentBase::OnCooldownCompletedCallback()
 	
 	for (const auto& Itr : CollisionComponents)
 	{
-		BindCollisionShape(Itr);
+		Execute_BindCollisionShape(this, Itr);
 	}
 	
 	OnCooldownCompleted.Broadcast();
@@ -1753,13 +1788,13 @@ void UActorInteractableComponentBase::InteractableDependencyStartedCallback_Impl
 	if (NewMaster.GetObject() == nullptr) return;
 
 	// Force lower weight but never higher than it was before.
-	const int32 NewWeight = FMath::Min(InteractionWeight, NewMaster->GetInteractableWeight() - 1);
-	SetInteractableWeight(NewWeight);
+	const int32 NewWeight = FMath::Min(InteractionWeight, NewMaster->Execute_GetInteractableWeight(this) - 1);
+	Execute_SetInteractableWeight(this, NewWeight);
 }
 
 void UActorInteractableComponentBase::InteractableDependencyStoppedCallback_Implementation(const TScriptInterface<IActorInteractableInterface>& FormerMaster)
 {
-	SetInteractableWeight(CachedInteractionWeight);
+	Execute_SetInteractableWeight(this, CachedInteractionWeight);
 }
 
 #if (!UE_BUILD_SHIPPING || WITH_EDITOR)
@@ -1904,89 +1939,92 @@ EDataValidationResult UActorInteractableComponentBase::IsDataValid(TArray<FText>
 	const auto DefaultValue = Super::IsDataValid(ValidationErrors);
 	bool bAnyError = false;
 
-	FString interactableName = GetName();
+	if (DefaultInteractableState == EInteractableStateV2::EIS_Disabled)
 	{
-		if (interactableName.Contains(TEXT("_GEN_VARIABLE")))
+		FString interactableName = GetName();
 		{
-			interactableName.ReplaceInline(TEXT("_GEN_VARIABLE"), TEXT(""));
-		}
-		if(interactableName.EndsWith(TEXT("_C")) && interactableName.StartsWith(TEXT("Default__")))
-		{
-		
-			interactableName.RightChopInline(9);
-			interactableName.LeftChopInline(2);
-		}
-	}
-	
-	if
-	(
-		DefaultInteractableState == EInteractableStateV2::EIS_Active ||
-		DefaultInteractableState == EInteractableStateV2::EIS_Completed ||
-		DefaultInteractableState == EInteractableStateV2::EIS_Cooldown
-	)
-	{
-		const FText ErrorMessage = FText::FromString
-		(
-			interactableName.Append(TEXT(": DefaultInteractableState cannot be")).Append(GetEnumValueAsString("EInteractableStateV2", DefaultInteractableState)).Append(TEXT("!"))
-		);
-
-		DefaultInteractableState = EInteractableStateV2::EIS_Awake;
-		
-		ValidationErrors.Add(ErrorMessage);
-		bAnyError = true;
-	}
-
-	if (InteractionPeriod < -1.f)
-	{
-		const FText ErrorMessage = FText::FromString
-		(
-			interactableName.Append(TEXT(": DefaultInteractableState cannot be lesser than -1!"))
-		);
-
-		InteractionPeriod = -1.f;
-		
-		ValidationErrors.Add(ErrorMessage);
-		bAnyError = true;
-	}
-	
-	if (LifecycleMode == EInteractableLifecycle::EIL_Cycled && (LifecycleCount == 0 || LifecycleCount == 1))
-	{
-		const FText ErrorMessage = FText::FromString
-		(
-			interactableName.Append(TEXT(":")).Append(TEXT(" LifecycleCount cannot be %d!"), LifecycleCount)
-		);
-			
-		LifecycleCount = 2.f;
-		RemainingLifecycleCount = LifecycleCount;
-		
-		ValidationErrors.Add(ErrorMessage);
-		bAnyError = true;
-	}
-
-	if (GetWidgetClass() == nullptr)
-	{
-		const FText ErrorMessage = FText::FromString
-		(
-			interactableName.Append(TEXT(": Widget Class is NULL!"))
-		);
-
-		ValidationErrors.Add(ErrorMessage);
-		bAnyError = true;
-	}
-	else
-	{
-		if (!GetWidgetClass()->IsChildOf(UActorInteractableWidget::StaticClass()))
-		{
-			if (GetWidgetClass()->ImplementsInterface(UActorInteractionWidget::StaticClass()) == false)
+			if (interactableName.Contains(TEXT("_GEN_VARIABLE")))
 			{
-				const FText ErrorMessage = FText::FromString
-				(
-					interactableName.Append(TEXT(" : Widget Class must either implement 'ActorInteractionWidget Interface' or inherit from 'ActorInteractableWidget' class!"))
-				);
+				interactableName.ReplaceInline(TEXT("_GEN_VARIABLE"), TEXT(""));
+			}
+			if(interactableName.EndsWith(TEXT("_C")) && interactableName.StartsWith(TEXT("Default__")))
+			{
+		
+				interactableName.RightChopInline(9);
+				interactableName.LeftChopInline(2);
+			}
+		}
+	
+		if
+		(
+			DefaultInteractableState == EInteractableStateV2::EIS_Active ||
+			DefaultInteractableState == EInteractableStateV2::EIS_Completed ||
+			DefaultInteractableState == EInteractableStateV2::EIS_Cooldown
+		)
+		{
+			const FText ErrorMessage = FText::FromString
+			(
+				interactableName.Append(TEXT(": DefaultInteractableState cannot be")).Append(GetEnumValueAsString("EInteractableStateV2", DefaultInteractableState)).Append(TEXT("!"))
+			);
 
-				SetWidgetClass(nullptr);
-				ValidationErrors.Add(ErrorMessage);
-				bAnyError = true;
+			DefaultInteractableState = EInteractableStateV2::EIS_Awake;
+		
+			ValidationErrors.Add(ErrorMessage);
+			bAnyError = true;
+		}
+
+		if (InteractionPeriod < -1.f)
+		{
+			const FText ErrorMessage = FText::FromString
+			(
+				interactableName.Append(TEXT(": DefaultInteractableState cannot be lesser than -1!"))
+			);
+
+			InteractionPeriod = -1.f;
+		
+			ValidationErrors.Add(ErrorMessage);
+			bAnyError = true;
+		}
+	
+		if (LifecycleMode == EInteractableLifecycle::EIL_Cycled && (LifecycleCount == 0 || LifecycleCount == 1))
+		{
+			const FText ErrorMessage = FText::FromString
+			(
+				interactableName.Append(TEXT(":")).Append(TEXT(" LifecycleCount cannot be %d!"), LifecycleCount)
+			);
+			
+			LifecycleCount = 2.f;
+			RemainingLifecycleCount = LifecycleCount;
+		
+			ValidationErrors.Add(ErrorMessage);
+			bAnyError = true;
+		}
+
+		if (GetWidgetClass() == nullptr)
+		{
+			const FText ErrorMessage = FText::FromString
+			(
+				interactableName.Append(TEXT(": Widget Class is NULL!"))
+			);
+
+			ValidationErrors.Add(ErrorMessage);
+			bAnyError = true;
+		}
+		else
+		{
+			if (!GetWidgetClass()->IsChildOf(UActorInteractableWidget::StaticClass()))
+			{
+				if (GetWidgetClass()->ImplementsInterface(UActorInteractionWidget::StaticClass()) == false)
+				{
+					const FText ErrorMessage = FText::FromString
+					(
+						interactableName.Append(TEXT(" : Widget Class must either implement 'ActorInteractionWidget Interface' or inherit from 'ActorInteractableWidget' class!"))
+					);
+
+					SetWidgetClass(nullptr);
+					ValidationErrors.Add(ErrorMessage);
+					bAnyError = true;
+				}
 			}
 		}
 	}
