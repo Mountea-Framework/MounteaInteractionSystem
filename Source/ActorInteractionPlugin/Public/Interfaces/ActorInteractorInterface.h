@@ -155,6 +155,8 @@ public:
 	void EvaluateInteractable(const TScriptInterface<IActorInteractableInterface>& FoundInteractable);
 	virtual void EvaluateInteractable_Implementation(const TScriptInterface<IActorInteractableInterface>& FoundInteractable) = 0;
 
+	
+
 	/**
 	 * Function to start interaction.
 	 * Interaction will start only if CanInteract function evaluates true.
@@ -174,6 +176,8 @@ public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
 	void StopInteraction(const float StartTime);
 	virtual void StopInteraction_Implementation(const float StartTime) = 0;
+
+	
 
 	/**
 	 * Tries to Active Interactor by setting Interactor state to Active.
@@ -214,6 +218,7 @@ public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
 	void DeactivateInteractor();
 	virtual void DeactivateInteractor_Implementation() = 0;
+	
 
 	/**
 	 * Function called by OnInteractableFound.
@@ -225,7 +230,6 @@ public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
 	void InteractableFound(const TScriptInterface<IActorInteractableInterface>& FoundInteractable);
 	virtual void InteractableFound_Implementation(const TScriptInterface<IActorInteractableInterface>& FoundInteractable) = 0;
-
 	
 	/**
 	 * Function called by OnInteractableLost. If Lost Interactable is not Active Interactable, then nothing happens.
@@ -246,6 +250,8 @@ public:
 	void InteractableSelected(const TScriptInterface<IActorInteractableInterface>& SelectedInteractable);
 	virtual void InteractableSelected_Implementation(const TScriptInterface<IActorInteractableInterface>& SelectedInteractable) = 0;
 
+
+	
 	/**
 	 * Tries to add Actor to Ignored Actors.
 	 * Duplicates and null not allowed.
@@ -295,6 +301,8 @@ public:
 	TArray<AActor*> GetIgnoredActors() const;
 	virtual TArray<AActor*> GetIgnoredActors_Implementation() const = 0;
 
+	
+
 	/**
 	 * Adds unique Interaction Dependency.
 	 * Those Interactors will be suppressed until this one is not interacting anymore.
@@ -333,6 +341,8 @@ public:
 	void ProcessDependencies();
 	virtual void ProcessDependencies_Implementation() = 0;
 
+	
+
 	/**
 	 * Optimized request for Interactor.
 	 * Can be overridden in C++ for specific class needs.
@@ -340,6 +350,8 @@ public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
 	bool CanInteract() const;
 	virtual bool CanInteract_Implementation() const = 0;
+
+	
 
 	/**
 	 * Returns Interactor Response Channel.
@@ -362,6 +374,8 @@ public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
 	void SetResponseChannel(const ECollisionChannel NewResponseChannel);
 	virtual void SetResponseChannel_Implementation(const ECollisionChannel NewResponseChannel) = 0;
+
+	
 
 	/**
 	 * Returns Interactor State.
@@ -397,12 +411,16 @@ public:
 	void SetDefaultState(const EInteractorStateV2 NewState);
 	virtual void SetDefaultState_Implementation(const EInteractorStateV2 NewState) = 0;
 
+	
+
 	/**
 	 * Returns whether Interactor auto activates or not.
 	 */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Interactor")
 	bool DoesAutoActivate() const;
 	virtual bool DoesAutoActivate_Implementation() const = 0;
+
+	
 
 	/**
 	 * Sets specified or null Interactable to be Active Interactable.
@@ -420,6 +438,8 @@ public:
 	TScriptInterface<IActorInteractableInterface> GetActiveInteractable() const;
 	virtual TScriptInterface<IActorInteractableInterface> GetActiveInteractable_Implementation() const = 0;
 
+	
+
 	/**
 	 * Development Only.
 	 * Toggles debug On/Off.
@@ -429,7 +449,8 @@ public:
 	void ToggleDebug();
 	virtual void ToggleDebug_Implementation() = 0;
 	
-		
+
+	
 	/**
 	 * Retrieves the interactor's gameplay tag.
 	 * 
@@ -450,6 +471,7 @@ public:
 	virtual void SetInteractorTag_Implementation(const FGameplayTag& NewInteractorTag) = 0;
 	
 
+	
 	virtual FInteractableSelected& GetOnInteractableSelectedHandle() = 0;
 	virtual FInteractableFound& GetOnInteractableFoundHandle() = 0;
 	virtual FInteractableLost& GetOnInteractableLostHandle() = 0;

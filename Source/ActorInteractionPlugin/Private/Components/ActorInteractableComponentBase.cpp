@@ -1222,7 +1222,7 @@ void UActorInteractableComponentBase::InteractionStopped_Implementation(const fl
 
 	if (bCanPersist)
 	{
-		Execute_PauseInteraction(this, bCanPersist ? InteractionProgressExpiration : 0.f, CausingInteractor);
+		Execute_PauseInteraction(this, InteractionProgressExpiration, CausingInteractor);
 	}
 	else
 	{
