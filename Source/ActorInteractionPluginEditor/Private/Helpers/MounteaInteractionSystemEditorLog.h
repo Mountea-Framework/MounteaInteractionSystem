@@ -5,29 +5,29 @@
 #include "CoreMinimal.h"
 
 // Log category definition
-ACTORINTERACTIONPLUGIN_API DECLARE_LOG_CATEGORY_EXTERN(LogActorInteraction, Display, All);
+ACTORINTERACTIONPLUGINEDITOR_API DECLARE_LOG_CATEGORY_EXTERN(LogActorInteractionEditor, Display, All);
 
 // Forward declaration of the logging function
 void PrintLog(const FString& Message, FLinearColor Color, float Duration);
 
 // Logging macro definitions
-#define LOG_INFO(Format, ...) \
+#define EDITOR_LOG_INFO(Format, ...) \
 { \
 FString FormattedMessage = FString::Printf(Format, ##__VA_ARGS__); \
-UE_LOG(LogActorInteraction, Log, TEXT("%s"), *FormattedMessage); \
+UE_LOG(LogActorInteractionEditor, Log, TEXT("%s"), *FormattedMessage); \
 PrintLog(FormattedMessage, FLinearColor(0.0f, 1.0f, 0.0f), 5.0f); \
 }
 
-#define LOG_WARNING(Format, ...) \
+#define EDITOR_LOG_WARNING(Format, ...) \
 { \
 FString FormattedMessage = FString::Printf(Format, ##__VA_ARGS__); \
-UE_LOG(LogActorInteraction, Warning, TEXT("%s"), *FormattedMessage); \
+UE_LOG(LogActorInteractionEditor, Warning, TEXT("%s"), *FormattedMessage); \
 PrintLog(FormattedMessage, FLinearColor(1.0f, 1.0f, 0.0f), 10.0f); \
 }
 
-#define LOG_ERROR(Format, ...) \
+#define EDITOR_LOG_ERROR(Format, ...) \
 { \
 FString FormattedMessage = FString::Printf(Format, ##__VA_ARGS__); \
-UE_LOG(LogActorInteraction, Error, TEXT("%s"), *FormattedMessage); \
+UE_LOG(LogActorInteractionEditor, Error, TEXT("%s"), *FormattedMessage); \
 PrintLog(FormattedMessage, FLinearColor(1.0f, 0.0f, 0.0f), 15.0f); \
 }

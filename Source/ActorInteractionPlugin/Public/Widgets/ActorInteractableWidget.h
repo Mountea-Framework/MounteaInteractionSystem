@@ -35,14 +35,6 @@ class ACTORINTERACTIONPLUGIN_API UActorInteractableWidget final : public UUserWi
 	GENERATED_BODY()
 	
 public:
-	
-	/**
-	 * Custom Initialize to pass down some required values for Widget to work correctly.
-	 * @note Widget won't work unless Initialized.
-	 */
-	UE_DEPRECATED(5.0, "Please, use `UpdateWidget` instead") // UFUNCTION(BlueprintCallable, Category="Interaction", meta=(DeprecatedFunction, DeprecatedMessage="Please, use `UpdateWidget` instead"))
-	void InitializeInteractionWidget(const FText& NewInteractableKey, const FText& NewInteractableName, const FText& NewInteractionAction,
-	UDEPRECATED_ActorInteractableComponent* NewOwningComponent, UTexture2D* NewInteractionTexture);
 
 	/**
 	 * Use this Event to Toggle Visibility;
@@ -57,13 +49,6 @@ public:
 	 * @param InDeltaTime	Delta time to make interaction framerate independent.
 	 */
 	void CalculateRemainingTime(float InDeltaTime);
-
-	/**
-	 * Returns owning Interactable Component or any of its child classes.
-	 * @return	Owning Component of UDEPRECATED_ActorInteractableComponent
-	 */
-	UE_DEPRECATED(5.0, "") // UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction", meta=(DeprecatedFunction))
-	FORCEINLINE UDEPRECATED_ActorInteractableComponent* GetOwningComponent() const {return OwningComponent; };
 
 	/**
 	 * Returns values between 0 and 1, where 1 means 100% and 0 means 0%
@@ -156,12 +141,6 @@ protected:
 	ESlateVisibility CachedVisibility;
 	
 private:
-
-	/**
-	 * Owning Interactable Actor Component.
-	 */
-	UE_DEPRECATED(5.0, "")  //UPROPERTY(VisibleAnywhere, Category="Interaction|Debug", meta=(DeprecatedProperty, DeprecationMessage="This is deprecated"))
-	UDEPRECATED_ActorInteractableComponent* OwningComponent = nullptr;
 
 	/**
 	 * Value between 0 and 1, that represents how far in the progress the interaction is.

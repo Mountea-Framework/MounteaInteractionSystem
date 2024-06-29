@@ -15,13 +15,14 @@
 #include "DrawDebugHelpers.h"
 #endif
 
-UActorInteractorComponentTrace::UActorInteractorComponentTrace()
+UActorInteractorComponentTrace::UActorInteractorComponentTrace() :
+		TraceType(ETraceType::ETT_Loose),
+		TraceInterval(0.1f),
+		TraceRange(250.f),
+		TraceShapeHalfSize(5.f),
+		bUseCustomStartTransform(false)
 {
-	TraceType = ETraceType::ETT_Loose;
-	TraceInterval = 0.01f;
-	TraceRange = 250.f;
-	TraceShapeHalfSize = 5.f;
-	bUseCustomStartTransform = false;
+	ComponentTags.Add(FName("Trace"));
 }
 
 void UActorInteractorComponentTrace::BeginPlay()
@@ -53,7 +54,7 @@ void UActorInteractorComponentTrace::DisableTracing()
 
 void UActorInteractorComponentTrace::EnableTracing()
 {
-	switch (GetState())
+	switch (Execute_GetState(this))
 	{
 		case EInteractorStateV2::EIS_Awake:
 		case EInteractorStateV2::EIS_Active:
@@ -63,7 +64,7 @@ void UActorInteractorComponentTrace::EnableTracing()
 		case EInteractorStateV2::EIS_Disabled:
 		case EInteractorStateV2::Default: 
 		default:
-			AIntP_LOG(Warning, TEXT("[EnableTracing] Tracing not allowed for this state!"))
+			LOG_WARNING(TEXT("[EnableTracing] Tracing not allowed for this state!"))
 			return;
 	}
 	
@@ -103,11 +104,11 @@ void UActorInteractorComponentTrace::ProcessTrace()
 		DisableTracing();
 	}
 	
-	AddIgnoredActor(GetOwner());
+	Execute_AddIgnoredActor(this, GetOwner());
 	
 	FInteractionTraceDataV2 TraceData;
 	{
-		TraceData.CollisionChannel = GetResponseChannel();
+		TraceData.CollisionChannel = Execute_GetResponseChannel(this);
 	
 		TraceData.CollisionParams.AddIgnoredActors(ListOfIgnoredActors);
 		TraceData.CollisionParams.MobilityType = EQueryMobilityType::Any;
@@ -171,16 +172,16 @@ void UActorInteractorComponentTrace::ProcessTrace()
 
 					const bool bCanTraceWith =
 					(
-						Interactable->GetCollisionComponents().Contains(HitResult.GetComponent()) &&
-						Interactable->GetCollisionChannel() == GetResponseChannel() &&
-						Interactable->CanBeTriggered()
+						Interactable->Execute_GetCollisionComponents(Interactable.GetObject()).Contains(HitResult.GetComponent()) &&
+						Interactable->Execute_GetCollisionChannel(Interactable.GetObject()) == Execute_GetResponseChannel(this) &&
+						Interactable->Execute_CanBeTriggered(Interactable.GetObject())
 					);
 					
 					if (bCanTraceWith)
 					{
 						bAnyInteractable = true;
 
-						if (Interactable == GetActiveInteractable())
+						if (Interactable == Execute_GetActiveInteractable(this))
 						{
 							bFoundActiveAgain = true;
 						}
@@ -192,7 +193,7 @@ void UActorInteractorComponentTrace::ProcessTrace()
 						}
 						else
 						{
-							if (Interactable->GetInteractableWeight() > BestInteractable->GetInteractableWeight())
+							if (Interactable->Execute_GetInteractableWeight(Interactable.GetObject()) > BestInteractable->Execute_GetInteractableWeight(BestInteractable.GetObject()))
 							{
 								BestInteractable = Interactable;
 								BestHitResult = HitResult;
@@ -206,11 +207,11 @@ void UActorInteractorComponentTrace::ProcessTrace()
 		
 	if (bAnyInteractable == false)
 	{
-		OnInteractableLost.Broadcast(GetActiveInteractable());
+		OnInteractableLost.Broadcast(Execute_GetActiveInteractable(this));
 	}
 	else if (bFoundActiveAgain == false)
 	{
-		OnInteractableLost.Broadcast(GetActiveInteractable());
+		OnInteractableLost.Broadcast(Execute_GetActiveInteractable(this));
 	}
 	
 	if (bAnyInteractable)
@@ -224,10 +225,10 @@ void UActorInteractorComponentTrace::ProcessTrace()
 		DrawTracingDebugEnd(TraceData);
 	}
 #endif
+
+	OnTraced.Broadcast();
 	
 	ResumeTracing();
-
-	
 }
 
 void UActorInteractorComponentTrace::ProcessTrace_Precise(FInteractionTraceDataV2& InteractionTraceData)
@@ -260,7 +261,7 @@ void UActorInteractorComponentTrace::ProcessTrace_Loose(FInteractionTraceDataV2&
 
 bool UActorInteractorComponentTrace::CanTrace() const
 {
-	return CanInteract();
+	return Execute_CanInteract(this);
 }
 
 ETraceType UActorInteractorComponentTrace::GetTraceType() const
@@ -359,18 +360,18 @@ void UActorInteractorComponentTrace::SetCustomTraceStart(const FTransform TraceS
 FTransform UActorInteractorComponentTrace::GetCustomTraceStart() const
 { return CustomTraceTransform; }
 
-bool UActorInteractorComponentTrace::CanInteract() const
+bool UActorInteractorComponentTrace::CanInteract_Implementation() const
 {
-	return Super::CanInteract();
+	return Super::CanInteract_Implementation();
 }
 
-void UActorInteractorComponentTrace::SetState(const EInteractorStateV2 NewState)
+void UActorInteractorComponentTrace::SetState_Implementation(const EInteractorStateV2 NewState)
 {
-	Super::SetState(NewState);
+	Super::SetState_Implementation(NewState);
 
 	if (GetWorld())
 	{
-		switch (GetState())
+		switch (Execute_GetState(this))
 		{
 			case EInteractorStateV2::EIS_Asleep:
 			case EInteractorStateV2::EIS_Disabled:

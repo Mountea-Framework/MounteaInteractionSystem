@@ -17,7 +17,7 @@
  *
  * @see https://github.com/Mountea-Framework/ActorInteractionPlugin/wiki/Actor-Interactable-Component-Hold
  */
-UCLASS(ClassGroup=(Interaction), Blueprintable, hideCategories=(Collision, AssetUserData, Cooking, Activation), meta=(BlueprintSpawnableComponent, DisplayName = "Interactable Component Hold"))
+UCLASS(ClassGroup=(Mountea), meta=(BlueprintSpawnableComponent, DisplayName = "IInteractable Component Hold"))
 class ACTORINTERACTIONPLUGIN_API UActorInteractableComponentHold : public UActorInteractableComponentBase
 {
 	GENERATED_BODY()
@@ -28,16 +28,7 @@ public:
 
 protected:
 
-	virtual void BeginPlay() override;
-
-	virtual void InteractionStarted(const float& TimeStarted, const FKey& PressedKey, const TScriptInterface<IActorInteractorInterface>& CausingInteractor) override;
-	virtual void InteractionStopped(const float& TimeStarted, const FKey& PressedKey, const TScriptInterface<IActorInteractorInterface>& CausingInteractor) override;
-	virtual void InteractionCanceled() override;
-
-	virtual void InteractorFound(const TScriptInterface<IActorInteractorInterface>& FoundInteractor) override;
-	virtual void InteractorLost(const TScriptInterface<IActorInteractorInterface>& LostInteractor) override;
-
-	virtual float GetInteractionProgress() const override;
+	virtual void InteractionStarted_Implementation(const float& TimeStarted, const TScriptInterface<IActorInteractorInterface>& CausingInteractor) override;
 
 protected:
 

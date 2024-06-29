@@ -11,7 +11,6 @@
 UActorInteractableComponentAutomatic::UActorInteractableComponentAutomatic()
 {
 	InteractableName = LOCTEXT("ActorInteractableComponentAutomatic", "Auto");
-	InteractionKeysPerPlatform.Empty();
 
 	DefaultInteractableState = EInteractableStateV2::EIS_Awake;
 	InteractionPeriod = 1.f;
@@ -26,25 +25,25 @@ void UActorInteractableComponentAutomatic::BeginPlay()
 	OnInteractionStopped.RemoveAll(this);
 }
 
-void UActorInteractableComponentAutomatic::InteractableSelected(const TScriptInterface<IActorInteractableInterface>& Interactable)
+void UActorInteractableComponentAutomatic::InteractableSelected_Implementation(const TScriptInterface<IActorInteractableInterface>& Interactable)
 {
 	if(!GetWorld()) return;
-	Super::InteractableSelected(Interactable);
+	Super::InteractableSelected_Implementation(Interactable);
 	
 	if (Interactable == this)
 	{
 		if (GetWorld()->GetTimerManager().IsTimerActive(Timer_Interaction) == false)
 		{
-			OnInteractionStarted.Broadcast(GetWorld()->GetTimeSeconds(), FKey(""), GetInteractor());
+			OnInteractionStarted.Broadcast(GetWorld()->GetTimeSeconds(), GetInteractor());
 		}
 	}
 }
 
-void UActorInteractableComponentAutomatic::InteractionStarted(const float& TimeStarted, const FKey& PressedKey, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
+void UActorInteractableComponentAutomatic::InteractionStarted_Implementation(const float& TimeStarted, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
 {
 	if (!GetWorld()) return;
 
-	if (CanInteract() && !GetWorld()->GetTimerManager().IsTimerActive(Timer_Interaction))
+	if (Execute_CanInteract(this) && !GetWorld()->GetTimerManager().IsTimerActive(Timer_Interaction))
 	{
 		// Force Interaction Period to be at least 0.01s
 		const float TempInteractionPeriod = FMath::Max(0.01f, InteractionPeriod);
@@ -60,23 +59,23 @@ void UActorInteractableComponentAutomatic::InteractionStarted(const float& TimeS
 			false
 		);
 
-		Super::InteractionStarted(TimeStarted, PressedKey, CausingInteractor);
+		Super::InteractionStarted_Implementation(TimeStarted, CausingInteractor);
 		
 		UpdateInteractionWidget();
 	}
 }
 
-void UActorInteractableComponentAutomatic::InteractionStopped(const float& TimeStarted, const FKey& PressedKey, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
+void UActorInteractableComponentAutomatic::InteractionStopped_Implementation(const float& TimeStarted, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
 {
 #if WITH_EDITOR
-	AIntP_LOG(Warning, TEXT("[InteractionStopped] This function does nothing in UActorInteractableComponentAutomatic"))
+	LOG_WARNING(TEXT("[InteractionStopped] This function does nothing in UActorInteractableComponentAutomatic"))
 #endif
 }
 
 FInteractionStarted& UActorInteractableComponentAutomatic::GetOnInteractionStartedHandle()
 {
 #if WITH_EDITOR
-	AIntP_LOG(Warning, TEXT("[GetOnInteractionStartedHandle] This handle is invalid in UActorInteractableComponentAutomatic"))
+	LOG_WARNING(TEXT("[GetOnInteractionStartedHandle] This handle is invalid in UActorInteractableComponentAutomatic"))
 #endif
 	
 	return EmptyHandle_Started;
@@ -85,7 +84,7 @@ FInteractionStarted& UActorInteractableComponentAutomatic::GetOnInteractionStart
 FInteractionStopped& UActorInteractableComponentAutomatic::GetOnInteractionStoppedHandle()
 {
 #if WITH_EDITOR
-	AIntP_LOG(Warning, TEXT("[GetOnInteractionStoppedHandle] This handle is invalid in UActorInteractableComponentAutomatic"))
+	LOG_WARNING(TEXT("[GetOnInteractionStoppedHandle] This handle is invalid in UActorInteractableComponentAutomatic"))
 #endif
 	
 	return EmptyHandle_Stopped;
@@ -99,10 +98,10 @@ void UActorInteractableComponentAutomatic::OnInteractionCompletedCallback()
 		return;
 	}
 
-	ToggleWidgetVisibility(false);
+	Execute_ToggleWidgetVisibility(this, false);
 	if (LifecycleMode == EInteractableLifecycle::EIL_Cycled)
 	{
-		if (TriggerCooldown()) return;
+		if (Execute_TriggerCooldown(this)) return;
 	}
 	
 	OnInteractionCompleted.Broadcast(GetWorld()->GetTimeSeconds(), GetInteractor());
