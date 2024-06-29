@@ -233,7 +233,7 @@ bool UActorInteractorComponentBase::ActivateInteractor_Implementation(FString& E
 	return false;
 }
 
-bool UActorInteractorComponentBase::WakeUpInteractor_Implementation(FString& ErrorMessage)
+bool UActorInteractorComponentBase::EnableInteractor_Implementation(FString& ErrorMessage)
 {
 	const EInteractorStateV2 CachedState = InteractorState;
 	

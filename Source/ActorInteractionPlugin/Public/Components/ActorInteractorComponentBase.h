@@ -71,7 +71,7 @@ public:
 	virtual void StartInteraction_Implementation(const float StartTime) override;
 	virtual void StopInteraction_Implementation(const float StopTime) override;
 	virtual bool ActivateInteractor_Implementation(FString& ErrorMessage) override;
-	virtual bool WakeUpInteractor_Implementation(FString& ErrorMessage) override;
+	virtual bool EnableInteractor_Implementation(FString& ErrorMessage) override;
 	virtual bool SuppressInteractor_Implementation(FString& ErrorMessage) override;
 	virtual void DeactivateInteractor_Implementation() override;
 	virtual void AddIgnoredActor_Implementation(AActor* IgnoredActor) override;

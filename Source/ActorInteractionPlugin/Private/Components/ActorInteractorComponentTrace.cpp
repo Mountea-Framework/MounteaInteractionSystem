@@ -514,7 +514,6 @@ void UActorInteractorComponentTrace::SetTraceType_Server_Implementation(const ET
 	SetTraceType(NewTraceType);
 }
 
-
 void UActorInteractorComponentTrace::SetTraceInterval_Server_Implementation(float NewInterval)
 {
 	SetTraceInterval(NewInterval);
@@ -543,34 +542,6 @@ void UActorInteractorComponentTrace::SetCustomTraceStart_Server_Implementation(c
 void UActorInteractorComponentTrace::PostTraced_Client_Implementation()
 {
 	PostTraced();
-}
-
-void UActorInteractorComponentTrace::SetState_Implementation(const EInteractorStateV2 NewState)
-{
-	Super::SetState_Implementation(NewState);
-
-	/*
-	if (GetWorld())
-	{
-		switch (Execute_GetState(this))
-		{
-			case EInteractorStateV2::EIS_Asleep:
-			case EInteractorStateV2::EIS_Disabled:
-			case EInteractorStateV2::EIS_Suppressed:
-				DisableTracing();
-				break;
-			case EInteractorStateV2::EIS_Awake:
-				EnableTracing();
-				break;
-			case EInteractorStateV2::EIS_Active:
-				EnableTracing();
-				break;
-			case EInteractorStateV2::Default:
-			default:
-				break;
-		}
-	}
-	*/
 }
 
 void UActorInteractorComponentTrace::ProcessStateChanges()

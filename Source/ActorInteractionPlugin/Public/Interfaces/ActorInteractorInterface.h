@@ -198,8 +198,8 @@ public:
 	 * @param ErrorMessage Short explanation.
 	 */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
-	bool WakeUpInteractor(FString& ErrorMessage);
-	virtual bool WakeUpInteractor_Implementation(FString& ErrorMessage) = 0;
+	bool EnableInteractor(FString& ErrorMessage);
+	virtual bool EnableInteractor_Implementation(FString& ErrorMessage) = 0;
 
 	/**
 	 * Tries to Suppress Interactor by setting Interactor state to Suppressed.

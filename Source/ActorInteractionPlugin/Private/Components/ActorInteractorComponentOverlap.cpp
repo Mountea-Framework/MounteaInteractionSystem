@@ -3,6 +3,9 @@
 
 #include "Components/ActorInteractorComponentOverlap.h"
 
+#include "Helpers/ActorInteractionPluginLog.h"
+#include "Helpers/MounteaInteractionSystemBFL.h"
+
 UActorInteractorComponentOverlap::UActorInteractorComponentOverlap()
 {
 }
@@ -13,9 +16,9 @@ void UActorInteractorComponentOverlap::BeginPlay()
 	Super::BeginPlay();
 }
 
-void UActorInteractorComponentOverlap::SetState_Implementation(const EInteractorStateV2 NewState)
+void UActorInteractorComponentOverlap::ProcessStateChanges()
 {
-	Super::SetState_Implementation(NewState);
+	Super::ProcessStateChanges();
 
 	switch (Execute_GetState(this))
 	{
@@ -30,32 +33,14 @@ void UActorInteractorComponentOverlap::SetState_Implementation(const EInteractor
 		default:
 			UnbindCollisions();
 			break;
-	}
-}
-
-UPrimitiveComponent* UActorInteractorComponentOverlap::FindComponentByName(const FName& CollisionComponentName)
-{
-	if (!GetOwner()) return nullptr;
-	
-	TArray<UActorComponent*> Components;
-	GetOwner()->GetComponents(UPrimitiveComponent::StaticClass(), Components);
-
-	for (const auto& Itr : Components)
-	{
-		if (Itr && Itr->GetName().Equals(CollisionComponentName.ToString()))
-		{
-			return Cast<UPrimitiveComponent>(Itr);
-		}
-	}
-
-	return nullptr;
+	}	
 }
 
 void UActorInteractorComponentOverlap::SetupInteractorOverlap()
 {
 	for (auto Itr : OverrideCollisionComponents)
 	{
-		if (const auto Comp = FindComponentByName(Itr))
+		if (const auto Comp = UMounteaInteractionSystemBFL::FindPrimitiveByName(Itr, GetOwner()))
 		{
 			AddCollisionComponent(Comp);
 		}
@@ -122,43 +107,117 @@ void UActorInteractorComponentOverlap::UnbindCollision(UPrimitiveComponent* Comp
 	}
 }
 
-void UActorInteractorComponentOverlap::AddCollisionComponent(UPrimitiveComponent* CollisionComponent)
+void UActorInteractorComponentOverlap::AddCollisionComponent_Implementation(UPrimitiveComponent* CollisionComponent)
 {
-	if (!CollisionComponent) return;
-
-	if (CollisionShapes.Contains(CollisionComponent)) return;
-
-	CollisionShapes.Add(CollisionComponent);
-
-	OnCollisionShapeAdded.Broadcast(CollisionComponent);
-}
-
-void UActorInteractorComponentOverlap::AddCollisionComponents(TArray<UPrimitiveComponent*> CollisionComponents)
-{
-	for (const auto& Itr : CollisionComponents)
+	if (!GetOwner())
 	{
-		AddCollisionComponent(Itr);
+		LOG_ERROR(TEXT("[AddCollisionComponent] No owner!"));
+		return;
+	}
+
+	if (GetOwner()->HasAuthority())
+	{
+		if (!CollisionComponent) return;
+
+		if (CollisionShapes.Contains(CollisionComponent)) return;
+
+		CollisionShapes.Add(CollisionComponent);
+
+		OnCollisionShapeAdded.Broadcast(CollisionComponent);
+	}
+	else
+	{
+		AddCollisionComponent_Server(CollisionComponent);
 	}
 }
 
-void UActorInteractorComponentOverlap::RemoveCollisionComponent(UPrimitiveComponent* CollisionComponent)
+void UActorInteractorComponentOverlap::AddCollisionComponents_Implementation(const TArray<UPrimitiveComponent*>& CollisionComponents)
 {
-	if (!CollisionComponent) return;
-
-	if (!CollisionShapes.Contains(CollisionComponent)) return;
-
-	CollisionShapes.Remove(CollisionComponent);
-
-	OnCollisionShapeRemoved.Broadcast(CollisionComponent);
-}
-
-void UActorInteractorComponentOverlap::RemoveCollisionComponents(TArray<UPrimitiveComponent*> CollisionComponents)
-{
-	for (const auto& Itr : CollisionComponents)
+	if (!GetOwner())
 	{
-		RemoveCollisionComponent(Itr);
+		LOG_ERROR(TEXT("[AddCollisionComponents] No owner!"));
+		return;
+	}
+
+	if (GetOwner()->HasAuthority())
+	{
+		for (const auto& Itr : CollisionComponents)
+		{
+			AddCollisionComponent(Itr);
+		}
+	}
+	else
+	{
+		AddCollisionComponents_Server(CollisionComponents);
 	}
 }
 
-TArray<UPrimitiveComponent*> UActorInteractorComponentOverlap::GetCollisionComponents() const
-{ return CollisionShapes; }
+void UActorInteractorComponentOverlap::RemoveCollisionComponent_Implementation(UPrimitiveComponent* CollisionComponent)
+{
+	if (!GetOwner())
+	{
+		LOG_ERROR(TEXT("[RemoveCollisionComponent] No owner!"));
+		return;
+	}
+
+	if (GetOwner()->HasAuthority())
+	{
+		if (!CollisionComponent) return;
+
+		if (!CollisionShapes.Contains(CollisionComponent)) return;
+
+		CollisionShapes.Remove(CollisionComponent);
+
+		OnCollisionShapeRemoved.Broadcast(CollisionComponent);
+	}
+	else
+	{
+		RemoveCollisionComponent_Server(CollisionComponent);
+	}
+}
+
+void UActorInteractorComponentOverlap::RemoveCollisionComponents_Implementation(const TArray<UPrimitiveComponent*>& CollisionComponents)
+{
+	if (!GetOwner())
+	{
+		LOG_ERROR(TEXT("[RemoveCollisionComponents] No owner!"));
+		return;
+	}
+
+	if (GetOwner()->HasAuthority())
+	{
+		for (const auto& Itr : CollisionComponents)
+		{
+			RemoveCollisionComponent(Itr);
+		}
+	}
+	else
+	{
+		RemoveCollisionComponents_Server(CollisionComponents);
+	}
+}
+
+void UActorInteractorComponentOverlap::AddCollisionComponent_Server_Implementation(UPrimitiveComponent* CollisionComponent)
+{
+	AddCollisionComponent(CollisionComponent);
+}
+
+void UActorInteractorComponentOverlap::AddCollisionComponents_Server_Implementation(const TArray<UPrimitiveComponent*>& CollisionComponents)
+{
+	AddCollisionComponents(CollisionComponents);
+}
+
+void UActorInteractorComponentOverlap::RemoveCollisionComponent_Server_Implementation(UPrimitiveComponent* CollisionComponent)
+{
+	RemoveCollisionComponent(CollisionComponent);
+}
+
+void UActorInteractorComponentOverlap::RemoveCollisionComponents_Server_Implementation(const TArray<UPrimitiveComponent*>& CollisionComponents)
+{
+	RemoveCollisionComponents(CollisionComponents);
+}
+
+TSet<UPrimitiveComponent*> UActorInteractorComponentOverlap::GetCollisionComponents() const
+{
+	return CollisionShapes;
+}

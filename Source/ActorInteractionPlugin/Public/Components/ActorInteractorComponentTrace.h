@@ -322,8 +322,6 @@ protected:
 	void PostTraced_Client();
 	
 protected:
-	
-	virtual void SetState_Implementation(const EInteractorStateV2 NewState) override;
 
 	virtual void ProcessStateChanges() override;
 

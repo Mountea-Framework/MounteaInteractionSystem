@@ -25,42 +25,92 @@ public:
 protected:
 
 	virtual void BeginPlay() override;
-
-	virtual void SetState_Implementation(const EInteractorStateV2 NewState) override;
-
-	virtual UPrimitiveComponent* FindComponentByName(const FName& CollisionComponentName); // TODO: Move to helper function library!
+	
 	virtual void SetupInteractorOverlap();
 	virtual void BindCollisions();
 	virtual void BindCollision(UPrimitiveComponent* Component);
 	virtual void UnbindCollisions();
 	virtual void UnbindCollision(UPrimitiveComponent* Component);
+
+public:
 	
-	UFUNCTION(BlueprintCallable, Category="Interaction")
-	virtual void AddCollisionComponent(UPrimitiveComponent* CollisionComponent);
-	UFUNCTION(BlueprintCallable, Category="Interaction")
-	virtual void AddCollisionComponents(TArray<UPrimitiveComponent*> CollisionComponents);
-	UFUNCTION(BlueprintCallable, Category="Interaction")
-	virtual void RemoveCollisionComponent(UPrimitiveComponent* CollisionComponent);
-	UFUNCTION(BlueprintCallable, Category="Interaction")
-	virtual void RemoveCollisionComponents(TArray<UPrimitiveComponent*> CollisionComponents);
+	/**
+	 * 
+	 * @param CollisionComponent 
+	 */
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Interaction")
+	void AddCollisionComponent(UPrimitiveComponent* CollisionComponent);
+	virtual void AddCollisionComponent_Implementation(UPrimitiveComponent* CollisionComponent);
+	
+	/**
+	 * 
+	 * @param CollisionComponents 
+	 */
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Interaction")
+	void AddCollisionComponents(const TArray<UPrimitiveComponent*>& CollisionComponents);
+	virtual void AddCollisionComponents_Implementation(const TArray<UPrimitiveComponent*>& CollisionComponents);
+	
+	/**
+	 * 
+	 * @param CollisionComponent 
+	 */
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Interaction")
+	void RemoveCollisionComponent(UPrimitiveComponent* CollisionComponent);
+	virtual void RemoveCollisionComponent_Implementation(UPrimitiveComponent* CollisionComponent);
+	
+	/**
+	 * 
+	 * @param CollisionComponents 
+	 */
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Interaction")
+	void RemoveCollisionComponents(const TArray<UPrimitiveComponent*>& CollisionComponents);
+	virtual void RemoveCollisionComponents_Implementation(const TArray<UPrimitiveComponent*>& CollisionComponents);
+	
+	/**
+	 * 
+	 * @return 
+	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
-	virtual	TArray<UPrimitiveComponent*> GetCollisionComponents() const;
+	TSet<UPrimitiveComponent*> GetCollisionComponents() const;
 
 protected:
 
-	UPROPERTY(BlueprintAssignable, Category="Interaction")
-	FCollisionShapeAdded OnCollisionShapeAdded;
+	virtual void ProcessStateChanges() override;
+
+protected:
+
+	UFUNCTION(Server, Unreliable)
+	void AddCollisionComponent_Server(UPrimitiveComponent* CollisionComponent);
+
+	UFUNCTION(Server, Unreliable)
+	void AddCollisionComponents_Server(const TArray<UPrimitiveComponent*>& CollisionComponents);
+
+	UFUNCTION(Server, Unreliable)
+	void RemoveCollisionComponent_Server(UPrimitiveComponent* CollisionComponent);
+
+	UFUNCTION(Server, Unreliable)
+	void RemoveCollisionComponents_Server(const TArray<UPrimitiveComponent*>& CollisionComponents);
+
+
+public:
 
 	UPROPERTY(BlueprintAssignable, Category="Interaction")
-	FCollisionShapeRemoved OnCollisionShapeRemoved;
+	FCollisionShapeAdded																		OnCollisionShapeAdded;
+
+	UPROPERTY(BlueprintAssignable, Category="Interaction")
+	FCollisionShapeRemoved																	OnCollisionShapeRemoved;
 	
 protected:
 
 	UPROPERTY(EditAnywhere, Category="Interaction|Optional")
-	TArray<FName> OverrideCollisionComponents;
-	
+	TArray<FName>																					OverrideCollisionComponents;
+
+	/**
+	 * A list of Collision Shapes that are used as interactors.
+	 * List is populated on Server Side only!
+	 */
 	UPROPERTY(SaveGame, VisibleAnywhere, Category="Interaction|Read Only", meta=(DisplayThumbnail = false, ShowOnlyInnerProperties))
-	TArray<UPrimitiveComponent*> CollisionShapes;
+	TSet<UPrimitiveComponent*>											CollisionShapes; // TObjectPtr breaks the Getter function, so let's keep it as pointer for now
 
 private:
 	
@@ -70,7 +120,5 @@ private:
 	 * Once Collision Shape is unregistered, it reads its cached settings and returns to pre-interaction Collision Settings.
 	 */
 	UPROPERTY(SaveGame, VisibleAnywhere, Category="Interaction|Read Only", meta=(DisplayThumbnail = false, ShowOnlyInnerProperties))
-	mutable TMap<UPrimitiveComponent*, FCollisionShapeCache> CachedCollisionShapesSettings;
-	
+	mutable TMap<UPrimitiveComponent*, FCollisionShapeCache>			CachedCollisionShapesSettings;
 };
-
