@@ -29,7 +29,7 @@ void UActorInteractableComponentMash::BeginPlay()
 
 void UActorInteractableComponentMash::InteractionFailed()
 {
-	Execute_SetState(this, GetDefaultState());
+	Execute_SetState(this, Execute_GetDefaultState(this));
 	
 	CleanupComponent();
 	

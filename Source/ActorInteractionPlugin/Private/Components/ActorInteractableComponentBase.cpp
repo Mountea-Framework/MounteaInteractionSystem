@@ -782,7 +782,7 @@ void UActorInteractableComponentBase::ProcessDependencies_Implementation()
 					case EInteractableStateV2::EIS_Awake:
 					case EInteractableStateV2::EIS_Asleep:
 					case EInteractableStateV2::EIS_Suppressed: 
-						Itr->Execute_SetState(this, Itr->GetDefaultState());
+						Itr->Execute_SetState(this, Itr->Execute_GetDefaultState(Itr.GetObject()));
 						break;
 					case EInteractableStateV2::EIS_Cooldown: break;
 					case EInteractableStateV2::EIS_Completed: break;
@@ -795,8 +795,8 @@ void UActorInteractableComponentBase::ProcessDependencies_Implementation()
 			case EInteractableStateV2::EIS_Disabled:
 			case EInteractableStateV2::EIS_Completed:
 				Itr->GetInteractableDependencyStopped().Broadcast(this);
-				Itr->Execute_SetState(this, Itr->GetDefaultState());
-				RemoveInteractionDependency(Itr);
+				Itr->Execute_SetState(this, Itr->Execute_GetDefaultState(Itr.GetObject()));
+				Execute_RemoveInteractionDependency(this, Itr);
 				break;
 			case EInteractableStateV2::Default:
 			default:

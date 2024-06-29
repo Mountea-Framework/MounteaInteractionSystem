@@ -139,71 +139,87 @@ protected:
 	/**
 	 * Disables Tracing. Can be Enabled again. Clears all timers.
 	 */
-	UFUNCTION(BlueprintCallable, Category="Interaction|Tracing")
-	virtual void DisableTracing();
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Interaction|Tracing")
+	void DisableTracing();
+	virtual void DisableTracing_Implementation();
+	
 	/**
 	 * Tries to enable Tracing. Could fail if non valid state.
 	 */
-	UFUNCTION(BlueprintCallable, Category="Interaction|Tracing")
-	virtual void EnableTracing();
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Interaction|Tracing")
+	void EnableTracing();
+	virtual void EnableTracing_Implementation();
+	
 	/**
 	 * Pauses Tracing if already active.
 	 */
-	UFUNCTION(BlueprintCallable, Category="Interaction|Tracing")
-	virtual void PauseTracing();
-	UFUNCTION()
-	virtual void ResumeTracing();
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Interaction|Tracing")
+	void PauseTracing();
+	virtual void PauseTracing_Implementation();
 
-	UFUNCTION()	virtual void ProcessTrace();
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Interaction|Tracing")
+	void ResumeTracing();
+	virtual void ResumeTracing_Implementation();
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Interaction|Tracing")
+	void ProcessTrace();
+	virtual void ProcessTrace_Implementation();
 	virtual void ProcessTrace_Precise(FInteractionTraceDataV2& InteractionTraceData);
 	virtual void ProcessTrace_Loose(FInteractionTraceDataV2& InteractionTraceData);
 
 	/**
 	 * Returns whether Tracing is allowed or not.
 	 */
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
-	virtual bool CanTrace() const;
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Interaction|Tracing")
+	bool CanTrace() const;
+	virtual bool CanTrace_Implementation() const;
 
 	/**
 	 * Returns Trace Type.
 	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual ETraceType GetTraceType() const;
+	
 	/**
 	 * Sets Trace Type.
 	 *
 	 * @param NewTraceType	Value to be set.
 	 */
-	UFUNCTION(BlueprintCallable, Category="Interaction")
-	virtual void SetTraceType(const ETraceType& NewTraceType);
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Interaction|Tracing")
+	void SetTraceType(const ETraceType& NewTraceType);
+	virtual void SetTraceType_Implementation(const ETraceType& NewTraceType);
 
 	/**
 	 * Returns Trace Interval in seconds.
 	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual float GetTraceInterval() const;
+	
 	/**
 	 * Sets Trace Interval in seconds.
 	 * Clamped to be at least 0.01s.
 	 *
 	 * @param NewInterval	Value to be set
 	 */
-	UFUNCTION(BlueprintCallable, Category="Interaction")
-	virtual void SetTraceInterval(const float NewInterval);
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Interaction|Tracing")
+	void SetTraceInterval(const float NewInterval);
+	virtual void SetTraceInterval_Implementation(const float NewInterval);
 
 	/**
 	 * Returns Trace Range in cm.
 	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual float GetTraceRange() const;
+	
 	/**
 	 * Sets Trace Range in cm.
 	 * Clamped to be at least 1cm.
 	 *
 	 * @param NewRange	Value to be set
 	 */
-	UFUNCTION(BlueprintCallable, Category="Interaction")
-	virtual void SetTraceRange(const float NewRange);
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Interaction|Tracing")
+	void SetTraceRange(const float NewRange);
+	virtual void SetTraceRange_Implementation(const float NewRange);
 
 	/**
 	 * Returns Trace Shape Half Size in cm.
@@ -211,27 +227,31 @@ protected:
 	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual float GetTraceShapeHalfSize() const;
+	
 	/**
 	 * Sets Trace Shape Half Size in cm.
 	 * Clamped to be at least 0.1cm.
 	 *
 	 * @param NewTraceShapeHalfSize	Value to be set
 	 */
-	UFUNCTION(BlueprintCallable, Category="Interaction")
-	virtual void SetTraceShapeHalfSize(const float NewTraceShapeHalfSize);
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Interaction|Tracing")
+	void SetTraceShapeHalfSize(const float NewTraceShapeHalfSize);
+	virtual void SetTraceShapeHalfSize_Implementation(const float NewTraceShapeHalfSize);
 
 	/**
 	 * Returns whether using Custom Trace Transform.
 	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual bool GetUseCustomStartTransform() const;
+	
 	/**
 	 * Sets Using Custom Trace Start Transform.
 	 *
 	 * @param bUse	Value to be set
 	 */
-	UFUNCTION(BlueprintCallable, Category="Interaction")
-	virtual void SetUseCustomStartTransform(const bool bUse);
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Interaction|Tracing")
+	void SetUseCustomStartTransform(const bool bUse);
+	virtual void SetUseCustomStartTransform_Implementation(const bool bUse);
 
 	/**
 	 * Returns transient Tracing Data.
@@ -246,22 +266,58 @@ protected:
 	 *
 	 * @param TraceStart	Value to be used as Custom Trace Start.
 	 */
-	UFUNCTION(BlueprintCallable, Category="Interaction")
-	virtual void SetCustomTraceStart(FTransform TraceStart);
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Interaction|Tracing")
+	void SetCustomTraceStart(const FTransform& TraceStart);
+	virtual void SetCustomTraceStart_Implementation(const FTransform& TraceStart);
+	
 	/**
 	 * Returns current Custom Trace Start value.
 	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual FTransform GetCustomTraceStart() const;
+
+protected:
+
+	UFUNCTION(Server, Reliable)
+	void DisableTracing_Server();
+	UFUNCTION(Server, Reliable)
+	void EnableTracing_Server();
+	UFUNCTION(Server, Reliable)
+	void PauseTracing_Server();
+	UFUNCTION(Server, Reliable)
+	void ResumeTracing_Server();
+	
+	UFUNCTION(Server, Reliable)
+	void ProcessTrace_Server();
+
+	UFUNCTION(Server, Unreliable)
+	void SetTraceType_Server(const ETraceType& NewTraceType);
+
+	UFUNCTION(Server, Unreliable)
+	void SetTraceInterval_Server(float NewInterval);
+
+	UFUNCTION(Server, Unreliable)
+	void SetTraceRange_Server(float NewRange);
+
+	UFUNCTION(Server, Unreliable)
+	void SetTraceShapeHalfSize_Server(float NewTraceShapeHalfSize);
+
+	UFUNCTION(Server, Unreliable)
+	void SetUseCustomStartTransform_Server(bool bUse);
+
+	UFUNCTION(Server, Unreliable)
+	void SetCustomTraceStart_Server(const FTransform& TraceStart);
+
+	
 	
 protected:
 	
-	virtual bool CanInteract_Implementation() const override;
 	virtual void SetState_Implementation(const EInteractorStateV2 NewState) override;
-	
-	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
-	void OnTraceDataChangedEvent(const FTracingData& NewType, const FTracingData& OldType);
 
+	virtual void ProcessStateChanges() override;
+
+#pragma region Variables
+	
 protected:
 	
 	/**
@@ -330,6 +386,10 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category="Interaction|Read Only")
 	FTimerHandle Timer_Ticking;
 
+#pragma endregion
+
+#pragma region Events
+	
 protected:
 
 	/**
@@ -345,6 +405,8 @@ protected:
 	UPROPERTY(BlueprintAssignable, Category="Interaction")
 	FOnTraced																OnTraced;
 
+#pragma endregion
+	
 #if WITH_EDITOR
 
 protected:

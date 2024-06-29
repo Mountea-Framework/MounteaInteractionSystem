@@ -567,7 +567,7 @@ void UActorInteractorComponentBase::SetState_Implementation(const EInteractorSta
 					case EInteractorStateV2::EIS_Suppressed:
 					case EInteractorStateV2::EIS_Active:
 						InteractorState = NewState;
-						OnStateChanged.Broadcast(InteractorState);
+						ProcessStateChanges();
 						break;
 					case EInteractorStateV2::EIS_Awake:
 					case EInteractorStateV2::Default:
@@ -582,7 +582,7 @@ void UActorInteractorComponentBase::SetState_Implementation(const EInteractorSta
 					case EInteractorStateV2::EIS_Active:
 					case EInteractorStateV2::EIS_Disabled:
 						InteractorState = NewState;
-						OnStateChanged.Broadcast(InteractorState);
+						ProcessStateChanges();
 						break;
 					case EInteractorStateV2::EIS_Asleep:
 					case EInteractorStateV2::Default:
@@ -596,7 +596,7 @@ void UActorInteractorComponentBase::SetState_Implementation(const EInteractorSta
 					case EInteractorStateV2::EIS_Asleep:
 					case EInteractorStateV2::EIS_Active:
 						InteractorState = NewState;
-						OnStateChanged.Broadcast(InteractorState);
+						ProcessStateChanges();
 						break;
 					case EInteractorStateV2::EIS_Suppressed:
 					case EInteractorStateV2::EIS_Disabled:
@@ -609,7 +609,7 @@ void UActorInteractorComponentBase::SetState_Implementation(const EInteractorSta
 				{
 					case EInteractorStateV2::EIS_Awake:
 						InteractorState = NewState;
-						OnStateChanged.Broadcast(InteractorState);
+						ProcessStateChanges();
 						break;
 					case EInteractorStateV2::EIS_Asleep:
 					case EInteractorStateV2::EIS_Active:
@@ -627,7 +627,7 @@ void UActorInteractorComponentBase::SetState_Implementation(const EInteractorSta
 					case EInteractorStateV2::EIS_Suppressed:
 					case EInteractorStateV2::EIS_Active:
 						InteractorState = NewState;
-						OnStateChanged.Broadcast(InteractorState);
+						ProcessStateChanges();
 						break;
 					case EInteractorStateV2::EIS_Disabled:
 					case EInteractorStateV2::Default:
@@ -806,8 +806,7 @@ void UActorInteractorComponentBase::SetInteractorTag_Server_Implementation(const
 
 void UActorInteractorComponentBase::OnRep_InteractorState()
 {
-	// Client side call
-	OnStateChanged.Broadcast(InteractorState);
+	ProcessStateChanges_Client();
 }
 
 void UActorInteractorComponentBase::OnRep_ActiveInteractable()
@@ -820,6 +819,19 @@ void UActorInteractorComponentBase::OnRep_ActiveInteractable()
 	{
 		OnInteractableLost.Broadcast(ActiveInteractable);
 	}
+}
+
+void UActorInteractorComponentBase::ProcessStateChanges()
+{
+	// Client side call
+	OnStateChanged.Broadcast(InteractorState);
+}
+
+void UActorInteractorComponentBase::ProcessStateChanges_Client()
+{
+	OnStateChanged_Client.Broadcast(InteractorState);
+	
+	ProcessStateChanges();
 }
 
 void UActorInteractorComponentBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

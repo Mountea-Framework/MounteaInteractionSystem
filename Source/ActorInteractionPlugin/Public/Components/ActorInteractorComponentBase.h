@@ -141,6 +141,9 @@ protected:
 	UFUNCTION()
 	void OnRep_ActiveInteractable();
 
+	virtual void ProcessStateChanges();
+	virtual void ProcessStateChanges_Client();
+	
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 public:
@@ -155,52 +158,71 @@ public:
 	 */
 	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Interaction")
 	FInteractableSelected			OnInteractableUpdated;
+	
 	/**
 	 * This event is called once this Interactor finds any Interactable.
 	 * This event might happen for multiple Interactables. Each one is compared and if fit it is fed to OnInteractableSelected.
 	 */
 	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Interaction")
 	FInteractableFound				OnInteractableFound;
+	
 	/**
 	 * This event is called one this Interactor loose its Active Interactable.
 	 */
 	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Interaction")
 	FInteractableLost				OnInteractableLost;
+	
 	/**
 	 * This event should be called once starting the Interaction Action is requested and valid Key is pressed.
 	 */
 	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Interaction")
 	FInteractionKeyPressed		OnInteractionKeyPressed;
+	
 	/**
 	 * This event should be called once stopping the Interaction Action is requested and valid Key is released.
 	 */
 	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Interaction")
 	FInteractionKeyReleased	OnInteractionKeyReleased;
+	
 	/**
 	 * This event is called once SetState function sets new State.
 	 */
 	UPROPERTY(BlueprintAssignable, Category="Interaction")
 	FStateChanged					OnStateChanged;
+	
+	/**
+	 * This event is called once SetState function sets new State.
+	 * This Event is called on Clients only!
+	 *
+	 * Servers purpose of driving Client only data, like UI.
+	 */
+	UPROPERTY(BlueprintAssignable, Category="Interaction")
+	FStateChanged					OnStateChanged_Client;
+	
 	/**
 	 * This event is called once SetResponseChannel set new Collision Channel.
 	 */
 	UPROPERTY(BlueprintAssignable, Category="Interaction")
 	FCollisionChanged				OnCollisionChanged;
+	
 	/**
 	 * This event is called once ToggleAutoActivate sets new value.
 	 */
 	UPROPERTY(BlueprintAssignable, Category="Interaction")
 	FAutoActivateChanged		OnAutoActivateChanged;
+	
 	/**
 	 * This event is called once Ignored Actor is successfully added to List of Ignored Actors. 
 	 */
 	UPROPERTY(BlueprintAssignable, Category="Interaction")
 	FIgnoredActorAdded			OnIgnoredActorAdded;
+	
 	/**
 	 * This event is called once Ignored Actor is successfully removed from List of Ignored Actors. 
 	 */
 	UPROPERTY(BlueprintAssignable, Category="Interaction")
 	FIgnoredActorRemoved		OnIgnoredActorRemoved;
+	
 	/**
 	 * This event is called once Interactor's GameplayTag has changed.
 	 */

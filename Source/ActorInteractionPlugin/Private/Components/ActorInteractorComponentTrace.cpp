@@ -27,8 +27,6 @@ UActorInteractorComponentTrace::UActorInteractorComponentTrace() :
 
 void UActorInteractorComponentTrace::BeginPlay()
 {
-	OnTraceDataChanged.AddUniqueDynamic(this, &UActorInteractorComponentTrace::OnTraceDataChangedEvent);
-
 	{
 		FTracingData NewData;
 		NewData.TracingType = TraceType;
@@ -44,18 +42,39 @@ void UActorInteractorComponentTrace::BeginPlay()
 	Super::BeginPlay();
 }
 
-void UActorInteractorComponentTrace::DisableTracing()
+void UActorInteractorComponentTrace::DisableTracing_Implementation()
 {
-	if (GetWorld())
+	if (!GetOwner())
 	{
-		GetWorld()->GetTimerManager().ClearTimer(Timer_Ticking);
+		LOG_ERROR(TEXT("[EnableTracing] No owner!"));
+		return;
+	}
+
+	if (GetOwner()->HasAuthority())
+	{
+		if (GetWorld())
+		{
+			GetWorld()->GetTimerManager().ClearTimer(Timer_Ticking);
+		}
+	}
+	else
+	{
+		DisableTracing_Server();
 	}
 }
 
-void UActorInteractorComponentTrace::EnableTracing()
+void UActorInteractorComponentTrace::EnableTracing_Implementation()
 {
-	switch (Execute_GetState(this))
+	if (!GetOwner())
 	{
+		LOG_ERROR(TEXT("[EnableTracing] No owner!"));
+		return;
+	}
+
+	if (GetOwner()->HasAuthority())
+	{
+		switch (Execute_GetState(this))
+		{
 		case EInteractorStateV2::EIS_Awake:
 		case EInteractorStateV2::EIS_Active:
 			break;
@@ -64,82 +83,121 @@ void UActorInteractorComponentTrace::EnableTracing()
 		case EInteractorStateV2::EIS_Disabled:
 		case EInteractorStateV2::Default: 
 		default:
-			LOG_WARNING(TEXT("[EnableTracing] Tracing not allowed for this state!"))
+			LOG_WARNING(TEXT("[EnableTracing] Tracing not allowed for this state!"));
 			return;
-	}
-	
-	if (GetWorld())
-	{
-		if(GetWorld()->GetTimerManager().IsTimerPaused(Timer_Ticking))
-		{
-			GetWorld()->GetTimerManager().UnPauseTimer(Timer_Ticking);
 		}
-		else
-		{
-			FTimerDelegate Delegate;
-			Delegate.BindUObject(this, &UActorInteractorComponentTrace::ProcessTrace);
-			
-			GetWorld()->GetTimerManager().SetTimer(Timer_Ticking, Delegate, FMath::Max(0.01f, TraceInterval), false);
-		}
-	}
-}
-
-void UActorInteractorComponentTrace::PauseTracing()
-{
-	if (GetWorld())
-	{
-		GetWorld()->GetTimerManager().PauseTimer(Timer_Ticking);
-	}
-}
-
-void UActorInteractorComponentTrace::ResumeTracing()
-{
-	EnableTracing();
-}
-
-void UActorInteractorComponentTrace::ProcessTrace()
-{
-	if (!CanTrace())
-	{
-		DisableTracing();
-	}
-	
-	Execute_AddIgnoredActor(this, GetOwner());
-	
-	FInteractionTraceDataV2 TraceData;
-	{
-		TraceData.CollisionChannel = Execute_GetResponseChannel(this);
-	
-		TraceData.CollisionParams.AddIgnoredActors(ListOfIgnoredActors);
-		TraceData.CollisionParams.MobilityType = EQueryMobilityType::Any;
-		TraceData.CollisionParams.bReturnPhysicalMaterial = true;
-	
-		FVector DirectionVector;
-		if (bUseCustomStartTransform)
-		{
-			TraceData.StartLocation = CustomTraceTransform.GetLocation();
-			TraceData.TraceRotation = CustomTraceTransform.GetRotation().Rotator();
-			DirectionVector = UKismetMathLibrary::GetForwardVector(TraceData.TraceRotation);
-			TraceData.EndLocation = (DirectionVector * TraceRange) + CustomTraceTransform.GetLocation();
-		}
-		else
-		{
-			GetOwner()->GetActorEyesViewPoint(TraceData.StartLocation, TraceData.TraceRotation);
 		
-			DirectionVector = UKismetMathLibrary::GetForwardVector(TraceData.TraceRotation);
-			TraceData.EndLocation = (DirectionVector * TraceRange) + TraceData.StartLocation;
+		if (GetWorld())
+		{
+			if(GetWorld()->GetTimerManager().IsTimerPaused(Timer_Ticking))
+			{
+				GetWorld()->GetTimerManager().UnPauseTimer(Timer_Ticking);
+			}
+			else
+			{
+				FTimerDelegate Delegate;
+				Delegate.BindUObject(this, &UActorInteractorComponentTrace::ProcessTrace);
+				
+				GetWorld()->GetTimerManager().SetTimer(Timer_Ticking, Delegate, FMath::Max(0.01f, TraceInterval), false);
+			}
 		}
 	}
+	else
+	{
+		EnableTracing_Server();
+	}
+}
+
+void UActorInteractorComponentTrace::PauseTracing_Implementation()
+{
+	if (!GetOwner())
+	{
+		LOG_ERROR(TEXT("[PauseTracing] No owner!"));
+		return;
+	}
+
+	if (GetOwner()->HasAuthority())
+	{
+		if (GetWorld())
+		{
+			GetWorld()->GetTimerManager().PauseTimer(Timer_Ticking);
+		}
+	}
+	else
+	{
+		PauseTracing_Server();
+	}
+}
+
+void UActorInteractorComponentTrace::ResumeTracing_Implementation()
+{
+	if (!GetOwner())
+	{
+		LOG_ERROR(TEXT("[ResumeTracing] No owner!"));
+		return;
+	}
+
+	if (GetOwner()->HasAuthority())
+	{
+		EnableTracing();
+	}
+	else
+	{
+		ResumeTracing_Server();
+	}
+}
+
+void UActorInteractorComponentTrace::ProcessTrace_Implementation()
+{
+	if (!GetOwner())
+	{
+		LOG_ERROR(TEXT("[ProcessTrace] Now Owner!"))
+		return;
+	}
+
+	if (GetOwner()->HasAuthority())
+	{
+		if (!CanTrace())
+		{
+			DisableTracing();
+		}
+	
+		Execute_AddIgnoredActor(this, GetOwner());
+	
+		FInteractionTraceDataV2 TraceData;
+		{
+			TraceData.CollisionChannel = Execute_GetResponseChannel(this);
+	
+			TraceData.CollisionParams.AddIgnoredActors(ListOfIgnoredActors);
+			TraceData.CollisionParams.MobilityType = EQueryMobilityType::Any;
+			TraceData.CollisionParams.bReturnPhysicalMaterial = true;
+	
+			FVector DirectionVector;
+			if (bUseCustomStartTransform)
+			{
+				TraceData.StartLocation = CustomTraceTransform.GetLocation();
+				TraceData.TraceRotation = CustomTraceTransform.GetRotation().Rotator();
+				DirectionVector = UKismetMathLibrary::GetForwardVector(TraceData.TraceRotation);
+				TraceData.EndLocation = (DirectionVector * TraceRange) + CustomTraceTransform.GetLocation();
+			}
+			else
+			{
+				GetOwner()->GetActorEyesViewPoint(TraceData.StartLocation, TraceData.TraceRotation);
+		
+				DirectionVector = UKismetMathLibrary::GetForwardVector(TraceData.TraceRotation);
+				TraceData.EndLocation = (DirectionVector * TraceRange) + TraceData.StartLocation;
+			}
+		}
 
 #if WITH_EDITOR
-	if(DebugSettings.DebugMode)
-	{
-		DrawTracingDebugStart(TraceData);
-	}
+		if(DebugSettings.DebugMode)
+		{
+			DrawTracingDebugStart(TraceData);
+		}
 #endif
 	
-	switch (TraceType)
-	{
+		switch (TraceType)
+		{
 		case ETraceType::ETT_Precise:
 			ProcessTrace_Precise(TraceData);
 			break;
@@ -148,87 +206,92 @@ void UActorInteractorComponentTrace::ProcessTrace()
 			break;
 		case ETraceType::Default:
 		default: break;
-	}
+		}
 
-	bool bAnyInteractable = false;
-	bool bFoundActiveAgain = false;
+		bool bAnyInteractable = false;
+		bool bFoundActiveAgain = false;
 	
-	FHitResult BestHitResult;
-	TScriptInterface<IActorInteractableInterface> BestInteractable = nullptr;
+		FHitResult BestHitResult;
+		TScriptInterface<IActorInteractableInterface> BestInteractable = nullptr;
 	
-	for (FHitResult& HitResult : TraceData.HitResults)
-	{
-		if (HitResult.GetComponent() == nullptr) continue;
-		if (const AActor* HitActor = HitResult.GetActor())
+		for (FHitResult& HitResult : TraceData.HitResults)
 		{
-			auto InteractableComponents = HitActor->GetComponentsByInterface(UActorInteractableInterface::StaticClass());
-			for (const auto& Itr : InteractableComponents)
+			if (HitResult.GetComponent() == nullptr) continue;
+			if (const AActor* HitActor = HitResult.GetActor())
 			{
-				if (Itr && Itr->Implements<UActorInteractableInterface>())
+				auto InteractableComponents = HitActor->GetComponentsByInterface(UActorInteractableInterface::StaticClass());
+				for (const auto& Itr : InteractableComponents)
 				{
-					TScriptInterface<IActorInteractableInterface> Interactable = Itr;
-					Interactable.SetObject(Itr);
-					Interactable.SetInterface(Cast<IActorInteractableInterface>(Itr));
-
-					const bool bCanTraceWith =
-					(
-						Interactable->Execute_GetCollisionComponents(Interactable.GetObject()).Contains(HitResult.GetComponent()) &&
-						Interactable->Execute_GetCollisionChannel(Interactable.GetObject()) == Execute_GetResponseChannel(this) &&
-						Interactable->Execute_CanBeTriggered(Interactable.GetObject())
-					);
-					
-					if (bCanTraceWith)
+					if (Itr && Itr->Implements<UActorInteractableInterface>())
 					{
-						bAnyInteractable = true;
+						TScriptInterface<IActorInteractableInterface> Interactable = Itr;
+						Interactable.SetObject(Itr);
+						Interactable.SetInterface(Cast<IActorInteractableInterface>(Itr));
 
-						if (Interactable == Execute_GetActiveInteractable(this))
+						const bool bCanTraceWith =
+						(
+							Interactable->Execute_GetCollisionComponents(Interactable.GetObject()).Contains(HitResult.GetComponent()) &&
+							Interactable->Execute_GetCollisionChannel(Interactable.GetObject()) == Execute_GetResponseChannel(this) &&
+							Interactable->Execute_CanBeTriggered(Interactable.GetObject())
+						);
+					
+						if (bCanTraceWith)
 						{
-							bFoundActiveAgain = true;
-						}
+							bAnyInteractable = true;
 
-						if (BestInteractable.GetObject() == nullptr)
-						{
-							BestInteractable = Interactable;
-							BestHitResult = HitResult;
-						}
-						else
-						{
-							if (Interactable->Execute_GetInteractableWeight(Interactable.GetObject()) > BestInteractable->Execute_GetInteractableWeight(BestInteractable.GetObject()))
+							if (Interactable == Execute_GetActiveInteractable(this))
+							{
+								bFoundActiveAgain = true;
+							}
+
+							if (BestInteractable.GetObject() == nullptr)
 							{
 								BestInteractable = Interactable;
 								BestHitResult = HitResult;
+							}
+							else
+							{
+								if (Interactable->Execute_GetInteractableWeight(Interactable.GetObject()) > BestInteractable->Execute_GetInteractableWeight(BestInteractable.GetObject()))
+								{
+									BestInteractable = Interactable;
+									BestHitResult = HitResult;
+								}
 							}
 						}
 					}
 				}
 			}
 		}
-	}
 		
-	if (bAnyInteractable == false)
-	{
-		OnInteractableLost.Broadcast(Execute_GetActiveInteractable(this));
-	}
-	else if (bFoundActiveAgain == false)
-	{
-		OnInteractableLost.Broadcast(Execute_GetActiveInteractable(this));
-	}
+		if (bAnyInteractable == false)
+		{
+			OnInteractableLost.Broadcast(Execute_GetActiveInteractable(this));
+		}
+		else if (bFoundActiveAgain == false)
+		{
+			OnInteractableLost.Broadcast(Execute_GetActiveInteractable(this));
+		}
 	
-	if (bAnyInteractable)
-	{
-		BestInteractable->GetOnInteractorTracedHandle().Broadcast(BestHitResult.GetComponent(), GetOwner(), nullptr, BestHitResult.Location, BestHitResult);
-	}
+		if (bAnyInteractable)
+		{
+			BestInteractable->GetOnInteractorTracedHandle().Broadcast(BestHitResult.GetComponent(), GetOwner(), nullptr, BestHitResult.Location, BestHitResult);
+		}
 
 #if WITH_EDITOR
-	if (DebugSettings.DebugMode)
-	{
-		DrawTracingDebugEnd(TraceData);
-	}
+		if (DebugSettings.DebugMode)
+		{
+			DrawTracingDebugEnd(TraceData);
+		}
 #endif
 
-	OnTraced.Broadcast();
+		OnTraced.Broadcast();
 	
-	ResumeTracing();
+		ResumeTracing();
+	}
+	else
+	{
+		ProcessTrace_Server();
+	}
 }
 
 void UActorInteractorComponentTrace::ProcessTrace_Precise(FInteractionTraceDataV2& InteractionTraceData)
@@ -259,7 +322,7 @@ void UActorInteractorComponentTrace::ProcessTrace_Loose(FInteractionTraceDataV2&
 	);
 }
 
-bool UActorInteractorComponentTrace::CanTrace() const
+bool UActorInteractorComponentTrace::CanTrace_Implementation() const
 {
 	return Execute_CanInteract(this);
 }
@@ -267,108 +330,213 @@ bool UActorInteractorComponentTrace::CanTrace() const
 ETraceType UActorInteractorComponentTrace::GetTraceType() const
 { return TraceType; }
 
-void UActorInteractorComponentTrace::SetTraceType(const ETraceType& NewTraceType)
+void UActorInteractorComponentTrace::SetTraceType_Implementation(const ETraceType& NewTraceType)
 {
-	const FTracingData OldData = GetLastTracingData();
-	FTracingData NewData = GetLastTracingData();
-	NewData.TracingType = NewTraceType;
+	if (!GetOwner())
+	{
+		LOG_ERROR(TEXT("[SetTraceType] No owner!"));
+		return;
+	}
 
-	LastTracingData = NewData;
-	
-	TraceType = NewTraceType;
-	OnTraceDataChanged.Broadcast(NewData, OldData);
+	if (GetOwner()->HasAuthority())
+	{
+		const FTracingData OldData = GetLastTracingData();
+		FTracingData NewData = GetLastTracingData();
+		NewData.TracingType = NewTraceType;
+
+		LastTracingData = NewData;
+		
+		TraceType = NewTraceType;
+		OnTraceDataChanged.Broadcast(NewData, OldData);
+	}
+	else
+	{
+		SetTraceType_Server(NewTraceType);
+	}
 }
 
 float UActorInteractorComponentTrace::GetTraceInterval() const
 { return TraceInterval; }
 
-void UActorInteractorComponentTrace::SetTraceInterval(const float NewInterval)
+void UActorInteractorComponentTrace::SetTraceInterval_Implementation(const float NewInterval)
 {
-	const FTracingData OldData = GetLastTracingData();
-	FTracingData NewData = GetLastTracingData();
-	NewData.TracingInterval = FMath::Max(0.01f, NewInterval);
+	if (!GetOwner())
+	{
+		LOG_ERROR(TEXT("[SetTraceInterval] No owner!"));
+		return;
+	}
 
-	LastTracingData = NewData;
-	
-	TraceInterval = NewData.TracingInterval;
-	OnTraceDataChanged.Broadcast(NewData, OldData);
+	if (GetOwner()->HasAuthority())
+	{
+		const FTracingData OldData = GetLastTracingData();
+		FTracingData NewData = GetLastTracingData();
+		NewData.TracingInterval = FMath::Max(0.01f, NewInterval);
+
+		LastTracingData = NewData;
+		
+		TraceInterval = NewData.TracingInterval;
+		OnTraceDataChanged.Broadcast(NewData, OldData);
+	}
+	else
+	{
+		SetTraceInterval_Server(NewInterval);
+	}
 }
 
 float UActorInteractorComponentTrace::GetTraceRange() const
 { return TraceRange; }
 
-void UActorInteractorComponentTrace::SetTraceRange(const float NewRange)
+void UActorInteractorComponentTrace::SetTraceRange_Implementation(const float NewRange)
 {
-	const FTracingData OldData = GetLastTracingData();
-	FTracingData NewData = GetLastTracingData();
-	NewData.TracingRange = FMath::Max(1.f, NewRange);
+	if (!GetOwner())
+	{
+		LOG_ERROR(TEXT("[SetTraceRange] No owner!"));
+		return;
+	}
 
-	LastTracingData = NewData;
-	
-	TraceRange = NewData.TracingRange;
-	OnTraceDataChanged.Broadcast(NewData, OldData);
+	if (GetOwner()->HasAuthority())
+	{
+		const FTracingData OldData = GetLastTracingData();
+		FTracingData NewData = GetLastTracingData();
+		NewData.TracingRange = FMath::Max(1.f, NewRange);
+
+		LastTracingData = NewData;
+		
+		TraceRange = NewData.TracingRange;
+		OnTraceDataChanged.Broadcast(NewData, OldData);
+	}
+	else
+	{
+		SetTraceRange_Server(NewRange);
+	}
 }
 
 float UActorInteractorComponentTrace::GetTraceShapeHalfSize() const
 { return TraceShapeHalfSize; }
 
-void UActorInteractorComponentTrace::SetTraceShapeHalfSize(const float NewTraceShapeHalfSize)
+void UActorInteractorComponentTrace::SetTraceShapeHalfSize_Implementation(const float NewTraceShapeHalfSize)
 {
-	const FTracingData OldData = GetLastTracingData();
-	FTracingData NewData = GetLastTracingData();
-	NewData.TracingShapeHalfSize = FMath::Max(0.1f, NewTraceShapeHalfSize);
+	if (!GetOwner())
+	{
+		LOG_ERROR(TEXT("[SetTraceShapeHalfSize] No owner!"));
+		return;
+	}
 
-	LastTracingData = NewData;
-	
-	TraceShapeHalfSize = NewData.TracingShapeHalfSize;
-	OnTraceDataChanged.Broadcast(NewData, OldData);
+	if (GetOwner()->HasAuthority())
+	{
+		const FTracingData OldData = GetLastTracingData();
+		FTracingData NewData = GetLastTracingData();
+		NewData.TracingShapeHalfSize = FMath::Max(0.1f, NewTraceShapeHalfSize);
+
+		LastTracingData = NewData;
+		
+		TraceShapeHalfSize = NewData.TracingShapeHalfSize;
+		OnTraceDataChanged.Broadcast(NewData, OldData);
+	}
+	else
+	{
+		SetTraceShapeHalfSize_Server(NewTraceShapeHalfSize);
+	}
 }
 
 bool UActorInteractorComponentTrace::GetUseCustomStartTransform() const
 { return bUseCustomStartTransform; }
 
-void UActorInteractorComponentTrace::SetUseCustomStartTransform(const bool bUse)
+void UActorInteractorComponentTrace::SetUseCustomStartTransform_Implementation(const bool bUse)
 {
-	const FTracingData OldData = GetLastTracingData();
-	FTracingData NewData = GetLastTracingData();
-	NewData.bUsingCustomStartTransform = bUse;
-	
-	bUseCustomStartTransform = bUse;
+	if (!GetOwner())
+	{
+		LOG_ERROR(TEXT("[SetUseCustomStartTransform] No owner!"));
+		return;
+	}
 
-	LastTracingData = NewData;
-	OnTraceDataChanged.Broadcast(NewData, OldData);
+	if (GetOwner()->HasAuthority())
+	{
+		const FTracingData OldData = GetLastTracingData();
+		FTracingData NewData = GetLastTracingData();
+		NewData.bUsingCustomStartTransform = bUse;
+		
+		bUseCustomStartTransform = bUse;
+
+		LastTracingData = NewData;
+		OnTraceDataChanged.Broadcast(NewData, OldData);
+	}
+	else
+	{
+		SetUseCustomStartTransform_Server(bUse);
+	}
 }
 
 FTracingData UActorInteractorComponentTrace::GetLastTracingData() const
 { return LastTracingData; }
 
-void UActorInteractorComponentTrace::SetCustomTraceStart(const FTransform TraceStart)
+void UActorInteractorComponentTrace::SetCustomTraceStart_Implementation(const FTransform& TraceStart)
 {
-	if (bUseCustomStartTransform)
+	if (!GetOwner())
 	{
-		const FTracingData OldData = GetLastTracingData();
-		FTracingData NewData = GetLastTracingData();
-		NewData.CustomTracingTransform = TraceStart;
-		
-		CustomTraceTransform = TraceStart;
+		LOG_ERROR(TEXT("[SetCustomTraceStart] No owner!"));
+		return;
+	}
 
-		LastTracingData = NewData;
-		OnTraceDataChanged.Broadcast(NewData, OldData);
+	if (GetOwner()->HasAuthority())
+	{
+		if (bUseCustomStartTransform)
+		{
+			const FTracingData OldData = GetLastTracingData();
+			FTracingData NewData = GetLastTracingData();
+			NewData.CustomTracingTransform = TraceStart;
+			
+			CustomTraceTransform = TraceStart;
+
+			LastTracingData = NewData;
+			OnTraceDataChanged.Broadcast(NewData, OldData);
+		}
+	}
+	else
+	{
+		SetCustomTraceStart_Server(TraceStart);
 	}
 }
 
 FTransform UActorInteractorComponentTrace::GetCustomTraceStart() const
 { return CustomTraceTransform; }
 
-bool UActorInteractorComponentTrace::CanInteract_Implementation() const
+void UActorInteractorComponentTrace::SetTraceType_Server_Implementation(const ETraceType& NewTraceType)
 {
-	return Super::CanInteract_Implementation();
+	SetTraceType(NewTraceType);
+}
+
+
+void UActorInteractorComponentTrace::SetTraceInterval_Server_Implementation(float NewInterval)
+{
+	SetTraceInterval(NewInterval);
+}
+
+void UActorInteractorComponentTrace::SetTraceRange_Server_Implementation(float NewRange)
+{
+	SetTraceRange(NewRange);
+}
+
+void UActorInteractorComponentTrace::SetTraceShapeHalfSize_Server_Implementation(float NewTraceShapeHalfSize)
+{
+	SetTraceShapeHalfSize(NewTraceShapeHalfSize);
+}
+
+void UActorInteractorComponentTrace::SetUseCustomStartTransform_Server_Implementation(bool bUse)
+{
+	SetUseCustomStartTransform(bUse);
+}
+
+void UActorInteractorComponentTrace::SetCustomTraceStart_Server_Implementation(const FTransform& TraceStart)
+{
+	SetCustomTraceStart(TraceStart);
 }
 
 void UActorInteractorComponentTrace::SetState_Implementation(const EInteractorStateV2 NewState)
 {
 	Super::SetState_Implementation(NewState);
 
+	/*
 	if (GetWorld())
 	{
 		switch (Execute_GetState(this))
@@ -389,6 +557,55 @@ void UActorInteractorComponentTrace::SetState_Implementation(const EInteractorSt
 				break;
 		}
 	}
+	*/
+}
+
+void UActorInteractorComponentTrace::ProcessStateChanges()
+{
+	Super::ProcessStateChanges();
+
+	switch (Execute_GetState(this))
+	{
+		case EInteractorStateV2::EIS_Asleep:
+		case EInteractorStateV2::EIS_Disabled:
+		case EInteractorStateV2::EIS_Suppressed:
+			DisableTracing();
+			break;
+		case EInteractorStateV2::EIS_Awake:
+			EnableTracing();
+			break;
+		case EInteractorStateV2::EIS_Active:
+			EnableTracing();
+			break;
+		case EInteractorStateV2::Default:
+		default:
+			break;
+	}
+}
+
+void UActorInteractorComponentTrace::DisableTracing_Server_Implementation()
+{
+	DisableTracing();
+}
+
+void UActorInteractorComponentTrace::EnableTracing_Server_Implementation()
+{
+	EnableTracing();
+}
+
+void UActorInteractorComponentTrace::PauseTracing_Server_Implementation()
+{
+	PauseTracing();
+}
+
+void UActorInteractorComponentTrace::ResumeTracing_Server_Implementation()
+{
+	ResumeTracing();
+}
+
+void UActorInteractorComponentTrace::ProcessTrace_Server_Implementation()
+{
+	ProcessTrace();
 }
 
 #if WITH_EDITOR
