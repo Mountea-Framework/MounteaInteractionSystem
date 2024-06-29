@@ -20,7 +20,7 @@
 #include "Utilities/ActorInteractionEditorUtilities.h"
 
 #include "ToolMenus.h"
-#include "Helpers/ActorInteractionPluginLog.h"
+#include "Helpers/MounteaInteractionSystemEditorLog.h"
 
 #include "Interfaces/IMainFrameModule.h"
 
@@ -186,7 +186,7 @@ void FActorInteractionPluginEditor::HandleNewInteractorBlueprintCreated(UBluepri
 	UEdGraph* FunctionGraph = FActorInteractionEditorUtilities::BlueprintGetOrAddFunction
 	(
 		Blueprint,
-		GET_FUNCTION_NAME_CHECKED(UActorInteractorComponentBase, CanInteractEvent),
+		GET_FUNCTION_NAME_CHECKED(UActorInteractorComponentBase, CanInteract),
 		UActorInteractorComponentBase::StaticClass()
 	);
 	if (FunctionGraph)
@@ -209,7 +209,7 @@ void FActorInteractionPluginEditor::HandleNewInteractableBlueprintCreated(UBluep
 	UEdGraph* FunctionGraph = FActorInteractionEditorUtilities::BlueprintGetOrAddFunction
 	(
 		Blueprint,
-		GET_FUNCTION_NAME_CHECKED(UActorInteractableComponentBase, CanInteractEvent),
+		GET_FUNCTION_NAME_CHECKED(UActorInteractableComponentBase, CanInteract),
 		UActorInteractableComponentBase::StaticClass()
 	);
 	

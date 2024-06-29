@@ -17,18 +17,13 @@ UActorInteractableComponentHold::UActorInteractableComponentHold()
 	InteractableName = LOCTEXT("InteractableComponentHold", "Hold");
 }
 
-void UActorInteractableComponentHold::BeginPlay()
+void UActorInteractableComponentHold::InteractionStarted_Implementation(const float& TimeStarted, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
 {
-	Super::BeginPlay();
-}
-
-void UActorInteractableComponentHold::InteractionStarted(const float& TimeStarted, const FKey& PressedKey, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
-{
-	Super::InteractionStarted(TimeStarted, PressedKey, CausingInteractor);
+	Super::InteractionStarted_Implementation(TimeStarted, CausingInteractor);
 	
 	if (!GetWorld()) return;
 	
-	if (CanInteract())
+	if (Execute_CanInteract(this))
 	{
 		// Force Interaction Period to be at least 0.1s
 		const float TempInteractionPeriod = FMath::Max(0.1f, InteractionPeriod);
@@ -54,31 +49,6 @@ void UActorInteractableComponentHold::InteractionStarted(const float& TimeStarte
 	}
 }
 
-void UActorInteractableComponentHold::InteractionStopped(const float& TimeStarted, const FKey& PressedKey, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
-{
-	Super::InteractionStopped(TimeStarted, PressedKey, CausingInteractor);
-}
-
-void UActorInteractableComponentHold::InteractionCanceled()
-{
-	Super::InteractionCanceled();
-}
-
-void UActorInteractableComponentHold::InteractorFound(const TScriptInterface<IActorInteractorInterface>& FoundInteractor)
-{
-	Super::InteractorFound(FoundInteractor);
-}
-
-void UActorInteractableComponentHold::InteractorLost(const TScriptInterface<IActorInteractorInterface>& LostInteractor)
-{
-	Super::InteractorLost(LostInteractor);
-}
-
-float UActorInteractableComponentHold::GetInteractionProgress() const
-{
-	return Super::GetInteractionProgress();
-}
-
 void UActorInteractableComponentHold::OnInteractionCompletedCallback()
 {
 	if (!GetWorld())
@@ -87,10 +57,10 @@ void UActorInteractableComponentHold::OnInteractionCompletedCallback()
 		return;
 	}
 
-	ToggleWidgetVisibility(false);
+	Execute_ToggleWidgetVisibility(this, false);
 	if (LifecycleMode == EInteractableLifecycle::EIL_Cycled)
 	{
-		if (TriggerCooldown()) return;
+		if (Execute_TriggerCooldown(this)) return;
 	}
 	
 	OnInteractionCompleted.Broadcast(GetWorld()->GetTimeSeconds(), GetInteractor());

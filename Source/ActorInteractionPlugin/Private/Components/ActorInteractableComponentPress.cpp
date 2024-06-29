@@ -9,7 +9,6 @@
 
 #define LOCTEXT_NAMESPACE "InteractableComponentPress"
 
-// Sets default values for this component's properties
 UActorInteractableComponentPress::UActorInteractableComponentPress()
 {
 	bInteractionHighlight = true;
@@ -22,20 +21,20 @@ void UActorInteractableComponentPress::BeginPlay()
 {
 	Super::BeginPlay();
 
-	SetInteractionPeriod(-1.f);
+	Execute_SetInteractionPeriod(this, -1.f);
 	
 	Timer_Interaction.Invalidate();
 }
 
-void UActorInteractableComponentPress::InteractionStarted(const float& TimeStarted, const FKey& PressedKey, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
+void UActorInteractableComponentPress::InteractionStarted_Implementation(const float& TimeStarted, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
 {
-	Super::InteractionStarted(TimeStarted, PressedKey, CausingInteractor);
+	Super::InteractionStarted_Implementation(TimeStarted, CausingInteractor);
 	
-	if (CanInteract())
+	if (Execute_CanInteract(this))
 	{
 		if (LifecycleMode == EInteractableLifecycle::EIL_Cycled)
 		{
-			if (TriggerCooldown()) return;
+			if (Execute_TriggerCooldown(this)) return;
 		}
 		
 		OnInteractionCompleted.Broadcast(TimeStarted, CausingInteractor);
