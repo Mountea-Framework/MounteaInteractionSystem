@@ -9,6 +9,7 @@
 #include "TimerManager.h"
 #include "Helpers/ActorInteractionPluginLog.h"
 #include "Helpers/InteractionHelpers.h"
+#include "Net/UnrealNetwork.h"
 
 #if WITH_EDITOR
 #include "EditorHelper.h"
@@ -284,7 +285,9 @@ void UActorInteractorComponentTrace::ProcessTrace_Implementation()
 		}
 #endif
 
-		OnTraced.Broadcast();
+		// Update Client
+		PostTraced_Client();
+		PostTraced();
 	
 		ResumeTracing();
 	}
@@ -501,6 +504,11 @@ void UActorInteractorComponentTrace::SetCustomTraceStart_Implementation(const FT
 FTransform UActorInteractorComponentTrace::GetCustomTraceStart() const
 { return CustomTraceTransform; }
 
+void UActorInteractorComponentTrace::PostTraced_Implementation()
+{
+	OnTraced.Broadcast();
+}
+
 void UActorInteractorComponentTrace::SetTraceType_Server_Implementation(const ETraceType& NewTraceType)
 {
 	SetTraceType(NewTraceType);
@@ -530,6 +538,11 @@ void UActorInteractorComponentTrace::SetUseCustomStartTransform_Server_Implement
 void UActorInteractorComponentTrace::SetCustomTraceStart_Server_Implementation(const FTransform& TraceStart)
 {
 	SetCustomTraceStart(TraceStart);
+}
+
+void UActorInteractorComponentTrace::PostTraced_Client_Implementation()
+{
+	PostTraced();
 }
 
 void UActorInteractorComponentTrace::SetState_Implementation(const EInteractorStateV2 NewState)
@@ -581,6 +594,18 @@ void UActorInteractorComponentTrace::ProcessStateChanges()
 		default:
 			break;
 	}
+}
+
+void UActorInteractorComponentTrace::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME_CONDITION(UActorInteractorComponentTrace, TraceType,									COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(UActorInteractorComponentTrace, TraceInterval,								COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(UActorInteractorComponentTrace, TraceRange,									COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(UActorInteractorComponentTrace, TraceShapeHalfSize,					COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(UActorInteractorComponentTrace, bUseCustomStartTransform,		COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(UActorInteractorComponentTrace, CustomTraceTransform,				COND_OwnerOnly);
 }
 
 void UActorInteractorComponentTrace::DisableTracing_Server_Implementation()

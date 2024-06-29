@@ -276,6 +276,16 @@ protected:
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	virtual FTransform GetCustomTraceStart() const;
 
+	/**
+	 * Function called after Trace has finished.
+	 * Could be called Twice:
+	 * * On Client
+	 * * On Server
+	 */
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Interaction|Tracing")
+	void PostTraced();
+	virtual void PostTraced_Implementation();
+
 protected:
 
 	UFUNCTION(Server, Reliable)
@@ -308,13 +318,16 @@ protected:
 	UFUNCTION(Server, Unreliable)
 	void SetCustomTraceStart_Server(const FTransform& TraceStart);
 
-	
+	UFUNCTION(Client, Unreliable)
+	void PostTraced_Client();
 	
 protected:
 	
 	virtual void SetState_Implementation(const EInteractorStateV2 NewState) override;
 
 	virtual void ProcessStateChanges() override;
+
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 #pragma region Variables
 	
@@ -325,7 +338,7 @@ protected:
 	 * - Loose Tracing is using BoxTrace and does not require precision.
 	 * - Precise Tracing is using LineTrace and requires higher precision. Useful with smaller objects.
 	 */
-	UPROPERTY(EditAnywhere, Category="Interaction|Required")
+	UPROPERTY(Replicated, EditAnywhere, Category="Interaction|Required")
 	ETraceType TraceType;
 	
 	/**
@@ -336,7 +349,7 @@ protected:
 	 * Higher the value, less frequent tracing is and less performance is required.
 	 * Lower the value, more frequent tracing is and more performance is required.
 	 */
-	UPROPERTY(EditAnywhere, Category="Interaction|Required", meta=(Units = "s", UIMin=0.01f, ClampMin=0.01f, DisplayName="Tick Interval (sec)"))
+	UPROPERTY(Replicated,EditAnywhere, Category="Interaction|Required", meta=(Units = "s", UIMin=0.01f, ClampMin=0.01f, DisplayName="Tick Interval (sec)"))
 	float TraceInterval;
 
 	/**
@@ -344,7 +357,7 @@ protected:
 	 * Higher the value, further items can be reached.
 	 * Min value: 0.01cm
 	 */
-	UPROPERTY(EditAnywhere, Category="Interaction|Required", meta=(Units = "cm", UIMin=1, ClampMin=1, DisplayName="Interaction Range (cm)"))
+	UPROPERTY(Replicated,EditAnywhere, Category="Interaction|Required", meta=(Units = "cm", UIMin=1, ClampMin=1, DisplayName="Interaction Range (cm)"))
 	float TraceRange;
 
 	/**
@@ -352,13 +365,13 @@ protected:
 	 * - Higher the value, less precise interaction is.
 	 * - Lower the value, more precise interaction is.
 	 */
-	UPROPERTY(EditAnywhere, Category="Interaction|Required", meta=(Units = "cm", UIMin=0.1f, ClampMin=0.1f))
+	UPROPERTY(Replicated,EditAnywhere, Category="Interaction|Required", meta=(Units = "cm", UIMin=0.1f, ClampMin=0.1f))
 	float TraceShapeHalfSize = 5.0f;
 	
 	/**
 	 * Defines whether Tracing starts at ActorEyesViewPoint (default) or at a given Location.
 	 */
-	UPROPERTY(EditAnywhere, Category="Interaction|Required")
+	UPROPERTY(Replicated,EditAnywhere, Category="Interaction|Required")
 	uint8 bUseCustomStartTransform : 1;
 	
 	/**
@@ -369,7 +382,7 @@ protected:
 	 * Defines where does the Tracing start and what direction it follows.
 	 * Will be ignored if bUseCustomStartTransform is false.
 	 */
-	UPROPERTY(VisibleAnywhere, Category="Interaction|Read Only", AdvancedDisplay, meta=(DisplayName="Trace Start (World Space Transform)"))
+	UPROPERTY(Replicated,VisibleAnywhere, Category="Interaction|Read Only", AdvancedDisplay, meta=(DisplayName="Trace Start (World Space Transform)"))
 	FTransform CustomTraceTransform;
 
 	/**
