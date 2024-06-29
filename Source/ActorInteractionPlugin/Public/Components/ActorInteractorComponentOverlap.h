@@ -25,12 +25,37 @@ public:
 protected:
 
 	virtual void BeginPlay() override;
+
+public:
 	
 	virtual void SetupInteractorOverlap();
 	virtual void BindCollisions();
+	
 	virtual void BindCollision(UPrimitiveComponent* Component);
 	virtual void UnbindCollisions();
 	virtual void UnbindCollision(UPrimitiveComponent* Component);
+
+protected:
+
+	
+
+protected:
+	
+	/**
+	 * 
+	 */
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Interaction|Tracing")
+	void ProcessOverlap(UPrimitiveComponent* OverlappedComponent,AActor* OtherActor, UPrimitiveComponent* OtherComp, const FHitResult& SweepResult, const bool bOverlapStarted);
+	
+	virtual void ProcessOverlap_Implementation(UPrimitiveComponent* OverlappedComponent,AActor* OtherActor, UPrimitiveComponent* OtherComp, const FHitResult& SweepResult, const bool bOverlapStarted);
+
+	UFUNCTION()
+	void StartInteractorOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	UFUNCTION()
+	void StopInteractorOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+	void HandleStartOverlap(UPrimitiveComponent* PrimitiveComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, const FHitResult& HitResult);
+	void HandleEndOverlap(UPrimitiveComponent* PrimitiveComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp);
 
 public:
 	
@@ -91,6 +116,16 @@ protected:
 	UFUNCTION(Server, Unreliable)
 	void RemoveCollisionComponents_Server(const TArray<UPrimitiveComponent*>& CollisionComponents);
 
+	UFUNCTION(Server, Reliable)
+	void ProcessOverlap_Server(UPrimitiveComponent* OverlappedComponent,AActor* OtherActor, UPrimitiveComponent* OtherComp, const FHitResult& SweepResult, const bool bOverlapStarted);
+
+	UFUNCTION(Server, Reliable)
+	void StartInteractorOverlap_Server(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION(Server, Reliable)
+	void StopInteractorOverlap_Server(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+	
 
 public:
 

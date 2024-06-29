@@ -199,14 +199,14 @@ void UActorInteractorComponentTrace::ProcessTrace_Implementation()
 	
 		switch (TraceType)
 		{
-		case ETraceType::ETT_Precise:
-			ProcessTrace_Precise(TraceData);
-			break;
-		case ETraceType::ETT_Loose:
-			ProcessTrace_Loose(TraceData);
-			break;
-		case ETraceType::Default:
-		default: break;
+			case ETraceType::ETT_Precise:
+				ProcessTrace_Precise(TraceData);
+				break;
+			case ETraceType::ETT_Loose:
+				ProcessTrace_Loose(TraceData);
+				break;
+			case ETraceType::Default:
+			default: break;
 		}
 
 		bool bAnyInteractable = false;
@@ -276,6 +276,17 @@ void UActorInteractorComponentTrace::ProcessTrace_Implementation()
 		if (bAnyInteractable)
 		{
 			BestInteractable->GetOnInteractorTracedHandle().Broadcast(BestHitResult.GetComponent(), GetOwner(), nullptr, BestHitResult.Location, BestHitResult);
+
+			// TODO: Move the logic from Interactable here
+			/*
+			if (FoundInteractor->Execute_GetResponseChannel(FoundInteractor.GetObject()) != Execute_GetCollisionChannel(this)) continue;
+			FoundInteractor->GetOnInteractableLostHandle().AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractableLost);
+			FoundInteractor->GetOnInteractableSelectedHandle().AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractableSelected);
+			OnInteractorFound.Broadcast(FoundInteractor);
+			OnInteractorOverlapped.Broadcast(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
+			*/
+
+			OnInteractableFound.Broadcast(BestInteractable);
 		}
 
 #if WITH_EDITOR

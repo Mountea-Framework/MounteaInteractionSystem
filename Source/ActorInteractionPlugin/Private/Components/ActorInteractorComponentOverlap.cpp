@@ -5,6 +5,7 @@
 
 #include "Helpers/ActorInteractionPluginLog.h"
 #include "Helpers/MounteaInteractionSystemBFL.h"
+#include "Interfaces/ActorInteractableInterface.h"
 
 UActorInteractorComponentOverlap::UActorInteractorComponentOverlap()
 {
@@ -36,6 +37,11 @@ void UActorInteractorComponentOverlap::ProcessStateChanges()
 	}	
 }
 
+void UActorInteractorComponentOverlap::ProcessOverlap_Server_Implementation(UPrimitiveComponent* OverlappedComponent,AActor* OtherActor, UPrimitiveComponent* OtherComp, const FHitResult& SweepResult, const bool bOverlapStarted)
+{
+	ProcessOverlap(OverlappedComponent, OtherActor, OtherComp, SweepResult, bOverlapStarted);
+}
+
 void UActorInteractorComponentOverlap::SetupInteractorOverlap()
 {
 	for (auto Itr : OverrideCollisionComponents)
@@ -59,6 +65,8 @@ void UActorInteractorComponentOverlap::BindCollision(UPrimitiveComponent* Compon
 {
 	if (!Component) return;
 
+	// TODO: Bind Overlap and End Overlap here!
+
 	FCollisionShapeCache CachedValues;
 	CachedValues.bGenerateOverlapEvents = Component->GetGenerateOverlapEvents();
 	CachedValues.CollisionEnabled = Component->GetCollisionEnabled();
@@ -68,6 +76,9 @@ void UActorInteractorComponentOverlap::BindCollision(UPrimitiveComponent* Compon
 	
 	Component->SetGenerateOverlapEvents(true);
 	Component->SetCollisionResponseToChannel(CollisionChannel, ECollisionResponse::ECR_Overlap);
+
+	Component->OnComponentBeginOverlap.		AddUniqueDynamic(this, &UActorInteractorComponentOverlap::StartInteractorOverlap);
+	Component->OnComponentEndOverlap.		AddUniqueDynamic(this, &UActorInteractorComponentOverlap::StopInteractorOverlap);
 
 	switch (Component->GetCollisionEnabled())
 	{
@@ -105,7 +116,190 @@ void UActorInteractorComponentOverlap::UnbindCollision(UPrimitiveComponent* Comp
 		Component->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 		Component->SetCollisionResponseToChannel(CollisionChannel, ECollisionResponse::ECR_Overlap);
 	}
+
+	Component->OnComponentBeginOverlap.		RemoveDynamic(this, &UActorInteractorComponentOverlap::StartInteractorOverlap);
+	Component->OnComponentEndOverlap.		RemoveDynamic(this, &UActorInteractorComponentOverlap::StopInteractorOverlap);
 }
+
+void UActorInteractorComponentOverlap::ProcessOverlap_Implementation(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, const FHitResult& SweepResult, const bool bOverlapStarted)
+{
+	if (!GetOwner())
+	{
+		LOG_ERROR(TEXT("[ProcessOverlap] No owner!"));
+		return;
+	}
+
+	if (GetOwner()->HasAuthority())
+	{
+		if (!Execute_CanInteract(this))
+		{
+			return;
+		}
+		
+		if (!OtherActor)
+		{
+			return;
+		}
+
+		if (!OtherActor->Implements<UActorInteractableInterface>())
+		{
+			return;
+		}
+
+		if (bOverlapStarted)
+		{
+			HandleStartOverlap(OverlappedComponent, OtherActor, OtherComp, SweepResult);
+		}
+		else
+		{
+			HandleEndOverlap(OverlappedComponent, OtherActor, OtherComp);
+		}
+	}
+	else
+	{
+		ProcessOverlap_Server(OverlappedComponent, OtherActor, OtherComp, SweepResult, bOverlapStarted);
+	}
+}
+
+void UActorInteractorComponentOverlap::StartInteractorOverlap(UPrimitiveComponent* OverlappedComponent,AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (!GetOwner())
+	{
+		LOG_ERROR(TEXT("[StartInteractorOverlap] No Owner!"))
+		return;
+	}
+
+	if (GetOwner()->HasAuthority())
+	{
+		ProcessOverlap(OverlappedComponent, OtherActor, OtherComp, SweepResult, true);
+	}
+	else
+	{
+		StartInteractorOverlap_Server(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
+	}
+}
+
+void UActorInteractorComponentOverlap::StopInteractorOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	if (!GetOwner())
+	{
+		LOG_ERROR(TEXT("[StopInteractorOverlap] No Owner!"))
+		return;
+	}
+
+	if (GetOwner()->HasAuthority())
+	{
+		ProcessOverlap(OverlappedComponent, OtherActor, OtherComp, FHitResult(), false);
+	}
+	else
+	{
+		StopInteractorOverlap_Server(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex);
+	}
+}
+
+void UActorInteractorComponentOverlap::HandleStartOverlap(UPrimitiveComponent* PrimitiveComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, const FHitResult& HitResult)
+{
+	if (!OtherActor)
+	{
+		LOG_ERROR(TEXT("[HandleStartOverlap] OtherActor is null!"));
+		return;
+	}
+	
+	if (!PrimitiveComponent)
+	{
+		LOG_ERROR(TEXT("[HandleStartOverlap] PrimitiveComponent is null!"));
+		return;
+	}
+
+	if (!OtherComp)
+	{
+		LOG_ERROR(TEXT("[HandleStartOverlap] OtherComp is null!"));
+		return;
+	}
+	
+	TScriptInterface<IActorInteractableInterface> currentlyActiveInteractable = Execute_GetActiveInteractable(this);
+	TScriptInterface<IActorInteractableInterface> tempInteractable = nullptr;
+	
+	TArray<UActorComponent*> interactableComponents = OtherActor->GetComponentsByInterface(UActorInteractableInterface::StaticClass());
+	int32 highestWeight = -1;
+
+	for (const auto& Component : interactableComponents)
+	{
+		TScriptInterface<IActorInteractableInterface> InteractableComponent = TScriptInterface<IActorInteractableInterface>(Component);
+
+		if (!InteractableComponent->Execute_CanInteract(Component))
+		{
+			continue;
+		}
+
+		ECollisionChannel componentCollisionChannel = InteractableComponent->Execute_GetCollisionChannel(Component);
+		if (componentCollisionChannel != Execute_GetResponseChannel(this))
+		{
+			continue;
+		}
+
+		if (PrimitiveComponent->GetCollisionResponseToChannel(componentCollisionChannel) == ECR_Ignore)
+		{
+			continue;
+		}
+
+		if (!InteractableComponent->Execute_CanBeTriggered(InteractableComponent.GetObject()))
+		{
+			continue;
+		}
+
+		int32 ComponentWeight = InteractableComponent->Execute_GetInteractableWeight(Component);
+		if (ComponentWeight > highestWeight)
+		{
+			highestWeight = ComponentWeight;
+			tempInteractable = InteractableComponent;
+		}
+	}
+
+	if (!tempInteractable.GetObject())
+	{
+		LOG_WARNING(TEXT("[HandleStartOverlap] No valid interactable components found!"));
+		return;
+	}
+
+	if (currentlyActiveInteractable.GetObject())
+	{
+		if (currentlyActiveInteractable.GetObject() == OtherActor)
+		{
+			LOG_INFO(TEXT("[HandleStartOverlap] Currently active interactable is the same as the actor!"));
+			return;
+		}
+		
+		int32 localWeight	= tempInteractable->					Execute_GetInteractableWeight(OtherActor);
+		int32 activeWeight	= currentlyActiveInteractable->	Execute_GetInteractableWeight(currentlyActiveInteractable.GetObject());
+
+		if (localWeight < activeWeight)
+		{
+			LOG_INFO(TEXT("[HandleStartOverlap] Local interactable weight is less than active interactable weight!"));
+			return;
+		}
+	}
+
+	// TODO: Do one last safety check and line trace from HitResult (or GetOwner) towards OtherActor based on Visibility to avoid overlapping through walls
+	// if 
+}
+
+
+void UActorInteractorComponentOverlap::HandleEndOverlap(UPrimitiveComponent* PrimitiveComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp)
+{
+	
+}
+
+void UActorInteractorComponentOverlap::StartInteractorOverlap_Server_Implementation(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	StartInteractorOverlap(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
+}
+
+void UActorInteractorComponentOverlap::StopInteractorOverlap_Server_Implementation(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	StopInteractorOverlap(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex);
+}
+
 
 void UActorInteractorComponentOverlap::AddCollisionComponent_Implementation(UPrimitiveComponent* CollisionComponent)
 {

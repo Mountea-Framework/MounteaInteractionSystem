@@ -875,7 +875,6 @@ void UActorInteractableComponentBase::SetInteractableWeight_Implementation(const
 AActor* UActorInteractableComponentBase::GetInteractableOwner_Implementation() const
 { return GetOwner(); }
 
-
 ECollisionChannel UActorInteractableComponentBase::GetCollisionChannel_Implementation() const
 { return CollisionChannel; }
 
