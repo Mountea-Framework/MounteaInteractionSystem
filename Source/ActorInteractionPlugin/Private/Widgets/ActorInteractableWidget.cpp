@@ -1,9 +1,6 @@
 // Copyright Dominik Pavlicek 2022. All Rights Reserved.
 
 #include "Widgets/ActorInteractableWidget.h"
-#include "Components/ActorInteractableComponent.h"
-#include "Components/Image.h"
-#include "Components/TextBlock.h"
 
 #include "Helpers/ActorInteractionPluginLog.h"
 
@@ -20,15 +17,10 @@ bool UActorInteractableWidget::Initialize()
 
 	if (!bSuccess)
 	{
-		AIP_LOG(Error, TEXT("[Initialize] Initialize has returned false. Please report this bug."))
+		LOG_ERROR(TEXT("[Initialize] Initialize has returned false. Please report this bug."))
 	}
 	
 	return bSuccess;
-}
-
-void UActorInteractableWidget::InitializeInteractionWidget(const FText& NewInteractableKey, const FText& NewInteractableName, const FText& NewInteractionAction, UDEPRECATED_ActorInteractableComponent* NewOwningComponent, UTexture2D* NewInteractionTexture)
-{
-	AIP_LOG(Error, TEXT("[InitializeInteractionWidget] This function is Deprecated. Use `UpdateWidget` instead."))
 }
 
 void UActorInteractableWidget::ToggleVisibility_Implementation()
@@ -57,12 +49,12 @@ void UActorInteractableWidget::ToggleVisibility_Implementation()
 
 void UActorInteractableWidget::CalculateRemainingTime(float InDeltaTime)
 {
-	AIP_LOG(Error, TEXT("[InitializeInteractionWidget] This function is Deprecated. Use `SetProgress` or `GetProgress` instead."))
+	LOG_ERROR(TEXT("[InitializeInteractionWidget] This function is Deprecated. Use `SetProgress` or `GetProgress` instead."))
 }
 
 void UActorInteractableWidget::SetInteractionProgress(const float NewInteractionProgress)
 {
-	AIP_LOG(Warning, TEXT("[InitializeInteractionWidget] This function is Deprecated. Use `SetProgress` instead."))
+	LOG_WARNING(TEXT("[InitializeInteractionWidget] This function is Deprecated. Use `SetProgress` instead."))
 	
 	InteractionProgress = FMath::Clamp(NewInteractionProgress, 0.f, 1.f);
 

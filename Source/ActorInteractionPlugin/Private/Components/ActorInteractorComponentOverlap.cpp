@@ -13,11 +13,11 @@ void UActorInteractorComponentOverlap::BeginPlay()
 	Super::BeginPlay();
 }
 
-void UActorInteractorComponentOverlap::SetState(const EInteractorStateV2 NewState)
+void UActorInteractorComponentOverlap::SetState_Implementation(const EInteractorStateV2 NewState)
 {
-	Super::SetState(NewState);
+	Super::SetState_Implementation(NewState);
 
-	switch (GetState())
+	switch (Execute_GetState(this))
 	{
 		case EInteractorStateV2::EIS_Active: 
 		case EInteractorStateV2::EIS_Awake:

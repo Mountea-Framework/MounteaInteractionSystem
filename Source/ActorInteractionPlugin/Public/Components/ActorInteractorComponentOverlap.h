@@ -13,7 +13,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCollisionShapeRemoved, UPrimitiveCo
 /**
  * 
  */
-UCLASS(ClassGroup=(Interaction), Blueprintable, hideCategories=(Collision, AssetUserData, Cooking, ComponentTick, Activation, Rendering), meta=(BlueprintSpawnableComponent, DisplayName = "Interactor Component Overlap"))
+UCLASS(ClassGroup=(Mountea), meta=(BlueprintSpawnableComponent, DisplayName = "Interactor Component Overlap"))
 class ACTORINTERACTIONPLUGIN_API UActorInteractorComponentOverlap : public UActorInteractorComponentBase
 {
 	GENERATED_BODY()
@@ -26,9 +26,9 @@ protected:
 
 	virtual void BeginPlay() override;
 
-	virtual void SetState(const EInteractorStateV2 NewState) override;
+	virtual void SetState_Implementation(const EInteractorStateV2 NewState) override;
 
-	virtual UPrimitiveComponent* FindComponentByName(const FName& CollisionComponentName);
+	virtual UPrimitiveComponent* FindComponentByName(const FName& CollisionComponentName); // TODO: Move to helper function library!
 	virtual void SetupInteractorOverlap();
 	virtual void BindCollisions();
 	virtual void BindCollision(UPrimitiveComponent* Component);

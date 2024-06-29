@@ -8,13 +8,13 @@
 
 #define LOCTEXT_NAMESPACE "ActorInteractableComponentMash"
 
-UActorInteractableComponentMash::UActorInteractableComponentMash()
+UActorInteractableComponentMash::UActorInteractableComponentMash() :
+		MinMashAmountRequired(5),
+		KeystrokeTimeThreshold(1.f),
+		ActualMashAmount(0)
 {
 	bInteractionHighlight = true;
 	DefaultInteractableState = EInteractableStateV2::EIS_Awake;
-	MinMashAmountRequired = 5;
-	KeystrokeTimeThreshold = 1.f;
-	ActualMashAmount = 0;
 	InteractionPeriod = 3.f;
 	InteractableName = LOCTEXT("ActorInteractableComponentMash", "Mash");
 }
@@ -23,13 +23,13 @@ void UActorInteractableComponentMash::BeginPlay()
 {
 	Super::BeginPlay();
 
-	OnInteractionFailed.AddUniqueDynamic(this, &UActorInteractableComponentMash::InteractionFailed);
-	OnKeyMashed.AddUniqueDynamic(this, &UActorInteractableComponentMash::OnKeyMashedEvent);
+	OnInteractionFailed.		AddUniqueDynamic(this, &UActorInteractableComponentMash::InteractionFailed);
+	OnKeyMashed.				AddUniqueDynamic(this, &UActorInteractableComponentMash::OnKeyMashedEvent);
 }
 
 void UActorInteractableComponentMash::InteractionFailed()
 {
-	SetState(GetDefaultState());
+	Execute_SetState(this, GetDefaultState());
 	
 	CleanupComponent();
 	
@@ -52,7 +52,7 @@ void UActorInteractableComponentMash::OnInteractionCompletedCallback()
 	
 	if (LifecycleMode == EInteractableLifecycle::EIL_Cycled)
 	{
-		if (TriggerCooldown()) return;
+		if (Execute_TriggerCooldown(this)) return;
 	}
 	
 	OnInteractionCompleted.Broadcast(GetWorld()->GetTimeSeconds(), GetInteractor());
@@ -71,11 +71,11 @@ void UActorInteractableComponentMash::CleanupComponent()
 	}
 }
 
-void UActorInteractableComponentMash::InteractionStarted(const float& TimeStarted, const FKey& PressedKey, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
+void UActorInteractableComponentMash::InteractionStarted_Implementation(const float& TimeStarted, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
 {
-	Super::InteractionStarted(TimeStarted, PressedKey, CausingInteractor);
+	Super::InteractionStarted_Implementation(TimeStarted, CausingInteractor);
 	
-	if (CanInteract())
+	if (Execute_CanInteract(this))
 	{
 		if(!GetWorld()->GetTimerManager().IsTimerActive(Timer_Interaction))
 		{
@@ -115,29 +115,29 @@ void UActorInteractableComponentMash::InteractionStarted(const float& TimeStarte
 	}
 }
 
-void UActorInteractableComponentMash::InteractionStopped(const float& TimeStarted, const FKey& PressedKey, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
+void UActorInteractableComponentMash::InteractionStopped_Implementation(const float& TimeStarted, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
 {
 	if (GetWorld())
 	{
 		if (!GetWorld()->GetTimerManager().IsTimerActive(TimerHandle_Mashed))
 		{
-			Super::InteractionStopped(TimeStarted, PressedKey, CausingInteractor);
+			Super::InteractionStopped_Implementation(TimeStarted, CausingInteractor);
 		}
 	}
 }
 
-void UActorInteractableComponentMash::InteractionCanceled()
+void UActorInteractableComponentMash::InteractionCanceled_Implementation()
 {
-	Super::InteractionCanceled();
+	Super::InteractionCanceled_Implementation();
 
 	CleanupComponent();
 }
 
-void UActorInteractableComponentMash::InteractionCompleted(const float& TimeCompleted, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
+void UActorInteractableComponentMash::InteractionCompleted_Implementation(const float& TimeCompleted, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
 {
 	if (ActualMashAmount >= MinMashAmountRequired)
 	{
-		Super::InteractionCompleted(TimeCompleted, CausingInteractor);
+		Super::InteractionCompleted_Implementation(TimeCompleted, CausingInteractor);
 	}
 	else
 	{

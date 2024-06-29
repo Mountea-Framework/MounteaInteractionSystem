@@ -222,7 +222,7 @@ But let's keep it short, here are the cool new features (and bugfixes) of versio
 				.HAlign(HAlign_Center)
 				.OnClicked_Lambda([]()
 				{
-					const FString URL = "https://discord.gg/2vXWEEN";
+					const FString URL = "https://discord.gg/waYT2cn37z"; // Interaction Specific Link
 					FPlatformProcess::LaunchURL(*URL, nullptr, nullptr);
 
 					return FReply::Handled();

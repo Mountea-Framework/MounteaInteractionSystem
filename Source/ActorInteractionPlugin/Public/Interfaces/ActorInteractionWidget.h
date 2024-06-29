@@ -29,6 +29,14 @@ class ACTORINTERACTIONPLUGIN_API IActorInteractionWidget
 public:
 	
 	/**
+	 * 
+	 * @param Command 
+	 * @param Payload 
+	 */
+	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category="Interaction")
+	void InteractionWidgetCommand(const FString& Command, UObject* Payload);
+	
+	/**
 	 * This event should be called when you want to refresh UI data.
 	 */
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category="Interaction")

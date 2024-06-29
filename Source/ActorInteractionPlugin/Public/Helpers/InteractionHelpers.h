@@ -7,40 +7,6 @@
 #include "Engine/EngineTypes.h"
 #include "InteractionHelpers.generated.h"
 
-/**
- * Type of Interactable Actor Component.
- * 
- * Defines how is interaction processed with Interactable Actor.
- */
-UENUM(BlueprintType, meta=(DisplayName="DEPRECATED_InteractableType", Deprecated, ScriptName="DEPRECATED_InteractableType"))
-enum class EInteractableType : uint8
-{
- EIT_Hold    UMETA(DisplayName = "Hold", Tooltip = "Press and hold the button."),
- EIT_Press   UMETA(DisplayName = "Press", Tooltip = "Press the button only once"),
- EIT_Mash    UMETA(DisplayName = "Mash", Tooltip = "Press the button multiple times for a period of time"),
- EIT_Hybrid  UMETA(DisplayName = "Hybrid - Hold & Press", Tooltip = "Press and hold the button, based on time treshold only relevant event will be called."),
- EIT_Auto    UMETA(DisplayName = "Auto", Tooltip = "Interactable will automatically finish if interaction conditions are met (tracing or overlapping)."),
-
- Default     UMETA(Hidden)
-};
-
-/**
- * State of Interactable Actor Component.
- * 
- * Machine States of the Interactable Actor Component.
- */
-UENUM(BlueprintType, meta=(DisplayName="DEPRECATED_InteractableState", Deprecated, ScriptName="DEPRECATED_InteractableState"))
-enum class EInteractableState : uint8
-{
- EIS_Standby  UMETA(DisplayName = "StandBy", ToolTip = "Interactable is enabled"),
- EIS_Active   UMETA(DisplayName = "Active", Tooltip = "Interactable is in use"),
- EIS_Inactive UMETA(DisplayName = "Inactive", Tooltip = "Interactable is inactive, but can be activated"),
- EIS_Cooldown UMETA(DisplayName = "Cooldown", Tooltip = "Interactable is enabled, but inactive until cooldown period"),
- EIS_Finished UMETA(DisplayName = "Finished", Tooltp = "Interactable is disabled, but was sucessfully used"),
- EIS_Disabled UMETA(DisplayName = "Disabled", Tooltip = "Interactable is disabled and cannot be activated unless requsted by function"),
-
- Default      UMETA(Hidden)
-};
 
 /**
  * Type of Interactable Lifecycle.
@@ -54,36 +20,6 @@ enum class EInteractableLifecycle : uint8
   EIL_Cycled   UMETA(DisplayName="Cycled", Tooltip="Once is Interactable finished, interaction is allowed once Cooldown period is finished. Allowed for unlimited time unless Maximum Lifecycles are specified."),
 
   Default      UMETA(Hidden)
-};
-
-/**
- * Type of Interactor Actor Component.
- * 
- * Defines how Interactor Actor Component does process interaction.
- */
-UENUM(BlueprintType, meta=(DisplayName="DEPRECATED_InteractorType", Deprecated, ScriptName="DEPRECATED_InteractorType"))
-enum class EInteractorType : uint8
-{
- EIT_Active  UMETA(DisplayName = "Active", ToolTip = "Interaction is allowed only if the tracing is colliding with collision box of the Interactable Actor Component."),
- EIT_Passive UMETA(DisplayName = "Passive", Tooltip ="Interaction is allowed only if the Owning Actor does overlap collision box of the Interactable Actor Component."),
- EIT_Mixed   UMETA(DisplayName = "Mixed", Tooptip = "Interaction is allowed for both tracing and overlapping with collision box of the Interactable Actor Component."),
- 
- Default     UMETA(Hidden)
-};
-
-/**
- * State of Interactable Actor Component.
- * 
- * Machine States of the Interactor Actor Component.
- */
-UENUM(BlueprintType, meta=(DisplayName="DEPRECATED_InteractorState", Deprecated, ScriptName="DEPRECATED_InteractorState"))
-enum class EInteractorState : uint8
-{
- EIS_Disabled UMETA(DisplayName = "Disabled", Tooltip = "Interactor is disabled"),
- EIS_StandBy  UMETA(DisplayName = "StandBy", Tooltip = "Interactor is enabled"),
- EIS_Active   UMETA(DisplayName = "Active", Tooltip = "Interactor is in use"),
-
- Default      UMETA(Hidden)
 };
 
 /**
@@ -134,29 +70,6 @@ enum class EInteractorStateV2 : uint8
  EIS_Disabled   UMETA(DisplayName = "Disabled",    Tooltip = "Interactor is disabled. Can be awaken."),
 
  Default        UMETA(Hidden)
-};
-
-#pragma endregion
-
-#pragma region InteractionKeySetup
-
-USTRUCT(BlueprintType)
-struct FInteractionKeySetup
-{
-     GENERATED_BODY()
-     
-     FInteractionKeySetup(){};
-     FInteractionKeySetup(const TArray<FKey> NewKeys)
-     {
-         Keys = NewKeys;
-     }
-     FInteractionKeySetup(const FKey NewKey)
-     {
-         Keys.Add(NewKey);
-     }
-
-     UPROPERTY(Category="Interaction|Interaction Key Setup", BlueprintReadWrite, EditAnywhere, meta=(NoElementDuplicate))
-     TArray<FKey> Keys;
 };
 
 #pragma endregion
@@ -227,11 +140,8 @@ public:
     {};
     FDebugSettings(const bool bDebug)
     {
-      if (bDebug)
-      {
         DebugMode = bDebug;
         EditorDebugMode = bDebug;
-      }
     }
 
    /**

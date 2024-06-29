@@ -11,52 +11,42 @@ UActorInteractableComponentHover::UActorInteractableComponentHover()
 	DefaultInteractableState = EInteractableStateV2::EIS_Awake;
 	InteractionPeriod = 3.f;
 	InteractableName = LOCTEXT("ActorInteractableComponentHover", "Hover");
-
-	InteractionKeysPerPlatform.Empty();
-	const FInteractionKeySetup GamepadKeys = FKey("Gamepad_FaceButton_Bottom");
-	FInteractionKeySetup KeyboardKeys = GamepadKeys;
-	KeyboardKeys.Keys.Add("LeftMouseButton");
-		
-	InteractionKeysPerPlatform.Add((TEXT("Windows")), KeyboardKeys);
-	InteractionKeysPerPlatform.Add((TEXT("Mac")), KeyboardKeys);
-	InteractionKeysPerPlatform.Add((TEXT("PS4")), GamepadKeys);
-	InteractionKeysPerPlatform.Add((TEXT("XboxOne")), GamepadKeys);
 }
 
 void UActorInteractableComponentHover::BeginPlay()
 {
 	Super::BeginPlay();
 
-	OnInteractorOverlapped.RemoveDynamic(this, &UActorInteractableComponentHover::OnInteractableBeginOverlapEvent);
-	OnInteractorStopOverlap.RemoveDynamic(this, &UActorInteractableComponentHover::OnInteractableStopOverlapEvent);
-	OnInteractorTraced.RemoveDynamic(this, &UActorInteractableComponentHover::OnInteractableTracedEvent);
+	OnInteractorOverlapped.										RemoveDynamic(this, &UActorInteractableComponentHover::OnInteractableBeginOverlapEvent);
+	OnInteractorStopOverlap.										RemoveDynamic(this, &UActorInteractableComponentHover::OnInteractableStopOverlapEvent);
+	OnInteractorTraced.												RemoveDynamic(this, &UActorInteractableComponentHover::OnInteractableTracedEvent);
 }
 
-void UActorInteractableComponentHover::BindCollisionShape(UPrimitiveComponent* PrimitiveComponent) const
+void UActorInteractableComponentHover::BindCollisionShape_Implementation(UPrimitiveComponent* PrimitiveComponent) const
 {
-	Super::BindCollisionShape(PrimitiveComponent);
+	Super::BindCollisionShape_Implementation(PrimitiveComponent);
 
 	if (PrimitiveComponent)
 	{
-		PrimitiveComponent->OnBeginCursorOver.AddUniqueDynamic(this, &UActorInteractableComponentHover::OnHoverBeginsEvent);
-		PrimitiveComponent->OnEndCursorOver.AddUniqueDynamic(this, &UActorInteractableComponentHover::OnHoverStopsEvent);
+		PrimitiveComponent->OnBeginCursorOver.		AddUniqueDynamic(this, &UActorInteractableComponentHover::OnHoverBeginsEvent);
+		PrimitiveComponent->OnEndCursorOver.			AddUniqueDynamic(this, &UActorInteractableComponentHover::OnHoverStopsEvent);
 	}
 }
 
-void UActorInteractableComponentHover::UnbindCollisionShape(UPrimitiveComponent* PrimitiveComponent) const
+void UActorInteractableComponentHover::UnbindCollisionShape_Implementation(UPrimitiveComponent* PrimitiveComponent) const
 {
-	Super::UnbindCollisionShape(PrimitiveComponent);
+	Super::UnbindCollisionShape_Implementation(PrimitiveComponent);
 
 	if (PrimitiveComponent)
 	{
-		PrimitiveComponent->OnBeginCursorOver.RemoveDynamic(this, &UActorInteractableComponentHover::OnHoverBeginsEvent);
-		PrimitiveComponent->OnEndCursorOver.RemoveDynamic(this, &UActorInteractableComponentHover::OnHoverStopsEvent);
+		PrimitiveComponent->OnBeginCursorOver.		RemoveDynamic(this, &UActorInteractableComponentHover::OnHoverBeginsEvent);
+		PrimitiveComponent->OnEndCursorOver.			RemoveDynamic(this, &UActorInteractableComponentHover::OnHoverStopsEvent);
 	}
 }
 
-bool UActorInteractableComponentHover::CanInteract() const
+bool UActorInteractableComponentHover::CanInteract_Implementation() const
 {
-	return Super::CanInteract() && OverlappingComponent != nullptr;
+	return Super::CanInteract_Implementation() && OverlappingComponent != nullptr;
 }
 
 void UActorInteractableComponentHover::OnHoverBeginsEvent(UPrimitiveComponent* PrimitiveComponent)
