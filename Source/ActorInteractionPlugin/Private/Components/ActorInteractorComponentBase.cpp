@@ -12,6 +12,7 @@
 
 #include "Helpers/InteractionHelpers.h"
 #include "Interfaces/ActorInteractableInterface.h"
+#include "Net/UnrealNetwork.h"
 
 UActorInteractorComponentBase::UActorInteractorComponentBase() :
 		DebugSettings(false),
@@ -34,7 +35,7 @@ void UActorInteractorComponentBase::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	OnInteractableSelected.			AddUniqueDynamic(this, &UActorInteractorComponentBase::InteractableSelected);
+	OnInteractableUpdated.			AddUniqueDynamic(this, &UActorInteractorComponentBase::InteractableSelected);
 	OnInteractableFound.				AddUniqueDynamic(this, &UActorInteractorComponentBase::InteractableFound);
 	OnInteractableLost.					AddUniqueDynamic(this, &UActorInteractorComponentBase::InteractableLost);
 	
@@ -121,7 +122,7 @@ void UActorInteractorComponentBase::EvaluateInteractable_Implementation(const TS
 	if (ActiveInteractable.GetInterface() == nullptr)
 	{
 		Execute_SetActiveInteractable(this, FoundInteractable);
-		OnInteractableSelected.Broadcast(FoundInteractable);
+		OnInteractableUpdated.Broadcast(FoundInteractable);
 
 		return;
 	}
@@ -141,7 +142,7 @@ void UActorInteractorComponentBase::EvaluateInteractable_Implementation(const TS
 			
 			
 			Execute_SetActiveInteractable(this, FoundInteractable);
-			OnInteractableSelected.Broadcast(FoundInteractable);
+			OnInteractableUpdated.Broadcast(FoundInteractable);
 		}
 		else
 		{
@@ -150,31 +151,57 @@ void UActorInteractorComponentBase::EvaluateInteractable_Implementation(const TS
 				OnInteractableLost.Broadcast(FoundInteractable);
 			}
 
-			OnInteractableSelected.Broadcast(ActiveInteractable);
+			OnInteractableUpdated.Broadcast(ActiveInteractable);
 		}
 	}
 	else
 	{
 		Execute_SetActiveInteractable(this, FoundInteractable);
-		OnInteractableSelected.Broadcast(FoundInteractable);
+		OnInteractableUpdated.Broadcast(FoundInteractable);
 	}
 }
 
 void UActorInteractorComponentBase::StartInteraction_Implementation(const float StartTime)
 {
-	if (Execute_CanInteract(this) && ActiveInteractable.GetInterface())
+	if (!GetOwner())
 	{
-		Execute_SetState(this,EInteractorStateV2::EIS_Active);
-		ActiveInteractable->GetOnInteractionStartedHandle().Broadcast(StartTime, this);
+		LOG_ERROR(TEXT("[StartInteraction] No Owner!"))
+		return;
+	}
+
+	if (GetOwner()->HasAuthority())
+	{
+		if (Execute_CanInteract(this) && ActiveInteractable.GetInterface())
+		{
+			Execute_SetState(this,EInteractorStateV2::EIS_Active);
+			ActiveInteractable->GetOnInteractionStartedHandle().Broadcast(StartTime, this);
+		}
+	}
+	else
+	{
+		StartInteraction_Server(StartTime);
 	}
 }
 
-void UActorInteractorComponentBase::StopInteraction_Implementation(const float StartTime)
+void UActorInteractorComponentBase::StopInteraction_Implementation(const float StopTime)
 {
-	if (Execute_CanInteract(this) && ActiveInteractable.GetInterface())
+	if (!GetOwner())
 	{
-		Execute_SetState(this,DefaultInteractorState);
-		ActiveInteractable->GetOnInteractionStoppedHandle().Broadcast(StartTime, this);
+		LOG_ERROR(TEXT("[StopInteraction] No Owner!"))
+		return;
+	}
+
+	if (GetOwner()->HasAuthority())
+	{
+		if (Execute_CanInteract(this) && ActiveInteractable.GetInterface())
+		{
+			Execute_SetState(this,DefaultInteractorState);
+			ActiveInteractable->GetOnInteractionStoppedHandle().Broadcast(StopTime, this);
+		}
+	}
+	else
+	{
+		StopInteraction_Server(StopTime);
 	}
 }
 
@@ -267,38 +294,116 @@ void UActorInteractorComponentBase::DeactivateInteractor_Implementation()
 
 void UActorInteractorComponentBase::AddIgnoredActor_Implementation(AActor* IgnoredActor)
 {
-	if (ListOfIgnoredActors.Contains(IgnoredActor)) return;
-	if (IgnoredActor == nullptr) return;
+	if (!GetOwner())
+	{
+		LOG_ERROR(TEXT("[AddIgnoredActor] No owner!"));
+		return;
+	}
 
-	ListOfIgnoredActors.Add(IgnoredActor);
+	if (GetOwner()->HasAuthority())
+	{
+		if (IgnoredActor == nullptr) return;
+		if (ListOfIgnoredActors.Contains(IgnoredActor)) return;
 
-	OnIgnoredActorAdded.Broadcast(IgnoredActor);
+		ListOfIgnoredActors.Add(IgnoredActor);
+
+		OnIgnoredActorAdded.Broadcast(IgnoredActor);
+
+		MARK_PROPERTY_DIRTY_FROM_NAME(UActorInteractorComponentBase, ListOfIgnoredActors, this);
+	}
+	else
+	{
+		AddIgnoredActor_Server(IgnoredActor);
+	}
 }
 
 void UActorInteractorComponentBase::AddIgnoredActors_Implementation(const TArray<AActor*>& IgnoredActors)
 {
-	for (const auto& Itr : IgnoredActors)
+	if (!GetOwner())
 	{
-		Execute_AddIgnoredActor(this, Itr);
+		LOG_ERROR(TEXT("[AddIgnoredActors] No owner!"));
+		return;
+	}
+
+	if (GetOwner()->HasAuthority())
+	{
+		bool bListModified = false;
+		for (const auto& Itr : IgnoredActors)
+		{
+			if (Itr == nullptr) continue;
+			if (ListOfIgnoredActors.Contains(Itr)) continue;	
+
+			ListOfIgnoredActors.Add(Itr);
+			OnIgnoredActorAdded.Broadcast(Itr);
+			bListModified = true;
+		}
+
+		if (bListModified)
+		{
+			MARK_PROPERTY_DIRTY_FROM_NAME(UActorInteractorComponentBase, ListOfIgnoredActors, this);
+		}
+	}
+	else
+	{
+		AddIgnoredActors_Server(IgnoredActors);
 	}
 }
 
 void UActorInteractorComponentBase::RemoveIgnoredActor_Implementation(AActor* UnignoredActor)
 {
-	if (UnignoredActor == nullptr) return;
-	if (ListOfIgnoredActors.Contains(UnignoredActor))
+	if (!GetOwner())
 	{
-		ListOfIgnoredActors.Remove(UnignoredActor);
+		LOG_ERROR(TEXT("[RemoveIgnoredActor] No owner!"));
+		return;
+	}
 
-		OnIgnoredActorRemoved.Broadcast(UnignoredActor);
+	if (GetOwner()->HasAuthority())
+	{
+		if (UnignoredActor == nullptr) return;
+		if (ListOfIgnoredActors.Contains(UnignoredActor))
+		{
+			ListOfIgnoredActors.Remove(UnignoredActor);
+			OnIgnoredActorRemoved.Broadcast(UnignoredActor);
+
+			MARK_PROPERTY_DIRTY_FROM_NAME(UActorInteractorComponentBase, ListOfIgnoredActors, this);
+		}
+	}
+	else
+	{
+		RemoveIgnoredActor_Server(UnignoredActor);
 	}
 }
 
 void UActorInteractorComponentBase::RemoveIgnoredActors_Implementation(const TArray<AActor*>& UnignoredActors)
 {
-	for (const auto& Itr : UnignoredActors)
+	if (!GetOwner())
 	{
-		Execute_RemoveIgnoredActor(this, Itr);
+		LOG_ERROR(TEXT("[RemoveIgnoredActors] No owner!"));
+		return;
+	}
+
+	if (GetOwner()->HasAuthority())
+	{
+		bool bListModified = false;
+		for (const auto& Itr : UnignoredActors)
+		{
+			if (Itr == nullptr) continue;
+			if (ListOfIgnoredActors.Contains(Itr))
+			{
+				ListOfIgnoredActors.Remove(Itr);
+				OnIgnoredActorRemoved.Broadcast(Itr);
+				bListModified = true;
+			}
+		}
+
+		if (bListModified)
+		{
+			MARK_PROPERTY_DIRTY_FROM_NAME(UActorInteractorComponentBase, ListOfIgnoredActors, this);
+		}
+	}
+	else
+	{
+		RemoveIgnoredActors_Server(UnignoredActors);
 	}
 }
 
@@ -307,24 +412,53 @@ TArray<AActor*> UActorInteractorComponentBase::GetIgnoredActors_Implementation()
 
 void UActorInteractorComponentBase::AddInteractionDependency_Implementation(const TScriptInterface<IActorInteractorInterface>& InteractionDependency)
 {
-	if (InteractionDependency.GetInterface() == nullptr) return;
-	if (InteractionDependencies.Contains(InteractionDependency))
+	if (!GetOwner())
 	{
+		LOG_ERROR(TEXT("[AddInteractionDependency] No owner!"));
 		return;
 	}
-	
-	InteractionDependencies.Add(InteractionDependency);
-	Execute_ProcessDependencies(this);
+
+	if (GetOwner()->HasAuthority())
+	{
+		if (InteractionDependency.GetInterface() == nullptr) return;
+		if (InteractionDependencies.Contains(InteractionDependency))
+		{
+			return;
+		}
+
+		InteractionDependencies.Add(InteractionDependency);
+		Execute_ProcessDependencies(this);
+
+		MARK_PROPERTY_DIRTY_FROM_NAME(UActorInteractorComponentBase, InteractionDependencies, this);
+	}
+	else
+	{
+		AddInteractionDependency_Server(InteractionDependency);
+	}
 }
 
 void UActorInteractorComponentBase::RemoveInteractionDependency_Implementation(const TScriptInterface<IActorInteractorInterface>& InteractionDependency)
 {
-	if (InteractionDependency.GetInterface() == nullptr) return;
-	if (InteractionDependencies.Contains(InteractionDependency))
+	if (!GetOwner())
 	{
-		InteractionDependency->Execute_SetState(this, InteractionDependency->Execute_GetDefaultState(this));
-		
-		InteractionDependencies.Remove(InteractionDependency);
+		LOG_ERROR(TEXT("[RemoveInteractionDependency] No owner!"));
+		return;
+	}
+
+	if (GetOwner()->HasAuthority())
+	{
+		if (InteractionDependency.GetInterface() == nullptr) return;
+		if (InteractionDependencies.Contains(InteractionDependency))
+		{
+			InteractionDependency->Execute_SetState(this, InteractionDependency->Execute_GetDefaultState(this));
+			InteractionDependencies.Remove(InteractionDependency);
+
+			MARK_PROPERTY_DIRTY_FROM_NAME(UActorInteractorComponentBase, InteractionDependencies, this);
+		}
+	}
+	else
+	{
+		RemoveInteractionDependency_Server(InteractionDependency);
 	}
 }
 
@@ -333,12 +467,20 @@ TArray<TScriptInterface<IActorInteractorInterface>> UActorInteractorComponentBas
 
 void UActorInteractorComponentBase::ProcessDependencies_Implementation()
 {
-	if (InteractionDependencies.Num() == 0) return;
-	
-	for (const auto& Itr : InteractionDependencies)
+	if (!GetOwner())
 	{
-		switch (InteractorState)
+		LOG_ERROR(TEXT("[ProcessDependencies] No owner!"));
+		return;
+	}
+
+	if (GetOwner()->HasAuthority())
+	{
+		if (InteractionDependencies.Num() == 0) return;
+	
+		for (const auto& Itr : InteractionDependencies)
 		{
+			switch (InteractorState)
+			{
 			case EInteractorStateV2::EIS_Active:
 			case EInteractorStateV2::EIS_Suppressed:
 			case EInteractorStateV2::EIS_Asleep:
@@ -354,7 +496,12 @@ void UActorInteractorComponentBase::ProcessDependencies_Implementation()
 			case EInteractorStateV2::Default:
 			default:
 				break;
+			}
 		}
+	}
+	else
+	{
+		ProcessDependencies_Server();
 	}
 }
 
@@ -372,8 +519,6 @@ bool UActorInteractorComponentBase::CanInteract_Implementation() const
 		default:
 			return false;
 	}
-
-	return false;
 }
 
 ECollisionChannel UActorInteractorComponentBase::GetResponseChannel_Implementation() const
@@ -381,9 +526,22 @@ ECollisionChannel UActorInteractorComponentBase::GetResponseChannel_Implementati
 
 void UActorInteractorComponentBase::SetResponseChannel_Implementation(const ECollisionChannel NewResponseChannel)
 {
-	CollisionChannel = NewResponseChannel;
+	if (!GetOwner())
+	{
+		LOG_ERROR(TEXT("[SetResponseChannel] No owner!"));
+		return;
+	}
 
-	OnCollisionChanged.Broadcast(NewResponseChannel);
+	if (GetOwner()->HasAuthority())
+	{
+		CollisionChannel = NewResponseChannel;
+
+		OnCollisionChanged.Broadcast(NewResponseChannel);
+	}
+	else
+	{
+		SetResponseChannel_Server(NewResponseChannel);
+	}
 }
 
 EInteractorStateV2 UActorInteractorComponentBase::GetState_Implementation() const
@@ -391,88 +549,101 @@ EInteractorStateV2 UActorInteractorComponentBase::GetState_Implementation() cons
 
 void UActorInteractorComponentBase::SetState_Implementation(const EInteractorStateV2 NewState)
 {
-	switch (NewState)
+	if (!GetOwner())
 	{
-		case EInteractorStateV2::EIS_Awake:
-			switch (InteractorState)
-			{
-				case EInteractorStateV2::EIS_Asleep:
-				case EInteractorStateV2::EIS_Disabled:
-				case EInteractorStateV2::EIS_Suppressed:
-				case EInteractorStateV2::EIS_Active:
-					InteractorState = NewState;
-					OnStateChanged.Broadcast(InteractorState);
-					break;
-				case EInteractorStateV2::EIS_Awake:
-				case EInteractorStateV2::Default:
-				default: break;
-			}
-			break;
-		case EInteractorStateV2::EIS_Asleep:
-			switch (InteractorState)
-			{
-				case EInteractorStateV2::EIS_Awake:
-				case EInteractorStateV2::EIS_Suppressed:
-				case EInteractorStateV2::EIS_Active:
-				case EInteractorStateV2::EIS_Disabled:
-					InteractorState = NewState;
-					OnStateChanged.Broadcast(InteractorState);
-					break;
-				case EInteractorStateV2::EIS_Asleep:
-				case EInteractorStateV2::Default:
-				default: break;
-			}
-			break;
-		case EInteractorStateV2::EIS_Suppressed:
-			switch (InteractorState)
-			{
-				case EInteractorStateV2::EIS_Awake:
-				case EInteractorStateV2::EIS_Asleep:
-				case EInteractorStateV2::EIS_Active:
-					InteractorState = NewState;
-					OnStateChanged.Broadcast(InteractorState);
-					break;
-				case EInteractorStateV2::EIS_Suppressed:
-				case EInteractorStateV2::EIS_Disabled:
-				case EInteractorStateV2::Default:
-				default: break;
-			}
-			break;
-		case EInteractorStateV2::EIS_Active:
-			switch (InteractorState)
-			{
-				case EInteractorStateV2::EIS_Awake:
-					InteractorState = NewState;
-					OnStateChanged.Broadcast(InteractorState);
-					break;
-				case EInteractorStateV2::EIS_Asleep:
-				case EInteractorStateV2::EIS_Active:
-				case EInteractorStateV2::EIS_Suppressed:
-				case EInteractorStateV2::EIS_Disabled:
-				case EInteractorStateV2::Default:
-				default: break;
-			}
-			break;
-		case EInteractorStateV2::EIS_Disabled:
-			switch (InteractorState)
-			{
-				case EInteractorStateV2::EIS_Asleep:
-				case EInteractorStateV2::EIS_Awake:
-				case EInteractorStateV2::EIS_Suppressed:
-				case EInteractorStateV2::EIS_Active:
-					InteractorState = NewState;
-					OnStateChanged.Broadcast(InteractorState);
-					break;
-				case EInteractorStateV2::EIS_Disabled:
-				case EInteractorStateV2::Default:
-				default: break;
-			}
-			break;
-		case EInteractorStateV2::Default:
-		default: break;
+		LOG_ERROR(TEXT("[SetState] Interactor has no Owner!"))
+		return;
 	}
 
-	Execute_ProcessDependencies(this);
+	if (GetOwner()->HasAuthority())
+	{
+		switch (NewState)
+		{
+			case EInteractorStateV2::EIS_Awake:
+				switch (InteractorState)
+				{
+					case EInteractorStateV2::EIS_Asleep:
+					case EInteractorStateV2::EIS_Disabled:
+					case EInteractorStateV2::EIS_Suppressed:
+					case EInteractorStateV2::EIS_Active:
+						InteractorState = NewState;
+						OnStateChanged.Broadcast(InteractorState);
+						break;
+					case EInteractorStateV2::EIS_Awake:
+					case EInteractorStateV2::Default:
+					default: break;
+				}
+				break;
+			case EInteractorStateV2::EIS_Asleep:
+				switch (InteractorState)
+				{
+					case EInteractorStateV2::EIS_Awake:
+					case EInteractorStateV2::EIS_Suppressed:
+					case EInteractorStateV2::EIS_Active:
+					case EInteractorStateV2::EIS_Disabled:
+						InteractorState = NewState;
+						OnStateChanged.Broadcast(InteractorState);
+						break;
+					case EInteractorStateV2::EIS_Asleep:
+					case EInteractorStateV2::Default:
+					default: break;
+				}
+				break;
+			case EInteractorStateV2::EIS_Suppressed:
+				switch (InteractorState)
+				{
+					case EInteractorStateV2::EIS_Awake:
+					case EInteractorStateV2::EIS_Asleep:
+					case EInteractorStateV2::EIS_Active:
+						InteractorState = NewState;
+						OnStateChanged.Broadcast(InteractorState);
+						break;
+					case EInteractorStateV2::EIS_Suppressed:
+					case EInteractorStateV2::EIS_Disabled:
+					case EInteractorStateV2::Default:
+					default: break;
+				}
+				break;
+			case EInteractorStateV2::EIS_Active:
+				switch (InteractorState)
+				{
+					case EInteractorStateV2::EIS_Awake:
+						InteractorState = NewState;
+						OnStateChanged.Broadcast(InteractorState);
+						break;
+					case EInteractorStateV2::EIS_Asleep:
+					case EInteractorStateV2::EIS_Active:
+					case EInteractorStateV2::EIS_Suppressed:
+					case EInteractorStateV2::EIS_Disabled:
+					case EInteractorStateV2::Default:
+					default: break;
+				}
+				break;
+			case EInteractorStateV2::EIS_Disabled:
+				switch (InteractorState)
+				{
+					case EInteractorStateV2::EIS_Asleep:
+					case EInteractorStateV2::EIS_Awake:
+					case EInteractorStateV2::EIS_Suppressed:
+					case EInteractorStateV2::EIS_Active:
+						InteractorState = NewState;
+						OnStateChanged.Broadcast(InteractorState);
+						break;
+					case EInteractorStateV2::EIS_Disabled:
+					case EInteractorStateV2::Default:
+					default: break;
+				}
+				break;
+			case EInteractorStateV2::Default:
+			default: break;
+		}
+
+		Execute_ProcessDependencies(this);
+	}
+	else
+	{
+		SetState_Server(NewState);
+	}
 }
 
 EInteractorStateV2 UActorInteractorComponentBase::GetDefaultState_Implementation() const
@@ -480,17 +651,30 @@ EInteractorStateV2 UActorInteractorComponentBase::GetDefaultState_Implementation
 
 void UActorInteractorComponentBase::SetDefaultState_Implementation(const EInteractorStateV2 NewState)
 {
-	if
-	(
-		NewState == EInteractorStateV2::EIS_Active  ||
-		NewState == EInteractorStateV2::Default
-	)
+	if (!GetOwner())
 	{
-		LOG_ERROR(TEXT("[SetDefaultState] Tried to set invalid Default State!"))
+		LOG_ERROR(TEXT("[SetDefaultState] No owner!"));
 		return;
 	}
 
-	DefaultInteractorState = NewState;
+	if (GetOwner()->HasAuthority())
+	{
+		if
+		(
+			NewState == EInteractorStateV2::EIS_Active  ||
+			NewState == EInteractorStateV2::Default
+		)
+		{
+			LOG_ERROR(TEXT("[SetDefaultState] Tried to set invalid Default State!"));
+			return;
+		}
+
+		DefaultInteractorState = NewState;
+	}
+	else
+	{
+		SetDefaultState_Server(NewState);
+	}
 }
 
 bool UActorInteractorComponentBase::DoesAutoActivate_Implementation() const
@@ -498,22 +682,35 @@ bool UActorInteractorComponentBase::DoesAutoActivate_Implementation() const
 
 void UActorInteractorComponentBase::SetActiveInteractable_Implementation(const TScriptInterface<IActorInteractableInterface>& NewInteractable)
 {
-	if (NewInteractable.GetInterface() == nullptr && ActiveInteractable.GetInterface() == nullptr)
+	if (!GetOwner())
 	{
+		LOG_ERROR(TEXT("[SetActiveInteractable] No owner!"));
 		return;
 	}
 
-	if (NewInteractable.GetInterface() == nullptr && ActiveInteractable.GetInterface() != nullptr)
+	if (GetOwner()->HasAuthority())
 	{
-		ActiveInteractable = NewInteractable;
+		if (NewInteractable.GetInterface() == nullptr && ActiveInteractable.GetInterface() == nullptr)
+		{
+			return;
+		}
+
+		if (NewInteractable.GetInterface() == nullptr && ActiveInteractable.GetInterface() != nullptr)
+		{
+			ActiveInteractable = NewInteractable;
+		}
+
+		if (NewInteractable.GetInterface() != nullptr && ActiveInteractable.GetInterface() == nullptr)
+		{
+			ActiveInteractable = NewInteractable;
+
+			OnInteractableUpdated.Broadcast(ActiveInteractable);
+		}
 	}
-
-	if (NewInteractable.GetInterface() != nullptr && ActiveInteractable.GetInterface() == nullptr)
+	else
 	{
-		ActiveInteractable = NewInteractable;
-
-		OnInteractableSelected.Broadcast(ActiveInteractable);
-	}	
+		SetActiveInteractable_Server(NewInteractable);
+	}
 }
 
 TScriptInterface<IActorInteractableInterface> UActorInteractorComponentBase::GetActiveInteractable_Implementation() const
@@ -531,7 +728,127 @@ FGameplayTag UActorInteractorComponentBase::GetInteractorTag_Implementation() co
 
 void UActorInteractorComponentBase::SetInteractorTag_Implementation(const FGameplayTag& NewInteractorTag)
 {
-	// TODO: Replicated setup
+	if (!GetOwner())
+	{
+		LOG_ERROR(TEXT("[SetInteractorTag] No owner!"));
+		return;
+	}
+
+	if (GetOwner()->HasAuthority())
+	{
+		if (InteractorTag != NewInteractorTag)
+		{
+			InteractorTag = NewInteractorTag;
+
+			OnInteractorTagChanged.Broadcast(NewInteractorTag);
+		}
+	}
+	else
+	{
+		SetInteractorTag_Server(NewInteractorTag);
+	}
+}
+
+void UActorInteractorComponentBase::AddIgnoredActors_Server_Implementation(const TArray<AActor*>& IgnoredActors)
+{
+	Execute_AddIgnoredActors(this, IgnoredActors);
+}
+
+void UActorInteractorComponentBase::AddIgnoredActor_Server_Implementation(AActor* IgnoredActor)
+{
+	Execute_AddIgnoredActor(this, IgnoredActor);
+}
+
+void UActorInteractorComponentBase::AddInteractionDependency_Server_Implementation(const TScriptInterface<IActorInteractorInterface>& InteractionDependency)
+{
+	Execute_AddInteractionDependency(this, InteractionDependency);
+}
+
+void UActorInteractorComponentBase::RemoveInteractionDependency_Server_Implementation(const TScriptInterface<IActorInteractorInterface>& InteractionDependency)
+{
+	Execute_RemoveInteractionDependency(this, InteractionDependency);
+}
+
+void UActorInteractorComponentBase::RemoveIgnoredActor_Server_Implementation(AActor* IgnoredActor)
+{
+	Execute_RemoveIgnoredActor(this, IgnoredActor);
+}
+
+void UActorInteractorComponentBase::RemoveIgnoredActors_Server_Implementation(const TArray<AActor*>& IgnoredActors)
+{
+	Execute_RemoveIgnoredActors(this, IgnoredActors);
+}
+
+void UActorInteractorComponentBase::ProcessDependencies_Server_Implementation()
+{
+	Execute_ProcessDependencies(this);
+}
+
+void UActorInteractorComponentBase::SetResponseChannel_Server_Implementation(const ECollisionChannel NewResponseCollision)
+{
+	Execute_SetResponseChannel(this, NewResponseCollision);
+}
+
+void UActorInteractorComponentBase::SetDefaultState_Server_Implementation(const EInteractorStateV2 NewState)
+{
+	Execute_SetDefaultState(this, NewState);
+}
+
+void UActorInteractorComponentBase::SetActiveInteractable_Server_Implementation(const TScriptInterface<IActorInteractableInterface>& NewInteractable)
+{
+	Execute_SetActiveInteractable(this, NewInteractable);
+}
+
+void UActorInteractorComponentBase::SetInteractorTag_Server_Implementation(const FGameplayTag& NewInteractorTag)
+{
+	Execute_SetInteractorTag(this, NewInteractorTag);
+}
+
+void UActorInteractorComponentBase::OnRep_InteractorState()
+{
+	// Client side call
+	OnStateChanged.Broadcast(InteractorState);
+}
+
+void UActorInteractorComponentBase::OnRep_ActiveInteractable()
+{
+	if (ActiveInteractable.GetObject())
+	{
+		OnInteractableUpdated.Broadcast(ActiveInteractable);
+	}
+	else
+	{
+		OnInteractableLost.Broadcast(ActiveInteractable);
+	}
+}
+
+void UActorInteractorComponentBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME_CONDITION(UActorInteractorComponentBase, InteractorTag,					COND_None);
+	DOREPLIFETIME_CONDITION(UActorInteractorComponentBase, CollisionChannel,				COND_None);
+	DOREPLIFETIME_CONDITION(UActorInteractorComponentBase, DefaultInteractorState,		COND_InitialOrOwner);
+	DOREPLIFETIME_CONDITION(UActorInteractorComponentBase, ListOfIgnoredActors,			COND_Custom);
+	
+	DOREPLIFETIME_CONDITION(UActorInteractorComponentBase, InteractorState,					COND_None);
+	DOREPLIFETIME_CONDITION(UActorInteractorComponentBase, ActiveInteractable,			COND_None);
+	DOREPLIFETIME_CONDITION(UActorInteractorComponentBase, InteractionDependencies,	COND_None);
+}
+
+void UActorInteractorComponentBase::StopInteraction_Server_Implementation(const float StopTime)
+{
+	Execute_StopInteraction(this, StopTime);
+}
+
+void UActorInteractorComponentBase::StartInteraction_Server_Implementation(const float StartTime)
+{
+	Execute_StartInteraction(this, StartTime);
+}
+
+void UActorInteractorComponentBase::SetState_Server_Implementation(const EInteractorStateV2 NewState)
+{
+	Execute_SetState(this, NewState);
 }
 
 #if WITH_EDITOR

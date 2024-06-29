@@ -27,7 +27,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnWidgetUpdated);
  *
  * @see https://github.com/Mountea-Framework/ActorInteractionPlugin/wiki/Actor-Interactable-Component-Base
  */
-UCLASS(Abstract, ClassGroup=(Mountea), Blueprintable, BlueprintType, hideCategories=(Collision, AssetUserData, Cooking), meta=(BlueprintSpawnableComponent, DisplayName = "Interactable Component"))
+UCLASS(Abstract, ClassGroup=(Mountea), Blueprintable, BlueprintType, hideCategories=(Collision, AssetUserData, Cooking), ShowCategories=(Activation), meta=(BlueprintSpawnableComponent, DisplayName = "Interactable Component"))
 class ACTORINTERACTIONPLUGIN_API UActorInteractableComponentBase : public UWidgetComponent, public IActorInteractableInterface
 {
 	GENERATED_BODY()
@@ -37,7 +37,7 @@ public:
 	UActorInteractableComponentBase();
 
 protected:
-
+	
 	virtual void BeginPlay() override;
 	virtual void InitWidget() override;
 
@@ -230,6 +230,10 @@ protected:
 	
 	UFUNCTION()
 	void OnInteractionProgressExpired(const float ExpirationTime, const TScriptInterface<IActorInteractorInterface>& CausingInteractor);
+
+	UFUNCTION()
+	void InteractableComponentActivated(UActorComponent* Component, bool bReset);
+	
 #pragma endregion
 
 #pragma region IgnoredClassesEvents

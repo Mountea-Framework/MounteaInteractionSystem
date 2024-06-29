@@ -37,7 +37,7 @@ protected:
 public:
 
 	virtual FInteractableSelected&		GetOnInteractableSelectedHandle() override
-	{ return OnInteractableSelected; };
+	{ return OnInteractableUpdated; };
 	virtual FInteractableFound&			GetOnInteractableFoundHandle() override
 	{ return OnInteractableFound; };
 	virtual FInteractableLost&				GetOnInteractableLostHandle() override
@@ -69,7 +69,7 @@ public:
 	virtual bool IsValidInteractor_Implementation() const override;
 	virtual void EvaluateInteractable_Implementation(const TScriptInterface<IActorInteractableInterface>& FoundInteractable) override;
 	virtual void StartInteraction_Implementation(const float StartTime) override;
-	virtual void StopInteraction_Implementation(const float StartTime) override;
+	virtual void StopInteraction_Implementation(const float StopTime) override;
 	virtual bool ActivateInteractor_Implementation(FString& ErrorMessage) override;
 	virtual bool WakeUpInteractor_Implementation(FString& ErrorMessage) override;
 	virtual bool SuppressInteractor_Implementation(FString& ErrorMessage) override;
@@ -97,6 +97,52 @@ public:
 	virtual FGameplayTag GetInteractorTag_Implementation() const override;
 	virtual void SetInteractorTag_Implementation(const FGameplayTag& NewInteractorTag) override;
 
+protected:
+
+	UFUNCTION(Server, Reliable)
+	void SetState_Server(const EInteractorStateV2 NewState);
+	
+	UFUNCTION(Server, Reliable)
+	void StartInteraction_Server(const float StartTime);
+	UFUNCTION(Server, Reliable)
+	void StopInteraction_Server(const float StopTime);
+
+	UFUNCTION(Server, Unreliable)
+	void AddIgnoredActor_Server(AActor* IgnoredActor);
+	UFUNCTION(Server, Unreliable)
+	void AddIgnoredActors_Server(const TArray<AActor*>& IgnoredActors);
+	UFUNCTION(Server, Unreliable)
+	void RemoveIgnoredActor_Server(AActor* IgnoredActor);
+	UFUNCTION(Server, Unreliable)
+	void RemoveIgnoredActors_Server(const TArray<AActor*>& IgnoredActors);
+	
+	UFUNCTION(Server, Unreliable)
+	void AddInteractionDependency_Server(const TScriptInterface<IActorInteractorInterface>& InteractionDependency);
+	UFUNCTION(Server, Unreliable)
+	void RemoveInteractionDependency_Server(const TScriptInterface<IActorInteractorInterface>& InteractionDependency);
+
+	UFUNCTION(Server, Unreliable)
+	void ProcessDependencies_Server();
+
+	UFUNCTION(Server, Unreliable)
+	void SetResponseChannel_Server(const ECollisionChannel NewResponseCollision);
+	
+	UFUNCTION(Server, Unreliable)
+	void SetDefaultState_Server(const EInteractorStateV2 NewState);
+
+	UFUNCTION(Server, Reliable)
+	void SetActiveInteractable_Server(const TScriptInterface<IActorInteractableInterface>& NewInteractable);
+
+	UFUNCTION(Server, Reliable)
+	void SetInteractorTag_Server(const FGameplayTag& NewInteractorTag);
+
+	UFUNCTION()
+	void OnRep_InteractorState();
+	UFUNCTION()
+	void OnRep_ActiveInteractable();
+
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 public:
 
 	/**
@@ -108,7 +154,7 @@ public:
 	 * However, drawers have higher weight, thus always suppress items, unless specified otherwise.
 	 */
 	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Interaction")
-	FInteractableSelected			OnInteractableSelected;
+	FInteractableSelected			OnInteractableUpdated;
 	/**
 	 * This event is called once this Interactor finds any Interactable.
 	 * This event might happen for multiple Interactables. Each one is compared and if fit it is fed to OnInteractableSelected.
@@ -167,7 +213,7 @@ protected:
 	 * Gameplay Tag which helps further filter out Interaction.
 	 * Requires match in Interactable's `Interactable Tags` container.
 	 */
-	UPROPERTY(EditAnywhere, Category="Interaction|Optional", meta=(NoResetToDefault))
+	UPROPERTY(Replicated, EditAnywhere, Category="Interaction|Optional", meta=(NoResetToDefault))
 	FGameplayTag											InteractorTag;
 
 	/**
@@ -187,14 +233,14 @@ protected:
 	 * * Interaction Hover
 	 * * etc.
 	 */
-	UPROPERTY(EditAnywhere, Category="Interaction|Required", meta=(NoResetToDefault))
+	UPROPERTY(Replicated, EditAnywhere, Category="Interaction|Required", meta=(NoResetToDefault))
 	TEnumAsByte<ECollisionChannel>				CollisionChannel;
 	
 	/**
 	 * New and easier way to set Default State.
 	 * This state will be propagated to Interactor State.
 	 */
-	UPROPERTY(EditAnywhere, Category="Interaction|Required", meta=(NoResetToDefault))
+	UPROPERTY(Replicated, EditAnywhere, Category="Interaction|Required", meta=(NoResetToDefault))
 	EInteractorStateV2										DefaultInteractorState;
 
 	/**
@@ -202,7 +248,7 @@ protected:
 	 * If left empty, only Owner Actor is ignored.
 	 * If using multiple Actors (a gun, for instance), all those child/attached Actors should be ignored.
 	 */
-	UPROPERTY(EditAnywhere, Category="Interaction|Optional", meta=(NoResetToDefault, DisplayThumbnail=false))
+	UPROPERTY(Replicated, EditAnywhere, Category="Interaction|Optional", meta=(NoResetToDefault, DisplayThumbnail=false))
 	TArray<TObjectPtr<AActor>>					ListOfIgnoredActors;
 
 private:
@@ -210,15 +256,15 @@ private:
 	/**
 	 * Current read-only State of this Interactor.
 	 */
-	UPROPERTY(VisibleAnywhere, Category="Interaction|Read Only", meta=(NoResetToDefault))
+	UPROPERTY(ReplicatedUsing=OnRep_InteractorState, VisibleAnywhere, Category="Interaction|Read Only", meta=(NoResetToDefault))
 	EInteractorStateV2 InteractorState;
 	
 	// This is Interactable which is set as Active
-	UPROPERTY(VisibleAnywhere, Category="Interaction|Read Only")
+	UPROPERTY(ReplicatedUsing=OnRep_ActiveInteractable, VisibleAnywhere, Category="Interaction|Read Only")
 	TScriptInterface<IActorInteractableInterface> ActiveInteractable;
 	
 	// List of interactors suppressed by this one
-	UPROPERTY(VisibleAnywhere, Category="Interaction|Read Only")
+	UPROPERTY(Replicated, VisibleAnywhere, Category="Interaction|Read Only")
 	TArray<TScriptInterface<IActorInteractorInterface>> InteractionDependencies;
 
 #pragma region Editor

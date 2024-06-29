@@ -118,12 +118,18 @@ void UActorInteractableComponentBase::BeginPlay()
 	// Dependency
 	InteractableDependencyStarted.							AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractableDependencyStartedCallback);
 	InteractableDependencyStopped.							AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractableDependencyStoppedCallback);
+
+	// Activation
+	OnComponentActivated.											AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractableComponentActivated);
 	
 	RemainingLifecycleCount = LifecycleCount;
 	
 	Execute_SetState(this, DefaultInteractableState);
 
-	AutoSetup();
+	if (bAutoActivate)
+	{
+		AutoSetup();
+	}
 
 #if WITH_EDITOR
 	
@@ -1442,6 +1448,14 @@ void UActorInteractableComponentBase::OnInteractionProgressExpired(const float E
 		case EInteractableStateV2::EIS_Suppressed: break;
 		case EInteractableStateV2::EIS_Asleep: break;
 		case EInteractableStateV2::Default: break;
+	}
+}
+
+void UActorInteractableComponentBase::InteractableComponentActivated(UActorComponent* Component, bool bReset)
+{
+	if (IsActive())
+	{
+		AutoSetup();
 	}
 }
 
