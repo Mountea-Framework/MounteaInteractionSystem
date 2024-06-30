@@ -15,9 +15,9 @@ UENUM(BlueprintType)
 enum class ETraceType : uint8
 {
 	ETT_Precise		UMETA(DisplayName = "Precise", Tooltip = "Raycast/Line Trace."),
-	ETT_Loose		UMETA(DisplayName = "Loose", Tooltip = "Cubecast/Cube Trace."),
+	ETT_Loose			UMETA(DisplayName = "Loose", Tooltip = "Cubecast/Cube Trace."),
 
-	Default
+	Default					 UMETA(hidden)
 };
 
 /**
@@ -429,6 +429,8 @@ protected:
 #if WITH_EDITOR
 
 protected:
+
+	virtual FText GetInteractorDebugData() const override;
 
 	virtual void DrawTracingDebugStart(FInteractionTraceDataV2& InteractionTraceData) const;
 	virtual void DrawTracingDebugEnd(FInteractionTraceDataV2& InteractionTraceData) const;

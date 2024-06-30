@@ -16,7 +16,7 @@
 
 UActorInteractorComponentBase::UActorInteractorComponentBase() :
 		DebugSettings(false),
-		CollisionChannel(CollisionChannel),
+		CollisionChannel(ECC_Camera),
 		DefaultInteractorState(EInteractorStateV2::EIS_Awake),
 		InteractorState(EInteractorStateV2::EIS_Asleep)
 {
@@ -29,6 +29,15 @@ UActorInteractorComponentBase::UActorInteractorComponentBase() :
 
 	ComponentTags.Add(FName("Mountea"));
 	ComponentTags.Add(FName("Interaction"));	
+}
+
+FString UActorInteractorComponentBase::ToString() const
+{
+#if WITH_EDITOR
+	return GetInteractorDebugData().ToString();
+#else
+	return FString();
+#endif
 }
 
 void UActorInteractorComponentBase::BeginPlay()
@@ -851,10 +860,10 @@ void UActorInteractorComponentBase::GetLifetimeReplicatedProps(TArray<FLifetimeP
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME_CONDITION(UActorInteractorComponentBase, InteractorTag,					COND_None);
-	DOREPLIFETIME_CONDITION(UActorInteractorComponentBase, CollisionChannel,				COND_None);
-	DOREPLIFETIME_CONDITION(UActorInteractorComponentBase, DefaultInteractorState,		COND_InitialOrOwner);
-	DOREPLIFETIME_CONDITION(UActorInteractorComponentBase, ListOfIgnoredActors,			COND_Custom);
+	DOREPLIFETIME_CONDITION(UActorInteractorComponentBase, InteractorTag,					COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(UActorInteractorComponentBase, CollisionChannel,				COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(UActorInteractorComponentBase, DefaultInteractorState,		COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(UActorInteractorComponentBase, ListOfIgnoredActors,			COND_OwnerOnly);
 	
 	DOREPLIFETIME_CONDITION(UActorInteractorComponentBase, InteractorState,					COND_None);
 	DOREPLIFETIME_CONDITION(UActorInteractorComponentBase, ActiveInteractable,			COND_None);
@@ -877,6 +886,28 @@ void UActorInteractorComponentBase::SetState_Server_Implementation(const EIntera
 }
 
 #if WITH_EDITOR
+
+FText UActorInteractorComponentBase::GetInteractorDebugData() const
+{
+	// Retrieve active interactable
+	TScriptInterface<IActorInteractableInterface> activeInteractable = Execute_GetActiveInteractable(this);
+	FText activeInteractableName = activeInteractable.GetObject() ? FText::FromString(activeInteractable->Execute_GetInteractableName(activeInteractable.GetObject()).ToString()) : FText::FromString("None");
+
+	// Retrieve interactor state as text
+	FText interactorStateText = FText::FromString(UEnum::GetValueAsString(Execute_GetState(this)));
+
+	// Retrieve collision channel as text
+	FText collisionChannelText = FText::FromString(UEnum::GetValueAsString(Execute_GetResponseChannel(this)));
+
+	// Retrieve interactor tag as text
+	FText interactorTagText = InteractorTag.IsValid() ? FText::FromString(InteractorTag.ToString()) : FText::FromString("None");
+
+	// Format the text
+	return FText::Format(
+		NSLOCTEXT("InteractorDebugData", "Format", "Active Interactable: {0}\nInteractor State: {1}\nCollision Channel: {2}\nInteractor Tag: {3}"),
+		activeInteractableName, interactorStateText, collisionChannelText, interactorTagText
+	);
+}
 
 void UActorInteractorComponentBase::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent)
 {

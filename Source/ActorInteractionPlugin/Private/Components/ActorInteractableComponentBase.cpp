@@ -1304,123 +1304,17 @@ void UActorInteractableComponentBase::InteractionCooldownCompleted_Implementatio
 
 void UActorInteractableComponentBase::OnInteractableBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	/*
-	if (!Execute_CanBeTriggered(this)) return;
-	if (Execute_IsInteracting(this)) return;
-	if (!OtherActor) return;
-	if (!OtherComp) return;
-
-	if (OtherComp->GetCollisionResponseToChannel(CollisionChannel) == ECollisionResponse::ECR_Ignore) return;
-
-	TArray<UActorComponent*> InteractorComponents = OtherActor->GetComponentsByInterface(UActorInteractorInterface::StaticClass());
-
-	if (InteractorComponents.Num() == 0) return;
 	
-	for (const auto& Itr : InteractorComponents)
-	{
-		TScriptInterface<IActorInteractorInterface> FoundInteractor;
-		if (IgnoredClasses.Contains(Itr->StaticClass())) continue;
-		
-		FoundInteractor = Itr;
-		FoundInteractor.SetObject(Itr);
-		FoundInteractor.SetInterface(Cast<IActorInteractorInterface>(Itr));
-
-		if (FoundInteractor->Execute_CanInteract(FoundInteractor.GetObject()))
-		{
-			switch (FoundInteractor->Execute_GetState(FoundInteractor.GetObject()))
-			{
-				case EInteractorStateV2::EIS_Active:
-				case EInteractorStateV2::EIS_Awake:
-					if (FoundInteractor->Execute_GetResponseChannel(FoundInteractor.GetObject()) != Execute_GetCollisionChannel(this)) continue;
-					FoundInteractor->GetOnInteractableLostHandle().AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractableLost);
-					FoundInteractor->GetOnInteractableSelectedHandle().AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractableSelected);
-					OnInteractorFound.Broadcast(FoundInteractor);
-					OnInteractorOverlapped.Broadcast(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
-					break;
-				case EInteractorStateV2::EIS_Asleep:
-				case EInteractorStateV2::EIS_Suppressed:
-				case EInteractorStateV2::EIS_Disabled:
-				case EInteractorStateV2::Default:
-					break;
-			}
-		}
-	}
-	*/
 }
 
 void UActorInteractableComponentBase::OnInteractableStopOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	/*
-	if (!OtherActor) return;
-
-	TArray<UActorComponent*> InteractorComponents = OtherActor->GetComponentsByInterface(UActorInteractorInterface::StaticClass());
-
-	if (InteractorComponents.Num() == 0) return;
-
-	for (const auto& Itr : InteractorComponents)
-	{
-		TScriptInterface<IActorInteractorInterface> LostInteractor;
-		if (IgnoredClasses.Contains(Itr->StaticClass())) continue;
-		
-		LostInteractor = Itr;
-		LostInteractor.SetObject(Itr);
-		LostInteractor.SetInterface(Cast<IActorInteractorInterface>(Itr));
-
-		if (LostInteractor->Execute_CanInteract(LostInteractor.GetObject()))
-		{
-			if (LostInteractor == Execute_GetInteractor(this))
-			{
-				Execute_GetInteractor(this)->GetOnInteractableLostHandle().RemoveDynamic(this, &UActorInteractableComponentBase::InteractableLost);
-				Execute_GetInteractor(this)->GetOnInteractableLostHandle().Broadcast(this);
-				
-				OnInteractorLost.Broadcast(Execute_GetInteractor(this));
-				OnInteractorStopOverlap.Broadcast(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex);
-				
-				return;
-			}
-		}
-	}
-	*/
+	
 }
 
 void UActorInteractableComponentBase::OnInteractableTraced(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-	/*
-	if (!Execute_CanBeTriggered(this)) return;
-	if (!OtherActor) return;
-
-	TArray<UActorComponent*> InteractorComponents = OtherActor->GetComponentsByInterface(UActorInteractorInterface::StaticClass());
-
-	if (InteractorComponents.Num() == 0) return;
 	
-	for (const auto& Itr : InteractorComponents)
-	{
-		TScriptInterface<IActorInteractorInterface> FoundInteractor;
-		if (IgnoredClasses.Contains(Itr->StaticClass())) continue;
-		
-		FoundInteractor = Itr;
-		FoundInteractor.SetObject(Itr);
-		FoundInteractor.SetInterface(Cast<IActorInteractorInterface>(Itr));
-
-		switch (FoundInteractor->Execute_GetState(FoundInteractor.GetObject()))
-		{
-			case EInteractorStateV2::EIS_Active:
-			case EInteractorStateV2::EIS_Awake:
-				if (FoundInteractor->Execute_CanInteract(FoundInteractor.GetObject()) == false) return;
-				if (FoundInteractor->Execute_GetResponseChannel(FoundInteractor.GetObject()) != Execute_GetCollisionChannel(this)) continue;
-				FoundInteractor->GetOnInteractableLostHandle().AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractableLost);
-				FoundInteractor->GetOnInteractableSelectedHandle().AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractableSelected);
-				OnInteractorFound.Broadcast(FoundInteractor);
-				Execute_OnInteractableTracedEvent(this, HitComponent, OtherActor, OtherComp, NormalImpulse, Hit);
-				break;
-			case EInteractorStateV2::EIS_Asleep:
-			case EInteractorStateV2::EIS_Suppressed:
-			case EInteractorStateV2::EIS_Disabled:
-			case EInteractorStateV2::Default:
-				break;
-		}
-	}
-	*/
 }
 
 void UActorInteractableComponentBase::OnInteractionProgressExpired(const float ExpirationTime, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)

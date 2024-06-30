@@ -6,18 +6,70 @@
 #include "Helpers/ActorInteractionPluginLog.h"
 #include "Helpers/MounteaInteractionSystemBFL.h"
 #include "Interfaces/ActorInteractableInterface.h"
+#include "Net/UnrealNetwork.h"
 
 UActorInteractorComponentOverlap::UActorInteractorComponentOverlap()
 		: OverrideCollisionComponents(TArray<FName>()),
 		CollisionShapes(TArray<UPrimitiveComponent*>()),
+		bUseSafetyTrace(true),
+		ValidationCollisionChannel(ECC_Camera),
 		CachedCollisionShapesSettings(TMap<UPrimitiveComponent*, FCollisionShapeCache>())
 {
+	ComponentTags.Add(FName("Overlap"));
 }
 
 void UActorInteractorComponentOverlap::BeginPlay()
 {
 	SetupInteractorOverlap();
 	Super::BeginPlay();
+}
+
+void UActorInteractorComponentOverlap::UseSafetyTrace_Implementation(bool bEnable)
+{
+	if (!GetOwner())
+	{
+		LOG_ERROR(TEXT("[UseSafetyTrace] No owner!"))
+		return;
+	}
+
+	if (GetOwner()->HasAuthority())
+	{
+		if (bUseSafetyTrace != bEnable)
+			bUseSafetyTrace = bEnable;
+	}
+	else
+	{
+		UseSafetyTrace_Server(bEnable);
+	}
+}
+
+bool UActorInteractorComponentOverlap::DoesUseSafetyTrace() const
+{
+	return bUseSafetyTrace;
+}
+
+void UActorInteractorComponentOverlap::SetValidationCollisionChannel_Implementation(const ECollisionChannel NewSafetyChannel)
+{
+	if (!GetOwner())
+	{
+		LOG_ERROR(TEXT("[SetSafetyCollisionChannel] No owner!"))
+		return;
+	}
+
+	if (GetOwner()->HasAuthority())
+	{
+		if (NewSafetyChannel != ValidationCollisionChannel)
+			ValidationCollisionChannel = NewSafetyChannel;
+	}
+	else
+	{
+		SetValidationCollisionChannel_Server(NewSafetyChannel);
+	}
+}
+
+ECollisionChannel UActorInteractorComponentOverlap::GetValidationCollisionChannel() const
+{
+	return ValidationCollisionChannel;
 }
 
 void UActorInteractorComponentOverlap::ProcessStateChanges()
@@ -284,61 +336,64 @@ void UActorInteractorComponentOverlap::HandleStartOverlap(UPrimitiveComponent* P
 		}
 	}
 
-	// Safety check: Perform line trace to ensure no wall obstruction and that we indeed hit the OtherActor
-	FHitResult safetyTrace;
-	FCollisionQueryParams queryParams;
+	if (bUseSafetyTrace)
 	{
-		queryParams.AddIgnoredActor(GetOwner());
-	}
+		// Safety check: Perform line trace to ensure no wall obstruction and that we indeed hit the OtherActor
+		FHitResult safetyTrace;
+		FCollisionQueryParams queryParams;
+		{
+			queryParams.AddIgnoredActor(GetOwner());
+		}
 
-	bool bHit = GetWorld()->LineTraceSingleByChannel(safetyTrace, GetOwner()->GetActorLocation(), OtherActor->GetActorLocation(), ECC_Visibility, queryParams);
+		bool bHit = GetWorld()->LineTraceSingleByChannel(safetyTrace, GetOwner()->GetActorLocation(), OtherActor->GetActorLocation(), ValidationCollisionChannel, queryParams);
 
 #if WITH_EDITOR
-	if(DebugSettings.DebugMode)
-	{
-		DrawDebugBox
-		(
-			GetWorld(),
-			GetOwner()->GetActorLocation(),
-			FVector(5.f),
-			FColor::Blue,
-			false,
-			2.f,
-			0,
-			1.f
-		);
+		if(DebugSettings.DebugMode)
+		{
+			DrawDebugBox
+			(
+				GetWorld(),
+				GetOwner()->GetActorLocation(),
+				FVector(5.f),
+				FColor::Blue,
+				false,
+				2.f,
+				0,
+				1.f
+			);
 
-		DrawDebugBox
-		(
-			GetWorld(),
-			OtherActor->GetActorLocation(),
-			FVector(5.f),
-			FColor::Red,
-			false,
-			2.f,
-			0,
-			1.f
-		);
+			DrawDebugBox
+			(
+				GetWorld(),
+				OtherActor->GetActorLocation(),
+				FVector(5.f),
+				FColor::Red,
+				false,
+				2.f,
+				0,
+				1.f
+			);
 		
-		DrawDebugDirectionalArrow
-		(
-			GetWorld(),
-			GetOwner()->GetActorLocation(),
-			OtherActor->GetActorLocation(),
-			2.f,
-			FColor::Purple,
-			false,
-			2.f,
-			0,
-			1.f
-		);
-	}
+			DrawDebugDirectionalArrow
+			(
+				GetWorld(),
+				GetOwner()->GetActorLocation(),
+				OtherActor->GetActorLocation(),
+				2.f,
+				FColor::Purple,
+				false,
+				2.f,
+				0,
+				1.f
+			);
+		}
 #endif
 	
-	if (bHit && safetyTrace.GetActor() != OtherActor)
-	{
-		LOG_WARNING(TEXT("[HandleStartOverlap] Line trace hit something between interactor and interactable!"));
-		return;
+		if (bHit && safetyTrace.GetActor() != OtherActor)
+		{
+			LOG_WARNING(TEXT("[HandleStartOverlap] Line trace hit something between interactor and interactable!"));
+			return;
+		}
 	}
 	
 	OnInteractableLost.Broadcast(currentlyActiveInteractable);
@@ -422,7 +477,6 @@ void UActorInteractorComponentOverlap::HandleEndOverlap(UPrimitiveComponent* Pri
 	currentlyActiveInteractable->GetOnInteractorLostHandle().Broadcast(this);
 }
 
-
 void UActorInteractorComponentOverlap::StartInteractorOverlap_Server_Implementation(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	StartInteractorOverlap(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
@@ -433,6 +487,15 @@ void UActorInteractorComponentOverlap::StopInteractorOverlap_Server_Implementati
 	StopInteractorOverlap(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex);
 }
 
+void UActorInteractorComponentOverlap::UseSafetyTrace_Server_Implementation(bool bEnable)
+{
+	UseSafetyTrace(bEnable);
+}
+
+void UActorInteractorComponentOverlap::SetValidationCollisionChannel_Server_Implementation(const ECollisionChannel NewSafetyChannel)
+{
+	SetValidationCollisionChannel(NewSafetyChannel);
+}
 
 void UActorInteractorComponentOverlap::AddCollisionComponent_Implementation(UPrimitiveComponent* CollisionComponent)
 {
@@ -548,3 +611,32 @@ TSet<UPrimitiveComponent*> UActorInteractorComponentOverlap::GetCollisionCompone
 {
 	return CollisionShapes;
 }
+
+void UActorInteractorComponentOverlap::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME_CONDITION(UActorInteractorComponentOverlap, bUseSafetyTrace,					COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(UActorInteractorComponentOverlap, ValidationCollisionChannel,	COND_OwnerOnly);
+}
+
+#if WITH_EDITOR
+
+FText UActorInteractorComponentOverlap::GetInteractorDebugData() const
+{
+	FText baseDebugData = Super::GetInteractorDebugData();
+	FText safetyTraceText = FText::FromString(bUseSafetyTrace ? TEXT("True") : TEXT("False"));
+	FText validationCollisionChannelText = FText::FromString(UEnum::GetValueAsString(ValidationCollisionChannel));
+
+	FText overlapDebugData = FText::Format(
+		NSLOCTEXT("InteractorOverlapDebugData", "Format", "\nUse Safety Trace: {0}\nValidation Collision Channel: {1}"),
+		safetyTraceText, validationCollisionChannelText
+	);
+
+	return FText::Format(
+		NSLOCTEXT("InteractorOverlapDebugData", "CombinedFormat", "{0}{1}"),
+		baseDebugData, overlapDebugData
+	);
+}
+
+#endif

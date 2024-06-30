@@ -26,6 +26,8 @@ protected:
 
 	virtual void BeginPlay() override;
 
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 public:
 	
 	virtual void SetupInteractorOverlap();
@@ -34,10 +36,6 @@ public:
 	virtual void BindCollision(UPrimitiveComponent* Component);
 	virtual void UnbindCollisions();
 	virtual void UnbindCollision(UPrimitiveComponent* Component);
-
-protected:
-
-	
 
 protected:
 	
@@ -68,7 +66,7 @@ public:
 	
 	/**
 	 * 
-	 * @param CollisionComponents 
+	 * @param CollisionComponents		
 	 */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Interaction")
 	void AddCollisionComponents(const TArray<UPrimitiveComponent*>& CollisionComponents);
@@ -76,7 +74,7 @@ public:
 	
 	/**
 	 * 
-	 * @param CollisionComponent 
+	 * @param CollisionComponent		
 	 */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Interaction")
 	void RemoveCollisionComponent(UPrimitiveComponent* CollisionComponent);
@@ -84,7 +82,7 @@ public:
 	
 	/**
 	 * 
-	 * @param CollisionComponents 
+	 * @param CollisionComponents		
 	 */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Interaction")
 	void RemoveCollisionComponents(const TArray<UPrimitiveComponent*>& CollisionComponents);
@@ -97,6 +95,37 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	TSet<UPrimitiveComponent*> GetCollisionComponents() const;
 
+	
+	/**
+	 * 
+	 * @param bEnable						
+	 */
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Interaction|Tracing")
+	void UseSafetyTrace(bool bEnable);
+	virtual void UseSafetyTrace_Implementation(bool bEnable);
+
+	/**
+	 * 
+	 * @return 
+	 */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
+	bool DoesUseSafetyTrace() const;
+
+	/**
+	 * 
+	 * @param NewSafetyChannel		
+	 */
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Interaction|Tracing")
+	void SetValidationCollisionChannel(const ECollisionChannel NewSafetyChannel);
+	void SetValidationCollisionChannel_Implementation(const ECollisionChannel NewSafetyChannel);
+
+	/**
+	 * 
+	 * @return									
+	 */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
+	ECollisionChannel GetValidationCollisionChannel() const;
+	
 protected:
 
 	virtual void ProcessStateChanges() override;
@@ -124,7 +153,11 @@ protected:
 	UFUNCTION(Server, Reliable)
 	void StopInteractorOverlap_Server(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
-	
+	UFUNCTION(Server, Unreliable)
+	void UseSafetyTrace_Server(bool bEnable);
+
+	UFUNCTION(Server, Unreliable)
+	void SetValidationCollisionChannel_Server(const ECollisionChannel NewSafetyChannel);
 
 public:
 
@@ -138,6 +171,19 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category="Interaction|Optional")
 	TArray<FName>																					OverrideCollisionComponents;
+
+	/**
+	 * Used for validation. If allowed a single LineTrace will be shot from Owner's location towards Overlapped Actor. `ValidationCollisionChannel` is used for this check.
+	 * This is useful to prevent overlapping collision which is clipping through a wall, for instance.
+	 */
+	UPROPERTY(Replicated, EditAnywhere, Category="Interaction|Required", meta=(NoResetToDefault))
+	uint8																									bUseSafetyTrace : 1;
+	
+	/**
+	 * Additional collision channel used for validation Trace after initial overlap.
+	 */
+	UPROPERTY(Replicated, EditAnywhere, Category="Interaction|Required", meta=(NoResetToDefault), meta=(EditCondition="bUseSafetyTrace == true"))
+	TEnumAsByte<ECollisionChannel>														ValidationCollisionChannel;
 
 	/**
 	 * A list of Collision Shapes that are used as interactors.
@@ -155,4 +201,13 @@ private:
 	 */
 	UPROPERTY(SaveGame, VisibleAnywhere, Category="Interaction|Read Only", meta=(DisplayThumbnail = false, ShowOnlyInnerProperties))
 	mutable TMap<UPrimitiveComponent*, FCollisionShapeCache>			CachedCollisionShapesSettings;
+
+#if WITH_EDITOR
+
+private:
+
+	virtual FText GetInteractorDebugData() const override;
+	
+#endif
+	
 };

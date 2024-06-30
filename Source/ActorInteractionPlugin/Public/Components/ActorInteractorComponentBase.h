@@ -28,6 +28,9 @@ public:
 
 	UActorInteractorComponentBase();
 
+	UFUNCTION(BlueprintCallable, BlueprintPure, meta=(DevelopmentOnly))
+	FString ToString() const;
+
 protected:
 	
 	virtual void BeginPlay() override;
@@ -295,7 +298,13 @@ private:
 #if WITH_EDITOR
 	
 protected:
-
+	
+	/**
+	 * Helper function to provide a list of debug information.
+	 */
+	UFUNCTION(BlueprintCallable, BlueprintPure, meta=(DevelopmentOnly))
+	virtual FText GetInteractorDebugData() const;
+	
 	virtual void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;
 	virtual EDataValidationResult IsDataValid(TArray<FText>& ValidationErrors) override;
 

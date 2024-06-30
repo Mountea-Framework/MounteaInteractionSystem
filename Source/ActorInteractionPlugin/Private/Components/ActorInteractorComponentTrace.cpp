@@ -607,6 +607,25 @@ void UActorInteractorComponentTrace::ProcessTrace_Server_Implementation()
 
 #if WITH_EDITOR
 
+FText UActorInteractorComponentTrace::GetInteractorDebugData() const
+{
+	FText baseDebugData = Super::GetInteractorDebugData();
+	FText traceTypeText = FText::FromString(UEnum::GetValueAsString(TraceType));
+	FText traceIntervalText = FText::AsNumber(TraceInterval);
+	FText traceRangeText = FText::AsNumber(TraceRange);
+
+	FText traceDebugData = FText::Format(
+		NSLOCTEXT("InteractorTraceDebugData", "Format", "\nTrace Type: {0}\nTrace Interval: {1}\nTrace Range: {2}"),
+		traceTypeText, traceIntervalText, traceRangeText
+	);
+
+	return FText::Format(
+		NSLOCTEXT("InteractorTraceDebugData", "CombinedFormat", "{0}{1}"),
+		baseDebugData, traceDebugData
+	);
+}
+
+
 void UActorInteractorComponentTrace::DrawTracingDebugStart(FInteractionTraceDataV2& InteractionTraceData) const
 {
 	if(DebugSettings.DebugMode)
