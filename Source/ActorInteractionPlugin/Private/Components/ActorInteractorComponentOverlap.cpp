@@ -95,7 +95,8 @@ void UActorInteractorComponentOverlap::ProcessStateChanges()
 
 	switch (Execute_GetState(this))
 	{
-		case EInteractorStateV2::EIS_Active: 
+		case EInteractorStateV2::EIS_Active:
+			break;
 		case EInteractorStateV2::EIS_Awake:
 			BindCollisions();
 			break;
@@ -107,32 +108,6 @@ void UActorInteractorComponentOverlap::ProcessStateChanges()
 			UnbindCollisions();
 			break;
 	}	
-}
-
-void UActorInteractorComponentOverlap::OnRep_CollisionShapes()
-{
-	/*
-#if WITH_EDITOR || UE_BUILD_DEBUG
-
-	if (DebugSettings.DebugMode)
-	{
-		for (UPrimitiveComponent* component : CollisionShapes)
-		{
-			if (!component)
-				continue;
-
-			if (DebugSettings.DebugMode)
-			{
-				component->SetHiddenInGame(false);
-				component->SetVisibility(true);
-
-				LOG_INFO(TEXT("[OnRep_Collisions] Showing Collisions"))
-			}
-		}
-	}
-	
-#endif
-*/
 }
 
 void UActorInteractorComponentOverlap::ProcessOverlap_Server_Implementation(UPrimitiveComponent* OverlappedComponent,AActor* OtherActor, UPrimitiveComponent* OtherComp, const FHitResult& SweepResult, const bool bOverlapStarted)

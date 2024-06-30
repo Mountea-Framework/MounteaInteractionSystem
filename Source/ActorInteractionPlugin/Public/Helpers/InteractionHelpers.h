@@ -16,10 +16,10 @@
 UENUM(BlueprintType)
 enum class EInteractableLifecycle : uint8
 {
-  EIL_OnlyOnce UMETA(DisplayName="Once", Tooltip="Once is Interactable finished, interaction is no more allowed."),
-  EIL_Cycled   UMETA(DisplayName="Cycled", Tooltip="Once is Interactable finished, interaction is allowed once Cooldown period is finished. Allowed for unlimited time unless Maximum Lifecycles are specified."),
+  EIL_OnlyOnce		UMETA(DisplayName="Once",					Tooltip="Once is Interactable finished, interaction is no more allowed."),
+  EIL_Cycled			UMETA(DisplayName="Cycled",					Tooltip="Once is Interactable finished, interaction is allowed once Cooldown period is finished. Allowed for unlimited time unless Maximum Lifecycles are specified."),
 
-  Default      UMETA(Hidden)
+  Default					UMETA(Hidden)
 };
 
 /**
@@ -32,10 +32,10 @@ enum class EInteractableLifecycle : uint8
 UENUM(BlueprintType)
 enum class EInteractorPrecision : uint8
 {
- EIP_High    UMETA(DisplayName = "High Precision", Tooltip = "High Precision is using less tolerant Line Tracing method to find Interactable Actor."),
- EIP_Low     UMETA(DisplayName = "Low Precision",Tooltip = "Low Precision is using more tolerant Box Tracing method to find Interactable Actor."),
+ EIP_High					UMETA(DisplayName = "High Precision",	Tooltip = "High Precision is using less tolerant Line Tracing method to find Interactable Actor."),
+ EIP_Low					UMETA(DisplayName = "Low Precision",	Tooltip = "Low Precision is using more tolerant Box Tracing method to find Interactable Actor."),
 
- Default     UMETA(Hidden)
+ Default					UMETA(Hidden)
 };
 
 #pragma region State Machine
@@ -48,28 +48,28 @@ enum class EInteractorPrecision : uint8
 UENUM(BlueprintType, meta=(ScriptName="InteractableState"))
 enum class EInteractableStateV2 : uint8
 {
- EIS_Active          UMETA(DisplayName = "Active",           Tooltip = "Interactable is awaken and being interacted with."),
- EIS_Awake         UMETA(DisplayName = "Awake",          ToolTip = "Interactable is awaken and can be interacted with. Will react to Interactors."),
- EIS_Cooldown     UMETA(DisplayName = "Cooldown",      Tooltip = "Interactable is disabled during cooldown period. Then will be awaken again. Doesn't react to Interactors."),
- EIS_Paused        UMETA(DisplayName = "Paused",         Tooltip = "Interactable is paused during pause period. Does react to Interactors and continues in the progress."),
- EIS_Completed    UMETA(DisplayName = "Finished",       Tooltip = "Interactable is disabled after sucesful interaction. Doesn't react to Interactors. Cannot be activated again."),
- EIS_Disabled       UMETA(DisplayName = "Disabled",       Tooltip = "Interactable is disabled. Can be awaken. Doesn't react to Interactors."),
- EIS_Suppressed  UMETA(DisplayName = "Suppressed",  Tooltip = "Interactable is suppressed and cannot be interacted with. Can be awaken. Doesn't react to Interactors."),
+ EIS_Active				UMETA(DisplayName = "Active",				Tooltip = "Interactable is awaken and being interacted with."),
+ EIS_Awake			UMETA(DisplayName = "Awake",				ToolTip = "Interactable is awaken and can be interacted with. Will react to Interactors."),
+ EIS_Cooldown		UMETA(DisplayName = "Cooldown",			Tooltip = "Interactable is disabled during cooldown period. Then will be awaken again. Doesn't react to Interactors."),
+ EIS_Paused			UMETA(DisplayName = "Paused",				Tooltip = "Interactable is paused during pause period. Does react to Interactors and continues in the progress."),
+ EIS_Completed		UMETA(DisplayName = "Finished",				Tooltip = "Interactable is disabled after sucesful interaction. Doesn't react to Interactors. Cannot be activated again."),
+ EIS_Disabled			UMETA(DisplayName = "Disabled",				Tooltip = "Interactable is disabled. Can be awaken. Doesn't react to Interactors."),
+ EIS_Suppressed	UMETA(DisplayName = "Suppressed",		Tooltip = "Interactable is suppressed and cannot be interacted with. Can be awaken. Doesn't react to Interactors."),
 
- EIS_Asleep         UMETA(Hidden),
- Default                UMETA(Hidden)
+ EIS_Asleep				UMETA(Hidden),
+ Default					UMETA(Hidden)
 };
 
 UENUM(BlueprintType, meta=(ScriptName="InteractorState"))
 enum class EInteractorStateV2 : uint8
 {
- EIS_Awake      UMETA(DisplayName = "Awake",       Tooltip = "Interactor is awaken. Interactor is looking for Interactables."),
- EIS_Asleep     UMETA(DisplayName = "Asleep",      Tooltip = "Interactor is asleep, but can be awaken. Default state. Useful for cutscenes or UI interactions."),
- EIS_Suppressed UMETA(DisplayName = "Suppressed",  Tooltip = "Interactor is suppressed and cannot interact. Default state for secondary Interactors when master is Active."),
- EIS_Active     UMETA(DisplayName = "Interacting", Tooltip = "Interactor is in use"),
- EIS_Disabled   UMETA(DisplayName = "Disabled",    Tooltip = "Interactor is disabled. Can be awaken."),
+ EIS_Awake			UMETA(DisplayName = "Awake",				Tooltip = "Interactor is awaken. Interactor is looking for Interactables."),
+ EIS_Asleep				UMETA(DisplayName = "Asleep",				Tooltip = "Interactor is asleep, but can be awaken. Default state. Useful for cutscenes or UI interactions."),
+ EIS_Suppressed	UMETA(DisplayName = "Suppressed",		Tooltip = "Interactor is suppressed and cannot interact. Default state for secondary Interactors when master is Active."),
+ EIS_Active				UMETA(DisplayName = "Interacting",			Tooltip = "Interactor is in use"),
+ EIS_Disabled			UMETA(DisplayName = "Disabled",				Tooltip = "Interactor is disabled. Can be awaken."),
 
- Default        UMETA(Hidden)
+ Default					UMETA(Hidden)
 };
 
 #pragma endregion

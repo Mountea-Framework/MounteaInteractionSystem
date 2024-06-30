@@ -166,7 +166,16 @@ public:
 
 protected:
 
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	UFUNCTION(Server, Reliable)
+	void SetState_Server(const EInteractableStateV2 NewState);
+
+	UFUNCTION()
+	void OnRep_InteractableState();
 	
+	UFUNCTION()
+	void OnRep_ActiveInteractor();
 
 #pragma endregion
 
@@ -765,7 +774,7 @@ protected:
 	 * - -1 = immediate
 	 * - 0  = 0.1s
 	 */
-	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Required", meta=(UIMin=-1, ClampMin=-1, Units="seconds"))
+	UPROPERTY(Replicated, SaveGame, EditAnywhere, Category="Interaction|Required", meta=(UIMin=-1, ClampMin=-1, Units="seconds"))
 	float																													InteractionPeriod;
 
 	/**
@@ -775,14 +784,14 @@ protected:
 	 * * Finished
 	 * * Cooldown
 	 */
-	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Required", meta=(NoResetToDefault))
+	UPROPERTY(Replicated, SaveGame, EditAnywhere, Category="Interaction|Required", meta=(NoResetToDefault))
 	EInteractableStateV2																						DefaultInteractableState;
 	
 	/**
 	 * If set to true, Interactable will automatically assigns owning Component in Hierarchy as Highlightable Meshes and Collision Shapes.
 	 * This setup might be useful for simple Actors, might cause issues with more complex ones.
 	 */
-	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Required")
+	UPROPERTY(Replicated, SaveGame, EditAnywhere, Category="Interaction|Required")
 	ESetupType																										SetupType;
 
 	/**
@@ -791,7 +800,7 @@ protected:
 	 *
 	 * Could be either Trace or Object response.
 	 */
-	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Required", meta=(NoResetToDefault))
+	UPROPERTY(Replicated, SaveGame, EditAnywhere, Category="Interaction|Required", meta=(NoResetToDefault))
 	TEnumAsByte<ECollisionChannel>																	CollisionChannel;
 	
 	/**
@@ -799,7 +808,7 @@ protected:
 	 * After this period of time the Interactable will be Awake again, unless no Interactor.
 	 * Clamped in Setter.
 	 */
-	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Required", meta=(NoResetToDefault, EditCondition = "LifecycleMode == EInteractableLifecycle::EIL_Cycled", UIMin=0.1, ClampMin=0.1, Units="Seconds"))
+	UPROPERTY(Replicated, SaveGame, EditAnywhere, Category="Interaction|Required", meta=(NoResetToDefault, EditCondition = "LifecycleMode == EInteractableLifecycle::EIL_Cycled", UIMin=0.1, ClampMin=0.1, Units="Seconds"))
 	float																													CooldownPeriod;
 
 #pragma endregion
@@ -811,7 +820,7 @@ protected:
 	/**
 	 * 
 	 */
-	UPROPERTY(EditAnywhere, Category="Interaction|Optional", meta=(NoResetToDefault))
+	UPROPERTY(Replicated, EditAnywhere, Category="Interaction|Optional", meta=(NoResetToDefault))
 	FGameplayTagContainer																					InteractableCompatibleTags;
 	
 	/**
@@ -864,9 +873,9 @@ protected:
 	/**
 	* Defines what Highlight Type is used.
 	*/
-	UPROPERTY(SaveGame, EditAnywhere, BlueprintReadOnly,  Category="Interaction|Optional")
+	UPROPERTY(Replicated, SaveGame, EditAnywhere, BlueprintReadOnly,  Category="Interaction|Optional")
 	EHighlightType																									HighlightType;
-	UPROPERTY(SaveGame, EditAnywhere, BlueprintReadOnly,  Category="Interaction|Optional", meta=(EditCondition="bInteractionHighlight == true && HighlightType==EHighlightType::EHT_OverlayMaterial"))
+	UPROPERTY(Replicated, SaveGame, EditAnywhere, BlueprintReadOnly,  Category="Interaction|Optional", meta=(EditCondition="bInteractionHighlight == true && HighlightType==EHighlightType::EHT_OverlayMaterial"))
 	TObjectPtr<UMaterialInterface>																		HighlightMaterial = nullptr;
 
 	UPROPERTY(SaveGame, EditAnywhere, BlueprintReadOnly,  Category="Interaction|Optional")
@@ -882,13 +891,13 @@ protected:
 	 * Interactable Data.
 	 * Could be any Data Table.
 	 */
-	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Optional", meta=(ShowOnlyInnerProperties, NoResetToDefault)) //, RequiredAssetDataTags = "RowStructure=/Script/ActorInteractionSystem.InteractionData"))
+	UPROPERTY(Replicated, SaveGame, EditAnywhere, Category="Interaction|Optional", meta=(ShowOnlyInnerProperties, NoResetToDefault)) //, RequiredAssetDataTags = "RowStructure=/Script/ActorInteractionSystem.InteractionData"))
 	FDataTableRowHandle																					InteractableData;
 
 	/**
 	 * Display Name.
 	 */
-	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Optional", meta=(NoResetToDefault))
+	UPROPERTY(Replicated, SaveGame, EditAnywhere, Category="Interaction|Optional", meta=(NoResetToDefault))
 	FText																												InteractableName = LOCTEXT("InteractableComponentBase", "Default");
 
 	/**
@@ -922,7 +931,7 @@ protected:
 	 * Is subject to State Machine.
 	 * @see [State Machine] https://github.com/Mountea-Framework/ActorInteractionPlugin/wiki/Actor-Interactable-Component-Validations#state-machine
 	 */
-	UPROPERTY(SaveGame, VisibleAnywhere, Category="Interaction|Read Only")
+	UPROPERTY(ReplicatedUsing=OnRep_InteractableState, SaveGame, VisibleAnywhere, Category="Interaction|Read Only")
 	EInteractableStateV2																						InteractableState;
 	
 	/**
@@ -934,7 +943,7 @@ protected:
 	 * * Can be used only once
 	 * * Good for pickup items
 	 */
-	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Required", meta=(NoResetToDefault))
+	UPROPERTY(Replicated, SaveGame, EditAnywhere, Category="Interaction|Required", meta=(NoResetToDefault))
 	EInteractableLifecycle																						LifecycleMode;
 
 	/**
@@ -947,13 +956,13 @@ protected:
 	 * *  1 | Invalid, will be set to 2
 	 * * 2+ | Will be used defined number of times
 	 */
-	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Required", meta=(NoResetToDefault, EditCondition = "LifecycleMode == EInteractableLifecycle::EIL_Cycled", UIMin=-1, ClampMin=-1, Units="times"))
+	UPROPERTY(Replicated, SaveGame, EditAnywhere, Category="Interaction|Required", meta=(NoResetToDefault, EditCondition = "LifecycleMode == EInteractableLifecycle::EIL_Cycled", UIMin=-1, ClampMin=-1, Units="times"))
 	int32																												LifecycleCount;
 
 	/**
 	 * How many Lifecycles remain until this Interactable is Finished.
 	 */
-	UPROPERTY(SaveGame, VisibleAnywhere, Category="Interaction|Read Only")
+	UPROPERTY(Replicated, SaveGame, VisibleAnywhere, Category="Interaction|Read Only")
 	int32																												RemainingLifecycleCount;
 
 	/**
@@ -997,7 +1006,7 @@ protected:
 	 * Default value: 1
 	 * Clamped in setter function to be at least 0 or higher.
 	 */
-	UPROPERTY(SaveGame, EditAnywhere, Category="Interaction|Required", meta=(UIMin=0, ClampMin=0))
+	UPROPERTY(Replicated, SaveGame, EditAnywhere, Category="Interaction|Required", meta=(UIMin=0, ClampMin=0))
 	int32																												InteractionWeight;
 
 	/**
@@ -1019,7 +1028,7 @@ private:
 	/**
 	 * Interactor which is using this Interactable.
 	 */
-	UPROPERTY(SaveGame, VisibleAnywhere, Category="Interaction|Read Only", meta=(DisplayThumbnail = false))
+	UPROPERTY(ReplicatedUsing=OnRep_ActiveInteractor, SaveGame, VisibleAnywhere, Category="Interaction|Read Only", meta=(DisplayThumbnail = false))
 	TScriptInterface<IActorInteractorInterface>													Interactor = nullptr;
 
 #pragma endregion

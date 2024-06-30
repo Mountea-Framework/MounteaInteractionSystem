@@ -161,9 +161,6 @@ protected:
 	UFUNCTION(Server, Unreliable)
 	void SetValidationCollisionChannel_Server(const ECollisionChannel NewSafetyChannel);
 
-	UFUNCTION()
-	void OnRep_CollisionShapes();
-
 public:
 
 	UPROPERTY(BlueprintAssignable, Category="Interaction")
@@ -194,7 +191,7 @@ protected:
 	 * A list of Collision Shapes that are used as interactors.
 	 * List is populated on Server Side only!
 	 */
-	UPROPERTY(ReplicatedUsing=OnRep_CollisionShapes, SaveGame, VisibleAnywhere, Category="Interaction|Read Only", meta=(DisplayThumbnail = false, ShowOnlyInnerProperties))
+	UPROPERTY(Replicated, SaveGame, VisibleAnywhere, Category="Interaction|Read Only", meta=(DisplayThumbnail = false, ShowOnlyInnerProperties))
 	TArray<TObjectPtr<UPrimitiveComponent>>										CollisionShapes;
 
 private:

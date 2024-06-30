@@ -18,6 +18,7 @@
 #include "Helpers/ActorInteractionFunctionLibrary.h"
 #include "Helpers/MounteaInteractionSystemBFL.h"
 #include "Interfaces/ActorInteractorInterface.h"
+#include "Net/UnrealNetwork.h"
 
 #define LOCTEXT_NAMESPACE "InteractableComponentBase"
 
@@ -398,219 +399,241 @@ void UActorInteractableComponentBase::CleanupComponent()
 
 void UActorInteractableComponentBase::SetState_Implementation(const EInteractableStateV2 NewState)
 {
-	switch (NewState)
+	if (!GetOwner())
 	{
-		case EInteractableStateV2::EIS_Active:
-			switch (InteractableState)
-			{
-				case EInteractableStateV2::EIS_Paused:
-				case EInteractableStateV2::EIS_Awake:
-					InteractableState = NewState;
-					OnInteractableStateChanged.Broadcast(InteractableState);
-					break;
-				case EInteractableStateV2::EIS_Active:
-					break;
-				case EInteractableStateV2::EIS_Asleep:
-				case EInteractableStateV2::EIS_Suppressed:
-				case EInteractableStateV2::EIS_Cooldown:
-				case EInteractableStateV2::EIS_Completed:
-				case EInteractableStateV2::EIS_Disabled:
-				case EInteractableStateV2::Default:
-				default: break;
-			}
-			break;
-		case EInteractableStateV2::EIS_Awake:
-			switch (InteractableState)
-			{
-				case EInteractableStateV2::EIS_Active:
-				case EInteractableStateV2::EIS_Asleep:
-				case EInteractableStateV2::EIS_Suppressed:
-				case EInteractableStateV2::EIS_Cooldown:
-				case EInteractableStateV2::EIS_Disabled:
-				case EInteractableStateV2::EIS_Paused:
-					{
-						InteractableState = NewState;
-						OnInteractableStateChanged.Broadcast(InteractableState);
+		LOG_ERROR(TEXT("[SetState] No owner!"))
+		return;
+	}
 
-						for (const auto& Itr : CollisionComponents)
-						{
-							Execute_BindCollisionShape(this, Itr);
-						}
-					}
-					break;
-				case EInteractableStateV2::EIS_Completed:
-				case EInteractableStateV2::EIS_Awake:
-				case EInteractableStateV2::Default: 
-				default: break;
-			}
-			break;
-		case EInteractableStateV2::EIS_Asleep:
-			switch (InteractableState)
-			{
-				case EInteractableStateV2::EIS_Active:
-				case EInteractableStateV2::EIS_Paused:
-				case EInteractableStateV2::EIS_Awake:
-				case EInteractableStateV2::EIS_Suppressed:
-				case EInteractableStateV2::EIS_Cooldown:
-				case EInteractableStateV2::EIS_Disabled:
-					{
-						InteractableState = NewState;
-
-						// Replacing Cleanup
-						Execute_StopHighlight(this);
-						OnInteractableStateChanged.Broadcast(InteractableState);
-						if (GetWorld()) GetWorld()->GetTimerManager().ClearAllTimersForObject(this);
-						OnInteractorLost.Broadcast(Interactor);
-						
-						for (const auto& Itr : CollisionComponents)
-						{
-							Execute_UnbindCollisionShape(this, Itr);
-						}
-					}
-					break;
-				case EInteractableStateV2::EIS_Completed:
-				case EInteractableStateV2::EIS_Asleep:
-				case EInteractableStateV2::Default: 
-				default: break;
-			}
-			break;
-		case EInteractableStateV2::EIS_Cooldown:
-			switch (InteractableState)
-			{
-				case EInteractableStateV2::EIS_Awake:
-				case EInteractableStateV2::EIS_Active:
-					InteractableState = NewState;
-					Execute_StopHighlight(this);
-					OnInteractableStateChanged.Broadcast(InteractableState);
-					break;
-				case EInteractableStateV2::EIS_Suppressed:
-				case EInteractableStateV2::EIS_Disabled:
-					{
-						InteractableState = NewState;
-
-						// Replacing Cleanup
-						Execute_StopHighlight(this);
-						OnInteractableStateChanged.Broadcast(InteractableState);
-						if (GetWorld()) GetWorld()->GetTimerManager().ClearAllTimersForObject(this);
-						OnInteractorLost.Broadcast(Interactor);
-						
-						for (const auto& Itr : CollisionComponents)
-						{
-							Execute_UnbindCollisionShape(this, Itr);
-						}
-					}
-					break;
-				case EInteractableStateV2::EIS_Paused:
-				case EInteractableStateV2::EIS_Cooldown:
-				case EInteractableStateV2::EIS_Completed:
-				case EInteractableStateV2::EIS_Asleep:
-				case EInteractableStateV2::Default: 
-				default: break;
-			}
-			break;
-		case EInteractableStateV2::EIS_Completed:
-			switch (InteractableState)
-			{
-				case EInteractableStateV2::EIS_Active:
-					{
-						InteractableState = NewState;
-						CleanupComponent();
-					}
-					break;
-				case EInteractableStateV2::EIS_Completed:
-				case EInteractableStateV2::EIS_Paused:
-				case EInteractableStateV2::EIS_Suppressed:
-				case EInteractableStateV2::EIS_Awake:
-				case EInteractableStateV2::EIS_Cooldown:
-				case EInteractableStateV2::EIS_Disabled:
-				case EInteractableStateV2::EIS_Asleep:
-				case EInteractableStateV2::Default: 
-				default: break;
-			}
-			break;
-		case EInteractableStateV2::EIS_Disabled:
-			switch (InteractableState)
-			{
-				case EInteractableStateV2::EIS_Active:
-				case EInteractableStateV2::EIS_Paused:
-				case EInteractableStateV2::EIS_Completed:
-				case EInteractableStateV2::EIS_Awake:
-				case EInteractableStateV2::EIS_Suppressed:
-				case EInteractableStateV2::EIS_Cooldown:
-				case EInteractableStateV2::EIS_Asleep:
-					{
-						InteractableState = NewState;
-
-						// Replacing Cleanup
-						Execute_StopHighlight(this);
-						OnInteractableStateChanged.Broadcast(InteractableState);
-						if (GetWorld()) GetWorld()->GetTimerManager().ClearAllTimersForObject(this);
-						OnInteractorLost.Broadcast(Interactor);
-						
-						for (const auto& Itr : CollisionComponents)
-						{
-							Execute_UnbindCollisionShape(this, Itr);
-						}
-					}
-					break;
-				case EInteractableStateV2::EIS_Disabled:
-				case EInteractableStateV2::Default: 
-				default: break;
-			}
-			break;
-		case EInteractableStateV2::EIS_Suppressed:
-			switch (InteractableState)
-			{
-				case EInteractableStateV2::EIS_Active:
-				case EInteractableStateV2::EIS_Awake:
-				case EInteractableStateV2::EIS_Asleep:
-				case EInteractableStateV2::EIS_Disabled:
-				case EInteractableStateV2::EIS_Paused:
-					OnInteractionCanceled.Broadcast();
-					InteractableState = NewState;
-					Execute_StopHighlight(this);
-					OnInteractableStateChanged.Broadcast(InteractableState);
-					break;
-				case EInteractableStateV2::EIS_Cooldown:
-					OnInteractionCanceled.Broadcast();
-					InteractableState = NewState;
-					Execute_StopHighlight(this);
-					OnInteractableStateChanged.Broadcast(InteractableState);
-					GetWorld()->GetTimerManager().ClearTimer(Timer_Cooldown);
-					break;
-				case EInteractableStateV2::EIS_Completed:
-				case EInteractableStateV2::EIS_Suppressed:
-				case EInteractableStateV2::Default:
-				default: break;
-			}
-			break;
-		case EInteractableStateV2::EIS_Paused:
-			switch (InteractableState)
-			{
-				case EInteractableStateV2::EIS_Active:
-					{
+	if (GetOwner()->HasAuthority())
+	{
+		switch (NewState)
+		{
+			case EInteractableStateV2::EIS_Active:
+				switch (InteractableState)
+				{
+					case EInteractableStateV2::EIS_Paused:
+					case EInteractableStateV2::EIS_Awake:
 						InteractableState = NewState;
 						OnInteractableStateChanged.Broadcast(InteractableState);
 						break;
-					}
-				case EInteractableStateV2::EIS_Paused:
-				case EInteractableStateV2::EIS_Awake:
-				case EInteractableStateV2::EIS_Asleep:
-				case EInteractableStateV2::EIS_Disabled:
-				case EInteractableStateV2::EIS_Cooldown:
-				case EInteractableStateV2::EIS_Completed:
-				case EInteractableStateV2::EIS_Suppressed:
-				case EInteractableStateV2::Default:
-				default: break;
-			}
-			break;
-		case EInteractableStateV2::Default: 
-		default:
-			Execute_StopHighlight(this);
-			break;
-	}
+					case EInteractableStateV2::EIS_Active:
+						break;
+					case EInteractableStateV2::EIS_Asleep:
+					case EInteractableStateV2::EIS_Suppressed:
+					case EInteractableStateV2::EIS_Cooldown:
+					case EInteractableStateV2::EIS_Completed:
+					case EInteractableStateV2::EIS_Disabled:
+					case EInteractableStateV2::Default:
+					default: break;
+				}
+				break;
+			case EInteractableStateV2::EIS_Awake:
+				switch (InteractableState)
+				{
+					case EInteractableStateV2::EIS_Active:
+					case EInteractableStateV2::EIS_Asleep:
+					case EInteractableStateV2::EIS_Suppressed:
+					case EInteractableStateV2::EIS_Cooldown:
+					case EInteractableStateV2::EIS_Disabled:
+					case EInteractableStateV2::EIS_Paused:
+						{
+							InteractableState = NewState;
+							OnInteractableStateChanged.Broadcast(InteractableState);
+
+							for (const auto& Itr : CollisionComponents)
+							{
+								Execute_BindCollisionShape(this, Itr);
+							}
+
+							break;
+						}
+					case EInteractableStateV2::EIS_Completed:
+					case EInteractableStateV2::EIS_Awake:
+					case EInteractableStateV2::Default: 
+					default: break;
+				}
+				break;
+			case EInteractableStateV2::EIS_Asleep:
+				switch (InteractableState)
+				{
+					case EInteractableStateV2::EIS_Active:
+					case EInteractableStateV2::EIS_Paused:
+					case EInteractableStateV2::EIS_Awake:
+					case EInteractableStateV2::EIS_Suppressed:
+					case EInteractableStateV2::EIS_Cooldown:
+					case EInteractableStateV2::EIS_Disabled:
+						{
+							InteractableState = NewState;
+
+							// Replacing Cleanup
+							Execute_StopHighlight(this);
+							OnInteractableStateChanged.Broadcast(InteractableState);
+							if (GetWorld()) GetWorld()->GetTimerManager().ClearAllTimersForObject(this);
+							OnInteractorLost.Broadcast(Interactor);
+									
+							for (const auto& Itr : CollisionComponents)
+							{
+								Execute_UnbindCollisionShape(this, Itr);
+							}
+
+							break;
+						}
+					case EInteractableStateV2::EIS_Completed:
+					case EInteractableStateV2::EIS_Asleep:
+					case EInteractableStateV2::Default: 
+					default: break;
+				}
+				break;
+			case EInteractableStateV2::EIS_Cooldown:
+				switch (InteractableState)
+				{
+					case EInteractableStateV2::EIS_Awake:
+					case EInteractableStateV2::EIS_Active:
+						InteractableState = NewState;
+						Execute_StopHighlight(this);
+						OnInteractableStateChanged.Broadcast(InteractableState);
+						break;
+					case EInteractableStateV2::EIS_Suppressed:
+					case EInteractableStateV2::EIS_Disabled:
+						{
+							InteractableState = NewState;
+
+							// Replacing Cleanup
+							Execute_StopHighlight(this);
+							OnInteractableStateChanged.Broadcast(InteractableState);
+							if (GetWorld()) GetWorld()->GetTimerManager().ClearAllTimersForObject(this);
+							OnInteractorLost.Broadcast(Interactor);
+									
+							for (const auto& Itr : CollisionComponents)
+							{
+								Execute_UnbindCollisionShape(this, Itr);
+							}
+							
+							break;
+						}
+					case EInteractableStateV2::EIS_Paused:
+					case EInteractableStateV2::EIS_Cooldown:
+					case EInteractableStateV2::EIS_Completed:
+					case EInteractableStateV2::EIS_Asleep:
+					case EInteractableStateV2::Default: 
+					default: break;
+				}
+				break;
+			case EInteractableStateV2::EIS_Completed:
+				switch (InteractableState)
+				{
+					case EInteractableStateV2::EIS_Active:
+						{
+							InteractableState = NewState;
+							CleanupComponent();
+
+							break;
+						}
+					case EInteractableStateV2::EIS_Completed:
+					case EInteractableStateV2::EIS_Paused:
+					case EInteractableStateV2::EIS_Suppressed:
+					case EInteractableStateV2::EIS_Awake:
+					case EInteractableStateV2::EIS_Cooldown:
+					case EInteractableStateV2::EIS_Disabled:
+					case EInteractableStateV2::EIS_Asleep:
+					case EInteractableStateV2::Default: 
+					default: break;
+				}
+				break;
+			case EInteractableStateV2::EIS_Disabled:
+				switch (InteractableState)
+				{
+					case EInteractableStateV2::EIS_Active:
+					case EInteractableStateV2::EIS_Paused:
+					case EInteractableStateV2::EIS_Completed:
+					case EInteractableStateV2::EIS_Awake:
+					case EInteractableStateV2::EIS_Suppressed:
+					case EInteractableStateV2::EIS_Cooldown:
+					case EInteractableStateV2::EIS_Asleep:
+						{
+							InteractableState = NewState;
+
+							// Replacing Cleanup
+							Execute_StopHighlight(this);
+							OnInteractableStateChanged.Broadcast(InteractableState);
+							if (GetWorld()) GetWorld()->GetTimerManager().ClearAllTimersForObject(this);
+							OnInteractorLost.Broadcast(Interactor);
+									
+							for (const auto& Itr : CollisionComponents)
+							{
+								Execute_UnbindCollisionShape(this, Itr);
+							}
+
+							break;
+						}
+					case EInteractableStateV2::EIS_Disabled:
+					case EInteractableStateV2::Default: 
+					default: break;
+				}
+				break;
+			case EInteractableStateV2::EIS_Suppressed:
+				switch (InteractableState)
+				{
+					case EInteractableStateV2::EIS_Active:
+					case EInteractableStateV2::EIS_Awake:
+					case EInteractableStateV2::EIS_Asleep:
+					case EInteractableStateV2::EIS_Disabled:
+					case EInteractableStateV2::EIS_Paused:
+						{
+							OnInteractionCanceled.Broadcast();
+							InteractableState = NewState;
+							Execute_StopHighlight(this);
+							OnInteractableStateChanged.Broadcast(InteractableState);
+							break;
+						}
+					case EInteractableStateV2::EIS_Cooldown:
+						{
+							OnInteractionCanceled.Broadcast();
+							InteractableState = NewState;
+							Execute_StopHighlight(this);
+							OnInteractableStateChanged.Broadcast(InteractableState);
+							GetWorld()->GetTimerManager().ClearTimer(Timer_Cooldown);
+							break;
+						}
+					case EInteractableStateV2::EIS_Completed:
+					case EInteractableStateV2::EIS_Suppressed:
+					case EInteractableStateV2::Default:
+					default: break;
+				}
+				break;
+			case EInteractableStateV2::EIS_Paused:
+				switch (InteractableState)
+				{
+					case EInteractableStateV2::EIS_Active:
+						{
+							InteractableState = NewState;
+							OnInteractableStateChanged.Broadcast(InteractableState);
+							break;
+						}
+					case EInteractableStateV2::EIS_Paused:
+					case EInteractableStateV2::EIS_Awake:
+					case EInteractableStateV2::EIS_Asleep:
+					case EInteractableStateV2::EIS_Disabled:
+					case EInteractableStateV2::EIS_Cooldown:
+					case EInteractableStateV2::EIS_Completed:
+					case EInteractableStateV2::EIS_Suppressed:
+					case EInteractableStateV2::Default:
+					default: break;
+				}
+				break;
+			case EInteractableStateV2::Default: 
+			default:
+				Execute_StopHighlight(this);
+				break;
+		}
 	
-	Execute_ProcessDependencies(this);
+		Execute_ProcessDependencies(this);
+	}
+	else
+	{
+		SetState_Server(NewState);
+	}
 }
 
 void UActorInteractableComponentBase::StartHighlight_Implementation()
@@ -1701,6 +1724,66 @@ void UActorInteractableComponentBase::InteractableDependencyStartedCallback_Impl
 void UActorInteractableComponentBase::InteractableDependencyStoppedCallback_Implementation(const TScriptInterface<IActorInteractableInterface>& FormerMaster)
 {
 	Execute_SetInteractableWeight(this, CachedInteractionWeight);
+}
+
+void UActorInteractableComponentBase::OnRep_InteractableState()
+{
+	LOG_INFO(TEXT("OnRep called"))
+	
+	switch (InteractableState)
+	{
+		case EInteractableStateV2::EIS_Active:
+		case EInteractableStateV2::EIS_Awake:
+		{
+			Execute_StartHighlight(this);
+			break;
+		}
+		case EInteractableStateV2::EIS_Paused:
+		case EInteractableStateV2::EIS_Suppressed:
+		case EInteractableStateV2::EIS_Cooldown:
+		case EInteractableStateV2::EIS_Disabled:	
+		case EInteractableStateV2::EIS_Completed:
+		case EInteractableStateV2::EIS_Asleep:
+		case EInteractableStateV2::Default: 
+		default:
+		{
+			Execute_StopHighlight(this);
+			break;
+		}
+	}
+}
+
+void UActorInteractableComponentBase::OnRep_ActiveInteractor()
+{
+	Execute_ToggleWidgetVisibility(this, Interactor.GetObject() != nullptr);
+}
+
+void UActorInteractableComponentBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME_CONDITION(UActorInteractableComponentBase, InteractionPeriod,						COND_SimulatedOnly);
+	DOREPLIFETIME_CONDITION(UActorInteractableComponentBase, DefaultInteractableState,			COND_SimulatedOnly);
+	DOREPLIFETIME_CONDITION(UActorInteractableComponentBase, SetupType,									COND_SimulatedOnly);	
+	DOREPLIFETIME_CONDITION(UActorInteractableComponentBase, CooldownPeriod,						COND_SimulatedOnly);
+	DOREPLIFETIME_CONDITION(UActorInteractableComponentBase, InteractableCompatibleTags,		COND_SimulatedOnly);
+	DOREPLIFETIME_CONDITION(UActorInteractableComponentBase, HighlightType,								COND_SimulatedOnly);
+	DOREPLIFETIME_CONDITION(UActorInteractableComponentBase, HighlightMaterial,						COND_SimulatedOnly);
+	DOREPLIFETIME_CONDITION(UActorInteractableComponentBase, InteractableName,						COND_SimulatedOnly);
+	DOREPLIFETIME_CONDITION(UActorInteractableComponentBase, LifecycleMode,							COND_SimulatedOnly);
+	DOREPLIFETIME_CONDITION(UActorInteractableComponentBase, LifecycleCount,							COND_SimulatedOnly);
+	DOREPLIFETIME_CONDITION(UActorInteractableComponentBase, RemainingLifecycleCount,			COND_SimulatedOnly);
+	DOREPLIFETIME_CONDITION(UActorInteractableComponentBase, InteractionWeight,						COND_SimulatedOnly);
+
+	DOREPLIFETIME_CONDITION(UActorInteractableComponentBase, Interactor,									COND_None);	
+	DOREPLIFETIME_CONDITION(UActorInteractableComponentBase, InteractableState,						COND_None);	
+	DOREPLIFETIME_CONDITION(UActorInteractableComponentBase, InteractableData,						COND_None);
+	DOREPLIFETIME_CONDITION(UActorInteractableComponentBase, CollisionChannel,						COND_None);
+}
+
+void UActorInteractableComponentBase::SetState_Server_Implementation(const EInteractableStateV2 NewState)
+{
+	Execute_SetState(this, NewState);
 }
 
 #if (!UE_BUILD_SHIPPING || WITH_EDITOR)
