@@ -875,7 +875,7 @@ protected:
 	 * Provides a simple way to determine how fast Interaction Progress is kept before interaction is cancelled.
 	 * * -1 means never while Interactor is valid
 	 */
-	UPROPERTY(SaveGame, EditAnywhere, BlueprintReadOnly,  Category="Interaction|Optional", meta=(UIMin=-1.f, ClampMin=-1.f), meta=(EditCondition="bCanPersist==false"))
+	UPROPERTY(SaveGame, EditAnywhere, BlueprintReadOnly,  Category="Interaction|Optional", meta=(UIMin=-1.f, ClampMin=-1.f), meta=(EditCondition="bCanPersist!=false"))
 	float																													InteractionProgressExpiration = 0.f;
 	
 	/**

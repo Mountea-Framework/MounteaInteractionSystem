@@ -26,6 +26,8 @@ protected:
 
 	virtual void BeginPlay() override;
 
+	virtual FString ToString_Implementation() const override;
+
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 public:
@@ -93,7 +95,7 @@ public:
 	 * @return 
 	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
-	TSet<UPrimitiveComponent*> GetCollisionComponents() const;
+	TArray<UPrimitiveComponent*> GetCollisionComponents() const;
 
 	
 	/**
@@ -159,6 +161,9 @@ protected:
 	UFUNCTION(Server, Unreliable)
 	void SetValidationCollisionChannel_Server(const ECollisionChannel NewSafetyChannel);
 
+	UFUNCTION()
+	void OnRep_CollisionShapes();
+
 public:
 
 	UPROPERTY(BlueprintAssignable, Category="Interaction")
@@ -189,8 +194,8 @@ protected:
 	 * A list of Collision Shapes that are used as interactors.
 	 * List is populated on Server Side only!
 	 */
-	UPROPERTY(SaveGame, VisibleAnywhere, Category="Interaction|Read Only", meta=(DisplayThumbnail = false, ShowOnlyInnerProperties))
-	TSet<UPrimitiveComponent*>																CollisionShapes; // TObjectPtr breaks the Getter function, so let's keep it as pointer for now
+	UPROPERTY(ReplicatedUsing=OnRep_CollisionShapes, SaveGame, VisibleAnywhere, Category="Interaction|Read Only", meta=(DisplayThumbnail = false, ShowOnlyInnerProperties))
+	TArray<TObjectPtr<UPrimitiveComponent>>										CollisionShapes;
 
 private:
 	
@@ -201,13 +206,5 @@ private:
 	 */
 	UPROPERTY(SaveGame, VisibleAnywhere, Category="Interaction|Read Only", meta=(DisplayThumbnail = false, ShowOnlyInnerProperties))
 	mutable TMap<UPrimitiveComponent*, FCollisionShapeCache>			CachedCollisionShapesSettings;
-
-#if WITH_EDITOR
-
-private:
-
-	virtual FText GetInteractorDebugData() const override;
-	
-#endif
 	
 };

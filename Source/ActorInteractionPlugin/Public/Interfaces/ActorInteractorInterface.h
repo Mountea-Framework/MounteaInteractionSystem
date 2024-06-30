@@ -472,6 +472,13 @@ public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Interaction")
 	void OnInteractorComponentActivated(UActorComponent* Component, bool bReset);
 	virtual void OnInteractorComponentActivated_Implementation(UActorComponent* Component, bool bReset) = 0;
+
+	/**
+	 * Helper function to provide debug and useful information.
+	 */
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Interaction")
+	FString ToString() const;
+	virtual FString ToString_Implementation() const = 0;
 	
 	virtual FInteractableSelected& GetOnInteractableSelectedHandle() = 0;
 	virtual FInteractableFound& GetOnInteractableFoundHandle() = 0;

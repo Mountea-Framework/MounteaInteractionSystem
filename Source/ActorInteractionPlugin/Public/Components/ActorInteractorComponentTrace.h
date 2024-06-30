@@ -333,6 +333,8 @@ protected:
 
 	virtual void ProcessStateChanges() override;
 
+	virtual FString ToString_Implementation() const override;
+
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 #pragma region Variables
@@ -429,8 +431,6 @@ protected:
 #if WITH_EDITOR
 
 protected:
-
-	virtual FText GetInteractorDebugData() const override;
 
 	virtual void DrawTracingDebugStart(FInteractionTraceDataV2& InteractionTraceData) const;
 	virtual void DrawTracingDebugEnd(FInteractionTraceDataV2& InteractionTraceData) const;

@@ -31,13 +31,21 @@ UActorInteractorComponentBase::UActorInteractorComponentBase() :
 	ComponentTags.Add(FName("Interaction"));	
 }
 
-FString UActorInteractorComponentBase::ToString() const
+FString UActorInteractorComponentBase::ToString_Implementation() const
 {
-#if WITH_EDITOR
-	return GetInteractorDebugData().ToString();
-#else
-	return FString();
-#endif
+	TScriptInterface<IActorInteractableInterface> activeInteractable = Execute_GetActiveInteractable(this);
+	FText activeInteractableName = activeInteractable.GetObject() ? FText::FromString(activeInteractable->Execute_GetInteractableName(activeInteractable.GetObject()).ToString()) : FText::FromString("None");
+
+	FText interactorStateText = FText::FromString(UEnum::GetValueAsString(Execute_GetState(this)));
+
+	FText collisionChannelText = FText::FromString(UEnum::GetValueAsString(Execute_GetResponseChannel(this)));
+
+	FText interactorTagText = InteractorTag.IsValid() ? FText::FromString(InteractorTag.ToString()) : FText::FromString("None");
+
+	return FText::Format(
+		NSLOCTEXT("InteractorDebugData", "Format", "Active Interactable: {0}\nInteractor State: {1}\nCollision Channel: {2}\nInteractor Tag: {3}"),
+		activeInteractableName, interactorStateText, collisionChannelText, interactorTagText
+	).ToString();
 }
 
 void UActorInteractorComponentBase::BeginPlay()
@@ -886,28 +894,6 @@ void UActorInteractorComponentBase::SetState_Server_Implementation(const EIntera
 }
 
 #if WITH_EDITOR
-
-FText UActorInteractorComponentBase::GetInteractorDebugData() const
-{
-	// Retrieve active interactable
-	TScriptInterface<IActorInteractableInterface> activeInteractable = Execute_GetActiveInteractable(this);
-	FText activeInteractableName = activeInteractable.GetObject() ? FText::FromString(activeInteractable->Execute_GetInteractableName(activeInteractable.GetObject()).ToString()) : FText::FromString("None");
-
-	// Retrieve interactor state as text
-	FText interactorStateText = FText::FromString(UEnum::GetValueAsString(Execute_GetState(this)));
-
-	// Retrieve collision channel as text
-	FText collisionChannelText = FText::FromString(UEnum::GetValueAsString(Execute_GetResponseChannel(this)));
-
-	// Retrieve interactor tag as text
-	FText interactorTagText = InteractorTag.IsValid() ? FText::FromString(InteractorTag.ToString()) : FText::FromString("None");
-
-	// Format the text
-	return FText::Format(
-		NSLOCTEXT("InteractorDebugData", "Format", "Active Interactable: {0}\nInteractor State: {1}\nCollision Channel: {2}\nInteractor Tag: {3}"),
-		activeInteractableName, interactorStateText, collisionChannelText, interactorTagText
-	);
-}
 
 void UActorInteractorComponentBase::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent)
 {

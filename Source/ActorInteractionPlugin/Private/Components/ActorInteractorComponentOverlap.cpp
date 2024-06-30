@@ -24,6 +24,23 @@ void UActorInteractorComponentOverlap::BeginPlay()
 	Super::BeginPlay();
 }
 
+FString UActorInteractorComponentOverlap::ToString_Implementation() const
+{
+	FText baseDebugData = FText::FromString(Super::ToString_Implementation());
+	FText safetyTraceText = FText::FromString(bUseSafetyTrace ? TEXT("True") : TEXT("False"));
+	FText validationCollisionChannelText = FText::FromString(UEnum::GetValueAsString(ValidationCollisionChannel));
+
+	FText overlapDebugData = FText::Format(
+		NSLOCTEXT("InteractorOverlapDebugData", "Format", "\nUse Safety Trace: {0}\nValidation Collision Channel: {1}"),
+		safetyTraceText, validationCollisionChannelText
+	);
+
+	return FText::Format(
+		NSLOCTEXT("InteractorOverlapDebugData", "CombinedFormat", "{0}{1}"),
+		baseDebugData, overlapDebugData
+	).ToString();
+}
+
 void UActorInteractorComponentOverlap::UseSafetyTrace_Implementation(bool bEnable)
 {
 	if (!GetOwner())
@@ -92,6 +109,32 @@ void UActorInteractorComponentOverlap::ProcessStateChanges()
 	}	
 }
 
+void UActorInteractorComponentOverlap::OnRep_CollisionShapes()
+{
+	/*
+#if WITH_EDITOR || UE_BUILD_DEBUG
+
+	if (DebugSettings.DebugMode)
+	{
+		for (UPrimitiveComponent* component : CollisionShapes)
+		{
+			if (!component)
+				continue;
+
+			if (DebugSettings.DebugMode)
+			{
+				component->SetHiddenInGame(false);
+				component->SetVisibility(true);
+
+				LOG_INFO(TEXT("[OnRep_Collisions] Showing Collisions"))
+			}
+		}
+	}
+	
+#endif
+*/
+}
+
 void UActorInteractorComponentOverlap::ProcessOverlap_Server_Implementation(UPrimitiveComponent* OverlappedComponent,AActor* OtherActor, UPrimitiveComponent* OtherComp, const FHitResult& SweepResult, const bool bOverlapStarted)
 {
 	ProcessOverlap(OverlappedComponent, OtherActor, OtherComp, SweepResult, bOverlapStarted);
@@ -153,6 +196,18 @@ void UActorInteractorComponentOverlap::BindCollision(UPrimitiveComponent* Compon
 		case ECollisionEnabled::QueryAndPhysics:
 		default: break;
 	}
+
+#if WITH_EDITOR || UE_BUILD_DEBUG
+
+	if (DebugSettings.DebugMode)
+	{
+		Component->SetHiddenInGame(false);
+		Component->SetVisibility(true);
+
+		LOG_INFO(TEXT("[BindCollision] Showing Collisions"))
+	}
+	
+#endif
 }
 
 void UActorInteractorComponentOverlap::UnbindCollisions()
@@ -347,7 +402,7 @@ void UActorInteractorComponentOverlap::HandleStartOverlap(UPrimitiveComponent* P
 
 		bool bHit = GetWorld()->LineTraceSingleByChannel(safetyTrace, GetOwner()->GetActorLocation(), OtherActor->GetActorLocation(), ValidationCollisionChannel, queryParams);
 
-#if WITH_EDITOR
+#if WITH_EDITOR || UE_BUILD_DEBUG
 		if(DebugSettings.DebugMode)
 		{
 			DrawDebugBox
@@ -514,6 +569,8 @@ void UActorInteractorComponentOverlap::AddCollisionComponent_Implementation(UPri
 		CollisionShapes.Add(CollisionComponent);
 
 		OnCollisionShapeAdded.Broadcast(CollisionComponent);
+
+		MARK_PROPERTY_DIRTY_FROM_NAME(UActorInteractorComponentOverlap, CollisionShapes, this);
 	}
 	else
 	{
@@ -533,8 +590,16 @@ void UActorInteractorComponentOverlap::AddCollisionComponents_Implementation(con
 	{
 		for (const auto& Itr : CollisionComponents)
 		{
-			AddCollisionComponent(Itr);
+			if (!Itr) return;
+
+			if (CollisionShapes.Contains(Itr)) return;
+
+			CollisionShapes.Add(Itr);
+
+			OnCollisionShapeAdded.Broadcast(Itr);
 		}
+
+		MARK_PROPERTY_DIRTY_FROM_NAME(UActorInteractorComponentOverlap, CollisionShapes, this);
 	}
 	else
 	{
@@ -559,6 +624,8 @@ void UActorInteractorComponentOverlap::RemoveCollisionComponent_Implementation(U
 		CollisionShapes.Remove(CollisionComponent);
 
 		OnCollisionShapeRemoved.Broadcast(CollisionComponent);
+
+		MARK_PROPERTY_DIRTY_FROM_NAME(UActorInteractorComponentOverlap, CollisionShapes, this);
 	}
 	else
 	{
@@ -578,8 +645,16 @@ void UActorInteractorComponentOverlap::RemoveCollisionComponents_Implementation(
 	{
 		for (const auto& Itr : CollisionComponents)
 		{
-			RemoveCollisionComponent(Itr);
+			if (!Itr) return;
+
+			if (!CollisionShapes.Contains(Itr)) return;
+
+			CollisionShapes.Remove(Itr);
+
+			OnCollisionShapeRemoved.Broadcast(Itr);
 		}
+
+		MARK_PROPERTY_DIRTY_FROM_NAME(UActorInteractorComponentOverlap, CollisionShapes, this);
 	}
 	else
 	{
@@ -607,7 +682,7 @@ void UActorInteractorComponentOverlap::RemoveCollisionComponents_Server_Implemen
 	RemoveCollisionComponents(CollisionComponents);
 }
 
-TSet<UPrimitiveComponent*> UActorInteractorComponentOverlap::GetCollisionComponents() const
+TArray<UPrimitiveComponent*> UActorInteractorComponentOverlap::GetCollisionComponents() const
 {
 	return CollisionShapes;
 }
@@ -618,25 +693,5 @@ void UActorInteractorComponentOverlap::GetLifetimeReplicatedProps(TArray<FLifeti
 
 	DOREPLIFETIME_CONDITION(UActorInteractorComponentOverlap, bUseSafetyTrace,					COND_OwnerOnly);
 	DOREPLIFETIME_CONDITION(UActorInteractorComponentOverlap, ValidationCollisionChannel,	COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(UActorInteractorComponentOverlap, CollisionShapes						,COND_Custom);
 }
-
-#if WITH_EDITOR
-
-FText UActorInteractorComponentOverlap::GetInteractorDebugData() const
-{
-	FText baseDebugData = Super::GetInteractorDebugData();
-	FText safetyTraceText = FText::FromString(bUseSafetyTrace ? TEXT("True") : TEXT("False"));
-	FText validationCollisionChannelText = FText::FromString(UEnum::GetValueAsString(ValidationCollisionChannel));
-
-	FText overlapDebugData = FText::Format(
-		NSLOCTEXT("InteractorOverlapDebugData", "Format", "\nUse Safety Trace: {0}\nValidation Collision Channel: {1}"),
-		safetyTraceText, validationCollisionChannelText
-	);
-
-	return FText::Format(
-		NSLOCTEXT("InteractorOverlapDebugData", "CombinedFormat", "{0}{1}"),
-		baseDebugData, overlapDebugData
-	);
-}
-
-#endif

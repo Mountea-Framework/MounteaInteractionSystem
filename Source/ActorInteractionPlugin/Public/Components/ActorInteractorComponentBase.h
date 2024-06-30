@@ -28,9 +28,6 @@ public:
 
 	UActorInteractorComponentBase();
 
-	UFUNCTION(BlueprintCallable, BlueprintPure, meta=(DevelopmentOnly))
-	FString ToString() const;
-
 protected:
 	
 	virtual void BeginPlay() override;
@@ -100,7 +97,8 @@ public:
 	virtual FGameplayTag GetInteractorTag_Implementation() const override;
 	virtual void SetInteractorTag_Implementation(const FGameplayTag& NewInteractorTag) override;
 	virtual void OnInteractorComponentActivated_Implementation(UActorComponent* Component, bool bReset) override;
-
+	virtual FString ToString_Implementation() const override;
+	
 protected:
 
 	UFUNCTION(Server, Reliable)
@@ -298,12 +296,6 @@ private:
 #if WITH_EDITOR
 	
 protected:
-	
-	/**
-	 * Helper function to provide a list of debug information.
-	 */
-	UFUNCTION(BlueprintCallable, BlueprintPure, meta=(DevelopmentOnly))
-	virtual FText GetInteractorDebugData() const;
 	
 	virtual void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;
 	virtual EDataValidationResult IsDataValid(TArray<FText>& ValidationErrors) override;
