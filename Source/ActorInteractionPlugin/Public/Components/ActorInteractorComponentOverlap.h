@@ -130,7 +130,7 @@ public:
 	
 protected:
 
-	virtual void ProcessStateChanges() override;
+	virtual void ProcessStateChanged() override;
 
 protected:
 

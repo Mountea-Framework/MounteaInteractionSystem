@@ -138,13 +138,19 @@ protected:
 	UFUNCTION(Server, Reliable)
 	void SetInteractorTag_Server(const FGameplayTag& NewInteractorTag);
 
+	UFUNCTION(Client, Reliable)
+	void SetActiveInteractable_Client(const TScriptInterface<IActorInteractableInterface>& NewInteractable);
+
 	UFUNCTION()
 	void OnRep_InteractorState();
+	
 	UFUNCTION()
 	void OnRep_ActiveInteractable();
 
-	virtual void ProcessStateChanges();
-	virtual void ProcessStateChanges_Client();
+	virtual void ProcessStateChanged();
+	virtual void ProcessStateChanged_Client();
+
+	virtual void ProcessInteractableChanged();
 	
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 

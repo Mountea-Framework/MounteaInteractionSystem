@@ -440,12 +440,10 @@ void UActorInteractableComponentBase::SetState_Implementation(const EInteractabl
 						{
 							InteractableState = NewState;
 							OnInteractableStateChanged.Broadcast(InteractableState);
-
 							for (const auto& Itr : CollisionComponents)
 							{
 								Execute_BindCollisionShape(this, Itr);
 							}
-
 							break;
 						}
 					case EInteractableStateV2::EIS_Completed:
@@ -465,8 +463,6 @@ void UActorInteractableComponentBase::SetState_Implementation(const EInteractabl
 					case EInteractableStateV2::EIS_Disabled:
 						{
 							InteractableState = NewState;
-
-							// Replacing Cleanup
 							Execute_StopHighlight(this);
 							OnInteractableStateChanged.Broadcast(InteractableState);
 							if (GetWorld()) GetWorld()->GetTimerManager().ClearAllTimersForObject(this);
@@ -476,7 +472,6 @@ void UActorInteractableComponentBase::SetState_Implementation(const EInteractabl
 							{
 								Execute_UnbindCollisionShape(this, Itr);
 							}
-
 							break;
 						}
 					case EInteractableStateV2::EIS_Completed:
@@ -498,8 +493,6 @@ void UActorInteractableComponentBase::SetState_Implementation(const EInteractabl
 					case EInteractableStateV2::EIS_Disabled:
 						{
 							InteractableState = NewState;
-
-							// Replacing Cleanup
 							Execute_StopHighlight(this);
 							OnInteractableStateChanged.Broadcast(InteractableState);
 							if (GetWorld()) GetWorld()->GetTimerManager().ClearAllTimersForObject(this);
@@ -509,7 +502,6 @@ void UActorInteractableComponentBase::SetState_Implementation(const EInteractabl
 							{
 								Execute_UnbindCollisionShape(this, Itr);
 							}
-							
 							break;
 						}
 					case EInteractableStateV2::EIS_Paused:
@@ -527,7 +519,6 @@ void UActorInteractableComponentBase::SetState_Implementation(const EInteractabl
 						{
 							InteractableState = NewState;
 							CleanupComponent();
-
 							break;
 						}
 					case EInteractableStateV2::EIS_Completed:
@@ -1389,6 +1380,8 @@ void UActorInteractableComponentBase::InteractableSelected_Implementation(const 
  		
  		Execute_SetState(this, EInteractableStateV2::EIS_Active);
  		OnInteractableSelected.Broadcast(Interactable);
+
+ 		ToggleActive_Client(true);
  	}
 	else
 	{
@@ -1726,16 +1719,25 @@ void UActorInteractableComponentBase::InteractableDependencyStoppedCallback_Impl
 	Execute_SetInteractableWeight(this, CachedInteractionWeight);
 }
 
+void UActorInteractableComponentBase::ToggleActive_Client_Implementation(const bool bIsInteractableEnabled)
+{
+	LOG_INFO(TEXT("[ToggleActive_Client] Called"))
+	
+	if (bIsInteractableEnabled)
+		Execute_StartHighlight(this);
+	else
+		Execute_StopHighlight(this);
+
+	Execute_ToggleWidgetVisibility(this, bIsInteractableEnabled);
+}
+
 void UActorInteractableComponentBase::OnRep_InteractableState()
 {
-	LOG_INFO(TEXT("OnRep called"))
-	
 	switch (InteractableState)
 	{
 		case EInteractableStateV2::EIS_Active:
 		case EInteractableStateV2::EIS_Awake:
 		{
-			Execute_StartHighlight(this);
 			break;
 		}
 		case EInteractableStateV2::EIS_Paused:
@@ -1755,7 +1757,12 @@ void UActorInteractableComponentBase::OnRep_InteractableState()
 
 void UActorInteractableComponentBase::OnRep_ActiveInteractor()
 {
-	Execute_ToggleWidgetVisibility(this, Interactor.GetObject() != nullptr);
+	if (Interactor.GetObject() == nullptr)
+	{
+		Execute_ToggleWidgetVisibility(this, false);
+
+		Execute_StopHighlight(this);
+	}
 }
 
 void UActorInteractableComponentBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

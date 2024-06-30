@@ -545,9 +545,9 @@ void UActorInteractorComponentTrace::PostTraced_Client_Implementation()
 	PostTraced();
 }
 
-void UActorInteractorComponentTrace::ProcessStateChanges()
+void UActorInteractorComponentTrace::ProcessStateChanged()
 {
-	Super::ProcessStateChanges();
+	Super::ProcessStateChanged();
 
 	switch (Execute_GetState(this))
 	{

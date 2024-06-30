@@ -89,9 +89,9 @@ ECollisionChannel UActorInteractorComponentOverlap::GetValidationCollisionChanne
 	return ValidationCollisionChannel;
 }
 
-void UActorInteractorComponentOverlap::ProcessStateChanges()
+void UActorInteractorComponentOverlap::ProcessStateChanged()
 {
-	Super::ProcessStateChanges();
+	Super::ProcessStateChanged();
 
 	switch (Execute_GetState(this))
 	{
@@ -668,5 +668,5 @@ void UActorInteractorComponentOverlap::GetLifetimeReplicatedProps(TArray<FLifeti
 
 	DOREPLIFETIME_CONDITION(UActorInteractorComponentOverlap, bUseSafetyTrace,					COND_OwnerOnly);
 	DOREPLIFETIME_CONDITION(UActorInteractorComponentOverlap, ValidationCollisionChannel,	COND_OwnerOnly);
-	DOREPLIFETIME_CONDITION(UActorInteractorComponentOverlap, CollisionShapes						,COND_Custom);
+	DOREPLIFETIME_CONDITION(UActorInteractorComponentOverlap, CollisionShapes,					COND_Custom);
 }

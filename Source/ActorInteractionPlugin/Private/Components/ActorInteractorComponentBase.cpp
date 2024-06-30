@@ -73,6 +73,11 @@ void UActorInteractorComponentBase::BeginPlay()
 
 void UActorInteractorComponentBase::InteractableSelected_Implementation(const TScriptInterface<IActorInteractableInterface>& SelectedInteractable)
 {
+	if (SelectedInteractable.GetObject())
+	{
+		SelectedInteractable->GetOnInteractableSelectedHandle().Broadcast(SelectedInteractable);
+	}
+	
 	Execute_OnInteractableSelectedEvent(this, SelectedInteractable);
 }
 
@@ -590,7 +595,7 @@ void UActorInteractorComponentBase::SetState_Implementation(const EInteractorSta
 					case EInteractorStateV2::EIS_Suppressed:
 					case EInteractorStateV2::EIS_Active:
 						InteractorState = NewState;
-						ProcessStateChanges();
+						ProcessStateChanged();
 						break;
 					case EInteractorStateV2::EIS_Awake:
 					case EInteractorStateV2::Default:
@@ -605,7 +610,7 @@ void UActorInteractorComponentBase::SetState_Implementation(const EInteractorSta
 					case EInteractorStateV2::EIS_Active:
 					case EInteractorStateV2::EIS_Disabled:
 						InteractorState = NewState;
-						ProcessStateChanges();
+						ProcessStateChanged();
 						break;
 					case EInteractorStateV2::EIS_Asleep:
 					case EInteractorStateV2::Default:
@@ -619,7 +624,7 @@ void UActorInteractorComponentBase::SetState_Implementation(const EInteractorSta
 					case EInteractorStateV2::EIS_Asleep:
 					case EInteractorStateV2::EIS_Active:
 						InteractorState = NewState;
-						ProcessStateChanges();
+						ProcessStateChanged();
 						break;
 					case EInteractorStateV2::EIS_Suppressed:
 					case EInteractorStateV2::EIS_Disabled:
@@ -632,7 +637,7 @@ void UActorInteractorComponentBase::SetState_Implementation(const EInteractorSta
 				{
 					case EInteractorStateV2::EIS_Awake:
 						InteractorState = NewState;
-						ProcessStateChanges();
+						ProcessStateChanged();
 						break;
 					case EInteractorStateV2::EIS_Asleep:
 					case EInteractorStateV2::EIS_Active:
@@ -650,7 +655,7 @@ void UActorInteractorComponentBase::SetState_Implementation(const EInteractorSta
 					case EInteractorStateV2::EIS_Suppressed:
 					case EInteractorStateV2::EIS_Active:
 						InteractorState = NewState;
-						ProcessStateChanges();
+						ProcessStateChanged();
 						break;
 					case EInteractorStateV2::EIS_Disabled:
 					case EInteractorStateV2::Default:
@@ -729,6 +734,8 @@ void UActorInteractorComponentBase::SetActiveInteractable_Implementation(const T
 
 			OnInteractableUpdated.Broadcast(ActiveInteractable);
 		}
+
+		SetActiveInteractable_Client(ActiveInteractable);
 	}
 	else
 	{
@@ -834,34 +841,51 @@ void UActorInteractorComponentBase::SetInteractorTag_Server_Implementation(const
 	Execute_SetInteractorTag(this, NewInteractorTag);
 }
 
+void UActorInteractorComponentBase::SetActiveInteractable_Client_Implementation(const TScriptInterface<IActorInteractableInterface>& NewInteractable)
+{
+	if (NewInteractable.GetObject() != nullptr)
+	{
+		OnInteractableUpdated.Broadcast(NewInteractable);
+		NewInteractable->Execute_StartHighlight(NewInteractable.GetObject());
+		NewInteractable->Execute_ToggleWidgetVisibility(NewInteractable.GetObject(), true);
+	}
+	else
+		OnInteractableLost.Broadcast(NewInteractable);
+}
+
 void UActorInteractorComponentBase::OnRep_InteractorState()
 {
-	ProcessStateChanges_Client();
+	ProcessStateChanged_Client();
+}
+
+void UActorInteractorComponentBase::ProcessInteractableChanged()
+{
+	if (ActiveInteractable.GetObject() != nullptr)
+	{
+		OnInteractableUpdated.Broadcast(ActiveInteractable);
+		ActiveInteractable->Execute_StartHighlight(ActiveInteractable.GetObject());
+		ActiveInteractable->Execute_ToggleWidgetVisibility(ActiveInteractable.GetObject(), true);
+	}
+	else
+		OnInteractableLost.Broadcast(ActiveInteractable);
 }
 
 void UActorInteractorComponentBase::OnRep_ActiveInteractable()
 {
-	if (ActiveInteractable.GetObject())
-	{
-		OnInteractableUpdated.Broadcast(ActiveInteractable);
-	}
-	else
-	{
-		OnInteractableLost.Broadcast(ActiveInteractable);
-	}
+	// ...
 }
 
-void UActorInteractorComponentBase::ProcessStateChanges()
+void UActorInteractorComponentBase::ProcessStateChanged()
 {
 	// Client side call
 	OnStateChanged.Broadcast(InteractorState);
 }
 
-void UActorInteractorComponentBase::ProcessStateChanges_Client()
+void UActorInteractorComponentBase::ProcessStateChanged_Client()
 {
 	OnStateChanged_Client.Broadcast(InteractorState);
 	
-	ProcessStateChanges();
+	ProcessStateChanged();
 }
 
 void UActorInteractorComponentBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

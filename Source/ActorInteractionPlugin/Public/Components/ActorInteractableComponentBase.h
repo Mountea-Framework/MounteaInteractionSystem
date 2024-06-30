@@ -171,6 +171,9 @@ protected:
 	UFUNCTION(Server, Reliable)
 	void SetState_Server(const EInteractableStateV2 NewState);
 
+	UFUNCTION(Client, Reliable)
+	void ToggleActive_Client(const bool bIsInteractableEnabled);
+
 	UFUNCTION()
 	void OnRep_InteractableState();
 	

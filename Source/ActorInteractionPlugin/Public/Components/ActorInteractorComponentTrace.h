@@ -331,7 +331,7 @@ protected:
 	
 protected:
 
-	virtual void ProcessStateChanges() override;
+	virtual void ProcessStateChanged() override;
 
 	virtual FString ToString_Implementation() const override;
 
