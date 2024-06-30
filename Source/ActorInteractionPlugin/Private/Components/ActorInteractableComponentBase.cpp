@@ -341,7 +341,7 @@ bool UActorInteractableComponentBase::CanBeTriggered_Implementation() const
 		case EInteractableStateV2::EIS_Awake:
 		case EInteractableStateV2::EIS_Active:
 		case EInteractableStateV2::EIS_Paused:
-			return true;
+			return Interactor.GetObject() == nullptr;
 		case EInteractableStateV2::EIS_Asleep:
 		case EInteractableStateV2::EIS_Disabled:
 		case EInteractableStateV2::EIS_Cooldown:
