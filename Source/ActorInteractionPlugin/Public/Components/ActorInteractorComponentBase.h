@@ -29,7 +29,7 @@ public:
 	UActorInteractorComponentBase();
 
 protected:
-
+	
 	virtual void BeginPlay() override;
 
 #pragma region Handles
@@ -96,6 +96,7 @@ public:
 	virtual void ToggleDebug_Implementation() override;
 	virtual FGameplayTag GetInteractorTag_Implementation() const override;
 	virtual void SetInteractorTag_Implementation(const FGameplayTag& NewInteractorTag) override;
+	virtual void OnInteractorComponentActivated_Implementation(UActorComponent* Component, bool bReset) override;
 
 protected:
 

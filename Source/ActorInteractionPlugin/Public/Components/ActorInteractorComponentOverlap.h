@@ -46,7 +46,6 @@ protected:
 	 */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Interaction|Tracing")
 	void ProcessOverlap(UPrimitiveComponent* OverlappedComponent,AActor* OtherActor, UPrimitiveComponent* OtherComp, const FHitResult& SweepResult, const bool bOverlapStarted);
-	
 	virtual void ProcessOverlap_Implementation(UPrimitiveComponent* OverlappedComponent,AActor* OtherActor, UPrimitiveComponent* OtherComp, const FHitResult& SweepResult, const bool bOverlapStarted);
 
 	UFUNCTION()
@@ -145,7 +144,7 @@ protected:
 	 * List is populated on Server Side only!
 	 */
 	UPROPERTY(SaveGame, VisibleAnywhere, Category="Interaction|Read Only", meta=(DisplayThumbnail = false, ShowOnlyInnerProperties))
-	TSet<UPrimitiveComponent*>											CollisionShapes; // TObjectPtr breaks the Getter function, so let's keep it as pointer for now
+	TSet<UPrimitiveComponent*>																CollisionShapes; // TObjectPtr breaks the Getter function, so let's keep it as pointer for now
 
 private:
 	

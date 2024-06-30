@@ -124,16 +124,6 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category="Interaction")
 	void OnInteractorCollisionChanged(const TEnumAsByte<ECollisionChannel>& NewCollisionChannel);
 
-	/**
-	 * Event bound to OnAutoActivateChanged event.
-	 * Once OnAutoActivateChanged is called this event is, too.
-	 * Be sure to call Parent event to access all C++ implementation!
-	 * 
-	 * @param NewAutoActivate Whether this Interactor is Auto Activated or not
-	 */
-	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category="Interaction")
-	void OnInteractorAutoActivateChanged(const bool NewAutoActivate);
-
 #pragma endregion
 
 
@@ -471,6 +461,17 @@ public:
 	virtual void SetInteractorTag_Implementation(const FGameplayTag& NewInteractorTag) = 0;
 	
 
+	/**
+	 * Event bound to OnComponentActivated event.
+	 * Once OnComponentActivated is called this event is, too.
+	 * Be sure to call Parent event to access all C++ implementation!
+	 * 
+	 * @param Component		Whether this Interactor is Auto Activated or not
+	 * @param bReset				Whether the component should be reset
+	 */
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Interaction")
+	void OnInteractorComponentActivated(UActorComponent* Component, bool bReset);
+	virtual void OnInteractorComponentActivated_Implementation(UActorComponent* Component, bool bReset) = 0;
 	
 	virtual FInteractableSelected& GetOnInteractableSelectedHandle() = 0;
 	virtual FInteractableFound& GetOnInteractableFoundHandle() = 0;

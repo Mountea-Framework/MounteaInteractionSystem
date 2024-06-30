@@ -44,14 +44,14 @@ void UActorInteractorComponentBase::BeginPlay()
 	
 	OnStateChanged.					AddUniqueDynamic(this, &UActorInteractorComponentBase::OnInteractorStateChanged);
 	OnCollisionChanged.				AddUniqueDynamic(this, &UActorInteractorComponentBase::OnInteractorCollisionChanged);
-	OnAutoActivateChanged.		AddUniqueDynamic(this, &UActorInteractorComponentBase::OnInteractorAutoActivateChanged);
+	OnComponentActivated.			AddUniqueDynamic(this, &UActorInteractorComponentBase::OnInteractorComponentActivated);
 
-	if (GetOwner())
+	if (GetOwner() &&( bAutoActivate || IsActive()))
 	{
 		Execute_AddIgnoredActor(this, GetOwner());
+
+		Execute_SetState(this, DefaultInteractorState);
 	}
-	
-	Execute_SetState(this,DefaultInteractorState);
 }
 
 void UActorInteractorComponentBase::InteractableSelected_Implementation(const TScriptInterface<IActorInteractableInterface>& SelectedInteractable)
@@ -81,10 +81,16 @@ void UActorInteractorComponentBase::InteractableFound_Implementation(const TScri
 
 void UActorInteractorComponentBase::InteractableLost_Implementation(const TScriptInterface<IActorInteractableInterface>& LostInteractable)
 {
-	if (LostInteractable.GetInterface() == nullptr) return;
+	if (LostInteractable.GetInterface() == nullptr)
+		return;
+
+	if (!ActiveInteractable.GetObject() || !ActiveInteractable.GetInterface())
+		return;
 	
 	if (LostInteractable == ActiveInteractable)
 	{
+		ActiveInteractable->GetOnInteractorLostHandle().Broadcast(this);
+		
 		Execute_SetState(this, EInteractorStateV2::EIS_Awake);
 		
 		Execute_SetActiveInteractable(this, nullptr);
@@ -747,6 +753,13 @@ void UActorInteractorComponentBase::SetInteractorTag_Implementation(const FGamep
 	{
 		SetInteractorTag_Server(NewInteractorTag);
 	}
+}
+
+void UActorInteractorComponentBase::OnInteractorComponentActivated_Implementation(UActorComponent* Component, bool bReset)
+{
+	Execute_AddIgnoredActor(this, GetOwner());
+
+	Execute_SetState(this, DefaultInteractorState);
 }
 
 void UActorInteractorComponentBase::AddIgnoredActors_Server_Implementation(const TArray<AActor*>& IgnoredActors)
