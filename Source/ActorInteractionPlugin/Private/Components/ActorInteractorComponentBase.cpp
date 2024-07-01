@@ -78,7 +78,7 @@ bool UActorInteractorComponentBase::PerformSafetyTrace_Implementation(AActor* In
 	}
 #endif
 
-	return bHit && safetyTrace.GetActor() != InteractableActor;
+	return bHit && safetyTrace.GetActor() == InteractableActor;
 }
 
 void UActorInteractorComponentBase::BeginPlay()
@@ -925,14 +925,16 @@ void UActorInteractorComponentBase::GetLifetimeReplicatedProps(TArray<FLifetimeP
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME_CONDITION(UActorInteractorComponentBase, InteractorTag,					COND_OwnerOnly);
-	DOREPLIFETIME_CONDITION(UActorInteractorComponentBase, CollisionChannel,				COND_OwnerOnly);
-	DOREPLIFETIME_CONDITION(UActorInteractorComponentBase, DefaultInteractorState,		COND_OwnerOnly);
-	DOREPLIFETIME_CONDITION(UActorInteractorComponentBase, ListOfIgnoredActors,			COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(UActorInteractorComponentBase, InteractorTag,						COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(UActorInteractorComponentBase, CollisionChannel,					COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(UActorInteractorComponentBase, DefaultInteractorState,			COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(UActorInteractorComponentBase, ListOfIgnoredActors,				COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(UActorInteractorComponentBase, bUseSafetyTrace,					COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(UActorInteractorComponentBase, ValidationCollisionChannel,	COND_OwnerOnly);
 	
-	DOREPLIFETIME_CONDITION(UActorInteractorComponentBase, InteractorState,					COND_None);
-	DOREPLIFETIME_CONDITION(UActorInteractorComponentBase, ActiveInteractable,			COND_None);
-	DOREPLIFETIME_CONDITION(UActorInteractorComponentBase, InteractionDependencies,	COND_None);
+	DOREPLIFETIME_CONDITION(UActorInteractorComponentBase, InteractorState,						COND_None);
+	DOREPLIFETIME_CONDITION(UActorInteractorComponentBase, ActiveInteractable,				COND_None);
+	DOREPLIFETIME_CONDITION(UActorInteractorComponentBase, InteractionDependencies,		COND_None);
 }
 
 void UActorInteractorComponentBase::StopInteraction_Server_Implementation(const float StopTime)

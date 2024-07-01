@@ -281,13 +281,13 @@ protected:
 	 * This is useful to prevent overlapping collision which is clipping through a wall, for instance.
 	 */
 	UPROPERTY(Replicated, EditAnywhere, Category="Interaction|Required", meta=(NoResetToDefault))
-	uint8																									bUseSafetyTrace : 1;
+	uint8															bUseSafetyTrace : 1;
 	
 	/**
 	 * Additional collision channel used for validation Trace after initial overlap.
 	 */
 	UPROPERTY(Replicated, EditAnywhere, Category="Interaction|Required", meta=(NoResetToDefault), meta=(EditCondition="bUseSafetyTrace == true"))
-	TEnumAsByte<ECollisionChannel>														ValidationCollisionChannel;
+	TEnumAsByte<ECollisionChannel>				ValidationCollisionChannel;
 	
 	/**
 	 * A list of Actors that won't be taken in count when interacting.

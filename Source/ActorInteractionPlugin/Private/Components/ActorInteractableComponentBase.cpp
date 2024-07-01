@@ -1375,9 +1375,10 @@ void UActorInteractableComponentBase::InteractionCooldownCompleted_Implementatio
 	{		
 		if (Interactor->Execute_GetActiveInteractable(Interactor.GetObject()) == this)
 		{
+			// TODO: JUST MOVE THE HIGHLIGHT FOR CLIENTS TO THAT DAMMMMIT FUNCTION ITSELF :(
 			Execute_StartHighlight(this);
 			
-			Execute_SetState(this, EInteractableStateV2::EIS_Active);
+			Execute_SetState(this, EInteractableStateV2::EIS_Awake);
 		}
 		else
 		{

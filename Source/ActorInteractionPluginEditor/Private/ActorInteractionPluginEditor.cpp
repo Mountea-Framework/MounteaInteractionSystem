@@ -228,7 +228,7 @@ void FActorInteractionPluginEditor::HandleNewInteractableBlueprintCreated(UBluep
 
 void FActorInteractionPluginEditor::PluginButtonClicked()
 {
-	const FString URL = "https://discord.gg/2vXWEEN";
+	const FString URL = "https://discord.gg/waYT2cn37z"; // Interaction Specific Link
 
 	if (!URL.IsEmpty())
 	{
