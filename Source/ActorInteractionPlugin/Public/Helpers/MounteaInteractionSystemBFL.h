@@ -38,4 +38,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Helpers")
 	static UActorInteractionPluginSettings* GetInteractionSystemSettings();
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Helpers")
+	static bool CanExecuteCosmeticEvents(const UWorld* WorldContext);
 };

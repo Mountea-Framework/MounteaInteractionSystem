@@ -835,7 +835,6 @@ void UActorInteractableComponentBase::SetInteractor_Implementation(const TScript
 
 		if (GetOwner() && GetOwner()->HasAuthority())
 		{
-			CachedOwner = GetOwner();		
 			GetOwner()->SetOwner(Interactor->Execute_GetOwningActor(Interactor.GetObject()));
 		}
 	}
@@ -848,8 +847,7 @@ void UActorInteractableComponentBase::SetInteractor_Implementation(const TScript
 
 		if (GetOwner() && GetOwner()->HasAuthority())
 		{
-			CachedOwner = GetOwner();
-			GetOwner()->SetOwner(CachedOwner);
+			GetOwner()->SetOwner(nullptr);
 		}
 
 		Execute_StopHighlight(this);
@@ -1155,10 +1153,32 @@ void UActorInteractableComponentBase::ClearInteractableCompatibleTags_Implementa
 	InteractableCompatibleTags.Reset();
 }
 
+bool UActorInteractableComponentBase::HasInteractor_Implementation() const
+{
+	return Interactor.GetObject() != nullptr && Interactor.GetInterface() != nullptr;
+}
+
+AActor* UActorInteractableComponentBase::GetOwningActor_Implementation() const
+{
+	return GetOwner();
+}
+
 void UActorInteractableComponentBase::InteractorFound_Implementation(const TScriptInterface<IActorInteractorInterface>& FoundInteractor)
 {
 	if (Execute_CanBeTriggered(this))
 	{
+		if (GetOwner() && GetOwner()->HasAuthority())
+		{
+			if (UMounteaInteractionSystemBFL::CanExecuteCosmeticEvents(GetWorld()))
+			{
+				Execute_ToggleWidgetVisibility(this, true);
+			}
+			else
+			{
+				ToggleActive_Client(true);
+			}
+		}
+		
 		Execute_ToggleWidgetVisibility(this, true);
 		
 		Execute_SetInteractor(this, FoundInteractor);
@@ -1176,7 +1196,17 @@ void UActorInteractableComponentBase::InteractorLost_Implementation(const TScrip
 		GetWorld()->GetTimerManager().ClearTimer(Timer_Interaction);
 		GetWorld()->GetTimerManager().ClearTimer(Timer_ProgressExpiration);
 		
-		Execute_ToggleWidgetVisibility(this, false);
+		if (GetOwner() && GetOwner()->HasAuthority())
+		{
+			if (UMounteaInteractionSystemBFL::CanExecuteCosmeticEvents(GetWorld()))
+			{
+				Execute_ToggleWidgetVisibility(this, false);
+			}
+			else
+			{
+				ToggleActive_Client(false);
+			}
+		}
 
 		switch (InteractableState)
 		{
@@ -1247,32 +1277,27 @@ void UActorInteractableComponentBase::InteractionStarted_Implementation(const fl
 
 		if (GetOwner() && GetOwner()->HasAuthority())
 		{
-			LOG_INFO(TEXT("Server has authority, calling InteractionStarted_Client"));
 			InteractionStarted_Client(TimeStarted, CausingInteractor);
-		}
-		else
-		{
-			LOG_INFO(TEXT("Client should receive InteractionStarted_Client"));
 		}
 	}
 }
 
 void UActorInteractableComponentBase::InteractionStarted_Client_Implementation(const float& TimeStarted, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
 {
-	LOG_INFO(TEXT("InteractionStarted_Client"))
 	if (GetOwner() && !GetOwner()->HasAuthority())
 	{
 		OnInteractionStarted.Broadcast(TimeStarted, CausingInteractor);
-	}
-	else
-	{
-		InteractionStarted_Client(TimeStarted, CausingInteractor);
 	}
 }
 
 void UActorInteractableComponentBase::InteractionStopped_Implementation(const float& TimeStarted, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
 {
 	if (!GetWorld()) return;
+	
+	if (GetOwner() && GetOwner()->HasAuthority())
+	{
+		InteractionStopped_Client(TimeStarted, CausingInteractor);
+	}
 
 	if (bCanPersist)
 	{
@@ -1284,12 +1309,25 @@ void UActorInteractableComponentBase::InteractionStopped_Implementation(const fl
 	}
 }
 
+void UActorInteractableComponentBase::InteractionStopped_Client_Implementation(const float& TimeStopped, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
+{
+	if (GetOwner() && !GetOwner()->HasAuthority())
+	{
+		OnInteractionStopped.Broadcast(TimeStopped, CausingInteractor);
+	}
+}
+
 void UActorInteractableComponentBase::InteractionCanceled_Implementation()
 {
 	if (Execute_CanInteract(this))
 	{		
 		GetWorld()->GetTimerManager().ClearTimer(Timer_Interaction);
 		GetWorld()->GetTimerManager().ClearTimer(Timer_ProgressExpiration);
+
+		if (GetOwner() && GetOwner()->HasAuthority())
+		{
+			InteractionCancelled_Client(GetWorld()->GetTimeSeconds(), Interactor);
+		}
 		
 		switch (InteractableState)
 		{
@@ -1312,6 +1350,14 @@ void UActorInteractableComponentBase::InteractionCanceled_Implementation()
 		}
 		
 		Execute_OnInteractionCanceledEvent(this);
+	}
+}
+
+void UActorInteractableComponentBase::InteractionCancelled_Client_Implementation(const float& TimeStopped, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
+{
+	if (GetOwner() && !GetOwner()->HasAuthority())
+	{
+		OnInteractionCanceled.Broadcast();
 	}
 }
 

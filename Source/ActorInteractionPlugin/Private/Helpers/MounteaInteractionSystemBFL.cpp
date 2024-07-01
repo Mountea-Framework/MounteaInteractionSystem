@@ -3,6 +3,8 @@
 
 #include "Helpers/MounteaInteractionSystemBFL.h"
 
+#include "Kismet/KismetSystemLibrary.h"
+
 UMeshComponent* UMounteaInteractionSystemBFL::FindMeshByTag(const FName Tag, const AActor* Source)
 {
 	if (!Source) return nullptr;
@@ -78,4 +80,9 @@ UPrimitiveComponent* UMounteaInteractionSystemBFL::FindPrimitiveByName(const FNa
 UActorInteractionPluginSettings* UMounteaInteractionSystemBFL::GetInteractionSystemSettings()
 {
 	return GetMutableDefault<UActorInteractionPluginSettings>();
+}
+
+bool UMounteaInteractionSystemBFL::CanExecuteCosmeticEvents(const UWorld* WorldContext)
+{
+	return !UKismetSystemLibrary::IsDedicatedServer(WorldContext);
 }

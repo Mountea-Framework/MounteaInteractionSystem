@@ -1031,6 +1031,18 @@ public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, CallInEditor, Category="Mountea|Interaction|Interactable")
 	void ClearInteractableCompatibleTags();
 	virtual void ClearInteractableCompatibleTags_Implementation() = 0;
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, CallInEditor, Category="Mountea|Interaction|Interactable")
+	bool HasInteractor() const;
+	virtual bool HasInteractor_Implementation() const = 0;
+
+	/**
+	 * 
+	 * @return 
+	 */
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
+	AActor* GetOwningActor() const;
+	virtual AActor* GetOwningActor_Implementation() const = 0;
 	
 	
 	virtual FOnInteractableSelected& GetOnInteractableSelectedHandle() = 0;
