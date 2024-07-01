@@ -487,6 +487,15 @@ public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Interaction")
 	FString ToString() const;
 	virtual FString ToString_Implementation() const = 0;
+
+	/**
+	 * 
+	 * @param InteractableActor 
+	 * @return 
+	 */
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
+	bool PerformSafetyTrace(AActor* InteractableActor);
+	virtual bool PerformSafetyTrace_Implementation(AActor* InteractableActor) = 0;
 	
 	virtual FInteractableSelected& GetOnInteractableSelectedHandle() = 0;
 	virtual FInteractableFound& GetOnInteractableFoundHandle() = 0;

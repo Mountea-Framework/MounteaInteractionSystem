@@ -6,6 +6,7 @@
 #include "Interfaces/ActorInteractorInterface.h"
 #include "TimerManager.h"
 #include "Helpers/ActorInteractionPluginLog.h"
+#include "Helpers/MounteaInteractionSystemBFL.h"
 
 #define LOCTEXT_NAMESPACE "InteractableComponentHold"
 
@@ -19,51 +20,66 @@ UActorInteractableComponentHold::UActorInteractableComponentHold()
 
 void UActorInteractableComponentHold::InteractionStarted_Implementation(const float& TimeStarted, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
 {
-	Super::InteractionStarted_Implementation(TimeStarted, CausingInteractor);
-	
-	if (!GetWorld()) return;
-	
-	if (Execute_CanInteract(this))
+	if (GetOwner() && GetOwner()->HasAuthority())
 	{
-		// Force Interaction Period to be at least 0.1s
-		const float TempInteractionPeriod = FMath::Max(0.1f, InteractionPeriod);
-
-		// Either unpause or start from start
-		if (GetWorld()->GetTimerManager().IsTimerPaused(Timer_Interaction))
+		Super::InteractionStarted_Implementation(TimeStarted, CausingInteractor);
+	
+		if (!GetWorld()) return;
+	
+		if (Execute_CanInteract(this))
 		{
-			GetWorld()->GetTimerManager().UnPauseTimer(Timer_Interaction);
-		}
-		else
-		{
-			FTimerDelegate Delegate;
-			Delegate.BindUObject(this, &UActorInteractableComponentHold::OnInteractionCompletedCallback);
+			// Force Interaction Period to be at least 0.1s
+			const float TempInteractionPeriod = FMath::Max(0.1f, InteractionPeriod);
 
-			GetWorld()->GetTimerManager().SetTimer
-			(
-				Timer_Interaction,
-				Delegate,
-				TempInteractionPeriod,
-				false
-			);
+			// Either unpause or start from start
+			if (bCanPersist && GetWorld()->GetTimerManager().IsTimerPaused(Timer_Interaction))
+			{
+				GetWorld()->GetTimerManager().UnPauseTimer(Timer_Interaction);
+			}
+			else
+			{
+				FTimerDelegate Delegate;
+				Delegate.BindUObject(this, &UActorInteractableComponentHold::OnInteractionCompletedCallback);
+
+				GetWorld()->GetTimerManager().SetTimer
+				(
+					Timer_Interaction,
+					Delegate,
+					TempInteractionPeriod,
+					false
+				);
+			}
 		}
 	}
 }
 
 void UActorInteractableComponentHold::OnInteractionCompletedCallback()
 {
-	if (!GetWorld())
+	if (GetOwner() && GetOwner()->HasAuthority())
 	{
-		OnInteractionCanceled.Broadcast();
-		return;
-	}
+		if (!GetWorld())
+		{
+			LOG_WARNING(TEXT("[OnInteractionCompletedCallback] No World, this is bad!"))
+			OnInteractionCanceled.Broadcast();
+			return;
+		}
 
-	Execute_ToggleWidgetVisibility(this, false);
-	if (LifecycleMode == EInteractableLifecycle::EIL_Cycled)
-	{
-		if (Execute_TriggerCooldown(this)) return;
-	}
+		if (UMounteaInteractionSystemBFL::CanExecuteCosmeticEvents(GetWorld()))
+		{
+			Execute_ToggleWidgetVisibility(this, false);
+		}
+		else
+		{
+			ToggleActive_Client(true);
+		}
+		
+		if (LifecycleMode == EInteractableLifecycle::EIL_Cycled)
+		{
+			if (Execute_TriggerCooldown(this)) return;
+		}
 	
-	OnInteractionCompleted.Broadcast(GetWorld()->GetTimeSeconds(), GetInteractor());
+		OnInteractionCompleted.Broadcast(GetWorld()->GetTimeSeconds(), GetInteractor());
+	}
 }
 
 #undef LOCTEXT_NAMESPACE

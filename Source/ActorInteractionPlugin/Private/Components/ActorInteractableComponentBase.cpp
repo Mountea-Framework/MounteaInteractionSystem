@@ -1195,6 +1195,7 @@ void UActorInteractableComponentBase::InteractorLost_Implementation(const TScrip
 	{
 		GetWorld()->GetTimerManager().ClearTimer(Timer_Interaction);
 		GetWorld()->GetTimerManager().ClearTimer(Timer_ProgressExpiration);
+		GetWorld()->GetTimerManager().ClearTimer(Timer_Cooldown);
 		
 		if (GetOwner() && GetOwner()->HasAuthority())
 		{
@@ -1371,13 +1372,11 @@ void UActorInteractableComponentBase::InteractionLifecycleCompleted_Implementati
 void UActorInteractableComponentBase::InteractionCooldownCompleted_Implementation()
 {
 	if (Interactor.GetInterface() != nullptr)
-	{
-		Execute_StartHighlight(this);
-
-		Execute_SetState(this, DefaultInteractableState);
-		
+	{		
 		if (Interactor->Execute_GetActiveInteractable(Interactor.GetObject()) == this)
 		{
+			Execute_StartHighlight(this);
+			
 			Execute_SetState(this, EInteractableStateV2::EIS_Active);
 		}
 		else
@@ -1537,7 +1536,8 @@ void UActorInteractableComponentBase::FindAndAddHighlightableMeshes_Implementati
 				Execute_AddHighlightableComponent(this, NewHighlightByTag);
 				Execute_BindHighlightableMesh(this, NewHighlightByTag);
 			}
-			else LOG_ERROR(TEXT("[Actor Interactable Component] Mesh Component '%s' not found!"), *Itr.ToString())
+			else
+				LOG_ERROR(TEXT("[Actor Interactable Component] Mesh Component '%s' not found!"), *Itr.ToString())
 		}
 	}
 }
@@ -1567,10 +1567,14 @@ bool UActorInteractableComponentBase::TriggerCooldown_Implementation()
 			false
 		);
 
+		LOG_INFO(TEXT("[TriggerCooldown] Cooldown triggered"))
+
+		/*
 		for (const auto& Itr : CollisionComponents)
 		{
 			Execute_UnbindCollisionShape(this, Itr);
 		}
+		*/
 
 		OnInteractionCycleCompleted.Broadcast(GetWorld()->GetTimeSeconds(), RemainingLifecycleCount, Execute_GetInteractor(this));
 		return true;

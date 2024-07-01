@@ -175,19 +175,6 @@ protected:
 	TArray<FName>																					OverrideCollisionComponents;
 
 	/**
-	 * Used for validation. If allowed a single LineTrace will be shot from Owner's location towards Overlapped Actor. `ValidationCollisionChannel` is used for this check.
-	 * This is useful to prevent overlapping collision which is clipping through a wall, for instance.
-	 */
-	UPROPERTY(Replicated, EditAnywhere, Category="Interaction|Required", meta=(NoResetToDefault))
-	uint8																									bUseSafetyTrace : 1;
-	
-	/**
-	 * Additional collision channel used for validation Trace after initial overlap.
-	 */
-	UPROPERTY(Replicated, EditAnywhere, Category="Interaction|Required", meta=(NoResetToDefault), meta=(EditCondition="bUseSafetyTrace == true"))
-	TEnumAsByte<ECollisionChannel>														ValidationCollisionChannel;
-
-	/**
 	 * A list of Collision Shapes that are used as interactors.
 	 * List is populated on Server Side only!
 	 */

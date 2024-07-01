@@ -11,8 +11,6 @@
 UActorInteractorComponentOverlap::UActorInteractorComponentOverlap()
 		: OverrideCollisionComponents(TArray<FName>()),
 		CollisionShapes(TArray<UPrimitiveComponent*>()),
-		bUseSafetyTrace(true),
-		ValidationCollisionChannel(ECC_Camera),
 		CachedCollisionShapesSettings(TMap<UPrimitiveComponent*, FCollisionShapeCache>())
 {
 	ComponentTags.Add(FName("Overlap"));
@@ -337,7 +335,6 @@ void UActorInteractorComponentOverlap::HandleStartOverlap(UPrimitiveComponent* P
 	
 	if (!tempInteractable.GetObject())
 	{
-		LOG_WARNING(TEXT("[HandleStartOverlap] No valid interactable components found!"));
 		return;
 	}
 
@@ -357,7 +354,10 @@ void UActorInteractorComponentOverlap::HandleStartOverlap(UPrimitiveComponent* P
 		}
 	}
 
-	if (bUseSafetyTrace)
+	if (bUseSafetyTrace && !Execute_PerformSafetyTrace(this, OtherActor))
+		return;
+	
+	/*
 	{
 		// Safety check: Perform line trace to ensure no wall obstruction and that we indeed hit the OtherActor
 		FHitResult safetyTrace;
@@ -412,10 +412,10 @@ void UActorInteractorComponentOverlap::HandleStartOverlap(UPrimitiveComponent* P
 	
 		if (bHit && safetyTrace.GetActor() != OtherActor)
 		{
-			LOG_WARNING(TEXT("[HandleStartOverlap] Line trace hit something between interactor and interactable!"));
 			return;
 		}
 	}
+	*/
 	
 	OnInteractableLost.Broadcast(currentlyActiveInteractable);
 	OnInteractableFound.Broadcast(tempInteractable);
@@ -449,7 +449,7 @@ void UActorInteractorComponentOverlap::HandleEndOverlap(UPrimitiveComponent* Pri
 	{
 		return;
 	}
-
+	
 	// Check if OtherActor has the active interactable component
 	TArray<UActorComponent*> interactableComponents = OtherActor->GetComponentsByInterface(UActorInteractableInterface::StaticClass());
 	bool bHasActiveInteractable = false;
@@ -490,6 +490,31 @@ void UActorInteractorComponentOverlap::HandleEndOverlap(UPrimitiveComponent* Pri
 	{
 		return;
 	}
+
+	/*
+	switch (currentlyActiveInteractable->Execute_GetState(currentlyActiveInteractable.GetObject()))
+	{
+		case EInteractableStateV2::EIS_Cooldown:
+			{
+				LOG_INFO(TEXT("[OnInteractableEndOverlap] Overlap ended, but it's OK, because it is in Cooldown!"))
+				if (PerformSafetyTrace(OtherActor))
+				{
+					// TODO: Setup looping Timer that will check 
+					return;
+				}
+			}
+			break;
+		case EInteractableStateV2::EIS_Paused:
+		case EInteractableStateV2::EIS_Completed:
+		case EInteractableStateV2::EIS_Disabled:
+		case EInteractableStateV2::EIS_Suppressed:
+		case EInteractableStateV2::EIS_Asleep:
+		case EInteractableStateV2::EIS_Active:
+		case EInteractableStateV2::EIS_Awake:
+		case EInteractableStateV2::Default:
+			return;
+	}
+	*/
 	
 	OnInteractableLost.Broadcast(currentlyActiveInteractable);
 	

@@ -18,7 +18,9 @@ UActorInteractorComponentBase::UActorInteractorComponentBase() :
 		DebugSettings(false),
 		CollisionChannel(ECC_Camera),
 		DefaultInteractorState(EInteractorStateV2::EIS_Awake),
-		InteractorState(EInteractorStateV2::EIS_Asleep)
+		InteractorState(EInteractorStateV2::EIS_Asleep),
+		bUseSafetyTrace(true),
+		ValidationCollisionChannel(ECC_Camera)
 {
 	bAutoActivate = true;
 	
@@ -51,6 +53,32 @@ FString UActorInteractorComponentBase::ToString_Implementation() const
 AActor* UActorInteractorComponentBase::GetOwningActor_Implementation() const
 {
 	return GetOwner();
+}
+
+bool UActorInteractorComponentBase::PerformSafetyTrace_Implementation(AActor* InteractableActor)
+{
+	if (!InteractableActor)
+		return false;
+
+	if (!GetOwner())
+		return false;
+	
+	FHitResult safetyTrace;
+	FCollisionQueryParams queryParams;
+	queryParams.AddIgnoredActor(GetOwner());
+
+	bool bHit = GetWorld()->LineTraceSingleByChannel(safetyTrace, GetOwner()->GetActorLocation(), InteractableActor->GetActorLocation(), ValidationCollisionChannel, queryParams);
+
+#if WITH_EDITOR || UE_BUILD_DEBUG
+	if (DebugSettings.DebugMode)
+	{
+		DrawDebugBox(GetWorld(), GetOwner()->GetActorLocation(), FVector(5.f), FColor::Blue, false, 2.f, 0, 1.f);
+		DrawDebugBox(GetWorld(), InteractableActor->GetActorLocation(), FVector(5.f), FColor::Red, false, 2.f, 0, 1.f);
+		DrawDebugDirectionalArrow(GetWorld(), GetOwner()->GetActorLocation(), InteractableActor->GetActorLocation(), 2.f, FColor::Purple, false, 2.f, 0, 1.f);
+	}
+#endif
+
+	return bHit && safetyTrace.GetActor() != InteractableActor;
 }
 
 void UActorInteractorComponentBase::BeginPlay()
