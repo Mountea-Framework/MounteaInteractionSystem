@@ -172,6 +172,9 @@ protected:
 	void SetState_Server(const EInteractableStateV2 NewState);
 
 	UFUNCTION(Client, Reliable)
+	void InteractionStarted_Client(const float& TimeStarted, const TScriptInterface<IActorInteractorInterface>& CausingInteractor);
+
+	UFUNCTION(Client, Reliable)
 	void ToggleActive_Client(const bool bIsInteractableEnabled);
 
 	UFUNCTION()
@@ -1034,6 +1037,9 @@ private:
 	UPROPERTY(ReplicatedUsing=OnRep_ActiveInteractor, SaveGame, VisibleAnywhere, Category="Interaction|Read Only", meta=(DisplayThumbnail = false))
 	TScriptInterface<IActorInteractorInterface>													Interactor = nullptr;
 
+	UPROPERTY()
+	TObjectPtr<AActor> CachedOwner;
+	
 #pragma endregion
 
 #pragma endregion

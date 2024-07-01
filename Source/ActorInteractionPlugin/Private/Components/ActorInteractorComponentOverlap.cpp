@@ -120,18 +120,12 @@ void UActorInteractorComponentOverlap::SetupInteractorOverlap()
 	for (auto Itr : OverrideCollisionComponents)
 	{
 		if (auto Comp = UMounteaInteractionSystemBFL::FindPrimitiveByName(Itr, GetOwner()))
-		{
-			LOG_INFO(TEXT("[SetupInteractorOverlap] %s is added as collision by Name"), *Itr.ToString())
 			AddCollisionComponent(Comp);
-		}
 		else
 		{
 			Comp = UMounteaInteractionSystemBFL::FindPrimitiveByTag(Itr, GetOwner());
 			 if (Comp)
-			 {
-			 	LOG_INFO(TEXT("[SetupInteractorOverlap] %s is added as collision by Tag"), *Itr.ToString())
-				 AddCollisionComponent(Comp);
-			 }
+			 	AddCollisionComponent(Comp);
 		}
 	}
 }
@@ -178,8 +172,6 @@ void UActorInteractorComponentOverlap::BindCollision(UPrimitiveComponent* Compon
 	{
 		Component->SetHiddenInGame(false);
 		Component->SetVisibility(true);
-
-		LOG_INFO(TEXT("[BindCollision] Showing Collisions"))
 	}
 	
 #endif
@@ -353,7 +345,6 @@ void UActorInteractorComponentOverlap::HandleStartOverlap(UPrimitiveComponent* P
 	{
 		if (currentlyActiveInteractable == tempInteractable)
 		{
-			LOG_INFO(TEXT("[HandleStartOverlap] Currently active interactable is the same as new one!"));
 			return;
 		}
 		
@@ -497,7 +488,6 @@ void UActorInteractorComponentOverlap::HandleEndOverlap(UPrimitiveComponent* Pri
 
 	if (bStillOverlapping)
 	{
-		LOG_INFO(TEXT("[HandleEndOverlap] Still overlapping with active interactable component."));
 		return;
 	}
 	

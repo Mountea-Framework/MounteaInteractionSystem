@@ -48,6 +48,11 @@ FString UActorInteractorComponentBase::ToString_Implementation() const
 	).ToString();
 }
 
+AActor* UActorInteractorComponentBase::GetOwningActor_Implementation() const
+{
+	return GetOwner();
+}
+
 void UActorInteractorComponentBase::BeginPlay()
 {
 	Super::BeginPlay();

@@ -474,6 +474,14 @@ public:
 	virtual void OnInteractorComponentActivated_Implementation(UActorComponent* Component, bool bReset) = 0;
 
 	/**
+	 * 
+	 * @return 
+	 */
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
+	AActor* GetOwningActor() const;
+	virtual AActor* GetOwningActor_Implementation() const = 0;
+	
+	/**
 	 * Helper function to provide debug and useful information.
 	 */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Interaction")

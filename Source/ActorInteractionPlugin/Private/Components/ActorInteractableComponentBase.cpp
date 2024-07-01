@@ -830,14 +830,26 @@ void UActorInteractableComponentBase::SetInteractor_Implementation(const TScript
 	
 	if (NewInteractor.GetInterface() != nullptr)
 	{
-		NewInteractor->GetOnInteractableSelectedHandle().AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractableSelected);
-		NewInteractor->GetOnInteractableFoundHandle().Broadcast(this);
+		//NewInteractor->GetOnInteractableSelectedHandle().AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractableSelected);
+		//NewInteractor->GetOnInteractableFoundHandle().Broadcast(this);
+
+		if (GetOwner() && GetOwner()->HasAuthority())
+		{
+			CachedOwner = GetOwner();		
+			GetOwner()->SetOwner(Interactor->Execute_GetOwningActor(Interactor.GetObject()));
+		}
 	}
 	else
 	{
 		if (OldInteractor.GetInterface() != nullptr)
 		{
-			OldInteractor->GetOnInteractableSelectedHandle().RemoveDynamic(this, &UActorInteractableComponentBase::InteractableSelected);
+			//OldInteractor->GetOnInteractableSelectedHandle().RemoveDynamic(this, &UActorInteractableComponentBase::InteractableSelected);
+		}
+
+		if (GetOwner() && GetOwner()->HasAuthority())
+		{
+			CachedOwner = GetOwner();
+			GetOwner()->SetOwner(CachedOwner);
 		}
 
 		Execute_StopHighlight(this);
@@ -1232,6 +1244,29 @@ void UActorInteractableComponentBase::InteractionStarted_Implementation(const fl
 		
 		Execute_SetState(this, EInteractableStateV2::EIS_Active);
 		Execute_OnInteractionStartedEvent(this, TimeStarted, CausingInteractor);
+
+		if (GetOwner() && GetOwner()->HasAuthority())
+		{
+			LOG_INFO(TEXT("Server has authority, calling InteractionStarted_Client"));
+			InteractionStarted_Client(TimeStarted, CausingInteractor);
+		}
+		else
+		{
+			LOG_INFO(TEXT("Client should receive InteractionStarted_Client"));
+		}
+	}
+}
+
+void UActorInteractableComponentBase::InteractionStarted_Client_Implementation(const float& TimeStarted, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
+{
+	LOG_INFO(TEXT("InteractionStarted_Client"))
+	if (GetOwner() && !GetOwner()->HasAuthority())
+	{
+		OnInteractionStarted.Broadcast(TimeStarted, CausingInteractor);
+	}
+	else
+	{
+		InteractionStarted_Client(TimeStarted, CausingInteractor);
 	}
 }
 
@@ -1252,9 +1287,7 @@ void UActorInteractableComponentBase::InteractionStopped_Implementation(const fl
 void UActorInteractableComponentBase::InteractionCanceled_Implementation()
 {
 	if (Execute_CanInteract(this))
-	{
-		Execute_ToggleWidgetVisibility(this, false);
-		
+	{		
 		GetWorld()->GetTimerManager().ClearTimer(Timer_Interaction);
 		GetWorld()->GetTimerManager().ClearTimer(Timer_ProgressExpiration);
 		
@@ -1381,7 +1414,8 @@ void UActorInteractableComponentBase::InteractableSelected_Implementation(const 
  		Execute_SetState(this, EInteractableStateV2::EIS_Active);
  		OnInteractableSelected.Broadcast(Interactable);
 
- 		ToggleActive_Client(true);
+ 		if (GetOwner() && GetOwner()->HasAuthority())
+ 			ToggleActive_Client(true);
  	}
 	else
 	{
@@ -1504,6 +1538,9 @@ void UActorInteractableComponentBase::ToggleWidgetVisibility_Implementation(cons
 	if (GetWidget())
 	{
 		UpdateInteractionWidget();
+
+		SetHiddenInGame(!IsVisible);
+		SetVisibility(IsVisible);
 	}
 }
 

@@ -98,6 +98,7 @@ public:
 	virtual void SetInteractorTag_Implementation(const FGameplayTag& NewInteractorTag) override;
 	virtual void OnInteractorComponentActivated_Implementation(UActorComponent* Component, bool bReset) override;
 	virtual FString ToString_Implementation() const override;
+	virtual AActor* GetOwningActor_Implementation() const override;
 	
 protected:
 
