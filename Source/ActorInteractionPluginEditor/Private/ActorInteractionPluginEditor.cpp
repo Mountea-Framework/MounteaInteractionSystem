@@ -13,6 +13,7 @@
 #include "AssetActions/InteractableComponentAssetActions.h"
 
 #include "AssetToolsModule.h"
+#include "HttpModule.h"
 #include "HelpButton/AIntPCommands.h"
 #include "HelpButton/AIntPHelpStyle.h"
 #include "Kismet2/KismetEditorUtilities.h"
@@ -21,18 +22,26 @@
 
 #include "ToolMenus.h"
 #include "Helpers/MounteaInteractionSystemEditorLog.h"
+#include "Interfaces/IHttpResponse.h"
 
 #include "Interfaces/IMainFrameModule.h"
+#include "Serialization/JsonReader.h"
 
 DEFINE_LOG_CATEGORY(ActorInteractionPluginEditor);
 
 static const FName AIntPHelpTabName("MounteaFramework");
 
+const FString ChangelogURL = FString("https://raw.githubusercontent.com/Mountea-Framework/MounteaInteractionSystem/5.1/CHANGELOG.md");
+
 #define LOCTEXT_NAMESPACE "FActorInteractionPluginEditor"
 
 void FActorInteractionPluginEditor::StartupModule()
 {
-	UE_LOG(ActorInteractionPluginEditor, Warning, TEXT("ActorInteractionPluginEditor module has been loaded"));
+	// Try to request Changelog from GitHub
+	{
+		Http = &FHttpModule::Get();
+		SendHTTPGet();
+	}
 
 	// Register Category
 	{
@@ -116,11 +125,6 @@ void FActorInteractionPluginEditor::StartupModule()
 			UActorInteractorComponentBase::StaticClass(),
 			FKismetEditorUtilities::FOnBlueprintCreated::CreateRaw(this, &FActorInteractionPluginEditor::HandleNewInteractorBlueprintCreated)
 		);
-	}
-
-	// Register popup
-	{
-		AIntPPopup::Register();
 	}
 
 	// Register Help Button
@@ -270,6 +274,36 @@ void FActorInteractionPluginEditor::RegisterMenus()
 			}
 		}
 	}
+}
+
+void FActorInteractionPluginEditor::OnGetResponse(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
+{
+	FString ResponseBody;
+	if (Response.Get() == nullptr) return;
+	
+	if (Response.IsValid() && Response->GetResponseCode() == 200)
+	{
+		ResponseBody = Response->GetContentAsString();
+		TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(ResponseBody);
+	}
+
+	// Register Popup even if we have no response, this way we can show at least something
+	{
+		AIntPPopup::Register(ResponseBody);
+	}
+}
+
+void FActorInteractionPluginEditor::SendHTTPGet()
+{
+	TSharedRef<IHttpRequest, ESPMode::ThreadSafe> Request = Http->CreateRequest();
+	
+	Request->OnProcessRequestComplete().BindRaw(this, &FActorInteractionPluginEditor::OnGetResponse);
+	Request->SetURL(ChangelogURL);
+
+	Request->SetVerb("GET");
+	Request->SetHeader("User-Agent", "X-UnrealEngine-Agent");
+	Request->SetHeader("Content-Type", "text");
+	Request->ProcessRequest();
 }
 
 #undef LOCTEXT_NAMESPACE

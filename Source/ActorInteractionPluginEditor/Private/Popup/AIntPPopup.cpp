@@ -17,11 +17,83 @@ void AIntPPopup::OnBrowserLinkClicked(const FSlateHyperlinkRun::FMetadata& Metad
 	}
 }
 
-void AIntPPopup::Register()
+void AIntPPopup::FormatChangelog(FString& InChangelog)
+{
+	FString WelcomeMessage = FString(R"(
+<LargeText>Hello and thank you for using Mountea Interaction System!</>
+
+First thing first, if you've been enjoying using it, it would mean a lot if you could just drop <a id="browser" href="https://www.unrealengine.com/marketplace/en-US/product/ea38ae1f87b24807a66fdf4fa65ef521">a small review on the marketplace page</> :).
+
+I also made a paid <a id="browser" href="https://www.unrealengine.com/marketplace/en-US/product/fbe5d74e46b846f0aeb8ca759e64b71d">Modular Sword Pack</>. It's a simple yet powerful tool that allows creating thousands upon thousands of unique swords with a simple click, now with a free upgrade of Modular Scabbard System!
+
+But let's keep it short, here are the cool new features (and bugfixes) of this version!
+
+
+)");
+
+	if (InChangelog.IsEmpty())
+	{
+		const FString InvalidChangelog =FString(R"(
+		
+We are sorry, but there has been an error trying to access online Changelog. We are sorry for this.
+The changelist is available publicly <a id="browser" href="https://github.com/Mountea-Framework/MounteaInteractionSystem/blob/5.1/CHANGELOG.md">on our GitHub</>.
+		)");
+
+
+		InChangelog = InChangelog.Append(WelcomeMessage).Append(InvalidChangelog);
+		return;
+	}
+	
+	InChangelog = InChangelog.RightChop(109);
+	InChangelog = InChangelog.Replace(TEXT("### Added"),		TEXT("<RichTextBlock.BoldHighlight>Added</>"));
+	InChangelog = InChangelog.Replace(TEXT("### Fixed"),		TEXT("<RichTextBlock.BoldHighlight>Fixed</>"));
+	InChangelog = InChangelog.Replace(TEXT("### Changed"),		TEXT("<RichTextBlock.BoldHighlight>Changed</>"));
+	
+	InChangelog = InChangelog.Replace(TEXT("> -"),				TEXT("*"));
+	InChangelog = InChangelog.Replace(TEXT(">   -"),			TEXT("   *"));
+	InChangelog = InChangelog.Replace(TEXT(">     -"),			TEXT("     *"));
+
+
+	FormatTextWithTags(InChangelog, TEXT("***"), TEXT("***"),		TEXT("<RichTextBlock.Italic>"),			TEXT("</>"));
+	
+	FormatTextWithTags(InChangelog, TEXT("**"), TEXT("**"),		TEXT("<LargeText>"),					TEXT("</>"));
+
+	FormatTextWithTags(InChangelog, TEXT("`"), TEXT("`"),			TEXT("<RichTextBlock.TextHighlight>"),	TEXT("</>"));
+	
+	const FString TempString = InChangelog;
+
+	InChangelog.Empty();
+
+	InChangelog = WelcomeMessage.Append(TempString);
+}
+
+void AIntPPopup::FormatTextWithTags(FString& SourceText, const FString& StartMarker, const FString& EndMarker, const FString& StartTag, const FString& EndTag)
+{
+	int32 StartIndex = 0;
+	while ((StartIndex = SourceText.Find(StartMarker, ESearchCase::CaseSensitive, ESearchDir::FromStart, StartIndex)) != INDEX_NONE)
+	{
+		int32 EndIndex = SourceText.Find(StartMarker, ESearchCase::CaseSensitive, ESearchDir::FromStart, StartIndex + StartMarker.Len());
+		if (EndIndex != INDEX_NONE)
+		{
+			FString TextToFormat = SourceText.Mid(StartIndex + StartMarker.Len(), EndIndex - StartIndex - StartMarker.Len());
+
+			FString FormattedText = FString::Printf(TEXT("%s%s%s"), *StartTag, *TextToFormat, *EndTag);
+			SourceText = SourceText.Left(StartIndex) + FormattedText + SourceText.Mid(EndIndex + StartMarker.Len());
+
+			StartIndex = StartIndex + FormattedText.Len();
+		}
+		else
+		{
+			break;
+		}
+	}
+}
+
+void AIntPPopup::Register(const FString& Changelog)
 {
 	const FString PluginDirectory = IPluginManager::Get().FindPlugin(TEXT("ActorInteractionPlugin"))->GetBaseDir();
 	const FString UpdatedConfigFile = PluginDirectory + "/Config/UpdateConfig.ini";
-	const FString CurrentPluginVersion = "3.0.1.8";
+	const FString CurrentPluginVersion = "0.0.0.1";
 
 	UAIntPPopupConfig* AIntPPopupConfig = GetMutableDefault<UAIntPPopupConfig>();
 
@@ -39,20 +111,20 @@ void AIntPPopup::Register()
 		AIntPPopupConfig->PluginVersionUpdate = CurrentPluginVersion;
 		AIntPPopupConfig->SaveConfig(CPF_Config, *UpdatedConfigFile);
 
-		FCoreDelegates::OnPostEngineInit.AddLambda([]()
-		{
-			Open();
-		});
+		Open(Changelog);
 	}
 }
 
-void AIntPPopup::Open()
+void AIntPPopup::Open(const FString& Changelog)
 {
 	if (!FSlateApplication::Get().CanDisplayWindows())
 	{
 		return;
 	}
 
+	FString DisplayText = Changelog;
+	FormatChangelog(DisplayText);
+		
 	const TSharedRef<SBorder> WindowContent = SNew(SBorder)
 			.BorderImage(FCoreStyle::Get().GetBrush("ToolPanel.GroupBorder"))
 			.Padding(FMargin(8.0f, 8.0f));
@@ -62,7 +134,7 @@ void AIntPPopup::Open()
 				.SupportsMaximize(false)
 				.SupportsMinimize(false)
 				.SizingRule(ESizingRule::FixedSize)
-				.ClientSize(FVector2D(800, 600))
+				.ClientSize(FVector2D(850, 600))
 				.Title(FText::FromString("Mountea Interaction System"))
 				.IsTopmostWindow(true)
 	[
@@ -95,79 +167,7 @@ void AIntPPopup::Open()
 				+ SScrollBox::Slot()
 				[
 					SNew(SRichTextBlock)
-					.Text(FText::FromString(R"(
-<LargeText>Hello and thank you for using Mountea Interaction System!</>
-
-First thing first, if you've been enjoying using it, it would mean a lot if you could just drop <a id="browser" href="https://bit.ly/AIntP_UE4Marketplace">a small review on the marketplace page</> :).
-
-I also made a paid <a id="browser" href="https://bit.ly/ModularSwordsPack_UE4Marketplace">Modular Sword Pack</>. It's a simple yet powerful tool that allows creating thousands upon thousands of unique swords with a simple click, now with a free upgrade of Modular Scabbard System!
-					
-But let's keep it short, here are the cool new features (and bugfixes) of version 3.1!
-
-<LargeText>Version 3.1.0.8</>
-
-<RichTextBlock.Bold>Features</>
-
-* -
-
-<RichTextBlock.Bold>Bugfixes</>
-
-* Overlay Material for Interactables has been returned
-
-<RichTextBlock.Bold>Updates</>
-* Added default Overlay Material section to Plugin Settings
-* Exposed all Handle Getters for C++
-
-<LargeText>Version 3.1.0.7</>
-
-<RichTextBlock.Bold>Features</>
-
-* -
-
-<RichTextBlock.Bold>Bugfixes</>
-
-* Fixed issue for Old Enums causing builds to crash
-
-<RichTextBlock.Bold>Updates</>
-* <RichTextBlock.Bold>DEPRECATED</> ActorInteractableComponent
-* <RichTextBlock.Bold>DEPRECATED</> ActorInteractorComponent
-* <RichTextBlock.Bold>DEPRECATED</> ActorInteractableWidget (would still work, however, needs some touches with the Interface)
-
-<LargeText>Version 3.1</>
-
-<RichTextBlock.Bold>Features</>
-
-* Improved performance for Consoles and Mobile devices
-
-<RichTextBlock.Bold>Bugfixes</>
-
-* Fixed issue when swapping states of Interactable returns to Default state
-
-<RichTextBlock.Bold>Updates</>
-* Add <RichTextBlock.Bold>DEPRECATED</> to SnoozeInteractable
-* <RichTextBlock.Bold>DEPRECATED</> Interactable State <RichTextBlock.Italic>Asleep</>
-* Interactor does not longer require <RichTextBlock.Bold>Key</> input and it has become optional
-* Ability to Pause interaction while Interactor is Valid (most useful for Hold/Overlap interactions)
-
-<LargeText>Version 3.0</>
-
-<RichTextBlock.Bold>Features</>
-
-* Add new Interactor Component Base Class implementing <RichTextBlock.Italic>IActorInteractorInterface</>
-* Add new child Classes for this new Interactor Base class, replacing existing monolithic <RichTextBlock.Italic>ActorInteractorComponent</> solution
-* Add new Interactable Base Component class implementing <RichTextBlock.Italic>IActorInteractableInterface</>
-* Add new child Classes for this new Interactable Base class, replacing existing monolithic <RichTextBlock.Italic>ActorInteractableComponent</> solution
-* Add new Interactable Widget Interface for easier communication between Widgets and Interactables
-* Add Editor billboard so Interactable Components are now easier to spot
-* Add new Overlay Materials for 5.1 only
-
-<RichTextBlock.Bold>Bugfixes</>
-
-* Fix missed descriptions
-
-<RichTextBlock.Bold>Updates</>
-* Add <RichTextBlock.Bold>DEPRECATED</> to old Component Classes
-)"))
+					.Text(FText::FromString(DisplayText))
 					.TextStyle(FAppStyle::Get(), "NormalText")
 					.DecoratorStyleSet(&FAppStyle::Get())
 					.AutoWrapText(true)

@@ -49,6 +49,10 @@ public class ActorInteractionPluginEditor : ModuleRules
 				"Kismet", 
 				
 				"WebBrowser",
+				"HTTP", 
+				"Json", 
+				"JsonUtilities",
+				
 				"EditorStyle",
 				"DeveloperSettings",
 				

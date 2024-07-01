@@ -3,9 +3,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Interfaces/IHttpRequest.h"
 #include "Modules/ModuleManager.h"
 
 class FSlateStyleSet;
+class FHttpModule;
 
 DECLARE_LOG_CATEGORY_EXTERN(ActorInteractionPluginEditor, All, All);
 
@@ -39,7 +41,12 @@ private:
 
 	void RegisterMenus();
 
+	void OnGetResponse(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
+	UFUNCTION() void SendHTTPGet();
+
 private:
 	
 	TSharedPtr<class FUICommandList> PluginCommands;
+
+	FHttpModule* Http;
 };
