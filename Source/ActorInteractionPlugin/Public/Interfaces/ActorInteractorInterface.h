@@ -474,8 +474,10 @@ public:
 	virtual void OnInteractorComponentActivated_Implementation(UActorComponent* Component, bool bReset) = 0;
 
 	/**
-	 * 
-	 * @return 
+	 * Gets the owning actor of this Interactor.
+	 * This function returns the actor that owns or Interactor or the Interactor itself if it's an Actor.
+	 *
+	 * @return The actor owning this Interactor.
 	 */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
 	AActor* GetOwningActor() const;
@@ -483,15 +485,20 @@ public:
 	
 	/**
 	 * Helper function to provide debug and useful information.
+	 * This function returns a string representation of the interactor, useful for logging and debugging.
+	 *
+	 * @return A string containing debug and useful information about the interactor.
 	 */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Interaction")
 	FString ToString() const;
 	virtual FString ToString_Implementation() const = 0;
 
 	/**
-	 * 
-	 * @param InteractableActor 
-	 * @return 
+	 * Performs a safety trace to check for obstacles between the interactor and the specified interactable actor.
+	 * This function is used to ensure that there are no obstructions that would prevent interaction with the specified actor.
+	 *
+	 * @param InteractableActor The actor to perform the safety trace against.
+	 * @return True if the trace is successful and there are no obstructions, false otherwise.
 	 */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
 	bool PerformSafetyTrace(AActor* InteractableActor);

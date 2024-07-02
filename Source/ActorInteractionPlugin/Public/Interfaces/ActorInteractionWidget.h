@@ -29,12 +29,15 @@ class ACTORINTERACTIONPLUGIN_API IActorInteractionWidget
 public:
 	
 	/**
-	 * 
-	 * @param Command 
-	 * @param Payload 
+	 * This function is called to execute a command on the interaction widget.
+	 * It can be used to send various commands and payloads to the interaction widget.
+	 *
+	 * @param Command The command to be executed on the interaction widget.
+	 * @param Payload The payload associated with the command, which can be any UObject.
 	 */
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category="Interaction")
 	void InteractionWidgetCommand(const FString& Command, UObject* Payload);
+
 	
 	/**
 	 * This event should be called when you want to refresh UI data.

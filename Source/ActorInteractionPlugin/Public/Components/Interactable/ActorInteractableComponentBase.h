@@ -165,6 +165,8 @@ public:
 
 	virtual AActor* GetOwningActor_Implementation() const override;
 
+	virtual FString ToString_Implementation() const override;
+
 #pragma endregion
 
 #pragma region InteractableFunctions_Networking

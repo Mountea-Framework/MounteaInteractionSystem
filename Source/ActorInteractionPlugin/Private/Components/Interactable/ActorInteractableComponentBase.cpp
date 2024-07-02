@@ -1163,6 +1163,47 @@ AActor* UActorInteractableComponentBase::GetOwningActor_Implementation() const
 	return GetOwner();
 }
 
+FString UActorInteractableComponentBase::ToString_Implementation() const
+{
+	FText interactableNameText = InteractableName;
+	FText interactableStateText = FText::FromString(UEnum::GetValueAsString(InteractableState));
+	FText lifecycleModeText = FText::FromString(UEnum::GetValueAsString(LifecycleMode));
+	FText interactableCompatibleTagsText = FText::FromString(InteractableCompatibleTags.ToStringSimple());
+	FText interactionHighlightText = FText::FromString(bInteractionHighlight ? TEXT("True") : TEXT("False"));
+	FText highlightTypeText = FText::FromString(UEnum::GetValueAsString(HighlightType));
+	FText canPersistText = FText::FromString(bCanPersist ? TEXT("True") : TEXT("False"));
+	FText interactionProgressExpirationText = bCanPersist ? FText::AsNumber(InteractionProgressExpiration) : FText::FromString("N/A");
+	FText interactableDataText = FText::FromString(InteractableData.RowName.ToString());
+	FText lifecycleCountText = (LifecycleMode == EInteractableLifecycle::EIL_Cycled) ? FText::AsNumber(LifecycleCount) : FText::FromString("N/A");
+	FText remainingLifecycleCountText = (LifecycleMode == EInteractableLifecycle::EIL_Cycled) ? FText::AsNumber(RemainingLifecycleCount) : FText::FromString("N/A");
+	FText collisionComponentsCountText = FText::AsNumber(CollisionComponents.Num());
+	FText highlightableComponentsCountText = FText::AsNumber(HighlightableComponents.Num());
+	FText interactionWeightText = FText::AsNumber(InteractionWeight);
+	FText interactorText = Interactor.GetObject() ? FText::FromString(Interactor->GetOwningActor() ? Interactor->GetOwningActor()->GetName() : TEXT("invalid")) : FText::FromString("None");
+
+	return FText::Format(
+		NSLOCTEXT("InteractableDebugData", "Format", 
+			"Interactable Name: {0}\n"
+			"Interactable State: {1}\n"
+			"Lifecycle Mode: {2}\n"
+			"Interactable Compatible Tags: {3}\n"
+			"Interaction Highlight: {4}\n"
+			"Highlight Type: {5}\n"
+			"Can Persist: {6}\n"
+			"Interaction Progress Expiration: {7}\n"
+			"Interactable Data: {8}\n"
+			"Lifecycle Count: {9}\n"
+			"Remaining Lifecycle Count: {10}\n"
+			"Collision Components Count: {11}\n"
+			"Highlightable Components Count: {12}\n"
+			"Interaction Weight: {13}\n"
+			"Interactor: {14}"),
+		interactableNameText, interactableStateText, lifecycleModeText, interactableCompatibleTagsText, interactionHighlightText, highlightTypeText,
+		canPersistText, interactionProgressExpirationText, interactableDataText, lifecycleCountText, remainingLifecycleCountText,
+		collisionComponentsCountText, highlightableComponentsCountText, interactionWeightText, interactorText
+	).ToString();
+}
+
 void UActorInteractableComponentBase::InteractorFound_Implementation(const TScriptInterface<IActorInteractorInterface>& FoundInteractor)
 {
 	if (Execute_CanBeTriggered(this))

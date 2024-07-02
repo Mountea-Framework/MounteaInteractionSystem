@@ -835,7 +835,7 @@ public:
 	 * Development Only.
 	 * Toggles debug On/Off.
 	 */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, CallInEditor, Category="Mountea|Interaction|Interactable", meta=(DevelopmentOnly))
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactable", meta=(DevelopmentOnly))
 	void ToggleDebug();
 	virtual void ToggleDebug_Implementation() = 0;
 
@@ -976,7 +976,7 @@ public:
 	 * 
 	 * @return		Container of allowed filter Gameplay Tags. 
 	 */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, CallInEditor, Category="Mountea|Interaction|Interactable")
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactable")
 	FGameplayTagContainer GetInteractableCompatibleTags() const;
 	virtual FGameplayTagContainer GetInteractableCompatibleTags_Implementation() const = 0;
 
@@ -985,7 +985,7 @@ public:
 	 * 
 	 * @param Tags Container of tags to set.
 	 */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, CallInEditor, Category="Mountea|Interaction|Interactable")
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactable")
 	void SetInteractableCompatibleTags(const FGameplayTagContainer& Tags);
 	virtual void SetInteractableCompatibleTags_Implementation(const FGameplayTagContainer& Tags) = 0;
 
@@ -994,7 +994,7 @@ public:
 	 * 
 	 * @param Tag Tag to add.
 	 */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, CallInEditor, Category="Mountea|Interaction|Interactable")
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactable")
 	void AddInteractableCompatibleTag(const FGameplayTag& Tag);
 	virtual void AddInteractableCompatibleTag_Implementation(const FGameplayTag& Tag) = 0;
 
@@ -1003,7 +1003,7 @@ public:
 	 * 
 	 * @param Tags Container of tags to add.
 	 */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, CallInEditor, Category="Mountea|Interaction|Interactable")
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactable")
 	void AddInteractableCompatibleTags(const FGameplayTagContainer& Tags);
 	virtual void AddInteractableCompatibleTags_Implementation(const FGameplayTagContainer& Tags) = 0;
 
@@ -1012,7 +1012,7 @@ public:
 	 * 
 	 * @param Tag Tag to remove.
 	 */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, CallInEditor, Category="Mountea|Interaction|Interactable")
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactable")
 	void RemoveInteractableCompatibleTag(const FGameplayTag& Tag);
 	virtual void RemoveInteractableCompatibleTag_Implementation(const FGameplayTag& Tag) = 0;
 
@@ -1021,28 +1021,46 @@ public:
 	 * 
 	 * @param Tags Container of tags to remove.
 	 */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, CallInEditor, Category="Mountea|Interaction|Interactable")
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactable")
 	void RemoveInteractableCompatibleTags(const FGameplayTagContainer& Tags);
 	virtual void RemoveInteractableCompatibleTags_Implementation(const FGameplayTagContainer& Tags) = 0;
 
 	/**
 	 * Clears all tags from the Interactable Filter Gameplay Tags.
 	 */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, CallInEditor, Category="Mountea|Interaction|Interactable")
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactable")
 	void ClearInteractableCompatibleTags();
 	virtual void ClearInteractableCompatibleTags_Implementation() = 0;
 
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, CallInEditor, Category="Mountea|Interaction|Interactable")
+	/**
+	 * Checks if this interactable has an associated interactor.
+	 * This function is used to determine if there is an interactor currently interacting with this interactable.
+	 *
+	 * @return True if an interactor is present, false otherwise.
+	 */
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactable")
 	bool HasInteractor() const;
 	virtual bool HasInteractor_Implementation() const = 0;
 
 	/**
-	 * 
-	 * @return 
+	 * Gets the owning actor of this Interactable.
+	 * This function returns the actor that owns or Interactable or the Interactable itself if it's an Actor.
+	 *
+	 * @return The actor owning this Interactable.
 	 */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
 	AActor* GetOwningActor() const;
 	virtual AActor* GetOwningActor_Implementation() const = 0;
+
+	/**
+	 * Helper function to provide debug and useful information.
+	 * This function returns a string representation of the Interactable, useful for logging and debugging.
+	 *
+	 * @return A string containing debug and useful information about the Interactable.
+	 */
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Interaction")
+	FString ToString() const;
+	virtual FString ToString_Implementation() const = 0;
 	
 	
 	virtual FOnInteractableSelected& GetOnInteractableSelectedHandle() = 0;
