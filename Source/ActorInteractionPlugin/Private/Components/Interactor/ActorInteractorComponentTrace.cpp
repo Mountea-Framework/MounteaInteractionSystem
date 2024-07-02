@@ -1,7 +1,7 @@
 ﻿// All rights reserved Dominik Pavlicek 2022.
 
 
-#include "Components/ActorInteractor/ActorInteractorComponentTrace.h"
+#include "Components/Interactor/ActorInteractorComponentTrace.h"
 
 #include "Interfaces/ActorInteractableInterface.h"
 #include "Kismet/KismetMathLibrary.h"
