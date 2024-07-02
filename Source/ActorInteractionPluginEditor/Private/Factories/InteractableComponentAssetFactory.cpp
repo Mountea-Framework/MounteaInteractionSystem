@@ -5,7 +5,7 @@
 
 #include "Utilities/ActorInteractionEditorUtilities.h"
 
-#include "Components/ActorInteractableComponentBase.h"
+#include "Components/Interactable/ActorInteractableComponentBase.h"
 #include "Helpers/ActorInteractionFunctionLibrary.h"
 #include "Kismet2/KismetEditorUtilities.h"
 #include "Engine/DataTable.h"

@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "AssetTypeActions_Base.h"
-#include "Components/ActorInteractableComponentBase.h"
+#include "Components/Interactable/ActorInteractableComponentBase.h"
 
 class FInteractableComponentAssetActions : public FAssetTypeActions_Base
 {
