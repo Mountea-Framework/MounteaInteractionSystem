@@ -1,7 +1,7 @@
 ﻿// All rights reserved Dominik Pavlicek 2022.
 
 
-#include "Components/ActorInteractorComponentOverlap.h"
+#include "Components/ActorInteractor/ActorInteractorComponentOverlap.h"
 
 #include "Helpers/ActorInteractionPluginLog.h"
 #include "Helpers/MounteaInteractionSystemBFL.h"

@@ -1,7 +1,7 @@
 ﻿// All rights reserved Dominik Pavlicek 2022.
 
 
-#include "Components/ActorInteractableComponentHover.h"
+#include "Components/Interactable/ActorInteractableComponentHover.h"
 
 #define LOCTEXT_NAMESPACE "ActorInteractableComponentHover"
 

@@ -1,7 +1,7 @@
 ﻿// All rights reserved Dominik Pavlicek 2022.
 
 
-#include "Components/ActorInteractableComponentPress.h"
+#include "Components/Interactable/ActorInteractableComponentPress.h"
 
 #if WITH_EDITOR
 #include "EditorHelper.h"

@@ -1,7 +1,7 @@
 ﻿// All rights reserved Dominik Pavlicek 2022.
 
 
-#include "Components/ActorInteractableComponentHold.h"
+#include "Components/Interactable/ActorInteractableComponentHold.h"
 #include "TimerManager.h"
 #include "Interfaces/ActorInteractorInterface.h"
 #include "TimerManager.h"

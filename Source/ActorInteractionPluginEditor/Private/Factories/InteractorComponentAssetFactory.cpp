@@ -5,7 +5,7 @@
 
 #include "Utilities/ActorInteractionEditorUtilities.h"
 
-#include "Components/ActorInteractorComponentBase.h"
+#include "Components/ActorInteractor/ActorInteractorComponentBase.h"
 #include "Kismet2/KismetEditorUtilities.h"
 
 #define LOCTEXT_NAMESPACE "ActorInteraction"

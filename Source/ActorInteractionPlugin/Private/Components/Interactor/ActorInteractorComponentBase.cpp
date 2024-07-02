@@ -1,7 +1,7 @@
 ﻿// All rights reserved Dominik Pavlicek 2022.
 
 
-#include "Components/ActorInteractorComponentBase.h"
+#include "Components/Interactor/ActorInteractorComponentBase.h"
 
 #include "Helpers/ActorInteractionPluginLog.h"
 

@@ -1,7 +1,7 @@
 ﻿// All rights reserved Dominik Pavlicek 2022.
 
 
-#include "Components/ActorInteractableComponentMash.h"
+#include "Components/Interactable/ActorInteractableComponentMash.h"
 
 #include "TimerManager.h"
 #include "Helpers/ActorInteractionPluginLog.h"
