@@ -1,4 +1,4 @@
-﻿// All rights reserved Dominik Pavlicek 2022.
+﻿// All rights reserved Dominik Morse (Pavlicek) 2024.
 
 
 #include "Components/Interactor/ActorInteractorComponentTrace.h"
@@ -244,7 +244,11 @@ void UActorInteractorComponentTrace::ProcessTrace_Implementation()
 					continue;
 
 				if (!localInteractable->Execute_CanBeTriggered(Itr))
-					continue;
+				{
+					if (localInteractable->Execute_GetInteractor(Itr) != this)
+						continue;
+				}
+					
 
 				bAnyInteractable = true;
 
@@ -258,25 +262,43 @@ void UActorInteractorComponentTrace::ProcessTrace_Implementation()
 
 				if (bestFoundInteractable == nullptr || localInteractableWeight > bestFoundInteractableWeight)
 				{
+					if (!Execute_PerformSafetyTrace(this, HitActor))
+					{
+						LOG_INFO(TEXT("[PerformTrace] Obstacle found in ray direction"))
+						continue;
+					}
+					
 					bestFoundInteractable = localInteractable;
 					BestHitResult = HitResult;
 				}
 			}
 		}
 
-		if (Execute_GetActiveInteractable(this) != nullptr)
+		if (bestFoundInteractable != Execute_GetActiveInteractable(this))
 		{
-			if (!bAnyInteractable || Execute_GetActiveInteractable(this) != bestFoundInteractable)
+			if (bestFoundInteractable != nullptr)
 			{
-				OnInteractableLost.Broadcast(Execute_GetActiveInteractable(this));
+				LOG_INFO(TEXT("%s"), *(bestFoundInteractable->Execute_GetInteractableName(bestFoundInteractable.GetObject()).ToString()))
 			}
-		}
+			else
+			{
+				LOG_INFO(TEXT("NONE"))
+			}
 
-		if (bAnyInteractable && Execute_GetActiveInteractable(this) != bestFoundInteractable)
-		{
-			OnInteractableFound.Broadcast(bestFoundInteractable);
-			bestFoundInteractable->GetOnInteractorTracedHandle().Broadcast(BestHitResult.GetComponent(), GetOwner(), nullptr, BestHitResult.Location, BestHitResult);
-			bestFoundInteractable->GetOnInteractorFoundHandle().Broadcast(this);
+			if (Execute_GetActiveInteractable(this) != nullptr)
+			{
+				if (!bAnyInteractable || Execute_GetActiveInteractable(this) != bestFoundInteractable)
+				{
+					OnInteractableLost.Broadcast(Execute_GetActiveInteractable(this));
+				}
+			}
+
+			if (bAnyInteractable && Execute_GetActiveInteractable(this) != bestFoundInteractable)
+			{
+				OnInteractableFound.Broadcast(bestFoundInteractable);
+				bestFoundInteractable->GetOnInteractorTracedHandle().Broadcast(BestHitResult.GetComponent(), GetOwner(), nullptr, BestHitResult.Location, BestHitResult);
+				bestFoundInteractable->GetOnInteractorFoundHandle().Broadcast(this);
+			}
 		}
 
 #if WITH_EDITOR

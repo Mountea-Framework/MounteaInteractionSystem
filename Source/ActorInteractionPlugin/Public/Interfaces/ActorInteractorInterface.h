@@ -1,4 +1,4 @@
-// All rights reserved Dominik Pavlicek 2022.
+// All rights reserved Dominik Morse (Pavlicek) 2024.
 
 #pragma once
 
@@ -501,8 +501,16 @@ public:
 	 * @return True if the trace is successful and there are no obstructions, false otherwise.
 	 */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
-	bool PerformSafetyTrace(AActor* InteractableActor);
-	virtual bool PerformSafetyTrace_Implementation(AActor* InteractableActor) = 0;
+	bool PerformSafetyTrace(const AActor* InteractableActor);
+	virtual bool PerformSafetyTrace_Implementation(const AActor* InteractableActor) = 0;
+
+	/**
+	 * 
+	 * @return 
+	 */
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
+	bool HasInteractable() const;
+	virtual bool HasInteractable_Implementation() const = 0;
 	
 	virtual FInteractableSelected& GetOnInteractableSelectedHandle() = 0;
 	virtual FInteractableFound& GetOnInteractableFoundHandle() = 0;

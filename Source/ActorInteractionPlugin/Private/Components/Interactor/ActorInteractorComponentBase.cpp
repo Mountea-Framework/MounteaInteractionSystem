@@ -1,4 +1,4 @@
-﻿// All rights reserved Dominik Pavlicek 2022.
+﻿// All rights reserved Dominik Morse (Pavlicek) 2024.
 
 
 #include "Components/Interactor/ActorInteractorComponentBase.h"
@@ -55,7 +55,7 @@ AActor* UActorInteractorComponentBase::GetOwningActor_Implementation() const
 	return GetOwner();
 }
 
-bool UActorInteractorComponentBase::PerformSafetyTrace_Implementation(AActor* InteractableActor)
+bool UActorInteractorComponentBase::PerformSafetyTrace_Implementation(const AActor* InteractableActor)
 {
 	if (!InteractableActor)
 		return false;
@@ -935,6 +935,11 @@ void UActorInteractorComponentBase::GetLifetimeReplicatedProps(TArray<FLifetimeP
 	DOREPLIFETIME_CONDITION(UActorInteractorComponentBase, InteractorState,						COND_None);
 	DOREPLIFETIME_CONDITION(UActorInteractorComponentBase, ActiveInteractable,				COND_None);
 	DOREPLIFETIME_CONDITION(UActorInteractorComponentBase, InteractionDependencies,		COND_None);
+}
+
+bool UActorInteractorComponentBase::HasInteractable_Implementation() const
+{
+	return ActiveInteractable.GetObject() != nullptr && ActiveInteractable.GetInterface() != nullptr;
 }
 
 void UActorInteractorComponentBase::StopInteraction_Server_Implementation(const float StopTime)

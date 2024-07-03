@@ -1,4 +1,4 @@
-﻿// All rights reserved Dominik Pavlicek 2022.
+﻿// All rights reserved Dominik Morse (Pavlicek) 2024.
 
 
 #include "Components/Interactor/ActorInteractorComponentOverlap.h"
@@ -357,66 +357,6 @@ void UActorInteractorComponentOverlap::HandleStartOverlap(UPrimitiveComponent* P
 	if (bUseSafetyTrace && !Execute_PerformSafetyTrace(this, OtherActor))
 		return;
 	
-	/*
-	{
-		// Safety check: Perform line trace to ensure no wall obstruction and that we indeed hit the OtherActor
-		FHitResult safetyTrace;
-		FCollisionQueryParams queryParams;
-		{
-			queryParams.AddIgnoredActor(GetOwner());
-		}
-
-		bool bHit = GetWorld()->LineTraceSingleByChannel(safetyTrace, GetOwner()->GetActorLocation(), OtherActor->GetActorLocation(), ValidationCollisionChannel, queryParams);
-
-#if WITH_EDITOR || UE_BUILD_DEBUG
-		if(DebugSettings.DebugMode)
-		{
-			DrawDebugBox
-			(
-				GetWorld(),
-				GetOwner()->GetActorLocation(),
-				FVector(5.f),
-				FColor::Blue,
-				false,
-				2.f,
-				0,
-				1.f
-			);
-
-			DrawDebugBox
-			(
-				GetWorld(),
-				OtherActor->GetActorLocation(),
-				FVector(5.f),
-				FColor::Red,
-				false,
-				2.f,
-				0,
-				1.f
-			);
-		
-			DrawDebugDirectionalArrow
-			(
-				GetWorld(),
-				GetOwner()->GetActorLocation(),
-				OtherActor->GetActorLocation(),
-				2.f,
-				FColor::Purple,
-				false,
-				2.f,
-				0,
-				1.f
-			);
-		}
-#endif
-	
-		if (bHit && safetyTrace.GetActor() != OtherActor)
-		{
-			return;
-		}
-	}
-	*/
-	
 	OnInteractableLost.Broadcast(currentlyActiveInteractable);
 	OnInteractableFound.Broadcast(tempInteractable);
 
@@ -472,6 +412,9 @@ void UActorInteractorComponentOverlap::HandleEndOverlap(UPrimitiveComponent* Pri
 	const TArray<UPrimitiveComponent*> interactableCollisionComponents = currentlyActiveInteractable->Execute_GetCollisionComponents(currentlyActiveInteractable.GetObject());
 	for (UPrimitiveComponent* InteractableComp : interactableCollisionComponents)
 	{
+		if (!InteractableComp->IsOverlappingActor(GetOwner()))
+			continue;
+		
 		for (UPrimitiveComponent* InteractorComp : CollisionShapes)
 		{
 			if (InteractableComp && InteractorComp && InteractableComp->IsOverlappingComponent(InteractorComp))
@@ -490,31 +433,6 @@ void UActorInteractorComponentOverlap::HandleEndOverlap(UPrimitiveComponent* Pri
 	{
 		return;
 	}
-
-	/*
-	switch (currentlyActiveInteractable->Execute_GetState(currentlyActiveInteractable.GetObject()))
-	{
-		case EInteractableStateV2::EIS_Cooldown:
-			{
-				LOG_INFO(TEXT("[OnInteractableEndOverlap] Overlap ended, but it's OK, because it is in Cooldown!"))
-				if (PerformSafetyTrace(OtherActor))
-				{
-					// TODO: Setup looping Timer that will check 
-					return;
-				}
-			}
-			break;
-		case EInteractableStateV2::EIS_Paused:
-		case EInteractableStateV2::EIS_Completed:
-		case EInteractableStateV2::EIS_Disabled:
-		case EInteractableStateV2::EIS_Suppressed:
-		case EInteractableStateV2::EIS_Asleep:
-		case EInteractableStateV2::EIS_Active:
-		case EInteractableStateV2::EIS_Awake:
-		case EInteractableStateV2::Default:
-			return;
-	}
-	*/
 	
 	OnInteractableLost.Broadcast(currentlyActiveInteractable);
 	

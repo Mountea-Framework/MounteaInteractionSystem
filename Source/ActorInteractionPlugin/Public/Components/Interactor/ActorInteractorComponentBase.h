@@ -1,4 +1,4 @@
-﻿// All rights reserved Dominik Pavlicek 2022.
+﻿// All rights reserved Dominik Morse (Pavlicek) 2024.
 
 #pragma once
 
@@ -99,7 +99,7 @@ public:
 	virtual void OnInteractorComponentActivated_Implementation(UActorComponent* Component, bool bReset) override;
 	virtual FString ToString_Implementation() const override;
 	virtual AActor* GetOwningActor_Implementation() const override;
-	virtual bool PerformSafetyTrace_Implementation(AActor* InteractableActor) override;
+	virtual bool PerformSafetyTrace_Implementation(const AActor* InteractableActor) override;
 	
 protected:
 
@@ -155,6 +155,8 @@ protected:
 	virtual void ProcessInteractableChanged();
 	
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	virtual bool HasInteractable_Implementation() const override;
 
 public:
 

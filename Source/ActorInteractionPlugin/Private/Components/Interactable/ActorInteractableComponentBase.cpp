@@ -1,4 +1,4 @@
-﻿// All rights reserved Dominik Pavlicek 2022.
+﻿// All rights reserved Dominik Morse (Pavlicek) 2024.
 
 #include "Components/Interactable/ActorInteractableComponentBase.h"
 
@@ -1246,6 +1246,7 @@ void UActorInteractableComponentBase::InteractorLost_Implementation(const TScrip
 			}
 			else
 			{
+				LOG_INFO(TEXT("Interactor Lost"))
 				ToggleActive_Client(false);
 			}
 		}
@@ -1849,9 +1850,7 @@ void UActorInteractableComponentBase::InteractableDependencyStoppedCallback_Impl
 }
 
 void UActorInteractableComponentBase::ToggleActive_Client_Implementation(const bool bIsInteractableEnabled)
-{
-	LOG_INFO(TEXT("[ToggleActive_Client] Called"))
-	
+{	
 	if (bIsInteractableEnabled)
 		Execute_StartHighlight(this);
 	else
