@@ -144,9 +144,9 @@ bool UActorInteractorComponentBase::PerformSafetyTrace_Implementation(const AAct
 #if WITH_EDITOR || UE_BUILD_DEBUG
 	if (DebugSettings.DebugMode)
 	{
-		DrawDebugBox(GetWorld(), GetOwner()->GetActorLocation(), FVector(5.f), FColor::Blue, false, 2.f, 0, 1.f);
+		DrawDebugBox(GetWorld(), traceStartLocation, FVector(5.f), FColor::Blue, false, 2.f, 0, 1.f);
 		DrawDebugBox(GetWorld(), InteractableActor->GetActorLocation(), FVector(5.f), FColor::Red, false, 2.f, 0, 1.f);
-		DrawDebugDirectionalArrow(GetWorld(), GetOwner()->GetActorLocation(), InteractableActor->GetActorLocation(), 2.f, FColor::Purple, false, 2.f, 0, 1.f);
+		DrawDebugDirectionalArrow(GetWorld(), traceStartLocation, InteractableActor->GetActorLocation(), 2.f, FColor::Purple, false, 2.f, 0, 1.f);
 	}
 #endif
 

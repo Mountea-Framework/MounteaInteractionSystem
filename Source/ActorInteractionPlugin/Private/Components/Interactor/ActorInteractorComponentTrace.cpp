@@ -278,15 +278,6 @@ void UActorInteractorComponentTrace::ProcessTrace_Implementation()
 
 		if (bestFoundInteractable != Execute_GetActiveInteractable(this))
 		{
-			if (bestFoundInteractable != nullptr)
-			{
-				LOG_INFO(TEXT("%s"), *(bestFoundInteractable->Execute_GetInteractableName(bestFoundInteractable.GetObject()).ToString()))
-			}
-			else
-			{
-				LOG_INFO(TEXT("NONE"))
-			}
-
 			if (Execute_GetActiveInteractable(this) != nullptr)
 			{
 				if (!bAnyInteractable || Execute_GetActiveInteractable(this) != bestFoundInteractable)

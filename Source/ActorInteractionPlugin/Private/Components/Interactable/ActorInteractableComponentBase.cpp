@@ -1246,7 +1246,6 @@ void UActorInteractableComponentBase::InteractorLost_Implementation(const TScrip
 			}
 			else
 			{
-				LOG_INFO(TEXT("Interactor Lost"))
 				ToggleActive_Client(false);
 			}
 		}
