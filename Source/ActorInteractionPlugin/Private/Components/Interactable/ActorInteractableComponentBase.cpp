@@ -629,54 +629,39 @@ void UActorInteractableComponentBase::SetState_Implementation(const EInteractabl
 
 void UActorInteractableComponentBase::StartHighlight_Implementation()
 {
-	SetHiddenInGame(false, true);
-	switch (HighlightType)
+	if (GetOwner() && GetOwner()->HasAuthority())
 	{
-		case EHighlightType::EHT_PostProcessing:
-			{
-				for (const auto Itr : HighlightableComponents)
-				{
-					Itr->SetRenderCustomDepth(bInteractionHighlight);
-					Itr->SetCustomDepthStencilValue(StencilID);
-				}
-			}
-			break;
-		case EHighlightType::EHT_OverlayMaterial:
-			{
-				for (const auto Itr : HighlightableComponents)
-				{
-					Itr->SetOverlayMaterial(HighlightMaterial);
-				}
-			}
-		case EHighlightType::EHT_Default:
-		default:
-			break;
+		if (UMounteaInteractionSystemBFL::CanExecuteCosmeticEvents(GetWorld()))
+		{
+			ProcessStartHighlight();
+		}
+		else
+		{
+			StartHighlight_Client();
+		}
+	}
+	else
+	{
+		ProcessStartHighlight();
 	}
 }
 
 void UActorInteractableComponentBase::StopHighlight_Implementation()
 {
-	SetHiddenInGame(true, true);
-	switch (HighlightType)
+	if (GetOwner() && GetOwner()->HasAuthority())
 	{
-		case EHighlightType::EHT_PostProcessing:
-			{
-				for (const auto Itr : HighlightableComponents)
-				{
-					Itr->SetCustomDepthStencilValue(0);
-				}
-			}
-			break;
-		case EHighlightType::EHT_OverlayMaterial:
-			{
-				for (const auto Itr : HighlightableComponents)
-				{
-					Itr->SetOverlayMaterial(nullptr);
-				}
-			}
-		case EHighlightType::EHT_Default:
-		default:
-			break;
+		if (UMounteaInteractionSystemBFL::CanExecuteCosmeticEvents(GetWorld()))
+		{
+			ProcessStopHighlight();
+		}
+		else
+		{
+			StopHighlight_Client();
+		}
+	}
+	else
+	{
+		ProcessStopHighlight();
 	}
 }
 
@@ -1858,6 +1843,16 @@ void UActorInteractableComponentBase::ToggleActive_Client_Implementation(const b
 	Execute_ToggleWidgetVisibility(this, bIsInteractableEnabled);
 }
 
+void UActorInteractableComponentBase::StartHighlight_Client_Implementation()
+{
+	ProcessStartHighlight();
+}
+
+void UActorInteractableComponentBase::StopHighlight_Client_Implementation()
+{
+	ProcessStopHighlight();
+}
+
 void UActorInteractableComponentBase::OnRep_InteractableState()
 {
 	switch (InteractableState)
@@ -1889,6 +1884,59 @@ void UActorInteractableComponentBase::OnRep_ActiveInteractor()
 		Execute_ToggleWidgetVisibility(this, false);
 
 		Execute_StopHighlight(this);
+	}
+}
+
+void UActorInteractableComponentBase::ProcessStartHighlight()
+{
+	SetHiddenInGame(false, true);
+	switch (HighlightType)
+	{
+		case EHighlightType::EHT_PostProcessing:
+			{
+				for (const auto Itr : HighlightableComponents)
+				{
+					Itr->SetRenderCustomDepth(bInteractionHighlight);
+					Itr->SetCustomDepthStencilValue(StencilID);
+				}
+			}
+			break;
+		case EHighlightType::EHT_OverlayMaterial:
+			{
+				for (const auto Itr : HighlightableComponents)
+				{
+					Itr->SetOverlayMaterial(HighlightMaterial);
+				}
+			}
+		case EHighlightType::EHT_Default:
+		default:
+			break;
+	}
+}
+
+void UActorInteractableComponentBase::ProcessStopHighlight()
+{
+	SetHiddenInGame(true, true);
+	switch (HighlightType)
+	{
+		case EHighlightType::EHT_PostProcessing:
+			{
+				for (const auto Itr : HighlightableComponents)
+				{
+					Itr->SetCustomDepthStencilValue(0);
+				}
+			}
+			break;
+		case EHighlightType::EHT_OverlayMaterial:
+			{
+				for (const auto Itr : HighlightableComponents)
+				{
+					Itr->SetOverlayMaterial(nullptr);
+				}
+			}
+		case EHighlightType::EHT_Default:
+		default:
+			break;
 	}
 }
 

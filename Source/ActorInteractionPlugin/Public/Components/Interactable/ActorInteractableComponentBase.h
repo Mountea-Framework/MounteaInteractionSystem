@@ -188,12 +188,24 @@ protected:
 	UFUNCTION(Client, Reliable)
 	void ToggleActive_Client(const bool bIsInteractableEnabled);
 
+	UFUNCTION(Client, Unreliable)
+	void StartHighlight_Client();
+	UFUNCTION(Client, Unreliable)
+	void StopHighlight_Client();
+
 	UFUNCTION()
 	void OnRep_InteractableState();
 	
 	UFUNCTION()
 	void OnRep_ActiveInteractor();
 
+#pragma endregion
+
+#pragma region Functions
+
+	virtual void ProcessStartHighlight();
+	virtual void ProcessStopHighlight();
+	
 #pragma endregion
 
 #pragma region EventFunctions
