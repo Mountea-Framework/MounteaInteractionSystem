@@ -66,11 +66,11 @@ void UActorInteractableComponentHold::OnInteractionCompletedCallback()
 
 		if (UMounteaInteractionSystemBFL::CanExecuteCosmeticEvents(GetWorld()))
 		{
-			Execute_ToggleWidgetVisibility(this, false);
+			ProcessToggleActive(false);
 		}
 		else
 		{
-			ToggleActive_Client(true);
+			ProcessToggleActive_Client(false);
 		}
 		
 		if (LifecycleMode == EInteractableLifecycle::EIL_Cycled)

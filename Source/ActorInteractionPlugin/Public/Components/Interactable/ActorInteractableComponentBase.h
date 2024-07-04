@@ -185,13 +185,17 @@ protected:
 	UFUNCTION(Client, Reliable)
 	void InteractionCancelled_Client(const float& TimeStopped, const TScriptInterface<IActorInteractorInterface>& CausingInteractor);
 
-	UFUNCTION(Client, Reliable)
-	void ToggleActive_Client(const bool bIsInteractableEnabled);
+	UFUNCTION(Client, Unreliable)
+	void ProcessToggleActive_Client(const bool bIsEnabled);
 
 	UFUNCTION(Client, Unreliable)
 	void StartHighlight_Client();
 	UFUNCTION(Client, Unreliable)
 	void StopHighlight_Client();
+	UFUNCTION(Client, Unreliable)
+	void ShowWidget_Client();
+	UFUNCTION(Client, Unreliable)
+	void HideWidget_Client();
 
 	UFUNCTION()
 	void OnRep_InteractableState();
@@ -203,8 +207,11 @@ protected:
 
 #pragma region Functions
 
+	virtual void ProcessToggleActive(const bool bIsEnabled);
 	virtual void ProcessStartHighlight();
 	virtual void ProcessStopHighlight();
+	virtual void ProcessShowWidget();
+	virtual void ProcessHideWidget();
 	
 #pragma endregion
 

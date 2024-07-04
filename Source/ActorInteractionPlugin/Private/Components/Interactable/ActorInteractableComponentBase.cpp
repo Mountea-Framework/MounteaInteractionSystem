@@ -1193,21 +1193,21 @@ void UActorInteractableComponentBase::InteractorFound_Implementation(const TScri
 {
 	if (Execute_CanBeTriggered(this))
 	{
+		Execute_SetInteractor(this, FoundInteractor);
+		
 		if (GetOwner() && GetOwner()->HasAuthority())
 		{
 			if (UMounteaInteractionSystemBFL::CanExecuteCosmeticEvents(GetWorld()))
 			{
+				ProcessToggleActive(true);
 				Execute_ToggleWidgetVisibility(this, true);
 			}
 			else
 			{
-				ToggleActive_Client(true);
+				StartHighlight_Client();
+				ProcessToggleActive_Client(true);
 			}
 		}
-		
-		Execute_ToggleWidgetVisibility(this, true);
-		
-		Execute_SetInteractor(this, FoundInteractor);
 		
 		Execute_OnInteractorFoundEvent(this, FoundInteractor);
 	}
@@ -1227,11 +1227,13 @@ void UActorInteractableComponentBase::InteractorLost_Implementation(const TScrip
 		{
 			if (UMounteaInteractionSystemBFL::CanExecuteCosmeticEvents(GetWorld()))
 			{
+				ProcessToggleActive(false);
 				Execute_ToggleWidgetVisibility(this, false);
 			}
 			else
 			{
-				ToggleActive_Client(false);
+				StopHighlight_Client();
+				ProcessToggleActive_Client(false);
 			}
 		}
 
@@ -1401,20 +1403,19 @@ void UActorInteractableComponentBase::InteractionCooldownCompleted_Implementatio
 	{		
 		if (Interactor->Execute_GetActiveInteractable(Interactor.GetObject()) == this)
 		{
-			// TODO: JUST MOVE THE HIGHLIGHT FOR CLIENTS TO THAT DAMMMMIT FUNCTION ITSELF :(
-			Execute_StartHighlight(this);
+			ProcessToggleActive(true);
 			
 			Execute_SetState(this, EInteractableStateV2::EIS_Awake);
 		}
 		else
 		{
-			Execute_StopHighlight(this);
+			ProcessToggleActive(false);
 			Execute_SetState(this, DefaultInteractableState);
 		}
 	}
 	else
 	{
-		Execute_StopHighlight(this);
+		ProcessToggleActive(false);
 		Execute_SetState(this, DefaultInteractableState);
 	}
 	
@@ -1481,13 +1482,13 @@ void UActorInteractableComponentBase::InteractableSelected_Implementation(const 
 {
  	if (Interactable == this)
  	{
- 		Execute_StartHighlight(this);
+ 		//Execute_StartHighlight(this);
  		
  		Execute_SetState(this, EInteractableStateV2::EIS_Active);
  		OnInteractableSelected.Broadcast(Interactable);
 
  		if (GetOwner() && GetOwner()->HasAuthority())
- 			ToggleActive_Client(true);
+ 			ProcessToggleActive_Client(true);
  	}
 	else
 	{
@@ -1612,12 +1613,29 @@ bool UActorInteractableComponentBase::TriggerCooldown_Implementation()
 
 void UActorInteractableComponentBase::ToggleWidgetVisibility_Implementation(const bool IsVisible)
 {
-	if (GetWidget())
+	if (GetOwner() && GetOwner()->HasAuthority())
 	{
-		UpdateInteractionWidget();
-
-		SetHiddenInGame(!IsVisible);
-		SetVisibility(IsVisible);
+		if (UMounteaInteractionSystemBFL::CanExecuteCosmeticEvents(GetWorld()))
+		{
+			if (IsVisible)
+				ProcessShowWidget();
+			else
+				ProcessHideWidget();
+		}
+		else
+		{
+			if (IsVisible)
+				ShowWidget_Client();
+			else
+				HideWidget_Client();
+		}
+	}
+	else
+	{
+		if (IsVisible)
+			ShowWidget_Client();
+		else
+			HideWidget_Client();
 	}
 }
 
@@ -1833,16 +1851,6 @@ void UActorInteractableComponentBase::InteractableDependencyStoppedCallback_Impl
 	Execute_SetInteractableWeight(this, CachedInteractionWeight);
 }
 
-void UActorInteractableComponentBase::ToggleActive_Client_Implementation(const bool bIsInteractableEnabled)
-{	
-	if (bIsInteractableEnabled)
-		Execute_StartHighlight(this);
-	else
-		Execute_StopHighlight(this);
-
-	Execute_ToggleWidgetVisibility(this, bIsInteractableEnabled);
-}
-
 void UActorInteractableComponentBase::StartHighlight_Client_Implementation()
 {
 	ProcessStartHighlight();
@@ -1851,6 +1859,21 @@ void UActorInteractableComponentBase::StartHighlight_Client_Implementation()
 void UActorInteractableComponentBase::StopHighlight_Client_Implementation()
 {
 	ProcessStopHighlight();
+}
+
+void UActorInteractableComponentBase::ProcessToggleActive_Client_Implementation(const bool bIsEnabled)
+{
+	ProcessToggleActive(bIsEnabled);
+}
+
+void UActorInteractableComponentBase::ShowWidget_Client_Implementation()
+{
+	ProcessShowWidget();
+}
+
+void UActorInteractableComponentBase::HideWidget_Client_Implementation()
+{
+	ProcessHideWidget();
 }
 
 void UActorInteractableComponentBase::OnRep_InteractableState()
@@ -1885,6 +1908,16 @@ void UActorInteractableComponentBase::OnRep_ActiveInteractor()
 
 		Execute_StopHighlight(this);
 	}
+}
+
+void UActorInteractableComponentBase::ProcessToggleActive(const bool bIsEnabled)
+{
+	if (bIsEnabled)
+		Execute_StartHighlight(this);
+	else
+		Execute_StopHighlight(this);
+
+	//Execute_ToggleWidgetVisibility(this, bIsEnabled);
 }
 
 void UActorInteractableComponentBase::ProcessStartHighlight()
@@ -1937,6 +1970,28 @@ void UActorInteractableComponentBase::ProcessStopHighlight()
 		case EHighlightType::EHT_Default:
 		default:
 			break;
+	}
+}
+
+void UActorInteractableComponentBase::ProcessShowWidget()
+{
+	if (GetWidget())
+	{
+		UpdateInteractionWidget();
+
+		SetHiddenInGame(false);
+		SetVisibility(true);
+	}
+}
+
+void UActorInteractableComponentBase::ProcessHideWidget()
+{
+	if (GetWidget())
+	{
+		UpdateInteractionWidget();
+
+		SetHiddenInGame(true);
+		SetVisibility(false);
 	}
 }
 

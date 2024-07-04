@@ -928,8 +928,6 @@ void UActorInteractorComponentBase::SetActiveInteractable_Client_Implementation(
 	if (NewInteractable.GetObject() != nullptr)
 	{
 		OnInteractableUpdated.Broadcast(NewInteractable);
-		NewInteractable->Execute_StartHighlight(NewInteractable.GetObject());
-		NewInteractable->Execute_ToggleWidgetVisibility(NewInteractable.GetObject(), true);
 	}
 	else
 		OnInteractableLost.Broadcast(NewInteractable);
@@ -950,8 +948,6 @@ void UActorInteractorComponentBase::ProcessInteractableChanged()
 	if (ActiveInteractable.GetObject() != nullptr)
 	{
 		OnInteractableUpdated.Broadcast(ActiveInteractable);
-		ActiveInteractable->Execute_StartHighlight(ActiveInteractable.GetObject());
-		ActiveInteractable->Execute_ToggleWidgetVisibility(ActiveInteractable.GetObject(), true);
 	}
 	else
 		OnInteractableLost.Broadcast(ActiveInteractable);
