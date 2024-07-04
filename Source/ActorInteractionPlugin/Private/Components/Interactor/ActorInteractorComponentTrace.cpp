@@ -24,6 +24,8 @@ UActorInteractorComponentTrace::UActorInteractorComponentTrace() :
 		bUseCustomStartTransform(false)
 {
 	ComponentTags.Add(FName("Trace"));
+	
+	SafetyTraceSetup.SafetyTracingMode = ESafetyTracingMode::ESTM_Location;
 }
 
 void UActorInteractorComponentTrace::BeginPlay()
@@ -516,6 +518,16 @@ void UActorInteractorComponentTrace::SetCustomTraceStart_Implementation(const FT
 
 			LastTracingData = NewData;
 			OnTraceDataChanged.Broadcast(NewData, OldData);
+
+			switch (SafetyTraceSetup.SafetyTracingMode)
+			{
+				case ESafetyTracingMode::ESTM_Location:
+					SafetyTraceSetup.StartLocation = NewData.CustomTracingTransform.GetLocation();
+				case ESafetyTracingMode::ESTM_Socket:
+				case ESafetyTracingMode::ESTM_None:
+				default:
+					break;
+			}
 		}
 	}
 	else

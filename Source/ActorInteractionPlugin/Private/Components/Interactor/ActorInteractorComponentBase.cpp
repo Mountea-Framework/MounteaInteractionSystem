@@ -11,6 +11,7 @@
 #endif
 
 #include "Helpers/InteractionHelpers.h"
+#include "Helpers/MounteaInteractionSystemBFL.h"
 #include "Interfaces/ActorInteractableInterface.h"
 #include "Net/UnrealNetwork.h"
 
@@ -19,7 +20,7 @@ UActorInteractorComponentBase::UActorInteractorComponentBase() :
 		CollisionChannel(ECC_Camera),
 		DefaultInteractorState(EInteractorStateV2::EIS_Awake),
 		InteractorState(EInteractorStateV2::EIS_Asleep),
-		bUseSafetyTrace(true),
+		SafetyTraceSetup(FSafetyTracingSetup(ESafetyTracingMode::ESTM_Location)),
 		ValidationCollisionChannel(ECC_Camera)
 {
 	bAutoActivate = true;
@@ -55,6 +56,32 @@ AActor* UActorInteractorComponentBase::GetOwningActor_Implementation() const
 	return GetOwner();
 }
 
+FSafetyTracingSetup UActorInteractorComponentBase::GetSafetyTracingSetup_Implementation() const
+{
+	return SafetyTraceSetup;
+}
+
+void UActorInteractorComponentBase::SetSafetyTracingSetup_Implementation(const FSafetyTracingSetup& NewSafetyTracingSetup)
+{
+	if (!GetOwner())
+	{
+		LOG_ERROR(TEXT("[SetSafetyTracingSetup] No owner!"))
+		return;
+	}
+
+	if (NewSafetyTracingSetup == SafetyTraceSetup)
+		return;
+		
+	if (GetOwner()->HasAuthority())
+	{
+		SafetyTraceSetup = NewSafetyTracingSetup;
+	}
+	else
+	{
+		SetSafetyTracingSetup_Server(NewSafetyTracingSetup);
+	}
+}
+
 bool UActorInteractorComponentBase::PerformSafetyTrace_Implementation(const AActor* InteractableActor)
 {
 	if (!InteractableActor)
@@ -67,7 +94,30 @@ bool UActorInteractorComponentBase::PerformSafetyTrace_Implementation(const AAct
 	FCollisionQueryParams queryParams;
 	queryParams.AddIgnoredActor(GetOwner());
 
-	bool bHit = GetWorld()->LineTraceSingleByChannel(safetyTrace, GetOwner()->GetActorLocation(), InteractableActor->GetActorLocation(), ValidationCollisionChannel, queryParams);
+	FVector traceStartLocation = GetOwner()->GetActorLocation();
+
+	switch (SafetyTraceSetup.SafetyTracingMode)
+	{
+		case ESafetyTracingMode::ESTM_Location:
+			traceStartLocation = SafetyTraceSetup.StartLocation;
+			break;
+		case ESafetyTracingMode::ESTM_Socket:
+			{
+				if (const auto ownerMesh =  UMounteaInteractionSystemBFL::FindMeshByName(SafetyTraceSetup.StartSocketName, GetOwner()))
+				{
+					traceStartLocation =
+						ownerMesh->DoesSocketExist(SafetyTraceSetup.StartSocketName) ?
+						ownerMesh->GetSocketLocation(SafetyTraceSetup.StartSocketName) :
+						traceStartLocation;
+				}
+			}
+			break;
+		case ESafetyTracingMode::Default:
+		case ESafetyTracingMode::ESTM_None:
+			return true;
+	}
+
+	bool bHit = GetWorld()->LineTraceSingleByChannel(safetyTrace, traceStartLocation, InteractableActor->GetActorLocation(), ValidationCollisionChannel, queryParams);
 
 #if WITH_EDITOR || UE_BUILD_DEBUG
 	if (DebugSettings.DebugMode)
@@ -886,6 +936,11 @@ void UActorInteractorComponentBase::SetActiveInteractable_Client_Implementation(
 		OnInteractableLost.Broadcast(NewInteractable);
 }
 
+void UActorInteractorComponentBase::SetSafetyTracingSetup_Server_Implementation(const FSafetyTracingSetup& NewSafetyTracingSetup)
+{
+	Execute_SetSafetyTracingSetup(this, NewSafetyTracingSetup);
+}
+
 void UActorInteractorComponentBase::OnRep_InteractorState()
 {
 	ProcessStateChanged_Client();
@@ -929,7 +984,7 @@ void UActorInteractorComponentBase::GetLifetimeReplicatedProps(TArray<FLifetimeP
 	DOREPLIFETIME_CONDITION(UActorInteractorComponentBase, CollisionChannel,					COND_OwnerOnly);
 	DOREPLIFETIME_CONDITION(UActorInteractorComponentBase, DefaultInteractorState,			COND_OwnerOnly);
 	DOREPLIFETIME_CONDITION(UActorInteractorComponentBase, ListOfIgnoredActors,				COND_OwnerOnly);
-	DOREPLIFETIME_CONDITION(UActorInteractorComponentBase, bUseSafetyTrace,					COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(UActorInteractorComponentBase, SafetyTraceSetup,				COND_OwnerOnly);
 	DOREPLIFETIME_CONDITION(UActorInteractorComponentBase, ValidationCollisionChannel,	COND_OwnerOnly);
 	
 	DOREPLIFETIME_CONDITION(UActorInteractorComponentBase, InteractorState,						COND_None);

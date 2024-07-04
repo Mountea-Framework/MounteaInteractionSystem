@@ -96,37 +96,6 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
 	TArray<UPrimitiveComponent*> GetCollisionComponents() const;
-
-	
-	/**
-	 * 
-	 * @param bEnable						
-	 */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Interaction|Tracing")
-	void UseSafetyTrace(bool bEnable);
-	virtual void UseSafetyTrace_Implementation(bool bEnable);
-
-	/**
-	 * 
-	 * @return 
-	 */
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
-	bool DoesUseSafetyTrace() const;
-
-	/**
-	 * 
-	 * @param NewSafetyChannel		
-	 */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Interaction|Tracing")
-	void SetValidationCollisionChannel(const ECollisionChannel NewSafetyChannel);
-	void SetValidationCollisionChannel_Implementation(const ECollisionChannel NewSafetyChannel);
-
-	/**
-	 * 
-	 * @return									
-	 */
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
-	ECollisionChannel GetValidationCollisionChannel() const;
 	
 protected:
 
@@ -154,12 +123,6 @@ protected:
 
 	UFUNCTION(Server, Reliable)
 	void StopInteractorOverlap_Server(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
-
-	UFUNCTION(Server, Unreliable)
-	void UseSafetyTrace_Server(bool bEnable);
-
-	UFUNCTION(Server, Unreliable)
-	void SetValidationCollisionChannel_Server(const ECollisionChannel NewSafetyChannel);
 
 public:
 

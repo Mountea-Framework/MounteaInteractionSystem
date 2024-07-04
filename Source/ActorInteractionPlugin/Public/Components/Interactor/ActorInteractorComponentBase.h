@@ -99,6 +99,8 @@ public:
 	virtual void OnInteractorComponentActivated_Implementation(UActorComponent* Component, bool bReset) override;
 	virtual FString ToString_Implementation() const override;
 	virtual AActor* GetOwningActor_Implementation() const override;
+	virtual FSafetyTracingSetup GetSafetyTracingSetup_Implementation() const override;
+	virtual void SetSafetyTracingSetup_Implementation(const FSafetyTracingSetup& NewSafetyTracingSetup) override;
 	virtual bool PerformSafetyTrace_Implementation(const AActor* InteractableActor) override;
 	
 protected:
@@ -139,6 +141,9 @@ protected:
 
 	UFUNCTION(Server, Reliable)
 	void SetInteractorTag_Server(const FGameplayTag& NewInteractorTag);
+
+	UFUNCTION(Server, Unreliable)
+	void SetSafetyTracingSetup_Server(const FSafetyTracingSetup& NewSafetyTracingSetup);
 
 	UFUNCTION(Client, Reliable)
 	void SetActiveInteractable_Client(const TScriptInterface<IActorInteractableInterface>& NewInteractable);
@@ -283,7 +288,7 @@ protected:
 	 * This is useful to prevent overlapping collision which is clipping through a wall, for instance.
 	 */
 	UPROPERTY(Replicated, EditAnywhere, Category="Interaction|Required", meta=(NoResetToDefault))
-	uint8															bUseSafetyTrace : 1;
+	FSafetyTracingSetup									SafetyTraceSetup;
 	
 	/**
 	 * Additional collision channel used for validation Trace after initial overlap.

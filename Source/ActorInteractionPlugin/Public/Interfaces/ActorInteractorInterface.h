@@ -13,6 +13,96 @@
 struct FGameplayTag;
 class UInputMappingContext;
 
+/**
+ * Enum to define the mode of safety tracing.
+ */
+UENUM(BlueprintType)
+enum class ESafetyTracingMode : uint8
+{
+	ESTM_None					UMETA(DisplayName="None",		ToolTip="Safety tracing will not perform."),
+	ESTM_Location			UMETA(DisplayName="Location",	ToolTip="Location must be provided in order to cast the ray. If none is provided, GetLocation() will be used instead."),
+	ESTM_Socket				UMETA(DisplayName="Socket",		ToolTip="Name of socket must be provided. If socket is not found, GetLocation() will be used instaed."),
+
+	Default							UMETA(hidden)
+};
+
+/**
+ * Struct to define the setup for safety tracing.
+ */
+USTRUCT(BlueprintType)
+struct FSafetyTracingSetup
+{
+	GENERATED_BODY()
+
+	/** Mode of safety tracing to be used. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Setup")
+	ESafetyTracingMode SafetyTracingMode;
+
+	/** Starting location for safety tracing, used when SafetyTracingMode is set to Location. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Setup", meta=(EditCondition="SafetyTracingMode == ESTM_Location"))
+	FVector StartLocation;
+
+	/** Starting socket name for safety tracing, used when SafetyTracingMode is set to Socket. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Setup",  meta=(EditCondition="SafetyTracingMode == ESTM_Socket"))
+	FName ActorMeshName;
+	
+	/** Starting socket name for safety tracing, used when SafetyTracingMode is set to Socket. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Setup",  meta=(EditCondition="SafetyTracingMode == ESTM_Socket"))
+	FName StartSocketName;
+	
+	FSafetyTracingSetup()
+		: SafetyTracingMode(ESafetyTracingMode::ESTM_None)
+		, StartLocation(FVector::ZeroVector)
+		, ActorMeshName(NAME_None)
+		, StartSocketName(NAME_None)
+	{}
+	
+	FSafetyTracingSetup(ESafetyTracingMode InSafetyTracingMode, const FVector& InStartLocation = FVector(), const FName InActorMeshName = FName(), const FName InStartSocketName = FName())
+		: SafetyTracingMode(InSafetyTracingMode)
+		, StartLocation(InStartLocation)
+		, ActorMeshName(InActorMeshName)
+		, StartSocketName(InStartSocketName)
+	{}
+
+	bool operator==(const FSafetyTracingSetup& Other) const
+	{
+		if (SafetyTracingMode != Other.SafetyTracingMode)
+		{
+			return false;
+		}
+
+		switch (SafetyTracingMode)
+		{
+		case ESafetyTracingMode::ESTM_Location:
+			return StartLocation == Other.StartLocation;
+		case ESafetyTracingMode::ESTM_Socket:
+			return StartSocketName == Other.StartSocketName;
+		case ESafetyTracingMode::ESTM_None:
+		default:
+			return true;
+		}
+	}
+
+	bool operator!=(const FSafetyTracingSetup& Other) const
+	{
+		return !(*this == Other);
+	}
+
+	FString ToString() const
+	{
+		switch (SafetyTracingMode)
+		{
+		case ESafetyTracingMode::ESTM_Location:
+			return FString::Printf(TEXT("SafetyTracingMode: Location, StartLocation: %s"), *StartLocation.ToString());
+		case ESafetyTracingMode::ESTM_Socket:
+			return FString::Printf(TEXT("SafetyTracingMode: Socket, StartSocketName: %s"), *StartSocketName.ToString());
+		case ESafetyTracingMode::ESTM_None:
+		default:
+			return FString("SafetyTracingMode: None");
+		}
+	}
+};
+
 // This class does not need to be modified.
 UINTERFACE(BlueprintType, Blueprintable, MinimalAPI)
 class UActorInteractorInterface : public UInterface
@@ -494,6 +584,24 @@ public:
 	virtual FString ToString_Implementation() const = 0;
 
 	/**
+	 * Returns the current safety tracing setup.
+	 *
+	 * @return FSafetyTracingSetup containing the current safety tracing mode, start location, and start socket name.
+	 */
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
+	FSafetyTracingSetup GetSafetyTracingSetup() const;
+	virtual FSafetyTracingSetup GetSafetyTracingSetup_Implementation() const = 0;
+
+	/**
+	 * Sets a new safety tracing setup.
+	 *
+	 * @param NewSafetyTracingSetup The new setup to be used, containing the safety tracing mode, start location, and start socket name.
+	 */
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
+	void SetSafetyTracingSetup(const FSafetyTracingSetup& NewSafetyTracingSetup);
+	virtual void SetSafetyTracingSetup_Implementation(const FSafetyTracingSetup& NewSafetyTracingSetup) = 0;
+	
+	/**
 	 * Performs a safety trace to check for obstacles between the interactor and the specified interactable actor.
 	 * This function is used to ensure that there are no obstructions that would prevent interaction with the specified actor.
 	 *
@@ -505,8 +613,10 @@ public:
 	virtual bool PerformSafetyTrace_Implementation(const AActor* InteractableActor) = 0;
 
 	/**
-	 * 
-	 * @return 
+	 * Checks if this Interactor has an interactable.
+	 * This function is used to determine if this interactor has any interactable at given time.
+	 *
+	 * @return True if an interactable is present, false otherwise.
 	 */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
 	bool HasInteractable() const;
