@@ -20,8 +20,7 @@ UActorInteractorComponentBase::UActorInteractorComponentBase() :
 		CollisionChannel(ECC_Camera),
 		DefaultInteractorState(EInteractorStateV2::EIS_Awake),
 		InteractorState(EInteractorStateV2::EIS_Asleep),
-		SafetyTraceSetup(FSafetyTracingSetup(ESafetyTracingMode::ESTM_Location)),
-		ValidationCollisionChannel(ECC_Camera)
+		SafetyTraceSetup(FSafetyTracingSetup(ESafetyTracingMode::ESTM_Location))
 {
 	bAutoActivate = true;
 	
@@ -32,6 +31,29 @@ UActorInteractorComponentBase::UActorInteractorComponentBase() :
 
 	ComponentTags.Add(FName("Mountea"));
 	ComponentTags.Add(FName("Interaction"));	
+}
+
+void UActorInteractorComponentBase::BeginPlay()
+{
+	Super::BeginPlay();
+	
+	OnInteractableUpdated.			AddUniqueDynamic(this, &UActorInteractorComponentBase::InteractableSelected);
+	OnInteractableFound.				AddUniqueDynamic(this, &UActorInteractorComponentBase::InteractableFound);
+	OnInteractableLost.					AddUniqueDynamic(this, &UActorInteractorComponentBase::InteractableLost);
+	
+	OnInteractionKeyPressed.		AddUniqueDynamic(this, &UActorInteractorComponentBase::OnInteractionKeyPressedEvent);
+	OnInteractionKeyReleased.	AddUniqueDynamic(this, &UActorInteractorComponentBase::OnInteractionKeyReleasedEvent);
+	
+	OnStateChanged.					AddUniqueDynamic(this, &UActorInteractorComponentBase::OnInteractorStateChanged);
+	OnCollisionChanged.				AddUniqueDynamic(this, &UActorInteractorComponentBase::OnInteractorCollisionChanged);
+	OnComponentActivated.			AddUniqueDynamic(this, &UActorInteractorComponentBase::OnInteractorComponentActivated);
+
+	if (GetOwner() &&( bAutoActivate || IsActive()))
+	{
+		Execute_AddIgnoredActor(this, GetOwner());
+
+		Execute_SetState(this, DefaultInteractorState);
+	}
 }
 
 FString UActorInteractorComponentBase::ToString_Implementation() const
@@ -117,7 +139,7 @@ bool UActorInteractorComponentBase::PerformSafetyTrace_Implementation(const AAct
 			return true;
 	}
 
-	bool bHit = GetWorld()->LineTraceSingleByChannel(safetyTrace, traceStartLocation, InteractableActor->GetActorLocation(), ValidationCollisionChannel, queryParams);
+	bool bHit = GetWorld()->LineTraceSingleByChannel(safetyTrace, traceStartLocation, InteractableActor->GetActorLocation(), SafetyTraceSetup.ValidationCollisionChannel, queryParams);
 
 #if WITH_EDITOR || UE_BUILD_DEBUG
 	if (DebugSettings.DebugMode)
@@ -129,29 +151,6 @@ bool UActorInteractorComponentBase::PerformSafetyTrace_Implementation(const AAct
 #endif
 
 	return bHit && safetyTrace.GetActor() == InteractableActor;
-}
-
-void UActorInteractorComponentBase::BeginPlay()
-{
-	Super::BeginPlay();
-	
-	OnInteractableUpdated.			AddUniqueDynamic(this, &UActorInteractorComponentBase::InteractableSelected);
-	OnInteractableFound.				AddUniqueDynamic(this, &UActorInteractorComponentBase::InteractableFound);
-	OnInteractableLost.					AddUniqueDynamic(this, &UActorInteractorComponentBase::InteractableLost);
-	
-	OnInteractionKeyPressed.		AddUniqueDynamic(this, &UActorInteractorComponentBase::OnInteractionKeyPressedEvent);
-	OnInteractionKeyReleased.	AddUniqueDynamic(this, &UActorInteractorComponentBase::OnInteractionKeyReleasedEvent);
-	
-	OnStateChanged.					AddUniqueDynamic(this, &UActorInteractorComponentBase::OnInteractorStateChanged);
-	OnCollisionChanged.				AddUniqueDynamic(this, &UActorInteractorComponentBase::OnInteractorCollisionChanged);
-	OnComponentActivated.			AddUniqueDynamic(this, &UActorInteractorComponentBase::OnInteractorComponentActivated);
-
-	if (GetOwner() &&( bAutoActivate || IsActive()))
-	{
-		Execute_AddIgnoredActor(this, GetOwner());
-
-		Execute_SetState(this, DefaultInteractorState);
-	}
 }
 
 void UActorInteractorComponentBase::InteractableSelected_Implementation(const TScriptInterface<IActorInteractableInterface>& SelectedInteractable)
@@ -985,7 +984,6 @@ void UActorInteractorComponentBase::GetLifetimeReplicatedProps(TArray<FLifetimeP
 	DOREPLIFETIME_CONDITION(UActorInteractorComponentBase, DefaultInteractorState,			COND_OwnerOnly);
 	DOREPLIFETIME_CONDITION(UActorInteractorComponentBase, ListOfIgnoredActors,				COND_OwnerOnly);
 	DOREPLIFETIME_CONDITION(UActorInteractorComponentBase, SafetyTraceSetup,				COND_OwnerOnly);
-	DOREPLIFETIME_CONDITION(UActorInteractorComponentBase, ValidationCollisionChannel,	COND_OwnerOnly);
 	
 	DOREPLIFETIME_CONDITION(UActorInteractorComponentBase, InteractorState,						COND_None);
 	DOREPLIFETIME_CONDITION(UActorInteractorComponentBase, ActiveInteractable,				COND_None);

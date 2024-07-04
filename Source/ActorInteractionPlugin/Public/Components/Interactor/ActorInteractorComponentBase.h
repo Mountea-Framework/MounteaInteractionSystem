@@ -291,12 +291,6 @@ protected:
 	FSafetyTracingSetup									SafetyTraceSetup;
 	
 	/**
-	 * Additional collision channel used for validation Trace after initial overlap.
-	 */
-	UPROPERTY(Replicated, EditAnywhere, Category="Interaction|Required", meta=(NoResetToDefault), meta=(EditCondition="bUseSafetyTrace == true"))
-	TEnumAsByte<ECollisionChannel>				ValidationCollisionChannel;
-	
-	/**
 	 * A list of Actors that won't be taken in count when interacting.
 	 * If left empty, only Owner Actor is ignored.
 	 * If using multiple Actors (a gun, for instance), all those child/attached Actors should be ignored.

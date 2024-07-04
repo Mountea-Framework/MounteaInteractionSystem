@@ -38,27 +38,32 @@ struct FSafetyTracingSetup
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Setup")
 	ESafetyTracingMode SafetyTracingMode;
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Setup", meta=(EditCondition="SafetyTracingMode != ESafetyTracingMode::ESTM_None"))
+	TEnumAsByte<ECollisionChannel> ValidationCollisionChannel;
+
 	/** Starting location for safety tracing, used when SafetyTracingMode is set to Location. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Setup", meta=(EditCondition="SafetyTracingMode == ESTM_Location"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Setup", meta=(EditCondition="SafetyTracingMode == ESafetyTracingMode::ESTM_Location"))
 	FVector StartLocation;
 
 	/** Starting socket name for safety tracing, used when SafetyTracingMode is set to Socket. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Setup",  meta=(EditCondition="SafetyTracingMode == ESTM_Socket"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Setup",  meta=(EditCondition="SafetyTracingMode == ESafetyTracingMode::ESTM_Socket"))
 	FName ActorMeshName;
 	
 	/** Starting socket name for safety tracing, used when SafetyTracingMode is set to Socket. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Setup",  meta=(EditCondition="SafetyTracingMode == ESTM_Socket"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Setup",  meta=(EditCondition="SafetyTracingMode == ESafetyTracingMode::ESTM_Socket"))
 	FName StartSocketName;
 	
 	FSafetyTracingSetup()
 		: SafetyTracingMode(ESafetyTracingMode::ESTM_None)
+		, ValidationCollisionChannel(ECC_Camera)
 		, StartLocation(FVector::ZeroVector)
 		, ActorMeshName(NAME_None)
 		, StartSocketName(NAME_None)
 	{}
 	
-	FSafetyTracingSetup(ESafetyTracingMode InSafetyTracingMode, const FVector& InStartLocation = FVector(), const FName InActorMeshName = FName(), const FName InStartSocketName = FName())
+	FSafetyTracingSetup(ESafetyTracingMode InSafetyTracingMode, const TEnumAsByte<ECollisionChannel>& InValidationCollisionChannel = ECC_Camera, const FVector& InStartLocation = FVector(), const FName InActorMeshName = FName(), const FName InStartSocketName = FName())
 		: SafetyTracingMode(InSafetyTracingMode)
+		, ValidationCollisionChannel(InValidationCollisionChannel)
 		, StartLocation(InStartLocation)
 		, ActorMeshName(InActorMeshName)
 		, StartSocketName(InStartSocketName)
@@ -66,22 +71,23 @@ struct FSafetyTracingSetup
 
 	bool operator==(const FSafetyTracingSetup& Other) const
 	{
-		if (SafetyTracingMode != Other.SafetyTracingMode)
+		if (SafetyTracingMode != Other.SafetyTracingMode || ValidationCollisionChannel != Other.ValidationCollisionChannel)
 		{
 			return false;
 		}
 
 		switch (SafetyTracingMode)
 		{
-		case ESafetyTracingMode::ESTM_Location:
-			return StartLocation == Other.StartLocation;
-		case ESafetyTracingMode::ESTM_Socket:
-			return StartSocketName == Other.StartSocketName;
-		case ESafetyTracingMode::ESTM_None:
-		default:
-			return true;
+			case ESafetyTracingMode::ESTM_Location:
+				return StartLocation == Other.StartLocation;
+			case ESafetyTracingMode::ESTM_Socket:
+				return ActorMeshName == Other.ActorMeshName && StartSocketName == Other.StartSocketName;
+			case ESafetyTracingMode::ESTM_None:
+			default:
+				return true;
 		}
 	}
+
 
 	bool operator!=(const FSafetyTracingSetup& Other) const
 	{
@@ -92,15 +98,16 @@ struct FSafetyTracingSetup
 	{
 		switch (SafetyTracingMode)
 		{
-		case ESafetyTracingMode::ESTM_Location:
-			return FString::Printf(TEXT("SafetyTracingMode: Location, StartLocation: %s"), *StartLocation.ToString());
-		case ESafetyTracingMode::ESTM_Socket:
-			return FString::Printf(TEXT("SafetyTracingMode: Socket, StartSocketName: %s"), *StartSocketName.ToString());
-		case ESafetyTracingMode::ESTM_None:
-		default:
-			return FString("SafetyTracingMode: None");
+			case ESafetyTracingMode::ESTM_Location:
+				return FString::Printf(TEXT("SafetyTracingMode: Location, ValidationCollisionChannel: %d, StartLocation: %s"), ValidationCollisionChannel.GetValue(), *StartLocation.ToString());
+			case ESafetyTracingMode::ESTM_Socket:
+				return FString::Printf(TEXT("SafetyTracingMode: Socket, ValidationCollisionChannel: %d, ActorMeshName: %s, StartSocketName: %s"), ValidationCollisionChannel.GetValue(), *ActorMeshName.ToString(), *StartSocketName.ToString());
+			case ESafetyTracingMode::ESTM_None:
+			default:
+				return FString::Printf(TEXT("SafetyTracingMode: None, ValidationCollisionChannel: %d"), ValidationCollisionChannel.GetValue());
 		}
 	}
+
 };
 
 // This class does not need to be modified.

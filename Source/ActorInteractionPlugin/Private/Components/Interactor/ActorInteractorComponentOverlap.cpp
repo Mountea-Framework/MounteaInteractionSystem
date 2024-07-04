@@ -24,19 +24,7 @@ void UActorInteractorComponentOverlap::BeginPlay()
 
 FString UActorInteractorComponentOverlap::ToString_Implementation() const
 {
-	FText baseDebugData = FText::FromString(Super::ToString_Implementation());
-	FText safetyTraceText = FText::FromString(SafetyTraceSetup.ToString());
-	FText validationCollisionChannelText = FText::FromString(UEnum::GetValueAsString(ValidationCollisionChannel));
-
-	FText overlapDebugData = FText::Format(
-		NSLOCTEXT("InteractorOverlapDebugData", "Format", "\nUse Safety Trace: {0}\nValidation Collision Channel: {1}"),
-		safetyTraceText, validationCollisionChannelText
-	);
-
-	return FText::Format(
-		NSLOCTEXT("InteractorOverlapDebugData", "CombinedFormat", "{0}{1}"),
-		baseDebugData, overlapDebugData
-	).ToString();
+	return Super::ToString_Implementation();
 }
 
 void UActorInteractorComponentOverlap::ProcessStateChanged()
@@ -541,6 +529,5 @@ void UActorInteractorComponentOverlap::GetLifetimeReplicatedProps(TArray<FLifeti
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	
-	DOREPLIFETIME_CONDITION(UActorInteractorComponentOverlap, ValidationCollisionChannel,	COND_OwnerOnly);
 	DOREPLIFETIME_CONDITION(UActorInteractorComponentOverlap, CollisionShapes,					COND_Custom);
 }
