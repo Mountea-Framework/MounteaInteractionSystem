@@ -22,34 +22,34 @@ void UActorInteractableComponentHold::InteractionStarted_Implementation(const fl
 {
 	if (GetOwner() && GetOwner()->HasAuthority())
 	{
-		Super::InteractionStarted_Implementation(TimeStarted, CausingInteractor);
-	
 		if (!GetWorld()) return;
 	
-		if (Execute_CanInteract(this))
+		if (!Execute_CanInteract(this))
+			return;
+		
+		// Force Interaction Period to be at least 0.1s
+		const float TempInteractionPeriod = FMath::Max(0.1f, InteractionPeriod);
+
+		// Either unpause or start from start
+		if (bCanPersist && GetWorld()->GetTimerManager().IsTimerPaused(Timer_Interaction))
 		{
-			// Force Interaction Period to be at least 0.1s
-			const float TempInteractionPeriod = FMath::Max(0.1f, InteractionPeriod);
-
-			// Either unpause or start from start
-			if (bCanPersist && GetWorld()->GetTimerManager().IsTimerPaused(Timer_Interaction))
-			{
-				GetWorld()->GetTimerManager().UnPauseTimer(Timer_Interaction);
-			}
-			else
-			{
-				FTimerDelegate Delegate;
-				Delegate.BindUObject(this, &UActorInteractableComponentHold::OnInteractionCompletedCallback);
-
-				GetWorld()->GetTimerManager().SetTimer
-				(
-					Timer_Interaction,
-					Delegate,
-					TempInteractionPeriod,
-					false
-				);
-			}
+			GetWorld()->GetTimerManager().UnPauseTimer(Timer_Interaction);
 		}
+		else
+		{
+			FTimerDelegate Delegate;
+			Delegate.BindUObject(this, &UActorInteractableComponentHold::OnInteractionCompletedCallback);
+
+			GetWorld()->GetTimerManager().SetTimer
+			(
+				Timer_Interaction,
+				Delegate,
+				TempInteractionPeriod,
+				false
+			);
+		}
+
+		Super::InteractionStarted_Implementation(TimeStarted, CausingInteractor);
 	}
 }
 

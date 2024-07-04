@@ -1297,17 +1297,15 @@ void UActorInteractableComponentBase::InteractionCycleCompleted_Implementation(c
 
 void UActorInteractableComponentBase::InteractionStarted_Implementation(const float& TimeStarted, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
 {
-	if (Execute_CanInteract(this))
+	if (Execute_CanInteract(this) && GetOwner() && GetOwner()->HasAuthority())
 	{
 		GetWorld()->GetTimerManager().ClearTimer(Timer_ProgressExpiration);
 		
 		Execute_SetState(this, EInteractableStateV2::EIS_Active);
 		Execute_OnInteractionStartedEvent(this, TimeStarted, CausingInteractor);
 
-		if (GetOwner() && GetOwner()->HasAuthority())
-		{
-			InteractionStarted_Client(TimeStarted, CausingInteractor);
-		}
+		// Only if cannot execute cosmetic events!
+		InteractionStarted_Client(TimeStarted, CausingInteractor);
 	}
 }
 
@@ -1316,6 +1314,23 @@ void UActorInteractableComponentBase::InteractionStarted_Client_Implementation(c
 	if (GetOwner() && !GetOwner()->HasAuthority())
 	{
 		OnInteractionStarted.Broadcast(TimeStarted, CausingInteractor);
+
+		if (bCanPersist && GetWorld()->GetTimerManager().IsTimerPaused(Timer_Interaction))
+		{
+			GetWorld()->GetTimerManager().UnPauseTimer(Timer_Interaction);
+		}
+		else
+		{
+			FTimerDelegate Delegate;
+
+			GetWorld()->GetTimerManager().SetTimer
+			(
+				Timer_Interaction,
+				Delegate,
+				InteractionPeriod,
+				false
+			);
+		}
 	}
 }
 
@@ -1341,7 +1356,12 @@ void UActorInteractableComponentBase::InteractionStopped_Implementation(const fl
 void UActorInteractableComponentBase::InteractionStopped_Client_Implementation(const float& TimeStopped, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
 {
 	if (GetOwner() && !GetOwner()->HasAuthority())
-	{
+	{		
+		if (bCanPersist)
+			GetWorld()->GetTimerManager().PauseTimer(Timer_Interaction);
+		else
+			GetOwner()->GetWorldTimerManager().ClearTimer(Timer_Interaction);
+		
 		OnInteractionStopped.Broadcast(TimeStopped, CausingInteractor);
 	}
 }
@@ -2011,6 +2031,8 @@ void UActorInteractableComponentBase::GetLifetimeReplicatedProps(TArray<FLifetim
 	DOREPLIFETIME_CONDITION(UActorInteractableComponentBase, LifecycleCount,							COND_SimulatedOnly);
 	DOREPLIFETIME_CONDITION(UActorInteractableComponentBase, RemainingLifecycleCount,			COND_SimulatedOnly);
 	DOREPLIFETIME_CONDITION(UActorInteractableComponentBase, InteractionWeight,						COND_SimulatedOnly);
+
+	//DOREPLIFETIME_CONDITION(UActorInteractableComponentBase, Timer_Interaction,						COND_SimulatedOnly);
 
 	DOREPLIFETIME_CONDITION(UActorInteractableComponentBase, Interactor,									COND_None);	
 	DOREPLIFETIME_CONDITION(UActorInteractableComponentBase, InteractableState,						COND_None);	
