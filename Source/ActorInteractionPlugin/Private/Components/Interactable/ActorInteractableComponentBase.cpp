@@ -1179,7 +1179,7 @@ FString UActorInteractableComponentBase::ToString_Implementation() const
 	FText collisionComponentsCountText = FText::AsNumber(CollisionComponents.Num());
 	FText highlightableComponentsCountText = FText::AsNumber(HighlightableComponents.Num());
 	FText interactionWeightText = FText::AsNumber(InteractionWeight);
-	FText interactorText = Interactor.GetObject() ? FText::FromString(Interactor->GetOwningActor() ? Interactor->GetOwningActor()->GetName() : TEXT("invalid")) : FText::FromString("None");
+	FText interactorText = Interactor.GetObject() ? FText::FromString(Interactor->Execute_GetOwningActor(Interactor.GetObject()) ? Interactor->Execute_GetOwningActor(Interactor.GetObject())->GetName() : TEXT("invalid")) : FText::FromString("None");
 
 	return FText::Format(
 		NSLOCTEXT("InteractableDebugData", "Format", 
