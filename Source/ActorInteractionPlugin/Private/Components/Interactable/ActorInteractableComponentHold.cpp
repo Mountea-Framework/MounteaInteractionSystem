@@ -15,7 +15,7 @@ UActorInteractableComponentHold::UActorInteractableComponentHold()
 	bInteractionHighlight = true;
 	DefaultInteractableState = EInteractableStateV2::EIS_Awake;
 	InteractionPeriod = 3.f;
-	InteractableName = LOCTEXT("InteractableComponentHold", "Hold");
+	InteractableName = NSLOCTEXT("InteractableComponentHold", "Hold", "Hold");
 }
 
 void UActorInteractableComponentHold::InteractionStarted_Implementation(const float& TimeStarted, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)

@@ -10,7 +10,7 @@
 
 UActorInteractableComponentAutomatic::UActorInteractableComponentAutomatic()
 {
-	InteractableName = LOCTEXT("ActorInteractableComponentAutomatic", "Auto");
+	InteractableName = NSLOCTEXT("ActorInteractableComponentAutomatic", "Auto", "Auto");
 
 	DefaultInteractableState = EInteractableStateV2::EIS_Awake;
 	InteractionPeriod = 1.f;

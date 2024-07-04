@@ -16,7 +16,7 @@ UActorInteractableComponentMash::UActorInteractableComponentMash() :
 	bInteractionHighlight = true;
 	DefaultInteractableState = EInteractableStateV2::EIS_Awake;
 	InteractionPeriod = 3.f;
-	InteractableName = LOCTEXT("ActorInteractableComponentMash", "Mash");
+	InteractableName = NSLOCTEXT("ActorInteractableComponentMash", "Mash", "Mash");
 }
 
 void UActorInteractableComponentMash::BeginPlay()

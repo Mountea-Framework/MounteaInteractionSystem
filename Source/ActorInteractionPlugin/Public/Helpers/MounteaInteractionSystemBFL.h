@@ -73,4 +73,7 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Helpers")
 	static bool CanExecuteCosmeticEvents(const UWorld* WorldContext);
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Helpers")
+	static FText ReplaceRegexInText(const FText& SourceText, const TMap<FString, FText>& Replacements);
 };

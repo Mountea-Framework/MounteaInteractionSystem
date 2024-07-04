@@ -14,7 +14,7 @@ UActorInteractableComponentPress::UActorInteractableComponentPress()
 	bInteractionHighlight = true;
 	DefaultInteractableState = EInteractableStateV2::EIS_Awake;
 	InteractionPeriod = -1.f;
-	InteractableName = LOCTEXT("InteractableComponentPress", "Press");
+	InteractableName = NSLOCTEXT("InteractableComponentPress", "Press", "Press");
 }
 
 void UActorInteractableComponentPress::BeginPlay()

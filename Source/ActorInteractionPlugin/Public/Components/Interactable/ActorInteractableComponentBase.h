@@ -938,7 +938,7 @@ protected:
 	 * Display Name.
 	 */
 	UPROPERTY(Replicated, SaveGame, EditAnywhere, Category="Interaction|Optional", meta=(NoResetToDefault))
-	FText																												InteractableName = LOCTEXT("InteractableComponentBase", "Default");
+	FText																												InteractableName = NSLOCTEXT("InteractableComponentBase", "DefaultInteractable", "Default");
 
 	/**
 	 * TODO
