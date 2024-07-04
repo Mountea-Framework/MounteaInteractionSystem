@@ -184,6 +184,10 @@ protected:
 	void InteractionStopped_Client(const float& TimeStopped, const TScriptInterface<IActorInteractorInterface>& CausingInteractor);
 	UFUNCTION(Client, Reliable)
 	void InteractionCancelled_Client(const float& TimeStopped, const TScriptInterface<IActorInteractorInterface>& CausingInteractor);
+	UFUNCTION(Client, Reliable)
+	void InteractorFound_Client(const TScriptInterface<IActorInteractorInterface>& DirtyInteractor);
+	UFUNCTION(Client, Reliable)
+	void InteractorLost_Client(const TScriptInterface<IActorInteractorInterface>& DirtyInteractor);
 
 	UFUNCTION(Client, Unreliable)
 	void ProcessToggleActive_Client(const bool bIsEnabled);

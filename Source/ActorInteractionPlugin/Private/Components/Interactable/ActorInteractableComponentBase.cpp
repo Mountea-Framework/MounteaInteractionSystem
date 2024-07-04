@@ -1191,84 +1191,99 @@ FString UActorInteractableComponentBase::ToString_Implementation() const
 
 void UActorInteractableComponentBase::InteractorFound_Implementation(const TScriptInterface<IActorInteractorInterface>& FoundInteractor)
 {
-	if (Execute_CanBeTriggered(this))
+	if (GetOwner() && GetOwner()->HasAuthority())
 	{
-		Execute_SetInteractor(this, FoundInteractor);
-		
-		if (GetOwner() && GetOwner()->HasAuthority())
+		if (Execute_CanBeTriggered(this))
 		{
+			Execute_SetInteractor(this, FoundInteractor);
+		
 			if (UMounteaInteractionSystemBFL::CanExecuteCosmeticEvents(GetWorld()))
 			{
 				ProcessToggleActive(true);
-				Execute_ToggleWidgetVisibility(this, true);
 			}
 			else
 			{
-				StartHighlight_Client();
+				InteractorFound_Client(FoundInteractor);
 				ProcessToggleActive_Client(true);
 			}
-		}
 		
-		Execute_OnInteractorFoundEvent(this, FoundInteractor);
+			Execute_OnInteractorFoundEvent(this, FoundInteractor);
+		}
+	}
+}
+
+void UActorInteractableComponentBase::InteractorFound_Client_Implementation(const TScriptInterface<IActorInteractorInterface>& DirtyInteractor)
+{
+	if (GetOwner() && !GetOwner()->HasAuthority())
+	{
+		OnInteractorFound.Broadcast(DirtyInteractor);
 	}
 }
 
 void UActorInteractableComponentBase::InteractorLost_Implementation(const TScriptInterface<IActorInteractorInterface>& LostInteractor)
 {
 	if (LostInteractor.GetInterface() == nullptr) return;
+
+	if (Interactor != LostInteractor)
+		return;	
 	
-	if (Interactor == LostInteractor)
+	GetWorld()->GetTimerManager().ClearTimer(Timer_Interaction);
+	GetWorld()->GetTimerManager().ClearTimer(Timer_ProgressExpiration);
+	GetWorld()->GetTimerManager().ClearTimer(Timer_Cooldown);
+		
+	if (GetOwner() && GetOwner()->HasAuthority())
 	{
-		GetWorld()->GetTimerManager().ClearTimer(Timer_Interaction);
-		GetWorld()->GetTimerManager().ClearTimer(Timer_ProgressExpiration);
-		GetWorld()->GetTimerManager().ClearTimer(Timer_Cooldown);
-		
-		if (GetOwner() && GetOwner()->HasAuthority())
+		if (UMounteaInteractionSystemBFL::CanExecuteCosmeticEvents(GetWorld()))
 		{
-			if (UMounteaInteractionSystemBFL::CanExecuteCosmeticEvents(GetWorld()))
-			{
-				ProcessToggleActive(false);
-				Execute_ToggleWidgetVisibility(this, false);
-			}
-			else
-			{
-				StopHighlight_Client();
-				ProcessToggleActive_Client(false);
-			}
+			ProcessToggleActive(false);
 		}
+		else
+		{
+			InteractorLost_Client(LostInteractor);
+			ProcessToggleActive_Client(false);
+		}
+	}
 
-		switch (InteractableState)
-		{
-			case EInteractableStateV2::EIS_Cooldown:
-				if (Execute_GetInteractor(this).GetObject() == nullptr)
-				{
-					Execute_SetState(this, DefaultInteractableState);
-				}
-				break;
-			case EInteractableStateV2::EIS_Asleep:
-			case EInteractableStateV2::EIS_Suppressed:
+	switch (InteractableState)
+	{
+		case EInteractableStateV2::EIS_Cooldown:
+			if (Execute_GetInteractor(this).GetObject() == nullptr)
+			{
 				Execute_SetState(this, DefaultInteractableState);
-				break;
-			case EInteractableStateV2::EIS_Active:
-			case EInteractableStateV2::EIS_Awake:
-			case EInteractableStateV2::EIS_Paused:
-				Execute_SetState(this, DefaultInteractableState);
-				break;
-			case EInteractableStateV2::EIS_Completed:
-			case EInteractableStateV2::EIS_Disabled:
-			case EInteractableStateV2::Default:
-			default: break;
-		}
+			}
+			break;
+		case EInteractableStateV2::EIS_Asleep:
+		case EInteractableStateV2::EIS_Suppressed:
+			Execute_SetState(this, DefaultInteractableState);
+			break;
+		case EInteractableStateV2::EIS_Active:
+		case EInteractableStateV2::EIS_Awake:
+		case EInteractableStateV2::EIS_Paused:
+			Execute_SetState(this, DefaultInteractableState);
+			break;
+		case EInteractableStateV2::EIS_Completed:
+		case EInteractableStateV2::EIS_Disabled:
+		case EInteractableStateV2::Default:
+		default: break;
+	}
 		
-		if (Interactor.GetInterface() != nullptr)
-		{
-			Interactor->GetOnInteractableSelectedHandle().RemoveDynamic(this, &UActorInteractableComponentBase::InteractableSelected);
-			Interactor->GetOnInteractableLostHandle().RemoveDynamic(this, &UActorInteractableComponentBase::InteractableLost);
-		}
+	if (Interactor.GetInterface() != nullptr)
+	{
+		Interactor->GetOnInteractableSelectedHandle().RemoveDynamic(this, &UActorInteractableComponentBase::InteractableSelected);
+		Interactor->GetOnInteractableLostHandle().RemoveDynamic(this, &UActorInteractableComponentBase::InteractableLost);
+	}
 		
-		Execute_SetInteractor(this, nullptr);
-		Execute_OnInteractorLostEvent(this, LostInteractor);
+	Execute_SetInteractor(this, nullptr);
+	Execute_OnInteractorLostEvent(this, LostInteractor);
 
+	OnInteractionCanceled.Broadcast();
+}
+
+void UActorInteractableComponentBase::InteractorLost_Client_Implementation(const TScriptInterface<IActorInteractorInterface>& DirtyInteractor)
+{
+	if (GetOwner() && !GetOwner()->HasAuthority())
+	{
+		OnInteractorLost.Broadcast(DirtyInteractor);
 		OnInteractionCanceled.Broadcast();
 	}
 }
@@ -1337,6 +1352,22 @@ void UActorInteractableComponentBase::InteractionStarted_Client_Implementation(c
 void UActorInteractableComponentBase::InteractionStopped_Implementation(const float& TimeStarted, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
 {
 	if (!GetWorld()) return;
+
+	// Only Active interaction can be stopped!
+	switch (InteractableState)
+	{
+		case EInteractableStateV2::EIS_Active:
+			break;
+		case EInteractableStateV2::EIS_Awake:
+		case EInteractableStateV2::EIS_Cooldown:
+		case EInteractableStateV2::EIS_Paused:
+		case EInteractableStateV2::EIS_Completed:
+		case EInteractableStateV2::EIS_Disabled:
+		case EInteractableStateV2::EIS_Suppressed:
+		case EInteractableStateV2::EIS_Asleep:
+		case EInteractableStateV2::Default:
+			return;
+	}
 	
 	if (GetOwner() && GetOwner()->HasAuthority())
 	{
@@ -1368,37 +1399,40 @@ void UActorInteractableComponentBase::InteractionStopped_Client_Implementation(c
 
 void UActorInteractableComponentBase::InteractionCanceled_Implementation()
 {
-	if (Execute_CanInteract(this))
-	{		
-		GetWorld()->GetTimerManager().ClearTimer(Timer_Interaction);
-		GetWorld()->GetTimerManager().ClearTimer(Timer_ProgressExpiration);
-
-		if (GetOwner() && GetOwner()->HasAuthority())
-		{
-			InteractionCancelled_Client(GetWorld()->GetTimeSeconds(), Interactor);
-		}
+	if (GetOwner() && GetOwner()->HasAuthority())
+	{
+		if (Execute_CanInteract(this))
+		{		
+			GetWorld()->GetTimerManager().ClearTimer(Timer_Interaction);
+			GetWorld()->GetTimerManager().ClearTimer(Timer_ProgressExpiration);
+			
+			if (!UMounteaInteractionSystemBFL::CanExecuteCosmeticEvents(GetWorld()))
+			{
+				InteractionCancelled_Client(GetWorld()->GetTimeSeconds(), Interactor);	
+			}
 		
-		switch (InteractableState)
-		{
-			case EInteractableStateV2::EIS_Cooldown:
-			case EInteractableStateV2::EIS_Awake:
-				if (Execute_GetInteractor(this).GetObject() == nullptr)
-				{
+			switch (InteractableState)
+			{
+				case EInteractableStateV2::EIS_Cooldown:
+				case EInteractableStateV2::EIS_Awake:
+					if (Execute_GetInteractor(this).GetObject() == nullptr)
+					{
+						Execute_SetState(this, DefaultInteractableState);
+					}
+					break;
+				case EInteractableStateV2::EIS_Active:
+				case EInteractableStateV2::EIS_Asleep:
+				case EInteractableStateV2::EIS_Completed:
+				case EInteractableStateV2::EIS_Disabled:
+				case EInteractableStateV2::EIS_Suppressed:
 					Execute_SetState(this, DefaultInteractableState);
-				}
-				break;
-			case EInteractableStateV2::EIS_Active:
-			case EInteractableStateV2::EIS_Asleep:
-			case EInteractableStateV2::EIS_Completed:
-			case EInteractableStateV2::EIS_Disabled:
-			case EInteractableStateV2::EIS_Suppressed:
-				Execute_SetState(this, DefaultInteractableState);
-				break;
-			case EInteractableStateV2::Default:
-			default: break;
-		}
+					break;
+				case EInteractableStateV2::Default:
+				default: break;
+			}
 		
-		Execute_OnInteractionCanceledEvent(this);
+			Execute_OnInteractionCanceledEvent(this);
+		}
 	}
 }
 
@@ -1502,16 +1536,35 @@ void UActorInteractableComponentBase::InteractableSelected_Implementation(const 
 {
  	if (Interactable == this)
  	{
- 		//Execute_StartHighlight(this);
- 		
  		Execute_SetState(this, EInteractableStateV2::EIS_Active);
  		OnInteractableSelected.Broadcast(Interactable);
 
  		if (GetOwner() && GetOwner()->HasAuthority())
- 			ProcessToggleActive_Client(true);
+ 		{
+ 			if (UMounteaInteractionSystemBFL::CanExecuteCosmeticEvents(GetWorld()))
+ 			{
+ 				ProcessToggleActive(false);
+ 			}
+ 			else
+ 			{
+ 				ProcessToggleActive_Client(false);
+ 			}
+ 		}
  	}
 	else
 	{
+		if (GetOwner() && GetOwner()->HasAuthority())
+		{
+			if (UMounteaInteractionSystemBFL::CanExecuteCosmeticEvents(GetWorld()))
+			{
+				ProcessToggleActive(false);
+			}
+			else
+			{
+				ProcessToggleActive_Client(false);
+			}
+		}
+		
 		OnInteractionCanceled.Broadcast();
 		
 		Execute_SetState(this, DefaultInteractableState);
@@ -1933,11 +1986,15 @@ void UActorInteractableComponentBase::OnRep_ActiveInteractor()
 void UActorInteractableComponentBase::ProcessToggleActive(const bool bIsEnabled)
 {
 	if (bIsEnabled)
+	{
+		Execute_ToggleWidgetVisibility(this, true);
 		Execute_StartHighlight(this);
+	}
 	else
+	{
+		Execute_ToggleWidgetVisibility(this, false);
 		Execute_StopHighlight(this);
-
-	//Execute_ToggleWidgetVisibility(this, bIsEnabled);
+	}
 }
 
 void UActorInteractableComponentBase::ProcessStartHighlight()
