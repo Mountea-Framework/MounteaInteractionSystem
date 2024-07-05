@@ -2072,6 +2072,15 @@ void UActorInteractableComponentBase::ProcessHideWidget()
 	}
 }
 
+#if WITH_EDITOR || WITH_EDITORONLY_DATA
+
+void UActorInteractableComponentBase::SetDefaultValues()
+{
+	Execute_SetDefaults(this);
+}
+
+#endif
+
 void UActorInteractableComponentBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);

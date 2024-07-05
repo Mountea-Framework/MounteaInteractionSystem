@@ -405,7 +405,7 @@ public:
 	 *
 	 * @param NewState Value which will be set as new Default Interactable State.
 	 */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactable")
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, CallInEditor, Category="Mountea|Interaction|Interactable")
 	void SetDefaultState(const EInteractableStateV2 NewState);
 	virtual void SetDefaultState_Implementation(const EInteractableStateV2 NewState) = 0;
 

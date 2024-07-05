@@ -100,11 +100,11 @@ struct FCollisionShapeCache
   CollisionResponse(collisionResponse)
  {};
 	
- UPROPERTY(Category="Interaction|Collision Cache", VisibleAnywhere)
+ UPROPERTY(Category="Mountea Interaction|Collision Cache", VisibleAnywhere)
  uint8 bGenerateOverlapEvents : 1;
- UPROPERTY(Category="Interaction|Collision Cache", VisibleAnywhere)
+ UPROPERTY(Category="Mountea Interaction|Collision Cache", VisibleAnywhere)
  TEnumAsByte<ECollisionEnabled::Type> CollisionEnabled;
- UPROPERTY(Category="Interaction|Collision Cache", VisibleAnywhere)
+ UPROPERTY(Category="Mountea Interaction|Collision Cache", VisibleAnywhere)
  TEnumAsByte<ECollisionResponse> CollisionResponse;
 	
 };
@@ -148,13 +148,13 @@ public:
     * Enables Debug in Gameplay.
     * Default: Off
     */
-    UPROPERTY(Category="Interaction|Debug", BlueprintReadWrite, EditAnywhere)
+    UPROPERTY(Category="Mountea Interaction|Debug", BlueprintReadWrite, EditAnywhere)
     uint8 DebugMode : 1;
    /**
     * Enables Warnings in Editor.
     * Default: On
     */
-    UPROPERTY(Category="Interaction|Debug", BlueprintReadWrite, EditAnywhere)
+    UPROPERTY(Category="Mountea Interaction|Debug", BlueprintReadWrite, EditAnywhere)
     uint8 EditorDebugMode : 1;
 };
 

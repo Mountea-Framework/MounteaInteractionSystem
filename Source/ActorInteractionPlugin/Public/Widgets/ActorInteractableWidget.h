@@ -137,7 +137,7 @@ protected:
 	UPROPERTY(Category="Properties", BlueprintReadWrite, meta=(BindWidget))
 	UImage* InteractionTexture = nullptr;
 
-	UPROPERTY(VisibleAnywhere, Category="Interaction|Debug")
+	UPROPERTY(VisibleAnywhere, Category="Mountea Interaction|Debug")
 	ESlateVisibility CachedVisibility;
 	
 private:
@@ -147,7 +147,7 @@ private:
 	 * 0 means 0%
 	 * 1 means 100%
 	 */
-	UPROPERTY(VisibleAnywhere, Category="Interaction|Debug", meta=(ClampMax=1, UIMax=1, ClampMin=0, UIMin=0))
+	UPROPERTY(VisibleAnywhere, Category="Mountea Interaction|Debug", meta=(ClampMax=1, UIMax=1, ClampMin=0, UIMin=0))
 	float InteractionProgress;
 
 	float TimeRemainder;
