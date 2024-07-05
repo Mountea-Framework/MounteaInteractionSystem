@@ -35,6 +35,15 @@ UE 5.1 | 3.0.1.6 | 🟩
 UE 5.2 | 3.0.1.6 | 🟩
 UE 5.3 | 3.0.1.6 | 🟩
 
+# Features
+
+## Settings & Configuration
+
+<p align="center" width="100%">
+    <img width="65%" src="https://github.com/Mountea-Framework/MounteaInteractionSystem/assets/37410226/6eb61cdb-cae1-42e0-97eb-f7553dbc1a28">
+</p>
+
+
 ### Installation
 
 Download the plugin (either from Releases or from Marketplace). For a more detailed guide take a look at the Wiki page.
