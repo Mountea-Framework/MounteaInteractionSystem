@@ -1116,8 +1116,8 @@ void UActorInteractableComponentBase::SetDefaults_Implementation()
 			SetWidgetClass(DefaultWidgetClass.Get());
 		}
 	}
-
-	const auto defaultSettings = UActorInteractionFunctionLibrary::GetDefaultInteractableSettings();
+	
+	auto defaultSettings = UActorInteractionFunctionLibrary::GetDefaultInteractableSettings();
 	{
 		HighlightType		= defaultSettings.DefaultHighlightSetup.HighlightType;
 		StencilID				= defaultSettings.DefaultHighlightSetup.StencilID;

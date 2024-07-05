@@ -18,13 +18,55 @@ UActorInteractionPluginSettings* UActorInteractionFunctionLibrary::GetInteractio
 
 FInteractorBaseSettings UActorInteractionFunctionLibrary::GetDefaultInteractorSettings()
 {
-	return (GetInteractionSettings() && GetInteractionSettings()->DefaultInteractionSystemConfig != nullptr) ? GetInteractionSettings()->DefaultInteractionSystemConfig.LoadSynchronous()->InteractorDefaultSettings : FInteractorBaseSettings();
+	const UActorInteractionPluginSettings* Settings = GetMutableDefault<UActorInteractionPluginSettings>();
+	if (!Settings)
+	{
+		LOG_ERROR(TEXT("Failed to get interaction settings: Settings returned nullptr."));
+		return FInteractorBaseSettings();
+	}
+
+	UMounteaInteractionSettingsConfig* DefaultConfig = Settings->DefaultInteractionSystemConfig.LoadSynchronous();
+	if (DefaultConfig == nullptr)
+	{
+		LOG_ERROR(TEXT("Failed to get interaction settings: DefaultInteractionSystemConfig is nullptr."));
+		return FInteractorBaseSettings();
+	}
+	
+	if (!DefaultConfig)
+	{
+		LOG_ERROR(TEXT("Failed to load DefaultInteractionSystemConfig synchronously."));
+		return FInteractorBaseSettings();
+	}
+
+	return DefaultConfig->InteractorDefaultSettings;
 }
+
 
 FInteractableBaseSettings UActorInteractionFunctionLibrary::GetDefaultInteractableSettings()
 {
-	return (GetInteractionSettings() && GetInteractionSettings()->DefaultInteractionSystemConfig != nullptr) ? GetInteractionSettings()->DefaultInteractionSystemConfig.LoadSynchronous()->InteractableBaseSettings : FInteractableBaseSettings();
+	const UActorInteractionPluginSettings* Settings = GetMutableDefault<UActorInteractionPluginSettings>();
+	if (!Settings)
+	{
+		LOG_ERROR(TEXT("Failed to get interaction settings: Settings returned nullptr."));
+		return FInteractableBaseSettings();
+	}
+
+	UMounteaInteractionSettingsConfig* DefaultConfig = Settings->DefaultInteractionSystemConfig.LoadSynchronous();
+	if (DefaultConfig == nullptr)
+	{
+		LOG_ERROR(TEXT("Failed to get interaction settings: DefaultInteractionSystemConfig is nullptr."));
+		return FInteractableBaseSettings();
+	}
+	
+	if (!DefaultConfig)
+	{
+		LOG_ERROR(TEXT("Failed to load DefaultInteractionSystemConfig synchronously."));
+		return FInteractableBaseSettings();
+	}
+
+	return DefaultConfig->InteractableBaseSettings;
 }
+
 
 float UActorInteractionFunctionLibrary::GetDefaultWidgetUpdateFrequency()
 {

@@ -904,6 +904,12 @@ protected:
 	TArray<FName>																								HighlightableOverrides;
 
 	/**
+	* Defines what Highlight Type is used.
+	*/
+	UPROPERTY(Replicated, SaveGame, EditAnywhere, BlueprintReadOnly,  Category="MounteaInteraction|Optional")
+	EHighlightType																									HighlightType;
+	
+	/**
 	 * Defines whether Interactable should be highlighted with defined Material when Interaction is possible.
 	 *
 	 * For this option to work following steps must be done:
@@ -921,19 +927,15 @@ protected:
 	 * In order to smoothly integrate with other logic, keep this ID unique!
 	 * Default: 133
 	 */
-	UPROPERTY(SaveGame, EditAnywhere, BlueprintReadOnly,  Category="MounteaInteraction|Optional", meta=(EditCondition="bInteractionHighlight == true && HighlightType==EHighlightType::EHT_PostProcessing", UIMin=0, ClampMin=0, UIMax=255, ClampMax=255))
+	UPROPERTY(SaveGame, EditAnywhere, BlueprintReadOnly,  Category="MounteaInteraction|Optional", meta=(EditCondition="bInteractionHighlight==true", UIMin=0, ClampMin=0, UIMax=255, ClampMax=255))
 	int32																												StencilID;
-
-	/**
-	* Defines what Highlight Type is used.
-	*/
-	UPROPERTY(Replicated, SaveGame, EditAnywhere, BlueprintReadOnly,  Category="MounteaInteraction|Optional")
-	EHighlightType																									HighlightType;
-	UPROPERTY(Replicated, SaveGame, EditAnywhere, BlueprintReadOnly,  Category="MounteaInteraction|Optional", meta=(EditCondition="bInteractionHighlight == true && HighlightType==EHighlightType::EHT_OverlayMaterial"))
+	
+	UPROPERTY(Replicated, SaveGame, EditAnywhere, BlueprintReadOnly,  Category="MounteaInteraction|Optional", meta=(EditCondition="bInteractionHighlight==true"))
 	TObjectPtr<UMaterialInterface>																		HighlightMaterial = nullptr;
 
 	UPROPERTY(SaveGame, EditAnywhere, BlueprintReadOnly,  Category="MounteaInteraction|Optional")
 	uint8																												bCanPersist : 1;
+	
 	/**
 	 * Provides a simple way to determine how fast Interaction Progress is kept before interaction is cancelled.
 	 * * -1 means never while Interactor is valid
