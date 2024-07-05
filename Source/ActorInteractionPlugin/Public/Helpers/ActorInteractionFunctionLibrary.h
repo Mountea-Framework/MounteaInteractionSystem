@@ -7,6 +7,7 @@
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "ActorInteractionFunctionLibrary.generated.h"
 
+struct FInteractorSettings;
 struct FInteractionHighlightSetup;
 class UDataTable;
 class UUserWidget;
@@ -24,6 +25,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction", meta=(CompactNodeTitle="Default Interaction Settings"))
 	static UActorInteractionPluginSettings* GetInteractionSettings();
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction", meta=(CompactNodeTitle="Default Interaction Settings"))
+	static FInteractorSettings GetDefaultInteractorSettings();
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction", meta=(CompactNodeTitle="Default Interaction Settings"))
 	static FInteractionHighlightSetup GetDefaultInteractableHighlightSetup();

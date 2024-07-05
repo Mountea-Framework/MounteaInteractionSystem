@@ -10,6 +10,7 @@
 #include "EditorHelper.h"
 #endif
 
+#include "Helpers/ActorInteractionFunctionLibrary.h"
 #include "Helpers/InteractionHelpers.h"
 #include "Helpers/MounteaInteractionSystemBFL.h"
 #include "Interfaces/ActorInteractableInterface.h"
@@ -151,6 +152,16 @@ bool UActorInteractorComponentBase::PerformSafetyTrace_Implementation(const AAct
 #endif
 
 	return bHit && safetyTrace.GetActor() == InteractableActor;
+}
+
+void UActorInteractorComponentBase::SetDefaults_Implementation()
+{
+	const auto defaultValues = UActorInteractionFunctionLibrary::GetDefaultInteractorSettings();
+	{
+		CollisionChannel			= defaultValues.InteractorCollisionChannel;
+		InteractorTag				= defaultValues.InteractorTag;
+		DefaultInteractorState = defaultValues.DefaultInteractorState;
+	}
 }
 
 void UActorInteractorComponentBase::InteractableSelected_Implementation(const TScriptInterface<IActorInteractableInterface>& SelectedInteractable)
@@ -1084,6 +1095,15 @@ EDataValidationResult UActorInteractorComponentBase::IsDataValid(TArray<FText>& 
 	}
 	
 	return bAnyError ? EDataValidationResult::Invalid : DefaultValue;
+}
+
+#endif
+
+#if WITH_EDITOR || WITH_EDITORONLY_DATA
+
+void UActorInteractorComponentBase::SetDefaultValues()
+{
+	Execute_SetDefaults(this);
 }
 
 #endif

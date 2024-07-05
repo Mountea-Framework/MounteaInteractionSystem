@@ -102,6 +102,7 @@ public:
 	virtual FSafetyTracingSetup GetSafetyTracingSetup_Implementation() const override;
 	virtual void SetSafetyTracingSetup_Implementation(const FSafetyTracingSetup& NewSafetyTracingSetup) override;
 	virtual bool PerformSafetyTrace_Implementation(const AActor* InteractableActor) override;
+	virtual void SetDefaults_Implementation() override;
 	
 protected:
 
@@ -323,6 +324,19 @@ protected:
 	virtual void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;
 	virtual EDataValidationResult IsDataValid(TArray<FText>& ValidationErrors) override;
 
+#endif
+
+public:
+	
+#if WITH_EDITOR || WITH_EDITORONLY_DATA
+
+	/**
+	 * Overrides data with default values from Project Settings.
+	 * Interactor Defaults are not set automatically.
+	 */
+	UFUNCTION(BlueprintCallable, CallInEditor, Category="Mountea Interaction|Optional")
+	void SetDefaultValues();
+	
 #endif
 	
 #pragma endregion 

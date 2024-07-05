@@ -21,7 +21,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnKeyMashed);
  *
  * @see https://github.com/Mountea-Framework/ActorInteractionPlugin/wiki/Actor-Interactable-Component-Mash
  */
-UCLASS(ClassGroup=(Mountea), meta=(BlueprintSpawnableComponent, DisplayName = "IInteractable Component Mash"))
+UCLASS(ClassGroup=(Mountea), meta=(BlueprintSpawnableComponent, DisplayName = "Interactable Component Mash"))
 class ACTORINTERACTIONPLUGIN_API UActorInteractableComponentMash : public UActorInteractableComponentBase
 {
 	GENERATED_BODY()

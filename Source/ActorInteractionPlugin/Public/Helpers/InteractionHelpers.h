@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
 #include "InputCoreTypes.h"
 #include "Engine/EngineTypes.h"
 #include "InteractionHelpers.generated.h"
@@ -222,6 +223,7 @@ struct FInteractionHighlightSetup
 
 #pragma endregion
 
+
 #pragma region SetupType
 /**
  * Enumerator definition of setup modes.
@@ -238,6 +240,7 @@ enum class ESetupType : uint8
 };
 
 #pragma endregion
+
 
 #pragma region ComparisonMethod
 UENUM(BlueprintType)
@@ -298,7 +301,7 @@ struct FSafetyTracingSetup
 		, ValidationCollisionChannel(ECC_Camera)
 		, StartLocation(FVector::ZeroVector)
 		, ActorMeshName(NAME_None)
-		, StartSocketName(NAME_None)
+		, StartSocketName(FName("head"))
 	{}
 	
 	FSafetyTracingSetup(ESafetyTracingMode InSafetyTracingMode, const TEnumAsByte<ECollisionChannel>& InValidationCollisionChannel = ECC_Camera, const FVector& InStartLocation = FVector(), const FName InActorMeshName = FName(), const FName InStartSocketName = FName())
@@ -348,6 +351,40 @@ struct FSafetyTracingSetup
 		}
 	}
 
+};
+
+#pragma endregion
+
+#pragma region InteractorBaseSettings
+
+USTRUCT(BlueprintType)
+struct FInteractorSettings
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly,  Category="InteractorSettings")
+	EInteractorStateV2 DefaultInteractorState;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly,  Category="InteractorSettings")
+	TEnumAsByte<ECollisionChannel> InteractorCollisionChannel;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly,  Category="InteractorSettings")
+	FSafetyTracingSetup SafetyTracingSetup;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly,  Category="InteractorSettings")
+	FGameplayTag InteractorTag;
+
+	FInteractorSettings()
+	{
+		DefaultInteractorState = EInteractorStateV2::EIS_Awake;
+		InteractorCollisionChannel = ECC_Visibility;
+		{
+			SafetyTracingSetup.StartSocketName = FName("head");
+			SafetyTracingSetup.ActorMeshName = FName("CharacterMesh0");
+			SafetyTracingSetup.ValidationCollisionChannel = ECC_Camera;
+			SafetyTracingSetup.SafetyTracingMode = ESafetyTracingMode::ESTM_Location;
+		}
+	}
 };
 
 #pragma endregion

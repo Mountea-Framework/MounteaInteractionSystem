@@ -26,6 +26,12 @@ class ACTORINTERACTIONPLUGIN_API UActorInteractionPluginSettings : public UDevel
 
 public:
 
+	UPROPERTY(config, BlueprintReadOnly, EditAnywhere, Category = "Interactor")
+	FInteractorSettings										InteractorDefaultSettings;
+
+	UPROPERTY(config, BlueprintReadOnly, EditAnywhere, Category = "Interactable")
+	FInteractionHighlightSetup							InteractableDefaultHighlightSetup;
+
 	/** Defines whether in-editor debug is enabled. */
 	UPROPERTY(config, BlueprintReadOnly, EditAnywhere, Category="Editor")
 	uint8															bEditorDebugEnabled : 1;
@@ -45,10 +51,7 @@ public:
 	/** Defines default DataTable which contains Interactable data values.*/
 	UPROPERTY(config, BlueprintReadOnly, EditAnywhere, Category = "Interaction Data")
 	TSoftObjectPtr<UMaterialInterface>			InteractableDefaultHighlightMaterial;
-
-	UPROPERTY(config, BlueprintReadOnly, EditAnywhere, Category = "Interaction Data")
-	FInteractionHighlightSetup							InteractableDefaultHighlightSetup;
-	
+		
 	/** Defines default Interaction Mapping for Mountea Interaction System. */
 	UPROPERTY(config, BlueprintReadOnly, EditAnywhere, Category = "Interaction Data")
 	TSoftObjectPtr<UInputMappingContext>		InteractionInputMapping;

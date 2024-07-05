@@ -216,18 +216,20 @@ protected:
 	virtual void ProcessStopHighlight();
 	virtual void ProcessShowWidget();
 	virtual void ProcessHideWidget();
+
+public:
 	
 #if WITH_EDITOR || WITH_EDITORONLY_DATA
 
 	/**
-	 * 
+	 * Overrides data with default values from Project Settings.
+	 * Interactable Defaults are set automatically!
 	 */
 	UFUNCTION(BlueprintCallable, CallInEditor, Category="Mountea Interaction|Optional")
 	void SetDefaultValues();
 	
 #endif
-	
-	
+
 #pragma endregion
 
 #pragma region EventFunctions

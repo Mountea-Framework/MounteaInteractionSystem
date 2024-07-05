@@ -925,7 +925,7 @@ public:
 	 * Will override current settings!
 	 * Will set those values only if not null.
 	 */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, CallInEditor, Category="Mountea|Interaction|Interactable", meta=(DisplayName="SetDefaults"))
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactable", meta=(DisplayName="SetDefaults"))
 	void SetDefaults();
 	virtual void SetDefaults_Implementation()  = 0;
 

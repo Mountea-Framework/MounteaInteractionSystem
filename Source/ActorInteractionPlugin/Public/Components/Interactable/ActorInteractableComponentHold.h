@@ -17,7 +17,7 @@
  *
  * @see https://github.com/Mountea-Framework/ActorInteractionPlugin/wiki/Actor-Interactable-Component-Hold
  */
-UCLASS(ClassGroup=(Mountea), meta=(BlueprintSpawnableComponent, DisplayName = "IInteractable Component Hold"))
+UCLASS(ClassGroup=(Mountea), meta=(BlueprintSpawnableComponent, DisplayName = "Interactable Component Hold"))
 class ACTORINTERACTIONPLUGIN_API UActorInteractableComponentHold : public UActorInteractableComponentBase
 {
 	GENERATED_BODY()

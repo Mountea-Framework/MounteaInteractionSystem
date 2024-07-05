@@ -531,6 +531,15 @@ public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
 	bool HasInteractable() const;
 	virtual bool HasInteractable_Implementation() const = 0;
+
+	/**
+	 * Finds default values from Developer settings and tries to set them for this component.
+	 * Will override current settings!
+	 * Will set those values only if not null.
+	 */
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor", meta=(DisplayName="SetDefaults"))
+	void SetDefaults();
+	virtual void SetDefaults_Implementation()  = 0;
 	
 	virtual FInteractableSelected& GetOnInteractableSelectedHandle() = 0;
 	virtual FInteractableFound& GetOnInteractableFoundHandle() = 0;

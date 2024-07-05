@@ -17,7 +17,7 @@
  *
  * @see https://github.com/Mountea-Framework/ActorInteractionPlugin/wiki/Actor-Interactable-Component-Automatic
  */
-UCLASS(ClassGroup=(Mountea), meta=(BlueprintSpawnableComponent, DisplayName = "IInteractable Component Auto"))
+UCLASS(ClassGroup=(Mountea), meta=(BlueprintSpawnableComponent, DisplayName = "Interactable Component Auto"))
 class ACTORINTERACTIONPLUGIN_API UActorInteractableComponentAutomatic : public UActorInteractableComponentBase
 {
 	GENERATED_BODY()

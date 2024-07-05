@@ -10,7 +10,7 @@
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCursorBeginsOverlap, UPrimitiveComponent*, PrimitiveComponent);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCursorStopsOverlap, UPrimitiveComponent*, PrimitiveComponent);
 
-UCLASS(ClassGroup=(Mountea), meta=(BlueprintSpawnableComponent, DisplayName = "IInteractable Component Hover"))
+UCLASS(ClassGroup=(Mountea), meta=(BlueprintSpawnableComponent, DisplayName = "Interactable Component Hover"))
 class ACTORINTERACTIONPLUGIN_API UActorInteractableComponentHover : public UActorInteractableComponentHold
 {
 	GENERATED_BODY()
