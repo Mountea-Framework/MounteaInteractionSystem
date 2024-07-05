@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "InteractionHelpers.h"
 #include "Engine/DeveloperSettings.h"
 
 #include "ActorInteractionPluginSettings.generated.h"
@@ -45,6 +46,9 @@ public:
 	UPROPERTY(config, BlueprintReadOnly, EditAnywhere, Category = "Interaction Data")
 	TSoftObjectPtr<UMaterialInterface>			InteractableDefaultHighlightMaterial;
 
+	UPROPERTY(config, BlueprintReadOnly, EditAnywhere, Category = "Interaction Data")
+	FInteractionHighlightSetup							InteractableDefaultHighlightSetup;
+	
 	/** Defines default Interaction Mapping for Mountea Interaction System. */
 	UPROPERTY(config, BlueprintReadOnly, EditAnywhere, Category = "Interaction Data")
 	TSoftObjectPtr<UInputMappingContext>		InteractionInputMapping;

@@ -6,10 +6,10 @@
 #include "Materials/MaterialInterface.h"
 
 UActorInteractionPluginSettings::UActorInteractionPluginSettings() :
-		bEditorDebugEnabled(true),
-		WidgetUpdateFrequency(0.1f)
+	bEditorDebugEnabled(true),
+	WidgetUpdateFrequency(0.1f),
+	InteractableDefaultHighlightSetup(FInteractionHighlightSetup())
 {
-	
 	CategoryName = TEXT("Mountea Framework");
 	SectionName = TEXT("Mountea Interaction System");
 }

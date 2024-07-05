@@ -7,8 +7,10 @@
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "ActorInteractionFunctionLibrary.generated.h"
 
+struct FInteractionHighlightSetup;
 class UDataTable;
 class UUserWidget;
+class UActorInteractionPluginSettings;
 
 /**
  * 
@@ -19,6 +21,12 @@ class ACTORINTERACTIONPLUGIN_API UActorInteractionFunctionLibrary : public UBlue
 	GENERATED_BODY()
 
 public:
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction", meta=(CompactNodeTitle="Default Interaction Settings"))
+	static UActorInteractionPluginSettings* GetInteractionSettings();
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction", meta=(CompactNodeTitle="Default Interaction Settings"))
+	static FInteractionHighlightSetup GetDefaultInteractableHighlightSetup();
 
 	/**
 	 * Returns Default Widget Update frequency.
@@ -32,9 +40,9 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction", meta=(CompactNodeTitle="Default Interactable Data"))
 	static UDataTable* GetInteractableDefaultDataTable();
 
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction", meta=(CompactNodeTitle="Default Interactable Data"))
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction", meta=(CompactNodeTitle="Default Interactable Widget"))
 	static TSubclassOf<UUserWidget> GetInteractableDefaultWidgetClass();
 
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction", meta=(CompactNodeTitle="Default Interactable Data"))
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction", meta=(CompactNodeTitle="Is Debug Enabled"))
 	static bool IsEditorDebugEnabled();
 };

@@ -14,48 +14,6 @@ class UActorInteractableInterface : public UInterface
 	GENERATED_BODY()
 };
 
-#pragma region SetupType
-/**
- * Enumerator definition of setup modes.
- */
-UENUM(BlueprintType)
-enum class ESetupType : uint8
-{
-	EST_FullAll		UMETA(DisplayName="Full Auto Setup",			Tooltip="Will add all components from Owning Actor to Highlightable and Collision Components."),
-	EST_AllParent	UMETA(DisplayName="All Parents Auto Setup", 	Tooltip="Will add all parent components to Highlightable and Collision Components."),
-	EST_Quick		UMETA(DisplayName="Quick Auto Setup",			Tooltip="Will add only first parent component to Highlightable and Collision Components."),
-	EST_None		UMETA(DisplayName="None",						Tooltip="No auto setup will be performed."),
-
-	EST_Default		UMETA(Hidden)
-};
-
-#pragma endregion
-
-#pragma region ComparisonMethod
-UENUM(BlueprintType)
-enum class ETimingComparison : uint8 // TODO: rename, because name is used
-{
-	ECM_LessThan	UMETA(DisplayName="Less Than"),
-	ECM_MoreThan	UMETA(DisplayName="More Than"),
-	ECM_None		UMETA(DisplayName="No comparison"),
-
-	Default			 UMETA(Hidden)
-   };
-#pragma endregion 
-
-#pragma region HighlightType
-
-UENUM(BlueprintType)
-enum class EHighlightType : uint8
-{
-	EHT_PostProcessing		UMETA(DisplayName="PostProcessing",			Tooltip="PostProcessing Material will be used. This option is highly optimised, however, requires Project setup."),
-	EHT_OverlayMaterial		UMETA(DisplayName="Overlay Material",		Tooltip="Overlay Material will be used. Unique for 5.1 and newer versions. For very complex meshes might cause performance issues."),
-
-	EHT_Default		UMETA(Hidden)
-};
-
-#pragma endregion 
-
 class IActorInteractableInterface;
 class IActorInteractorInterface;
 

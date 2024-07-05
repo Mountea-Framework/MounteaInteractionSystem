@@ -168,6 +168,9 @@ void UActorInteractableComponentBase::OnRegister()
 		SpriteComponent->SetupAttachment(this);
 		SpriteComponent->RegisterComponent();
 	}
+
+	SetDefaultValues();
+	
 #endif
 	
 	Super::OnRegister();
@@ -1100,6 +1103,13 @@ void UActorInteractableComponentBase::SetDefaults_Implementation()
 		{
 			SetWidgetClass(DefaultWidgetClass.Get());
 		}
+	}
+
+	const auto defaultSetup = UActorInteractionFunctionLibrary::GetDefaultInteractableHighlightSetup();
+	{
+		HighlightType		= defaultSetup.HighlightType;
+		StencilID				= defaultSetup.StencilID;
+		HighlightMaterial	= defaultSetup.HighlightMaterial;
 	}
 }
 

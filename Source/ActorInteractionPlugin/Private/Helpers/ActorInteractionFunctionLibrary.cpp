@@ -10,6 +10,16 @@
 #include "Blueprint/UserWidget.h"
 
 
+UActorInteractionPluginSettings* UActorInteractionFunctionLibrary::GetInteractionSettings()
+{
+	return GetMutableDefault<UActorInteractionPluginSettings>();
+}
+
+FInteractionHighlightSetup UActorInteractionFunctionLibrary::GetDefaultInteractableHighlightSetup()
+{
+	return GetInteractionSettings() ? GetInteractionSettings()->InteractableDefaultHighlightSetup : FInteractionHighlightSetup();;
+}
+
 float UActorInteractionFunctionLibrary::GetDefaultWidgetUpdateFrequency()
 {
 	if (const UActorInteractionPluginSettings* Settings = GetMutableDefault<UActorInteractionPluginSettings>())
