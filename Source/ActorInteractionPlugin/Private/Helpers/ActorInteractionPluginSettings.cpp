@@ -4,6 +4,7 @@
 
 #include "InputMappingContext.h"
 #include "Helpers/ActorInteractionPluginLog.h"
+#include "Helpers/MounteaInteractionSettingsConfig.h"
 #include "Materials/MaterialInterface.h"
 
 UActorInteractionPluginSettings::UActorInteractionPluginSettings() :
@@ -21,7 +22,11 @@ TSoftClassPtr<UUserWidget> UActorInteractionPluginSettings::GetInteractableDefau
 
 UMaterialInterface* UActorInteractionPluginSettings::GetDefaultHighlightMaterial() const
 {
-	return InteractableDefaultHighlightMaterial.LoadSynchronous();
+	if (DefaultInteractionSystemConfig.LoadSynchronous())
+	{
+		return DefaultInteractionSystemConfig.LoadSynchronous()->InteractableBaseSettings.DefaultHighlightSetup.HighlightMaterial;
+	}
+	return nullptr;
 }
 
 UInputMappingContext* UActorInteractionPluginSettings::GetDefaultInputMappingContext() const

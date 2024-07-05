@@ -45,10 +45,6 @@ public:
 	/** Defines default DataTable which contains Interactable data values.*/
 	UPROPERTY(config, BlueprintReadOnly, EditAnywhere, Category = "Interaction Data", meta=(AllowedClasses = "/Script/Engine.DataTable"))
 	TSoftObjectPtr<UDataTable>						InteractableDefaultDataTable;
-
-	/** Defines default DataTable which contains Interactable data values.*/
-	UPROPERTY(config, BlueprintReadOnly, EditAnywhere, Category = "Interaction Data")
-	TSoftObjectPtr<UMaterialInterface>			InteractableDefaultHighlightMaterial;
 		
 	/** Defines default Interaction Mapping for Mountea Interaction System. */
 	UPROPERTY(config, BlueprintReadOnly, EditAnywhere, Category = "Interaction Data")
