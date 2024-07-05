@@ -44,7 +44,7 @@ protected:
 	/**
 	 * 
 	 */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea Interaction|Tracing")
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="MounteaInteraction|Tracing")
 	void ProcessOverlap(UPrimitiveComponent* OverlappedComponent,AActor* OtherActor, UPrimitiveComponent* OtherComp, const FHitResult& SweepResult, const bool bOverlapStarted);
 	virtual void ProcessOverlap_Implementation(UPrimitiveComponent* OverlappedComponent,AActor* OtherActor, UPrimitiveComponent* OtherComp, const FHitResult& SweepResult, const bool bOverlapStarted);
 
@@ -134,14 +134,14 @@ public:
 	
 protected:
 
-	UPROPERTY(EditAnywhere, Category="Mountea Interaction|Optional")
+	UPROPERTY(EditAnywhere, Category="MounteaInteraction|Optional")
 	TArray<FName>																					OverrideCollisionComponents;
 
 	/**
 	 * A list of Collision Shapes that are used as interactors.
 	 * List is populated on Server Side only!
 	 */
-	UPROPERTY(Replicated, SaveGame, VisibleAnywhere, Category="Mountea Interaction|Read Only", meta=(DisplayThumbnail = false, ShowOnlyInnerProperties))
+	UPROPERTY(Replicated, SaveGame, VisibleAnywhere, Category="MounteaInteraction|Read Only", meta=(DisplayThumbnail = false, ShowOnlyInnerProperties))
 	TArray<TObjectPtr<UPrimitiveComponent>>										CollisionShapes;
 
 private:
@@ -151,7 +151,7 @@ private:
 	 * Filled when Collision Shapes are registered.
 	 * Once Collision Shape is unregistered, it reads its cached settings and returns to pre-interaction Collision Settings.
 	 */
-	UPROPERTY(SaveGame, VisibleAnywhere, Category="Mountea Interaction|Read Only", meta=(DisplayThumbnail = false, ShowOnlyInnerProperties))
+	UPROPERTY(SaveGame, VisibleAnywhere, Category="MounteaInteraction|Read Only", meta=(DisplayThumbnail = false, ShowOnlyInnerProperties))
 	mutable TMap<UPrimitiveComponent*, FCollisionShapeCache>			CachedCollisionShapesSettings;
 	
 };

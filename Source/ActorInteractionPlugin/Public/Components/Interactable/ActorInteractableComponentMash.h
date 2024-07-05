@@ -78,13 +78,13 @@ protected:
 	/**
 	 * How many time the button must be pressed to accept the interaction as completed.
 	 */
-	UPROPERTY(SaveGame, EditAnywhere, BlueprintReadOnly,  Category="Mountea Interaction|Required", meta=(Units = "times", UIMin = 2, ClampMin = 2))
+	UPROPERTY(SaveGame, EditAnywhere, BlueprintReadOnly,  Category="MounteaInteraction|Required", meta=(Units = "times", UIMin = 2, ClampMin = 2))
 	int32 MinMashAmountRequired;
 
 	/**
 	 * How much time it is allowed between each Key stroke before interaction fails.
 	 */
-	UPROPERTY(SaveGame, EditAnywhere, BlueprintReadOnly,  Category="Mountea Interaction|Required", meta=(Units = "s", UIMin = 0.01, ClampMin = 0.01))
+	UPROPERTY(SaveGame, EditAnywhere, BlueprintReadOnly,  Category="MounteaInteraction|Required", meta=(Units = "s", UIMin = 0.01, ClampMin = 0.01))
 	float KeystrokeTimeThreshold;
 
 protected:
@@ -94,7 +94,7 @@ protected:
 	/**
 	 * How many times the key was mashed.
 	 */
-	UPROPERTY(VisibleAnywhere, Category="Mountea Interaction|Read Only")
+	UPROPERTY(VisibleAnywhere, Category="MounteaInteraction|Read Only")
 	int32 ActualMashAmount;
 	
 protected:

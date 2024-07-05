@@ -146,10 +146,24 @@ void UActorInteractableComponentBase::InitWidget()
 	UpdateInteractionWidget();
 }
 
+void UActorInteractableComponentBase::OnComponentCreated()
+{
+	Super::OnComponentCreated();
+
+#if WITH_EDITOR || WITH_EDITORONLY_DATA
+	if (GIsEditor && !GIsPlayInEditorWorld)
+	{
+		SetDefaultValues();
+	}
+#endif
+	
+}
+
 void UActorInteractableComponentBase::OnRegister()
 {
 	
-#if WITH_EDITORONLY_DATA
+#if WITH_EDITOR
+	
 	if (bVisualizeComponent && SpriteComponent == nullptr && GetOwner() && !GetWorld()->IsGameWorld() )
 	{
 		SpriteComponent = NewObject<UBillboardComponent>(GetOwner(), NAME_None, RF_Transactional | RF_Transient | RF_TextExportTransient);
@@ -169,8 +183,6 @@ void UActorInteractableComponentBase::OnRegister()
 		SpriteComponent->RegisterComponent();
 	}
 
-	SetDefaultValues();
-	
 #endif
 	
 	Super::OnRegister();
@@ -2086,6 +2098,7 @@ void UActorInteractableComponentBase::ProcessHideWidget()
 
 void UActorInteractableComponentBase::SetDefaultValues()
 {
+	LOG_ERROR(TEXT("Default loaded"))
 	Execute_SetDefaults(this);
 }
 

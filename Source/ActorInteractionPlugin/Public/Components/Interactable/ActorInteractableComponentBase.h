@@ -41,6 +41,7 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void InitWidget() override;
 
+	virtual void OnComponentCreated() override;
 	virtual void OnRegister() override;
 
 #pragma region InteractableFunctions
@@ -225,7 +226,7 @@ public:
 	 * Overrides data with default values from Project Settings.
 	 * Interactable Defaults are set automatically!
 	 */
-	UFUNCTION(BlueprintCallable, CallInEditor, Category="Mountea Interaction|Optional")
+	UFUNCTION(BlueprintCallable, CallInEditor, Category="MounteaInteraction")
 	void SetDefaultValues();
 	
 #endif
@@ -810,7 +811,7 @@ protected:
 	 * Serves a general purpose as a flag.
 	 * Does not affect Shipping builds by default C++ implementation.
 	 */
-	UPROPERTY(EditAnywhere, Category="Mountea Interaction|Debug", meta=(ShowOnlyInnerProperties))
+	UPROPERTY(EditAnywhere, Category="MounteaInteraction|Debug", meta=(ShowOnlyInnerProperties))
 	FDebugSettings																								DebugSettings;
 
 #if WITH_EDITORONLY_DATA
@@ -827,7 +828,7 @@ protected:
 	 * - -1 = immediate
 	 * - 0  = 0.1s
 	 */
-	UPROPERTY(Replicated, SaveGame, EditAnywhere, Category="Mountea Interaction|Required", meta=(UIMin=-1, ClampMin=-1, Units="seconds"))
+	UPROPERTY(Replicated, SaveGame, EditAnywhere, Category="MounteaInteraction|Required", meta=(UIMin=-1, ClampMin=-1, Units="seconds"))
 	float																													InteractionPeriod;
 
 	/**
@@ -837,14 +838,14 @@ protected:
 	 * * Finished
 	 * * Cooldown
 	 */
-	UPROPERTY(Replicated, SaveGame, EditAnywhere, Category="Mountea Interaction|Required", meta=(NoResetToDefault))
+	UPROPERTY(Replicated, SaveGame, EditAnywhere, Category="MounteaInteraction|Required", meta=(NoResetToDefault))
 	EInteractableStateV2																						DefaultInteractableState;
 	
 	/**
 	 * If set to true, Interactable will automatically assigns owning Component in Hierarchy as Highlightable Meshes and Collision Shapes.
 	 * This setup might be useful for simple Actors, might cause issues with more complex ones.
 	 */
-	UPROPERTY(Replicated, SaveGame, EditAnywhere, Category="Mountea Interaction|Required")
+	UPROPERTY(Replicated, SaveGame, EditAnywhere, Category="MounteaInteraction|Required")
 	ESetupType																										SetupType;
 
 	/**
@@ -853,7 +854,7 @@ protected:
 	 *
 	 * Could be either Trace or Object response.
 	 */
-	UPROPERTY(Replicated, SaveGame, EditAnywhere, Category="Mountea Interaction|Required", meta=(NoResetToDefault))
+	UPROPERTY(Replicated, SaveGame, EditAnywhere, Category="MounteaInteraction|Required", meta=(NoResetToDefault))
 	TEnumAsByte<ECollisionChannel>																	CollisionChannel;
 	
 	/**
@@ -861,7 +862,7 @@ protected:
 	 * After this period of time the Interactable will be Awake again, unless no Interactor.
 	 * Clamped in Setter.
 	 */
-	UPROPERTY(Replicated, SaveGame, EditAnywhere, Category="Mountea Interaction|Required", meta=(NoResetToDefault, EditCondition = "LifecycleMode == EInteractableLifecycle::EIL_Cycled", UIMin=0.1, ClampMin=0.1, Units="Seconds"))
+	UPROPERTY(Replicated, SaveGame, EditAnywhere, Category="MounteaInteraction|Required", meta=(NoResetToDefault, EditCondition = "LifecycleMode == EInteractableLifecycle::EIL_Cycled", UIMin=0.1, ClampMin=0.1, Units="Seconds"))
 	float																													CooldownPeriod;
 
 #pragma endregion
@@ -873,13 +874,13 @@ protected:
 	/**
 	 * 
 	 */
-	UPROPERTY(Replicated, EditAnywhere, Category="Mountea Interaction|Optional", meta=(NoResetToDefault))
+	UPROPERTY(Replicated, EditAnywhere, Category="MounteaInteraction|Optional", meta=(NoResetToDefault))
 	FGameplayTagContainer																					InteractableCompatibleTags;
 	
 	/**
 	 * List of Interactable Classes which are ignored
 	 */
-	UPROPERTY(SaveGame, EditAnywhere, Category="Mountea Interaction|Optional", meta=(NoResetToDefault, AllowAbstract=false, MustImplement="/Script/ActorInteractionPlugin.ActorInteractorInterface", BlueprintBaseOnly))
+	UPROPERTY(SaveGame, EditAnywhere, Category="MounteaInteraction|Optional", meta=(NoResetToDefault, AllowAbstract=false, MustImplement="/Script/ActorInteractionPlugin.ActorInteractorInterface", BlueprintBaseOnly))
 	TArray<TSoftClassPtr<UObject>>																	IgnoredClasses;
 	
 	/**
@@ -889,7 +890,7 @@ protected:
 	 *
 	 * Is used even with Auto Setup.
 	 */
-	UPROPERTY(EditAnywhere, Category="Mountea Interaction|Optional", meta=(NoResetToDefault))
+	UPROPERTY(EditAnywhere, Category="MounteaInteraction|Optional", meta=(NoResetToDefault))
 	TArray<FName>																								CollisionOverrides;
 
 	/**
@@ -899,7 +900,7 @@ protected:
 	 *
 	 * Is used even with Auto Setup.
 	 */
-	UPROPERTY(EditAnywhere, Category="Mountea Interaction|Optional", meta=(NoResetToDefault))
+	UPROPERTY(EditAnywhere, Category="MounteaInteraction|Optional", meta=(NoResetToDefault))
 	TArray<FName>																								HighlightableOverrides;
 
 	/**
@@ -912,7 +913,7 @@ protected:
 	 * * * * Projects Settings -> Engine -> Rendering -> PostProcessing
 	 * * * * * Set to value: Enabled with Stencil
 	 */
-	UPROPERTY(SaveGame, EditAnywhere, BlueprintReadOnly,  Category="Mountea Interaction|Optional")
+	UPROPERTY(SaveGame, EditAnywhere, BlueprintReadOnly,  Category="MounteaInteraction|Optional")
 	uint8																												bInteractionHighlight : 1;
 	
 	/**
@@ -920,37 +921,37 @@ protected:
 	 * In order to smoothly integrate with other logic, keep this ID unique!
 	 * Default: 133
 	 */
-	UPROPERTY(SaveGame, EditAnywhere, BlueprintReadOnly,  Category="Mountea Interaction|Optional", meta=(EditCondition="bInteractionHighlight == true", UIMin=0, ClampMin=0, UIMax=255, ClampMax=255))
+	UPROPERTY(SaveGame, EditAnywhere, BlueprintReadOnly,  Category="MounteaInteraction|Optional", meta=(EditCondition="bInteractionHighlight == true", UIMin=0, ClampMin=0, UIMax=255, ClampMax=255))
 	int32																												StencilID;
 
 	/**
 	* Defines what Highlight Type is used.
 	*/
-	UPROPERTY(Replicated, SaveGame, EditAnywhere, BlueprintReadOnly,  Category="Mountea Interaction|Optional")
+	UPROPERTY(Replicated, SaveGame, EditAnywhere, BlueprintReadOnly,  Category="MounteaInteraction|Optional")
 	EHighlightType																									HighlightType;
-	UPROPERTY(Replicated, SaveGame, EditAnywhere, BlueprintReadOnly,  Category="Mountea Interaction|Optional", meta=(EditCondition="bInteractionHighlight == true && HighlightType==EHighlightType::EHT_OverlayMaterial"))
+	UPROPERTY(Replicated, SaveGame, EditAnywhere, BlueprintReadOnly,  Category="MounteaInteraction|Optional", meta=(EditCondition="bInteractionHighlight == true && HighlightType==EHighlightType::EHT_OverlayMaterial"))
 	TObjectPtr<UMaterialInterface>																		HighlightMaterial = nullptr;
 
-	UPROPERTY(SaveGame, EditAnywhere, BlueprintReadOnly,  Category="Mountea Interaction|Optional")
+	UPROPERTY(SaveGame, EditAnywhere, BlueprintReadOnly,  Category="MounteaInteraction|Optional")
 	uint8																												bCanPersist : 1;
 	/**
 	 * Provides a simple way to determine how fast Interaction Progress is kept before interaction is cancelled.
 	 * * -1 means never while Interactor is valid
 	 */
-	UPROPERTY(SaveGame, EditAnywhere, BlueprintReadOnly,  Category="Mountea Interaction|Optional", meta=(UIMin=-1.f, ClampMin=-1.f), meta=(EditCondition="bCanPersist!=false"))
+	UPROPERTY(SaveGame, EditAnywhere, BlueprintReadOnly,  Category="MounteaInteraction|Optional", meta=(UIMin=-1.f, ClampMin=-1.f), meta=(EditCondition="bCanPersist!=false"))
 	float																													InteractionProgressExpiration = 0.f;
 	
 	/**
 	 * Interactable Data.
 	 * Could be any Data Table.
 	 */
-	UPROPERTY(Replicated, SaveGame, EditAnywhere, Category="Mountea Interaction|Optional", meta=(ShowOnlyInnerProperties, NoResetToDefault)) //, RequiredAssetDataTags = "RowStructure=/Script/ActorInteractionSystem.InteractionData"))
+	UPROPERTY(Replicated, SaveGame, EditAnywhere, Category="MounteaInteraction|Optional", meta=(ShowOnlyInnerProperties, NoResetToDefault)) //, RequiredAssetDataTags = "RowStructure=/Script/ActorInteractionSystem.InteractionData"))
 	FDataTableRowHandle																					InteractableData;
 
 	/**
 	 * Display Name.
 	 */
-	UPROPERTY(Replicated, SaveGame, EditAnywhere, Category="Mountea Interaction|Optional", meta=(NoResetToDefault))
+	UPROPERTY(Replicated, SaveGame, EditAnywhere, Category="MounteaInteraction|Optional", meta=(NoResetToDefault))
 	FText																												InteractableName = NSLOCTEXT("InteractableComponentBase", "DefaultInteractable", "Default");
 
 	/**
@@ -960,7 +961,7 @@ protected:
 	 * More Than: Interaction will start if key is hold more than TimeToStart.
 	 * Currently has no logic tied to it!
 	 */
-	UPROPERTY(SaveGame, EditAnywhere, Category="Mountea Interaction|Optional", meta=(NoResetToDefault))
+	UPROPERTY(SaveGame, EditAnywhere, Category="MounteaInteraction|Optional", meta=(NoResetToDefault))
 	ETimingComparison																							ComparisonMethod;
 
 	/**
@@ -970,7 +971,7 @@ protected:
 	 * Depends on 'ComparisonMethod'.
 	 * Currently has no logic tied to it!
 	 */
-	UPROPERTY(SaveGame, EditAnywhere, Category="Mountea Interaction|Optional", meta=(UIMin=0.001, ClampMin=0.001, Units="seconds", EditCondition="ComparisonMethod!=ETimingComparison::ECM_None", NoResetToDefault))
+	UPROPERTY(SaveGame, EditAnywhere, Category="MounteaInteraction|Optional", meta=(UIMin=0.001, ClampMin=0.001, Units="seconds", EditCondition="ComparisonMethod!=ETimingComparison::ECM_None", NoResetToDefault))
 	float																													TimeToStart;
 
 #pragma endregion 
@@ -984,7 +985,7 @@ protected:
 	 * Is subject to State Machine.
 	 * @see [State Machine] https://github.com/Mountea-Framework/ActorInteractionPlugin/wiki/Actor-Interactable-Component-Validations#state-machine
 	 */
-	UPROPERTY(ReplicatedUsing=OnRep_InteractableState, SaveGame, VisibleAnywhere, Category="Mountea Interaction|Read Only")
+	UPROPERTY(ReplicatedUsing=OnRep_InteractableState, SaveGame, VisibleAnywhere, Category="MounteaInteraction|Read Only")
 	EInteractableStateV2																						InteractableState;
 	
 	/**
@@ -996,7 +997,7 @@ protected:
 	 * * Can be used only once
 	 * * Good for pickup items
 	 */
-	UPROPERTY(Replicated, SaveGame, EditAnywhere, Category="Mountea Interaction|Required", meta=(NoResetToDefault))
+	UPROPERTY(Replicated, SaveGame, EditAnywhere, Category="MounteaInteraction|Required", meta=(NoResetToDefault))
 	EInteractableLifecycle																						LifecycleMode;
 
 	/**
@@ -1009,13 +1010,13 @@ protected:
 	 * *  1 | Invalid, will be set to 2
 	 * * 2+ | Will be used defined number of times
 	 */
-	UPROPERTY(Replicated, SaveGame, EditAnywhere, Category="Mountea Interaction|Required", meta=(NoResetToDefault, EditCondition = "LifecycleMode == EInteractableLifecycle::EIL_Cycled", UIMin=-1, ClampMin=-1, Units="times"))
+	UPROPERTY(Replicated, SaveGame, EditAnywhere, Category="MounteaInteraction|Required", meta=(NoResetToDefault, EditCondition = "LifecycleMode == EInteractableLifecycle::EIL_Cycled", UIMin=-1, ClampMin=-1, Units="times"))
 	int32																												LifecycleCount;
 
 	/**
 	 * How many Lifecycles remain until this Interactable is Finished.
 	 */
-	UPROPERTY(Replicated, SaveGame, VisibleAnywhere, Category="Mountea Interaction|Read Only")
+	UPROPERTY(Replicated, SaveGame, VisibleAnywhere, Category="MounteaInteraction|Read Only")
 	int32																												RemainingLifecycleCount;
 
 	/**
@@ -1024,7 +1025,7 @@ protected:
 	 * - AddInteractionDependency
 	 * - RemoveInteractionDependency
 	 */
-	UPROPERTY(SaveGame, VisibleAnywhere, Category="Mountea Interaction|Read Only")
+	UPROPERTY(SaveGame, VisibleAnywhere, Category="MounteaInteraction|Read Only")
 	TArray<TScriptInterface<IActorInteractableInterface>>								InteractionDependencies;
 
 	/**
@@ -1032,7 +1033,7 @@ protected:
 	 * Filled when Collision Shapes are registered.
 	 * Once Collision Shape is unregistered, it reads its cached settings and returns to pre-interaction Collision Settings.
 	 */
-	UPROPERTY(SaveGame, VisibleAnywhere, Category="Mountea Interaction|Read Only", meta=(DisplayThumbnail = false, ShowOnlyInnerProperties))
+	UPROPERTY(SaveGame, VisibleAnywhere, Category="MounteaInteraction|Read Only", meta=(DisplayThumbnail = false, ShowOnlyInnerProperties))
 	mutable TMap<TObjectPtr<UPrimitiveComponent>, FCollisionShapeCache>	CachedCollisionShapesSettings;
 	
 	/**
@@ -1040,7 +1041,7 @@ protected:
 	 * * Set Overlap Events to true
 	 * * Response to Collision Channel to overlap
 	 */
-	UPROPERTY(SaveGame, VisibleAnywhere, Category="Mountea Interaction|Read Only")
+	UPROPERTY(SaveGame, VisibleAnywhere, Category="MounteaInteraction|Read Only")
 	TArray<TObjectPtr<UMeshComponent>>														HighlightableComponents;
 	
 	/**
@@ -1049,7 +1050,7 @@ protected:
 	 * * Allow Render Custom Depth
 	 * * Use specific StencilID
 	 */
-	UPROPERTY(SaveGame, VisibleAnywhere, Category="Mountea Interaction|Read Only")
+	UPROPERTY(SaveGame, VisibleAnywhere, Category="MounteaInteraction|Read Only")
 	TArray<TObjectPtr<UPrimitiveComponent>>													CollisionComponents;
 
 	/**
@@ -1059,14 +1060,14 @@ protected:
 	 * Default value: 1
 	 * Clamped in setter function to be at least 0 or higher.
 	 */
-	UPROPERTY(Replicated, SaveGame, EditAnywhere, Category="Mountea Interaction|Required", meta=(UIMin=0, ClampMin=0))
+	UPROPERTY(Replicated, SaveGame, EditAnywhere, Category="MounteaInteraction|Required", meta=(UIMin=0, ClampMin=0))
 	int32																												InteractionWeight;
 
 	/**
 	 * Cached value which is by default set to Interaction Weight.
 	 * Used when removing Interactable from Dependencies.
 	 */
-	UPROPERTY(VisibleAnywhere, Category="Mountea Interaction|Read Only")
+	UPROPERTY(VisibleAnywhere, Category="MounteaInteraction|Read Only")
 	int32																												CachedInteractionWeight;
 	
 	UPROPERTY()
@@ -1081,8 +1082,10 @@ private:
 	/**
 	 * Interactor which is using this Interactable.
 	 */
-	UPROPERTY(ReplicatedUsing=OnRep_ActiveInteractor, SaveGame, VisibleAnywhere, Category="Mountea Interaction|Read Only", meta=(DisplayThumbnail = false))
+	UPROPERTY(ReplicatedUsing=OnRep_ActiveInteractor, SaveGame, VisibleAnywhere, Category="MounteaInteraction|Read Only", meta=(DisplayThumbnail = false))
 	TScriptInterface<IActorInteractorInterface>													Interactor = nullptr;
+
+	
 	
 #pragma endregion
 

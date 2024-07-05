@@ -58,17 +58,17 @@ struct FTracingData
 {
 	GENERATED_BODY()
 
-	UPROPERTY(Category="Mountea Interaction|FTracingData", VisibleAnywhere, BlueprintReadWrite)
+	UPROPERTY(Category="MounteaInteraction|FTracingData", VisibleAnywhere, BlueprintReadWrite)
 	ETraceType TracingType;
-	UPROPERTY(Category="Mountea Interaction|FTracingData", VisibleAnywhere, BlueprintReadWrite)
+	UPROPERTY(Category="MounteaInteraction|FTracingData", VisibleAnywhere, BlueprintReadWrite)
 	float TracingInterval;
-	UPROPERTY(Category="Mountea Interaction|FTracingData", VisibleAnywhere, BlueprintReadWrite)
+	UPROPERTY(Category="MounteaInteraction|FTracingData", VisibleAnywhere, BlueprintReadWrite)
 	float TracingRange;
-	UPROPERTY(Category="Mountea Interaction|FTracingData", VisibleAnywhere, BlueprintReadWrite)
+	UPROPERTY(Category="MounteaInteraction|FTracingData", VisibleAnywhere, BlueprintReadWrite)
 	float TracingShapeHalfSize;
-	UPROPERTY(Category="Mountea Interaction|FTracingData", VisibleAnywhere, BlueprintReadWrite)
+	UPROPERTY(Category="MounteaInteraction|FTracingData", VisibleAnywhere, BlueprintReadWrite)
 	uint8 bUsingCustomStartTransform : 1;
-	UPROPERTY(Category="Mountea Interaction|FTracingData", VisibleAnywhere, BlueprintReadWrite)
+	UPROPERTY(Category="MounteaInteraction|FTracingData", VisibleAnywhere, BlueprintReadWrite)
 	FTransform CustomTracingTransform;
 
 	FTracingData() :
@@ -139,35 +139,35 @@ public:
 	/**
 	 * Disables Tracing. Can be Enabled again. Clears all timers.
 	 */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea Interaction|Tracing")
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="MounteaInteraction|Tracing")
 	void DisableTracing();
 	virtual void DisableTracing_Implementation();
 	
 	/**
 	 * Tries to enable Tracing. Could fail if non valid state.
 	 */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea Interaction|Tracing")
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="MounteaInteraction|Tracing")
 	void EnableTracing();
 	virtual void EnableTracing_Implementation();
 	
 	/**
 	 * Pauses Tracing if already active.
 	 */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea Interaction|Tracing")
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="MounteaInteraction|Tracing")
 	void PauseTracing();
 	virtual void PauseTracing_Implementation();
 
 	/**
 	 * 
 	 */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea Interaction|Tracing")
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="MounteaInteraction|Tracing")
 	void ResumeTracing();
 	virtual void ResumeTracing_Implementation();
 	
 	/**
 	 * Returns whether Tracing is allowed or not.
 	 */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea Interaction|Tracing")
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="MounteaInteraction|Tracing")
 	bool CanTrace() const;
 	virtual bool CanTrace_Implementation() const;
 
@@ -182,7 +182,7 @@ public:
 	 *
 	 * @param NewTraceType	Value to be set.
 	 */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea Interaction|Tracing")
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="MounteaInteraction|Tracing")
 	void SetTraceType(const ETraceType& NewTraceType);
 	virtual void SetTraceType_Implementation(const ETraceType& NewTraceType);
 
@@ -198,7 +198,7 @@ public:
 	 *
 	 * @param NewInterval	Value to be set
 	 */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea Interaction|Tracing")
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="MounteaInteraction|Tracing")
 	void SetTraceInterval(const float NewInterval);
 	virtual void SetTraceInterval_Implementation(const float NewInterval);
 
@@ -214,7 +214,7 @@ public:
 	 *
 	 * @param NewRange	Value to be set
 	 */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea Interaction|Tracing")
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="MounteaInteraction|Tracing")
 	void SetTraceRange(const float NewRange);
 	virtual void SetTraceRange_Implementation(const float NewRange);
 
@@ -231,7 +231,7 @@ public:
 	 *
 	 * @param NewTraceShapeHalfSize	Value to be set
 	 */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea Interaction|Tracing")
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="MounteaInteraction|Tracing")
 	void SetTraceShapeHalfSize(const float NewTraceShapeHalfSize);
 	virtual void SetTraceShapeHalfSize_Implementation(const float NewTraceShapeHalfSize);
 
@@ -246,7 +246,7 @@ public:
 	 *
 	 * @param bUse	Value to be set
 	 */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea Interaction|Tracing")
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="MounteaInteraction|Tracing")
 	void SetUseCustomStartTransform(const bool bUse);
 	virtual void SetUseCustomStartTransform_Implementation(const bool bUse);
 
@@ -263,7 +263,7 @@ public:
 	 *
 	 * @param TraceStart	Value to be used as Custom Trace Start.
 	 */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea Interaction|Tracing")
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="MounteaInteraction|Tracing")
 	void SetCustomTraceStart(const FTransform& TraceStart);
 	virtual void SetCustomTraceStart_Implementation(const FTransform& TraceStart);
 	
@@ -278,7 +278,7 @@ protected:
 	/**
 	 * 
 	 */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea Interaction|Tracing")
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="MounteaInteraction|Tracing")
 	void ProcessTrace();
 	virtual void ProcessTrace_Implementation();
 	virtual void ProcessTrace_Precise(FInteractionTraceDataV2& InteractionTraceData);
@@ -290,7 +290,7 @@ protected:
 	 * * On Client
 	 * * On Server
 	 */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea Interaction|Tracing")
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="MounteaInteraction|Tracing")
 	void PostTraced();
 	virtual void PostTraced_Implementation();
 
@@ -346,7 +346,7 @@ protected:
 	 * - Loose Tracing is using BoxTrace and does not require precision.
 	 * - Precise Tracing is using LineTrace and requires higher precision. Useful with smaller objects.
 	 */
-	UPROPERTY(Replicated,  EditAnywhere, Category="Mountea Interaction|Required")
+	UPROPERTY(Replicated,  EditAnywhere, Category="MounteaInteraction|Required")
 	ETraceType																		TraceType;
 	
 	/**
@@ -357,7 +357,7 @@ protected:
 	 * Higher the value, less frequent tracing is and less performance is required.
 	 * Lower the value, more frequent tracing is and more performance is required.
 	 */
-	UPROPERTY(Replicated, EditAnywhere, Category="Mountea Interaction|Required", meta=(Units = "s", UIMin=0.01f, ClampMin=0.01f, DisplayName="Tick Interval (sec)"))
+	UPROPERTY(Replicated, EditAnywhere, Category="MounteaInteraction|Required", meta=(Units = "s", UIMin=0.01f, ClampMin=0.01f, DisplayName="Tick Interval (sec)"))
 	float																					TraceInterval;
 
 	/**
@@ -365,7 +365,7 @@ protected:
 	 * Higher the value, further items can be reached.
 	 * Min value: 0.01cm
 	 */
-	UPROPERTY(Replicated, EditAnywhere, Category="Mountea Interaction|Required", meta=(Units = "cm", UIMin=1, ClampMin=1, DisplayName="Interaction Range (cm)"))
+	UPROPERTY(Replicated, EditAnywhere, Category="MounteaInteraction|Required", meta=(Units = "cm", UIMin=1, ClampMin=1, DisplayName="Interaction Range (cm)"))
 	float																					TraceRange;
 
 	/**
@@ -373,13 +373,13 @@ protected:
 	 * - Higher the value, less precise interaction is.
 	 * - Lower the value, more precise interaction is.
 	 */
-	UPROPERTY(Replicated, EditAnywhere, Category="Mountea Interaction|Required", meta=(Units = "cm", UIMin=0.1f, ClampMin=0.1f))
+	UPROPERTY(Replicated, EditAnywhere, Category="MounteaInteraction|Required", meta=(Units = "cm", UIMin=0.1f, ClampMin=0.1f))
 	float																					TraceShapeHalfSize = 5.0f;
 	
 	/**
 	 * Defines whether Tracing starts at ActorEyesViewPoint (default) or at a given Location.
 	 */
-	UPROPERTY(Replicated, EditAnywhere, Category="Mountea Interaction|Required")
+	UPROPERTY(Replicated, EditAnywhere, Category="MounteaInteraction|Required")
 	uint8																				bUseCustomStartTransform : 1;
 	
 	/**
@@ -390,21 +390,21 @@ protected:
 	 * Defines where does the Tracing start and what direction it follows.
 	 * Will be ignored if bUseCustomStartTransform is false.
 	 */
-	UPROPERTY(Replicated, VisibleAnywhere, Category="Mountea Interaction|Read Only", AdvancedDisplay, meta=(DisplayName="Trace Start (World Space Transform)"))
+	UPROPERTY(Replicated, VisibleAnywhere, Category="MounteaInteraction|Read Only", AdvancedDisplay, meta=(DisplayName="Trace Start (World Space Transform)"))
 	FTransform																		CustomTraceTransform;
 
 	/**
 	 * Structure of all Tracing Data at one place.
 	 * Updated every time any value is changed.
 	 */
-	UPROPERTY(Transient, VisibleAnywhere, Category="Mountea Interaction|Read Only")
+	UPROPERTY(Transient, VisibleAnywhere, Category="MounteaInteraction|Read Only")
 	FTracingData																	LastTracingData;
 
 	/**
 	 * Timer Handle.
 	 * Won't display any values in Blueprints.
 	 */
-	UPROPERTY(VisibleAnywhere, Category="Mountea Interaction|Read Only")
+	UPROPERTY(VisibleAnywhere, Category="MounteaInteraction|Read Only")
 	FTimerHandle																	Timer_Ticking;
 
 #pragma endregion

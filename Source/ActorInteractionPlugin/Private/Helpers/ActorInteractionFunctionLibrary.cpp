@@ -15,9 +15,9 @@ UActorInteractionPluginSettings* UActorInteractionFunctionLibrary::GetInteractio
 	return GetMutableDefault<UActorInteractionPluginSettings>();
 }
 
-FInteractorSettings UActorInteractionFunctionLibrary::GetDefaultInteractorSettings()
+FInteractorBaseSettings UActorInteractionFunctionLibrary::GetDefaultInteractorSettings()
 {
-	return GetInteractionSettings() ? GetInteractionSettings()->InteractorDefaultSettings : FInteractorSettings();
+	return GetInteractionSettings() ? GetInteractionSettings()->InteractorDefaultSettings : FInteractorBaseSettings();
 }
 
 FInteractionHighlightSetup UActorInteractionFunctionLibrary::GetDefaultInteractableHighlightSetup()

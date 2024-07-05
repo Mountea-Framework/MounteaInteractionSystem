@@ -101,11 +101,11 @@ struct FCollisionShapeCache
   CollisionResponse(collisionResponse)
  {};
 	
- UPROPERTY(Category="Mountea Interaction|Collision Cache", VisibleAnywhere)
+ UPROPERTY(Category="MounteaInteraction|Collision Cache", VisibleAnywhere)
  uint8 bGenerateOverlapEvents : 1;
- UPROPERTY(Category="Mountea Interaction|Collision Cache", VisibleAnywhere)
+ UPROPERTY(Category="MounteaInteraction|Collision Cache", VisibleAnywhere)
  TEnumAsByte<ECollisionEnabled::Type> CollisionEnabled;
- UPROPERTY(Category="Mountea Interaction|Collision Cache", VisibleAnywhere)
+ UPROPERTY(Category="MounteaInteraction|Collision Cache", VisibleAnywhere)
  TEnumAsByte<ECollisionResponse> CollisionResponse;
 	
 };
@@ -149,13 +149,13 @@ public:
     * Enables Debug in Gameplay.
     * Default: Off
     */
-    UPROPERTY(Category="Mountea Interaction|Debug", BlueprintReadWrite, EditAnywhere)
+    UPROPERTY(Category="MounteaInteraction|Debug", BlueprintReadWrite, EditAnywhere)
     uint8 DebugMode : 1;
    /**
     * Enables Warnings in Editor.
     * Default: On
     */
-    UPROPERTY(Category="Mountea Interaction|Debug", BlueprintReadWrite, EditAnywhere)
+    UPROPERTY(Category="MounteaInteraction|Debug", BlueprintReadWrite, EditAnywhere)
     uint8 EditorDebugMode : 1;
 };
 
@@ -223,7 +223,6 @@ struct FInteractionHighlightSetup
 
 #pragma endregion
 
-
 #pragma region SetupType
 /**
  * Enumerator definition of setup modes.
@@ -240,7 +239,6 @@ enum class ESetupType : uint8
 };
 
 #pragma endregion
-
 
 #pragma region ComparisonMethod
 UENUM(BlueprintType)
@@ -358,7 +356,7 @@ struct FSafetyTracingSetup
 #pragma region InteractorBaseSettings
 
 USTRUCT(BlueprintType)
-struct FInteractorSettings
+struct FInteractorBaseSettings
 {
 	GENERATED_BODY()
 
@@ -374,7 +372,7 @@ struct FInteractorSettings
 	UPROPERTY(EditAnywhere, BlueprintReadOnly,  Category="InteractorSettings")
 	FGameplayTag InteractorTag;
 
-	FInteractorSettings()
+	FInteractorBaseSettings()
 	{
 		DefaultInteractorState = EInteractorStateV2::EIS_Awake;
 		InteractorCollisionChannel = ECC_Visibility;
@@ -384,6 +382,51 @@ struct FInteractorSettings
 			SafetyTracingSetup.ValidationCollisionChannel = ECC_Camera;
 			SafetyTracingSetup.SafetyTracingMode = ESafetyTracingMode::ESTM_Location;
 		}
+	}
+};
+
+#pragma endregion
+
+#pragma region InteractableBaseSettings
+
+USTRUCT(BlueprintType)
+struct FInteractableBaseSettings
+{
+	GENERATED_BODY()
+
+	UPROPERTY(config, EditAnywhere, Category="InteractableSettings", meta=(UIMin=-1, ClampMin=-1, Units="seconds"))
+	float																													DefaultInteractionPeriod;
+
+	UPROPERTY(config, EditAnywhere, Category="InteractableSettings", meta=(NoResetToDefault))
+	EInteractableStateV2																						DefaultInteractableState;
+
+	UPROPERTY(config, EditAnywhere, Category="InteractableSettings")
+	TEnumAsByte<ESetupType>																			DefaultSetupType;
+	
+	UPROPERTY(config, EditAnywhere, Category="InteractableSettings", meta=(NoResetToDefault))
+	TEnumAsByte<ECollisionChannel>																	DefaultCollisionChannel;
+
+	UPROPERTY(config, EditAnywhere, Category="InteractableSettings", meta=(NoResetToDefault, EditCondition = "LifecycleMode == EInteractableLifecycle::EIL_Cycled", UIMin=0.1, ClampMin=0.1, Units="Seconds"))
+	float																													DefaultCooldownPeriod;
+
+	UPROPERTY(config, EditAnywhere, BlueprintReadOnly,  Category="InteractableSettings")
+	uint8																												DefaultInteractionHighlight : 1;
+
+	UPROPERTY(config, EditAnywhere, BlueprintReadOnly,  Category="InteractableSettings")
+	FGameplayTag																								InteractableMainTag;
+
+	UPROPERTY(config, EditAnywhere, BlueprintReadOnly,  Category="InteractableSettings")
+	FInteractionHighlightSetup																				DefaultHighlightSetup;
+
+	FInteractableBaseSettings()
+	{
+		DefaultInteractionPeriod = 3.f;
+		DefaultInteractableState = EInteractableStateV2::EIS_Awake;
+		DefaultSetupType = ESetupType::EST_Quick;
+		DefaultCollisionChannel = ECC_Camera;
+		DefaultCooldownPeriod = 3.f;
+		DefaultInteractionHighlight = true;
+		DefaultHighlightSetup = FInteractionHighlightSetup();
 	}
 };
 

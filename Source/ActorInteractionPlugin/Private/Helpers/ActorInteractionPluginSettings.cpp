@@ -3,12 +3,13 @@
 #include "Helpers/ActorInteractionPluginSettings.h"
 
 #include "InputMappingContext.h"
+#include "Helpers/ActorInteractionPluginLog.h"
 #include "Materials/MaterialInterface.h"
 
 UActorInteractionPluginSettings::UActorInteractionPluginSettings() :
+	InteractableDefaultHighlightSetup(FInteractionHighlightSetup()),
 	bEditorDebugEnabled(true),
-	WidgetUpdateFrequency(0.1f),
-	InteractableDefaultHighlightSetup(FInteractionHighlightSetup())
+	WidgetUpdateFrequency(0.1f)
 {
 	CategoryName = TEXT("Mountea Framework");
 	SectionName = TEXT("Mountea Interaction System");

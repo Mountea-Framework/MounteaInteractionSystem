@@ -49,6 +49,6 @@ protected:
 
 protected:
 
-	UPROPERTY(SaveGame, VisibleAnywhere, Category="Mountea Interaction|Read Only")
+	UPROPERTY(SaveGame, VisibleAnywhere, Category="MounteaInteraction|Read Only")
 	UPrimitiveComponent* OverlappingComponent = nullptr;
 };

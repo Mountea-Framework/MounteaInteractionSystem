@@ -8,6 +8,7 @@
 
 #include "ActorInteractionPluginSettings.generated.h"
 
+class UMounteaInteractionSettingsConfig;
 class UInputMappingContext;
 class UDataTable;
 class UMaterialInterface;
@@ -27,10 +28,16 @@ class ACTORINTERACTIONPLUGIN_API UActorInteractionPluginSettings : public UDevel
 public:
 
 	UPROPERTY(config, BlueprintReadOnly, EditAnywhere, Category = "Interactor")
-	FInteractorSettings										InteractorDefaultSettings;
+	TSoftObjectPtr<UMounteaInteractionSettingsConfig>		DefaultInteractionSystemConfig;
+
+	UPROPERTY(config, BlueprintReadOnly, EditAnywhere, Category = "Interactor")
+	FInteractorBaseSettings													InteractorDefaultSettings;
 
 	UPROPERTY(config, BlueprintReadOnly, EditAnywhere, Category = "Interactable")
-	FInteractionHighlightSetup							InteractableDefaultHighlightSetup;
+	FInteractableBaseSettings												InteractableBaseSettings;
+
+	UPROPERTY(config, BlueprintReadOnly, EditAnywhere, Category = "Interactable")
+	FInteractionHighlightSetup												InteractableDefaultHighlightSetup;
 
 	/** Defines whether in-editor debug is enabled. */
 	UPROPERTY(config, BlueprintReadOnly, EditAnywhere, Category="Editor")
@@ -75,7 +82,7 @@ public:
 		return "Project";
 	}
 #endif
-
+	
 public:
 
 	bool IsEditorDebugEnabled() const

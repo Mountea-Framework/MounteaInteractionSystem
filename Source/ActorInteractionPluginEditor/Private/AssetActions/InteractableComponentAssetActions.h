@@ -16,7 +16,7 @@ public:
 	{
 		if (FModuleManager::Get().IsModuleLoaded("AssetTools"))
 		{
-			return FAssetToolsModule::GetModule().Get().FindAdvancedAssetCategory(FName("Interaction"));
+			return FAssetToolsModule::GetModule().Get().FindAdvancedAssetCategory(FName("MounteaInteraction"));
 		}
 	
 		return  EAssetTypeCategories::Misc;

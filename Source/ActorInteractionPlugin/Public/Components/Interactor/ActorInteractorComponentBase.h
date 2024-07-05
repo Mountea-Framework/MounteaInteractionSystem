@@ -253,7 +253,7 @@ protected:
 	 * Gameplay Tag which helps further filter out Interaction.
 	 * Requires match in Interactable's `Interactable Tags` container.
 	 */
-	UPROPERTY(Replicated, EditAnywhere, Category="Mountea Interaction|Optional", meta=(NoResetToDefault))
+	UPROPERTY(Replicated, EditAnywhere, Category="MounteaInteraction|Optional", meta=(NoResetToDefault))
 	FGameplayTag											InteractorTag;
 
 	/**
@@ -262,7 +262,7 @@ protected:
 	 * Serves a general purpose as a flag.
 	 * Does not affect Shipping builds by default C++ implementation.
 	 */
-	UPROPERTY(EditAnywhere, Category="Mountea Interaction|Debug", meta=(ShowOnlyInnerProperties))
+	UPROPERTY(EditAnywhere, Category="MounteaInteraction|Debug", meta=(ShowOnlyInnerProperties))
 	FDebugSettings											DebugSettings;
 	
 	/**
@@ -273,14 +273,14 @@ protected:
 	 * * Interaction Hover
 	 * * etc.
 	 */
-	UPROPERTY(Replicated, EditAnywhere, Category="Mountea Interaction|Required", meta=(NoResetToDefault))
+	UPROPERTY(Replicated, EditAnywhere, Category="MounteaInteraction|Required", meta=(NoResetToDefault))
 	TEnumAsByte<ECollisionChannel>				CollisionChannel;
 	
 	/**
 	 * New and easier way to set Default State.
 	 * This state will be propagated to Interactor State.
 	 */
-	UPROPERTY(Replicated, EditAnywhere, Category="Mountea Interaction|Required", meta=(NoResetToDefault))
+	UPROPERTY(Replicated, EditAnywhere, Category="MounteaInteraction|Required", meta=(NoResetToDefault))
 	EInteractorStateV2										DefaultInteractorState;
 
 	
@@ -288,7 +288,7 @@ protected:
 	 * Used for validation. If allowed a single LineTrace will be shot from Owner's location towards Overlapped Actor. `ValidationCollisionChannel` is used for this check.
 	 * This is useful to prevent overlapping collision which is clipping through a wall, for instance.
 	 */
-	UPROPERTY(Replicated, EditAnywhere, Category="Mountea Interaction|Required", meta=(NoResetToDefault))
+	UPROPERTY(Replicated, EditAnywhere, Category="MounteaInteraction|Required", meta=(NoResetToDefault))
 	FSafetyTracingSetup									SafetyTraceSetup;
 	
 	/**
@@ -296,7 +296,7 @@ protected:
 	 * If left empty, only Owner Actor is ignored.
 	 * If using multiple Actors (a gun, for instance), all those child/attached Actors should be ignored.
 	 */
-	UPROPERTY(Replicated, EditAnywhere, Category="Mountea Interaction|Optional", meta=(NoResetToDefault, DisplayThumbnail=false))
+	UPROPERTY(Replicated, EditAnywhere, Category="MounteaInteraction|Optional", meta=(NoResetToDefault, DisplayThumbnail=false))
 	TArray<TObjectPtr<AActor>>					ListOfIgnoredActors;
 
 private:
@@ -304,15 +304,15 @@ private:
 	/**
 	 * Current read-only State of this Interactor.
 	 */
-	UPROPERTY(ReplicatedUsing=OnRep_InteractorState, VisibleAnywhere, Category="Mountea Interaction|Read Only", meta=(NoResetToDefault))
+	UPROPERTY(ReplicatedUsing=OnRep_InteractorState, VisibleAnywhere, Category="MounteaInteraction|Read Only", meta=(NoResetToDefault))
 	EInteractorStateV2 InteractorState;
 	
 	// This is Interactable which is set as Active
-	UPROPERTY(ReplicatedUsing=OnRep_ActiveInteractable, VisibleAnywhere, Category="Mountea Interaction|Read Only")
+	UPROPERTY(ReplicatedUsing=OnRep_ActiveInteractable, VisibleAnywhere, Category="MounteaInteraction|Read Only")
 	TScriptInterface<IActorInteractableInterface> ActiveInteractable;
 	
 	// List of interactors suppressed by this one
-	UPROPERTY(Replicated, VisibleAnywhere, Category="Mountea Interaction|Read Only")
+	UPROPERTY(Replicated, VisibleAnywhere, Category="MounteaInteraction|Read Only")
 	TArray<TScriptInterface<IActorInteractorInterface>> InteractionDependencies;
 
 #pragma region Editor
@@ -334,7 +334,7 @@ public:
 	 * Overrides data with default values from Project Settings.
 	 * Interactor Defaults are not set automatically.
 	 */
-	UFUNCTION(BlueprintCallable, CallInEditor, Category="Mountea Interaction|Optional")
+	UFUNCTION(BlueprintCallable, CallInEditor, Category="MounteaInteraction")
 	void SetDefaultValues();
 	
 #endif

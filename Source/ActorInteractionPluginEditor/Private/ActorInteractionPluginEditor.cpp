@@ -45,51 +45,55 @@ void FActorInteractionPluginEditor::StartupModule()
 
 	// Register Category
 	{
-		FAssetToolsModule::GetModule().Get().RegisterAdvancedAssetCategory(FName("Interaction"), FText::FromString("Interaction"));
+		FAssetToolsModule::GetModule().Get().RegisterAdvancedAssetCategory(FName("MounteaInteraction"), FText::FromString(TEXT("\U0001F539 Mountea Interaction")));
 	}
 
 	// Thumbnails and Icons
 	{
-		InteractorComponentSet = MakeShareable(new FSlateStyleSet("InteractorComponent Style"));
-		InteractableComponentSet = MakeShareable(new FSlateStyleSet("InteractableComponent Style"));
+		InteractionSet = MakeShareable(new FSlateStyleSet("MounteaInteractionClassesSet"));
 
 		const TSharedPtr<IPlugin> PluginPtr = IPluginManager::Get().FindPlugin("ActorInteractionPlugin");
 
 		if (PluginPtr.IsValid())
 		{
 			const FString ContentDir = IPluginManager::Get().FindPlugin("ActorInteractionPlugin")->GetBaseDir();
-        	
-			// Interactor Component
+
+			InteractionSet->SetContentRoot(ContentDir);
+
+			// Interactor
 			{
-				InteractorComponentSet->SetContentRoot(ContentDir);
-        		
-				FSlateImageBrush* InteractorComponentClassThumb = new FSlateImageBrush(InteractorComponentSet->RootToContentDir(TEXT("Resources/InteractorIcon_128"), TEXT(".png")), FVector2D(128.f, 128.f));
-				FSlateImageBrush* InteractorComponentClassIcon = new FSlateImageBrush(InteractorComponentSet->RootToContentDir(TEXT("Resources/InteractorIcon_16"), TEXT(".png")), FVector2D(16.f, 16.f));
+				FSlateImageBrush* InteractorComponentClassThumb = new FSlateImageBrush(InteractionSet->RootToContentDir(TEXT("Resources/InteractorIcon"), TEXT(".png")), FVector2D(128.f, 128.f));
+				FSlateImageBrush* InteractorComponentClassIcon = new FSlateImageBrush(InteractionSet->RootToContentDir(TEXT("Resources/InteractorIcon"), TEXT(".png")), FVector2D(16.f, 16.f));
 				if (InteractorComponentClassThumb && InteractorComponentClassIcon)
 				{
-					InteractorComponentSet->Set("ClassThumbnail.ActorInteractorComponentBase", InteractorComponentClassThumb);
-					InteractorComponentSet->Set("ClassIcon.ActorInteractorComponentBase", InteractorComponentClassIcon);
-     
-					//Register the created style
-					FSlateStyleRegistry::RegisterSlateStyle(*InteractorComponentSet.Get());
+					InteractionSet->Set("ClassThumbnail.ActorInteractorComponentBase", InteractorComponentClassThumb);
+					InteractionSet->Set("ClassIcon.ActorInteractorComponentBase", InteractorComponentClassIcon);
 				}
 			}
 
-			// Interactable Component
+			// Interactable
 			{
-				InteractableComponentSet->SetContentRoot(ContentDir);
-        		
-				FSlateImageBrush* InteractableComponentClassThumb = new FSlateImageBrush(InteractableComponentSet->RootToContentDir(TEXT("Resources/InteractableIcon_128"), TEXT(".png")), FVector2D(128.f, 128.f));
-				FSlateImageBrush* InteractableComponentClassIcon = new FSlateImageBrush(InteractableComponentSet->RootToContentDir(TEXT("Resources/InteractableIcon_16"), TEXT(".png")), FVector2D(16.f, 16.f));
+				FSlateImageBrush* InteractableComponentClassThumb = new FSlateImageBrush(InteractionSet->RootToContentDir(TEXT("Resources/InteractableIcon"), TEXT(".png")), FVector2D(128.f, 128.f));
+				FSlateImageBrush* InteractableComponentClassIcon = new FSlateImageBrush(InteractionSet->RootToContentDir(TEXT("Resources/InteractableIcon"), TEXT(".png")), FVector2D(16.f, 16.f));
 				if (InteractableComponentClassThumb && InteractableComponentClassIcon)
 				{
-					InteractableComponentSet->Set("ClassThumbnail.ActorInteractableComponentBase", InteractableComponentClassThumb);
-					InteractableComponentSet->Set("ClassIcon.ActorInteractableComponentBase", InteractableComponentClassIcon);
-     
-					//Register the created style
-					FSlateStyleRegistry::RegisterSlateStyle(*InteractableComponentSet.Get());
+					InteractionSet->Set("ClassThumbnail.ActorInteractableComponentBase", InteractableComponentClassThumb);
+					InteractionSet->Set("ClassIcon.ActorInteractableComponentBase", InteractableComponentClassIcon);
 				}
 			}
+			
+			// Config
+			{
+				FSlateImageBrush* InteractableComponentClassThumb = new FSlateImageBrush(InteractionSet->RootToContentDir(TEXT("Resources/InteractionConfigIcon"), TEXT(".png")), FVector2D(128.f, 128.f));
+				FSlateImageBrush* InteractableComponentClassIcon = new FSlateImageBrush(InteractionSet->RootToContentDir(TEXT("Resources/InteractionConfigIcon"), TEXT(".png")), FVector2D(16.f, 16.f));
+				if (InteractableComponentClassThumb && InteractableComponentClassIcon)
+				{
+					InteractionSet->Set("ClassThumbnail.MounteaInteractionSettingsConfig", InteractableComponentClassThumb);
+					InteractionSet->Set("ClassIcon.MounteaInteractionSettingsConfig", InteractableComponentClassIcon);
+				}
+			}
+			
+			FSlateStyleRegistry::RegisterSlateStyle(*InteractionSet.Get());
 		}
 	}
 
@@ -152,8 +156,7 @@ void FActorInteractionPluginEditor::ShutdownModule()
 {
 	// Thumbnails and Icons
 	{
-		FSlateStyleRegistry::UnRegisterSlateStyle(InteractorComponentSet->GetStyleSetName());
-		FSlateStyleRegistry::UnRegisterSlateStyle(InteractableComponentSet->GetStyleSetName());
+		FSlateStyleRegistry::UnRegisterSlateStyle(InteractionSet->GetStyleSetName());
 	}
 
 	// Asset Types Cleanup
@@ -198,7 +201,7 @@ void FActorInteractionPluginEditor::HandleNewInteractorBlueprintCreated(UBluepri
 		Blueprint->LastEditedDocuments.Add(FunctionGraph);
 	}
 	
-	Blueprint->BlueprintCategory = FString("Interaction");
+	Blueprint->BlueprintCategory = FString("Mountea");
 	Blueprint->BroadcastChanged();
 }
 
@@ -222,7 +225,7 @@ void FActorInteractionPluginEditor::HandleNewInteractableBlueprintCreated(UBluep
 		Blueprint->LastEditedDocuments.Add(FunctionGraph);
 	}
 
-	Blueprint->BlueprintCategory = FString("Interaction");
+	Blueprint->BlueprintCategory = FString("Mountea");
 	Blueprint->BroadcastChanged();
 }
 
