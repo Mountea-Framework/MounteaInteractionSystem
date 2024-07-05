@@ -8,6 +8,7 @@
 
 #include "Engine/DataTable.h"
 #include "Blueprint/UserWidget.h"
+#include "Helpers/MounteaInteractionSettingsConfig.h"
 
 
 UActorInteractionPluginSettings* UActorInteractionFunctionLibrary::GetInteractionSettings()
@@ -17,12 +18,12 @@ UActorInteractionPluginSettings* UActorInteractionFunctionLibrary::GetInteractio
 
 FInteractorBaseSettings UActorInteractionFunctionLibrary::GetDefaultInteractorSettings()
 {
-	return GetInteractionSettings() ? GetInteractionSettings()->InteractorDefaultSettings : FInteractorBaseSettings();
+	return (GetInteractionSettings() && GetInteractionSettings()->DefaultInteractionSystemConfig != nullptr) ? GetInteractionSettings()->DefaultInteractionSystemConfig.LoadSynchronous()->InteractorDefaultSettings : FInteractorBaseSettings();
 }
 
-FInteractionHighlightSetup UActorInteractionFunctionLibrary::GetDefaultInteractableHighlightSetup()
+FInteractableBaseSettings UActorInteractionFunctionLibrary::GetDefaultInteractableSettings()
 {
-	return GetInteractionSettings() ? GetInteractionSettings()->InteractableDefaultHighlightSetup : FInteractionHighlightSetup();;
+	return (GetInteractionSettings() && GetInteractionSettings()->DefaultInteractionSystemConfig != nullptr) ? GetInteractionSettings()->DefaultInteractionSystemConfig.LoadSynchronous()->InteractableBaseSettings : FInteractableBaseSettings();
 }
 
 float UActorInteractionFunctionLibrary::GetDefaultWidgetUpdateFrequency()

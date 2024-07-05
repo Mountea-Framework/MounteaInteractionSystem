@@ -30,15 +30,6 @@ public:
 	UPROPERTY(config, BlueprintReadOnly, EditAnywhere, Category = "Interactor")
 	TSoftObjectPtr<UMounteaInteractionSettingsConfig>		DefaultInteractionSystemConfig;
 
-	UPROPERTY(config, BlueprintReadOnly, EditAnywhere, Category = "Interactor")
-	FInteractorBaseSettings													InteractorDefaultSettings;
-
-	UPROPERTY(config, BlueprintReadOnly, EditAnywhere, Category = "Interactable")
-	FInteractableBaseSettings												InteractableBaseSettings;
-
-	UPROPERTY(config, BlueprintReadOnly, EditAnywhere, Category = "Interactable")
-	FInteractionHighlightSetup												InteractableDefaultHighlightSetup;
-
 	/** Defines whether in-editor debug is enabled. */
 	UPROPERTY(config, BlueprintReadOnly, EditAnywhere, Category="Editor")
 	uint8															bEditorDebugEnabled : 1;

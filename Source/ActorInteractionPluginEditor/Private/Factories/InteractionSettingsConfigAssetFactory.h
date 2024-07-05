@@ -4,19 +4,19 @@
 
 #include "CoreMinimal.h"
 #include "Factories/Factory.h"
-#include "InteractableComponentAssetFactory.generated.h"
+#include "InteractionSettingsConfigAssetFactory.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class ACTORINTERACTIONPLUGINEDITOR_API UInteractableComponentAssetFactory : public UFactory
+class ACTORINTERACTIONPLUGINEDITOR_API UInteractionSettingsConfigAssetFactory : public UFactory
 {
 	GENERATED_BODY()
 	
 public:
 
-	UInteractableComponentAssetFactory(const FObjectInitializer& ObjectInitializer);
+	UInteractionSettingsConfigAssetFactory(const FObjectInitializer& ObjectInitializer);
 
 	virtual bool ConfigureProperties() override;
 	
@@ -25,5 +25,5 @@ public:
 private:
 	// Holds the template of the class we are building
 	UPROPERTY()
-	TSubclassOf<class UActorInteractableComponentBase> ParentClass;
+	TSubclassOf<class UMounteaInteractionSettingsConfig> ParentClass;
 };

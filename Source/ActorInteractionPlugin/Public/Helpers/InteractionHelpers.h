@@ -373,15 +373,13 @@ struct FInteractorBaseSettings
 	FGameplayTag InteractorTag;
 
 	FInteractorBaseSettings()
+		: DefaultInteractorState(EInteractorStateV2::EIS_Awake)
+		, InteractorCollisionChannel(ECC_Visibility)
 	{
-		DefaultInteractorState = EInteractorStateV2::EIS_Awake;
-		InteractorCollisionChannel = ECC_Visibility;
-		{
-			SafetyTracingSetup.StartSocketName = FName("head");
-			SafetyTracingSetup.ActorMeshName = FName("CharacterMesh0");
-			SafetyTracingSetup.ValidationCollisionChannel = ECC_Camera;
-			SafetyTracingSetup.SafetyTracingMode = ESafetyTracingMode::ESTM_Location;
-		}
+		SafetyTracingSetup.StartSocketName = FName("head");
+		SafetyTracingSetup.ActorMeshName = FName("CharacterMesh0");
+		SafetyTracingSetup.ValidationCollisionChannel = ECC_Camera;
+		SafetyTracingSetup.SafetyTracingMode = ESafetyTracingMode::ESTM_Location;
 	}
 };
 
@@ -394,40 +392,48 @@ struct FInteractableBaseSettings
 {
 	GENERATED_BODY()
 
-	UPROPERTY(config, EditAnywhere, Category="InteractableSettings", meta=(UIMin=-1, ClampMin=-1, Units="seconds"))
+	UPROPERTY(config, EditAnywhere, Category="InteractableSettings", meta=(UIMin=-1, ClampMin=-1, Units="seconds", NoResetToDefault))
 	float																													DefaultInteractionPeriod;
 
 	UPROPERTY(config, EditAnywhere, Category="InteractableSettings", meta=(NoResetToDefault))
 	EInteractableStateV2																						DefaultInteractableState;
 
 	UPROPERTY(config, EditAnywhere, Category="InteractableSettings")
-	TEnumAsByte<ESetupType>																			DefaultSetupType;
+	ESetupType																										DefaultSetupType;
 	
 	UPROPERTY(config, EditAnywhere, Category="InteractableSettings", meta=(NoResetToDefault))
 	TEnumAsByte<ECollisionChannel>																	DefaultCollisionChannel;
-
-	UPROPERTY(config, EditAnywhere, Category="InteractableSettings", meta=(NoResetToDefault, EditCondition = "LifecycleMode == EInteractableLifecycle::EIL_Cycled", UIMin=0.1, ClampMin=0.1, Units="Seconds"))
-	float																													DefaultCooldownPeriod;
-
-	UPROPERTY(config, EditAnywhere, BlueprintReadOnly,  Category="InteractableSettings")
+	
+	UPROPERTY(config, EditAnywhere, BlueprintReadOnly,  Category="InteractableSettings", meta=(NoResetToDefault))
 	uint8																												DefaultInteractionHighlight : 1;
 
-	UPROPERTY(config, EditAnywhere, BlueprintReadOnly,  Category="InteractableSettings")
+	UPROPERTY(config, EditAnywhere, BlueprintReadOnly,  Category="InteractableSettings", meta=(NoResetToDefault))
 	FGameplayTag																								InteractableMainTag;
 
-	UPROPERTY(config, EditAnywhere, BlueprintReadOnly,  Category="InteractableSettings")
+	UPROPERTY(config, EditAnywhere, BlueprintReadOnly,  Category="InteractableSettings", meta=(NoResetToDefault))
 	FInteractionHighlightSetup																				DefaultHighlightSetup;
 
+	UPROPERTY(config, EditAnywhere, BlueprintReadOnly,  Category="InteractableSettings", meta=(NoResetToDefault))
+	EInteractableLifecycle																						DefaultLifecycleMode;
+	
+	UPROPERTY(config, EditAnywhere, Category="InteractableSettings", meta=(NoResetToDefault, EditCondition = "DefaultLifecycleMode == EInteractableLifecycle::EIL_Cycled", UIMin=0.1, ClampMin=0.1, Units="Seconds"))
+	float																													DefaultCooldownPeriod;
+
+	UPROPERTY(config, EditAnywhere, BlueprintReadOnly,  Category="InteractableSettings", meta=(NoResetToDefault, EditCondition = "DefaultLifecycleMode == EInteractableLifecycle::EIL_Cycled"))
+	int32																												DefaultLifecycles;
+
+
 	FInteractableBaseSettings()
-	{
-		DefaultInteractionPeriod = 3.f;
-		DefaultInteractableState = EInteractableStateV2::EIS_Awake;
-		DefaultSetupType = ESetupType::EST_Quick;
-		DefaultCollisionChannel = ECC_Camera;
-		DefaultCooldownPeriod = 3.f;
-		DefaultInteractionHighlight = true;
-		DefaultHighlightSetup = FInteractionHighlightSetup();
-	}
+		: DefaultInteractionPeriod(3.f)
+		, DefaultInteractableState(EInteractableStateV2::EIS_Awake)
+		, DefaultSetupType(ESetupType::EST_Quick)
+		, DefaultCollisionChannel(ECC_Camera)
+		, DefaultInteractionHighlight(true)
+		, DefaultHighlightSetup(FInteractionHighlightSetup())
+		, DefaultLifecycleMode(EInteractableLifecycle::EIL_Cycled)
+		, DefaultCooldownPeriod(3.f)
+		, DefaultLifecycles(-1)
+	{}
 };
 
 #pragma endregion

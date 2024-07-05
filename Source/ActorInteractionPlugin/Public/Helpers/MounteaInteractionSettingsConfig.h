@@ -10,7 +10,7 @@
 /**
  * 
  */
-UCLASS(ClassGroup=(Mountea), EditInlineNew, meta = (DisplayName = "Mountea Interaction System Settings Configuration"))
+UCLASS(ClassGroup=(Mountea), EditInlineNew, meta = (DisplayName = "Mountea Interaction System Settings Configuration"), autoexpandcategories=("Interactor","Interactable"))
 class ACTORINTERACTIONPLUGIN_API UMounteaInteractionSettingsConfig : public UDataAsset
 {
 	GENERATED_BODY()

@@ -1,4 +1,4 @@
-// All rights reserved Dominik Pavlicek 2022.
+// All rights reserved Dominik Morse (Pavlicek) 2021
 
 #include "ActorInteractionPluginEditor.h"
 
@@ -21,6 +21,7 @@
 #include "Utilities/ActorInteractionEditorUtilities.h"
 
 #include "ToolMenus.h"
+#include "AssetActions/InteractionSettingsConfig.h"
 #include "Helpers/MounteaInteractionSystemEditorLog.h"
 #include "Interfaces/IHttpResponse.h"
 
@@ -110,6 +111,12 @@ void FActorInteractionPluginEditor::StartupModule()
 			InteractableComponentAssetActions = MakeShared<FInteractableComponentAssetActions>();
 			FAssetToolsModule::GetModule().Get().RegisterAssetTypeActions(InteractableComponentAssetActions.ToSharedRef());
 		}
+
+		// Register Interaction Config
+		{
+			InteractionConfigSettingsAssetAction = MakeShared<FInteractionSettingsConfigAssetActions>();
+			FAssetToolsModule::GetModule().Get().RegisterAssetTypeActions(InteractionConfigSettingsAssetAction.ToSharedRef());
+		}
 	}
 
 	// Register pre-made Events
@@ -165,6 +172,7 @@ void FActorInteractionPluginEditor::ShutdownModule()
 		{
 			FAssetToolsModule::GetModule().Get().UnregisterAssetTypeActions(InteractorComponentAssetActions.ToSharedRef());
 			FAssetToolsModule::GetModule().Get().UnregisterAssetTypeActions(InteractableComponentAssetActions.ToSharedRef());
+			FAssetToolsModule::GetModule().Get().UnregisterAssetTypeActions(InteractionConfigSettingsAssetAction.ToSharedRef());
 		}
 	}
 

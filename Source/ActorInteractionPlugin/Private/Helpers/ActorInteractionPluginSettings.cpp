@@ -7,7 +7,6 @@
 #include "Materials/MaterialInterface.h"
 
 UActorInteractionPluginSettings::UActorInteractionPluginSettings() :
-	InteractableDefaultHighlightSetup(FInteractionHighlightSetup()),
 	bEditorDebugEnabled(true),
 	WidgetUpdateFrequency(0.1f)
 {

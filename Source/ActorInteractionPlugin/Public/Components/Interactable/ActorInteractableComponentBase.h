@@ -921,7 +921,7 @@ protected:
 	 * In order to smoothly integrate with other logic, keep this ID unique!
 	 * Default: 133
 	 */
-	UPROPERTY(SaveGame, EditAnywhere, BlueprintReadOnly,  Category="MounteaInteraction|Optional", meta=(EditCondition="bInteractionHighlight == true", UIMin=0, ClampMin=0, UIMax=255, ClampMax=255))
+	UPROPERTY(SaveGame, EditAnywhere, BlueprintReadOnly,  Category="MounteaInteraction|Optional", meta=(EditCondition="bInteractionHighlight == true && HighlightType==EHighlightType::EHT_PostProcessing", UIMin=0, ClampMin=0, UIMax=255, ClampMax=255))
 	int32																												StencilID;
 
 	/**

@@ -7,6 +7,7 @@
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "ActorInteractionFunctionLibrary.generated.h"
 
+struct FInteractableBaseSettings;
 struct FInteractorBaseSettings;
 struct FInteractionHighlightSetup;
 class UDataTable;
@@ -30,8 +31,8 @@ public:
 	static FInteractorBaseSettings GetDefaultInteractorSettings();
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction", meta=(CompactNodeTitle="Default Interaction Settings"))
-	static FInteractionHighlightSetup GetDefaultInteractableHighlightSetup();
-
+	static FInteractableBaseSettings GetDefaultInteractableSettings();
+	
 	/**
 	 * Returns Default Widget Update frequency.
 	 * Default value is 0.05.

@@ -1117,11 +1117,20 @@ void UActorInteractableComponentBase::SetDefaults_Implementation()
 		}
 	}
 
-	const auto defaultSetup = UActorInteractionFunctionLibrary::GetDefaultInteractableHighlightSetup();
+	const auto defaultSettings = UActorInteractionFunctionLibrary::GetDefaultInteractableSettings();
 	{
-		HighlightType		= defaultSetup.HighlightType;
-		StencilID				= defaultSetup.StencilID;
-		HighlightMaterial	= defaultSetup.HighlightMaterial;
+		HighlightType		= defaultSettings.DefaultHighlightSetup.HighlightType;
+		StencilID				= defaultSettings.DefaultHighlightSetup.StencilID;
+		HighlightMaterial	= defaultSettings.DefaultHighlightSetup.HighlightMaterial;
+
+		InteractionPeriod = defaultSettings.DefaultInteractionPeriod;
+		InteractableState = defaultSettings.DefaultInteractableState;
+		SetupType			= defaultSettings.DefaultSetupType;
+		CollisionChannel = defaultSettings.DefaultCollisionChannel;
+		CooldownPeriod = defaultSettings.DefaultCooldownPeriod;
+		bInteractionHighlight = defaultSettings.DefaultInteractionHighlight;
+		if (!InteractableCompatibleTags.HasTag(defaultSettings.InteractableMainTag))
+			InteractableCompatibleTags.AddTag(defaultSettings.InteractableMainTag);
 	}
 }
 
@@ -2098,7 +2107,6 @@ void UActorInteractableComponentBase::ProcessHideWidget()
 
 void UActorInteractableComponentBase::SetDefaultValues()
 {
-	LOG_ERROR(TEXT("Default loaded"))
 	Execute_SetDefaults(this);
 }
 
