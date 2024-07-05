@@ -158,38 +158,42 @@ void UActorInteractorComponentTrace::ProcessTrace_Implementation()
 		return;
 	}
 
-	if (GetOwner()->HasAuthority())
+	if (!GetOwner()->HasAuthority())
 	{
-		if (!CanTrace())
+		ProcessTrace_Server();
+		return;
+	}
+	
+	if (!CanTrace())
+	{
+		DisableTracing();
+		return;
+	}
+
+	Execute_AddIgnoredActor(this, GetOwner());
+
+	FInteractionTraceDataV2 TraceData;
+	{
+		TraceData.CollisionChannel = Execute_GetResponseChannel(this);
+		TraceData.CollisionParams.AddIgnoredActors(ListOfIgnoredActors);
+		TraceData.CollisionParams.MobilityType = EQueryMobilityType::Any;
+		TraceData.CollisionParams.bReturnPhysicalMaterial = true;
+
+		FVector DirectionVector;
+		if (bUseCustomStartTransform)
 		{
-			DisableTracing();
-			return;
+			TraceData.StartLocation = CustomTraceTransform.GetLocation();
+			TraceData.TraceRotation = CustomTraceTransform.GetRotation().Rotator();
+			DirectionVector = UKismetMathLibrary::GetForwardVector(TraceData.TraceRotation);
+			TraceData.EndLocation = (DirectionVector * TraceRange) + CustomTraceTransform.GetLocation();
 		}
-
-		Execute_AddIgnoredActor(this, GetOwner());
-
-		FInteractionTraceDataV2 TraceData;
+		else
 		{
-			TraceData.CollisionChannel = Execute_GetResponseChannel(this);
-			TraceData.CollisionParams.AddIgnoredActors(ListOfIgnoredActors);
-			TraceData.CollisionParams.MobilityType = EQueryMobilityType::Any;
-			TraceData.CollisionParams.bReturnPhysicalMaterial = true;
-
-			FVector DirectionVector;
-			if (bUseCustomStartTransform)
-			{
-				TraceData.StartLocation = CustomTraceTransform.GetLocation();
-				TraceData.TraceRotation = CustomTraceTransform.GetRotation().Rotator();
-				DirectionVector = UKismetMathLibrary::GetForwardVector(TraceData.TraceRotation);
-				TraceData.EndLocation = (DirectionVector * TraceRange) + CustomTraceTransform.GetLocation();
-			}
-			else
-			{
-				GetOwner()->GetActorEyesViewPoint(TraceData.StartLocation, TraceData.TraceRotation);
-				DirectionVector = UKismetMathLibrary::GetForwardVector(TraceData.TraceRotation);
-				TraceData.EndLocation = (DirectionVector * TraceRange) + TraceData.StartLocation;
-			}
+			GetOwner()->GetActorEyesViewPoint(TraceData.StartLocation, TraceData.TraceRotation);
+			DirectionVector = UKismetMathLibrary::GetForwardVector(TraceData.TraceRotation);
+			TraceData.EndLocation = (DirectionVector * TraceRange) + TraceData.StartLocation;
 		}
+	}
 
 #if WITH_EDITOR
 		if(DebugSettings.DebugMode)
@@ -198,119 +202,119 @@ void UActorInteractorComponentTrace::ProcessTrace_Implementation()
 		}
 #endif
 
-		switch (TraceType)
+	switch (TraceType)
+	{
+		case ETraceType::ETT_Precise:
+			ProcessTrace_Precise(TraceData);
+			break;
+		case ETraceType::ETT_Loose:
+			ProcessTrace_Loose(TraceData);
+			break;
+		case ETraceType::Default:
+		default:
+			break;
+	}
+
+	bool bAnyInteractable = false;
+	bool bFoundActiveAgain = false;
+
+	FHitResult BestHitResult;
+	TScriptInterface<IActorInteractableInterface> bestFoundInteractable = nullptr;
+
+	for (FHitResult& HitResult : TraceData.HitResults)
+	{
+		if (!HitResult.GetComponent() || !HitResult.GetActor())
+			continue;
+
+		const AActor* HitActor = HitResult.GetActor();
+		auto interactableComponents = HitActor != nullptr ? HitActor->GetComponentsByInterface(UActorInteractableInterface::StaticClass()) : TArray<UActorComponent*>();
+		if (interactableComponents.Num() == 0)
+			continue;
+
+		for (const auto& Itr : interactableComponents)
 		{
-			case ETraceType::ETT_Precise:
-				ProcessTrace_Precise(TraceData);
-				break;
-			case ETraceType::ETT_Loose:
-				ProcessTrace_Loose(TraceData);
-				break;
-			case ETraceType::Default:
-			default:
-				break;
-		}
-
-		bool bAnyInteractable = false;
-		bool bFoundActiveAgain = false;
-
-		FHitResult BestHitResult;
-		TScriptInterface<IActorInteractableInterface> bestFoundInteractable = nullptr;
-
-		for (FHitResult& HitResult : TraceData.HitResults)
-		{
-			if (!HitResult.GetComponent() || !HitResult.GetActor())
+			if (!Itr)
 				continue;
 
-			const AActor* HitActor = HitResult.GetActor();
-			auto interactableComponents = HitActor->GetComponentsByInterface(UActorInteractableInterface::StaticClass());
-			if (interactableComponents.Num() == 0)
+			TScriptInterface<IActorInteractableInterface> localInteractable = Itr;
+			localInteractable.SetObject(Itr);
+			localInteractable.SetInterface(Cast<IActorInteractableInterface>(Itr));
+
+			if (!localInteractable.GetObject() || !localInteractable.GetInterface())
 				continue;
 
-			for (const auto& Itr : interactableComponents)
+			if (!localInteractable->Execute_GetCollisionComponents(Itr).Contains(HitResult.GetComponent()))
+				continue;
+
+			if (localInteractable->Execute_GetCollisionChannel(Itr) != Execute_GetResponseChannel(this))
+				continue;
+
+			if (!localInteractable->Execute_CanBeTriggered(Itr))
 			{
-				if (!Itr)
+				if (localInteractable->Execute_GetInteractor(Itr) != this)
 					continue;
+			}
 
-				TScriptInterface<IActorInteractableInterface> localInteractable = Itr;
-				localInteractable.SetObject(Itr);
-				localInteractable.SetInterface(Cast<IActorInteractableInterface>(Itr));
+			if (InteractorTag.IsValid() && !localInteractable->Execute_GetInteractableCompatibleTags(Itr).HasTag(InteractorTag))
+			{
+				LOG_INFO(TEXT("[ProcessTrace] Interactor Tag %s is not compatible with %s Interactable on %s Actor"), *InteractorTag.ToString(), *localInteractable->Execute_GetInteractableName(Itr).ToString(), *HitActor->GetName())
+				continue;
+			}
 
-				if (!localInteractable.GetObject() || !localInteractable.GetInterface())
-					continue;
+			bAnyInteractable = true;
 
-				if (!localInteractable->Execute_GetCollisionComponents(Itr).Contains(HitResult.GetComponent()))
-					continue;
+			if (localInteractable == Execute_GetActiveInteractable(this))
+			{
+				bFoundActiveAgain = true;
+			}
 
-				if (localInteractable->Execute_GetCollisionChannel(Itr) != Execute_GetResponseChannel(this))
-					continue;
+			const float localInteractableWeight = localInteractable->Execute_GetInteractableWeight(Itr);
+			const float bestFoundInteractableWeight = bestFoundInteractable != nullptr ? bestFoundInteractable->Execute_GetInteractableWeight(bestFoundInteractable.GetObject()) : -1.f;
 
-				if (!localInteractable->Execute_CanBeTriggered(Itr))
+			if (bestFoundInteractable == nullptr || localInteractableWeight > bestFoundInteractableWeight)
+			{
+				if (!Execute_PerformSafetyTrace(this, HitActor))
 				{
-					if (localInteractable->Execute_GetInteractor(Itr) != this)
-						continue;
+					LOG_INFO(TEXT("[PerformTrace] Obstacle found in ray direction"))
+					continue;
 				}
-					
-
-				bAnyInteractable = true;
-
-				if (localInteractable == Execute_GetActiveInteractable(this))
-				{
-					bFoundActiveAgain = true;
-				}
-
-				const float localInteractableWeight = localInteractable->Execute_GetInteractableWeight(Itr);
-				const float bestFoundInteractableWeight = bestFoundInteractable != nullptr ? bestFoundInteractable->Execute_GetInteractableWeight(bestFoundInteractable.GetObject()) : -1.f;
-
-				if (bestFoundInteractable == nullptr || localInteractableWeight > bestFoundInteractableWeight)
-				{
-					if (!Execute_PerformSafetyTrace(this, HitActor))
-					{
-						LOG_INFO(TEXT("[PerformTrace] Obstacle found in ray direction"))
-						continue;
-					}
-					
-					bestFoundInteractable = localInteractable;
-					BestHitResult = HitResult;
-				}
+				
+				bestFoundInteractable = localInteractable;
+				BestHitResult = HitResult;
 			}
 		}
+	}
 
-		if (bestFoundInteractable != Execute_GetActiveInteractable(this))
+	if (bestFoundInteractable != Execute_GetActiveInteractable(this))
+	{
+		if (Execute_GetActiveInteractable(this) != nullptr)
 		{
-			if (Execute_GetActiveInteractable(this) != nullptr)
+			if (!bAnyInteractable || Execute_GetActiveInteractable(this) != bestFoundInteractable)
 			{
-				if (!bAnyInteractable || Execute_GetActiveInteractable(this) != bestFoundInteractable)
-				{
-					OnInteractableLost.Broadcast(Execute_GetActiveInteractable(this));
-				}
-			}
-
-			if (bAnyInteractable && Execute_GetActiveInteractable(this) != bestFoundInteractable)
-			{
-				OnInteractableFound.Broadcast(bestFoundInteractable);
-				bestFoundInteractable->GetOnInteractorTracedHandle().Broadcast(BestHitResult.GetComponent(), GetOwner(), nullptr, BestHitResult.Location, BestHitResult);
-				bestFoundInteractable->GetOnInteractorFoundHandle().Broadcast(this);
+				OnInteractableLost.Broadcast(Execute_GetActiveInteractable(this));
 			}
 		}
+
+		if (bAnyInteractable && Execute_GetActiveInteractable(this) != bestFoundInteractable)
+		{
+			OnInteractableFound.Broadcast(bestFoundInteractable);
+			bestFoundInteractable->GetOnInteractorTracedHandle().Broadcast(BestHitResult.GetComponent(), GetOwner(), nullptr, BestHitResult.Location, BestHitResult);
+			bestFoundInteractable->GetOnInteractorFoundHandle().Broadcast(this);
+		}
+	}
 
 #if WITH_EDITOR
-		if (DebugSettings.DebugMode)
-		{
-			DrawTracingDebugEnd(TraceData);
-		}
+	if (DebugSettings.DebugMode)
+	{
+		DrawTracingDebugEnd(TraceData);
+	}
 #endif
 
-		// Update Client
-		PostTraced_Client();
-		PostTraced();
+	// Update Client
+	PostTraced_Client();
+	PostTraced();
 
-		ResumeTracing();
-	}
-	else
-	{
-		ProcessTrace_Server();
-	}
+	ResumeTracing();
 }
 
 void UActorInteractorComponentTrace::ProcessTrace_Precise(FInteractionTraceDataV2& InteractionTraceData)
