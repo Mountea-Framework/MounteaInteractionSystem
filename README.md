@@ -40,9 +40,9 @@ UE 5.3 | 3.0.1.6 | 🟩
 ## Settings & Configuration
 
 <p align="center" width="100%">
-    <img width="65%" src="https://github.com/Mountea-Framework/MounteaInteractionSystem/assets/37410226/6eb61cdb-cae1-42e0-97eb-f7553dbc1a28">
+    <img width="33%" src="https://github.com/Mountea-Framework/MounteaInteractionSystem/assets/37410226/6eb61cdb-cae1-42e0-97eb-f7553dbc1a28">
+    <img width="33%" src="https://github.com/Mountea-Framework/MounteaInteractionSystem/assets/37410226/2b7513eb-5239-4331-96e5-469671813065">
 </p>
-
 
 ### Installation
 
