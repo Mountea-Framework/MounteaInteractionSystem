@@ -41,6 +41,13 @@ void UActorInteractableComponentPress::InteractionStarted_Implementation(const f
 	}
 }
 
+void UActorInteractableComponentPress::SetDefaults_Implementation()
+{
+	Super::SetDefaults_Implementation();
+
+	InteractionPeriod = -1.f;
+}
+
 #if WITH_EDITOR
 
 void UActorInteractableComponentPress::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent)

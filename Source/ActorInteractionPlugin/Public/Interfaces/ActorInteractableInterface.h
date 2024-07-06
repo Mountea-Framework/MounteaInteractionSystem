@@ -67,6 +67,8 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FHighlightMaterialChanged, const UMa
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractableDependencyStarted, const TScriptInterface<IActorInteractableInterface>&, NewMaster);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractableDependencyStopped, const TScriptInterface<IActorInteractableInterface>&, FormerMaster);
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractableWidgetVisibilityChanged, const bool, bIsVisible);
+
 /**
  * 
  */
@@ -1042,4 +1044,6 @@ public:
 
 	virtual FTimerHandle& GetCooldownHandle() = 0;
 	virtual FInteractableStateChanged& GetInteractableStateChanged() = 0;
+
+	virtual FInteractableWidgetVisibilityChanged& GetInteractableWidgetVisibilityChangedHandle() = 0;
 };

@@ -785,6 +785,10 @@ public:
 	virtual FOnWidgetUpdated& WidgetUpdatedHandle()
 	{ return OnWidgetUpdated; };
 
+	
+	virtual FInteractableWidgetVisibilityChanged& GetInteractableWidgetVisibilityChangedHandle() override
+	{ return  OnInteractableWidgetVisibilityChanged; };
+
 #pragma endregion 
 
 #pragma region Widget
@@ -794,6 +798,9 @@ public:
 	 */
 	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Interaction")
 	FOnWidgetUpdated OnWidgetUpdated;
+
+	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Interaction")
+	FInteractableWidgetVisibilityChanged OnInteractableWidgetVisibilityChanged;
 
 #pragma endregion 
 
@@ -828,7 +835,7 @@ protected:
 	 * - -1 = immediate
 	 * - 0  = 0.1s
 	 */
-	UPROPERTY(Replicated, SaveGame, EditAnywhere, Category="MounteaInteraction|Required", meta=(UIMin=-1, ClampMin=-1, Units="seconds"))
+	UPROPERTY(Replicated, SaveGame, EditAnywhere, Category="MounteaInteraction|Required", meta=(UIMin=-1, ClampMin=-1, Units="seconds", NoResetToDefault))
 	float																													InteractionPeriod;
 
 	/**
@@ -845,7 +852,7 @@ protected:
 	 * If set to true, Interactable will automatically assigns owning Component in Hierarchy as Highlightable Meshes and Collision Shapes.
 	 * This setup might be useful for simple Actors, might cause issues with more complex ones.
 	 */
-	UPROPERTY(Replicated, SaveGame, EditAnywhere, Category="MounteaInteraction|Required")
+	UPROPERTY(Replicated, SaveGame, EditAnywhere, Category="MounteaInteraction|Required", meta=(NoResetToDefault))
 	ESetupType																										SetupType;
 
 	/**
@@ -865,6 +872,41 @@ protected:
 	UPROPERTY(Replicated, SaveGame, EditAnywhere, Category="MounteaInteraction|Required", meta=(NoResetToDefault, EditCondition = "LifecycleMode == EInteractableLifecycle::EIL_Cycled", UIMin=0.1, ClampMin=0.1, Units="Seconds"))
 	float																													CooldownPeriod;
 
+	/**
+	 * Defines Lifecycle Mode of this Interactable.
+	 * Cycled:
+	 * * Can be used multiple times
+	 * * Good for NPCs
+	 * Once:
+	 * * Can be used only once
+	 * * Good for pickup items
+	 */
+	UPROPERTY(Replicated, SaveGame, EditAnywhere, Category="MounteaInteraction|Required", meta=(NoResetToDefault))
+	EInteractableLifecycle																						LifecycleMode;
+
+	/**
+	 * How many times this Interactable can be used.
+	 *
+	 * Clamped in Setter.
+	 * Expected range:
+	 * * -1 | Can be used forever
+	 * *  0 | Invalid, will be set to 2
+	 * *  1 | Invalid, will be set to 2
+	 * * 2+ | Will be used defined number of times
+	 */
+	UPROPERTY(Replicated, SaveGame, EditAnywhere, Category="MounteaInteraction|Required", meta=(NoResetToDefault, EditCondition = "LifecycleMode == EInteractableLifecycle::EIL_Cycled", UIMin=-1, ClampMin=-1, Units="times"))
+	int32																												LifecycleCount;
+
+	/**
+	 * Weight of this Interactable.
+	 * Useful with multiple overlapping Interactables withing the same Actor. Interactor will always prefer the one with highest Weight value.
+	 *
+	 * Default value: 1
+	 * Clamped in setter function to be at least 0 or higher.
+	 */
+	UPROPERTY(Replicated, SaveGame, EditAnywhere, Category="MounteaInteraction|Required", meta=(UIMin=0, ClampMin=0, NoResetToDefault))
+	int32																												InteractionWeight;
+	
 #pragma endregion
 
 #pragma region Optional
@@ -991,31 +1033,6 @@ protected:
 	EInteractableStateV2																						InteractableState;
 	
 	/**
-	 * Defines Lifecycle Mode of this Interactable.
-	 * Cycled:
-	 * * Can be used multiple times
-	 * * Good for NPCs
-	 * Once:
-	 * * Can be used only once
-	 * * Good for pickup items
-	 */
-	UPROPERTY(Replicated, SaveGame, EditAnywhere, Category="MounteaInteraction|Required", meta=(NoResetToDefault))
-	EInteractableLifecycle																						LifecycleMode;
-
-	/**
-	 * How many times this Interactable can be used.
-	 *
-	 * Clamped in Setter.
-	 * Expected range:
-	 * * -1 | Can be used forever
-	 * *  0 | Invalid, will be set to 2
-	 * *  1 | Invalid, will be set to 2
-	 * * 2+ | Will be used defined number of times
-	 */
-	UPROPERTY(Replicated, SaveGame, EditAnywhere, Category="MounteaInteraction|Required", meta=(NoResetToDefault, EditCondition = "LifecycleMode == EInteractableLifecycle::EIL_Cycled", UIMin=-1, ClampMin=-1, Units="times"))
-	int32																												LifecycleCount;
-
-	/**
 	 * How many Lifecycles remain until this Interactable is Finished.
 	 */
 	UPROPERTY(Replicated, SaveGame, VisibleAnywhere, Category="MounteaInteraction|Read Only")
@@ -1056,16 +1073,6 @@ protected:
 	TArray<TObjectPtr<UPrimitiveComponent>>													CollisionComponents;
 
 	/**
-	 * Weight of this Interactable.
-	 * Useful with multiple overlapping Interactables withing the same Actor. Interactor will always prefer the one with highest Weight value.
-	 *
-	 * Default value: 1
-	 * Clamped in setter function to be at least 0 or higher.
-	 */
-	UPROPERTY(Replicated, SaveGame, EditAnywhere, Category="MounteaInteraction|Required", meta=(UIMin=0, ClampMin=0))
-	int32																												InteractionWeight;
-
-	/**
 	 * Cached value which is by default set to Interaction Weight.
 	 * Used when removing Interactable from Dependencies.
 	 */
@@ -1087,7 +1094,8 @@ private:
 	UPROPERTY(ReplicatedUsing=OnRep_ActiveInteractor, SaveGame, VisibleAnywhere, Category="MounteaInteraction|Read Only", meta=(DisplayThumbnail = false))
 	TScriptInterface<IActorInteractorInterface>													Interactor = nullptr;
 
-	
+	UPROPERTY(VisibleAnywhere, Category="MounteaInteraction|Read Only", meta=(NoResetToDefault))
+	uint8 bInteractableInitialized : 1;
 	
 #pragma endregion
 

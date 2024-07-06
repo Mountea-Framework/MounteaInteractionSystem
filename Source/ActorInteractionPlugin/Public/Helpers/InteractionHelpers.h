@@ -422,18 +422,23 @@ struct FInteractableBaseSettings
 	UPROPERTY(EditAnywhere, BlueprintReadOnly,  Category="InteractableSettings", meta=(NoResetToDefault, EditCondition = "DefaultLifecycleMode == EInteractableLifecycle::EIL_Cycled"))
 	int32																												DefaultLifecycles;
 
+	UPROPERTY(EditAnywhere, Category="InteractableSettings", meta=(UIMin=-1, ClampMin=-1, NoResetToDefault))
+	int32																												DefaultInteractableWeight;
+
 
 	FInteractableBaseSettings()
 		: DefaultInteractionPeriod(3.f)
-		, DefaultInteractableState(EInteractableStateV2::EIS_Awake)
-		, DefaultSetupType(ESetupType::EST_Quick)
-		, DefaultCollisionChannel(ECC_Camera)
-		, DefaultInteractionHighlight(true)
-		, DefaultHighlightSetup(FInteractionHighlightSetup())
-		, DefaultLifecycleMode(EInteractableLifecycle::EIL_Cycled)
-		, DefaultCooldownPeriod(3.f)
-		, DefaultLifecycles(-1)
-	{}
+		  , DefaultInteractableState(EInteractableStateV2::EIS_Awake)
+		  , DefaultSetupType(ESetupType::EST_Quick)
+		  , DefaultCollisionChannel(ECC_Camera)
+		  , DefaultInteractionHighlight(true)
+		  , DefaultHighlightSetup(FInteractionHighlightSetup())
+		  , DefaultLifecycleMode(EInteractableLifecycle::EIL_Cycled)
+		  , DefaultCooldownPeriod(3.f)
+		  , DefaultLifecycles(-1),
+			DefaultInteractableWeight(1)
+	{
+	}
 };
 
 #pragma endregion

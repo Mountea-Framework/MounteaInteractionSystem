@@ -8,7 +8,6 @@
 #include "EditorHelper.h"
 #endif
 
-
 #include "Interfaces/ActorInteractionWidget.h"
 #include "Widgets/ActorInteractableWidget.h"
 
@@ -40,7 +39,8 @@ UActorInteractableComponentBase::UActorInteractableComponentBase() :
 		InteractableName(LOCTEXT("InteractableComponentBase", "Base")),
 		SetupType(ESetupType::EST_Quick),
 		bCanPersist(false),
-		DebugSettings(false)
+		DebugSettings(false),
+		bInteractableInitialized(false)
 {
 	bAutoActivate = true;
 	
@@ -62,6 +62,15 @@ UActorInteractableComponentBase::UActorInteractableComponentBase() :
 #if WITH_EDITORONLY_DATA
 	bVisualizeComponent = true;
 #endif
+
+#if WITH_EDITOR || WITH_EDITORONLY_DATA
+	if (GIsEditor && !GIsPlayInEditorWorld && !bInteractableInitialized)
+	{
+		SetDefaultValues();
+	}
+#endif
+
+	bInteractableInitialized = true;
 }
 
 void UActorInteractableComponentBase::BeginPlay()
@@ -149,14 +158,6 @@ void UActorInteractableComponentBase::InitWidget()
 void UActorInteractableComponentBase::OnComponentCreated()
 {
 	Super::OnComponentCreated();
-
-#if WITH_EDITOR || WITH_EDITORONLY_DATA
-	if (GIsEditor && !GIsPlayInEditorWorld)
-	{
-		SetDefaultValues();
-	}
-#endif
-	
 }
 
 void UActorInteractableComponentBase::OnRegister()
@@ -1129,6 +1130,7 @@ void UActorInteractableComponentBase::SetDefaults_Implementation()
 		CollisionChannel = defaultSettings.DefaultCollisionChannel;
 		CooldownPeriod = defaultSettings.DefaultCooldownPeriod;
 		bInteractionHighlight = defaultSettings.DefaultInteractionHighlight;
+		InteractionWeight = defaultSettings.DefaultInteractableWeight;
 		if (!InteractableCompatibleTags.HasTag(defaultSettings.InteractableMainTag))
 			InteractableCompatibleTags.AddTag(defaultSettings.InteractableMainTag);
 	}
@@ -2089,6 +2091,8 @@ void UActorInteractableComponentBase::ProcessShowWidget()
 
 		SetHiddenInGame(false);
 		SetVisibility(true);
+		
+		OnInteractableWidgetVisibilityChanged.Broadcast(true);
 	}
 }
 
@@ -2100,6 +2104,8 @@ void UActorInteractableComponentBase::ProcessHideWidget()
 
 		SetHiddenInGame(true);
 		SetVisibility(false);
+
+		OnInteractableWidgetVisibilityChanged.Broadcast(false);
 	}
 }
 

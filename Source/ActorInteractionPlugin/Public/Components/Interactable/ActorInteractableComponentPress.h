@@ -31,6 +31,7 @@ protected:
 	virtual void BeginPlay() override;
 
 	virtual void InteractionStarted_Implementation(const float& TimeStarted, const TScriptInterface<IActorInteractorInterface>& CausingInteractor) override;
+	virtual void SetDefaults_Implementation() override;
 
 #if WITH_EDITOR
 	virtual void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;
