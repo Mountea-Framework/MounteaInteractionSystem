@@ -8,6 +8,7 @@
 #include "Interfaces/ActorInteractorInterface.h"
 #include "ActorInteractorComponentBase.generated.h"
 
+class UInputAction;
 struct FDebugSettings;
 class UInputMappingContext;
 
@@ -48,6 +49,8 @@ public:
 	{ return OnInteractionKeyReleased; };
 	virtual FInteractorTagChanged&		GetOnInteractorTagChangedHandle() override
 	{ return OnInteractorTagChanged; };
+	virtual FInputActionConsumed& GetInputActionConsumedHandle() override
+	{ return OnInputActionConsumed; };
 
 #pragma endregion
 	
@@ -103,6 +106,7 @@ public:
 	virtual void SetSafetyTracingSetup_Implementation(const FSafetyTracingSetup& NewSafetyTracingSetup) override;
 	virtual bool PerformSafetyTrace_Implementation(const AActor* InteractableActor) override;
 	virtual void SetDefaults_Implementation() override;
+	virtual void ConsumeInput_Implementation(UInputAction* ConsumedInput) override;
 	
 protected:
 
@@ -247,6 +251,9 @@ public:
 	UPROPERTY(BlueprintAssignable, Category="Interaction")
 	FInteractorTagChanged		OnInteractorTagChanged;
 
+	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category="Interaction")
+	FInputActionConsumed		OnInputActionConsumed;
+	
 protected:
 	
 	/**

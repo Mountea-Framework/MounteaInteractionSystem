@@ -76,4 +76,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Helpers")
 	static FText ReplaceRegexInText(const FText& SourceText, const TMap<FString, FText>& Replacements);
+	
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Helpers")
+	static bool IsGamePadConnected();
 };

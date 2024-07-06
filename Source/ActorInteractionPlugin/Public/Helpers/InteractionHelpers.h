@@ -8,7 +8,6 @@
 #include "Engine/EngineTypes.h"
 #include "InteractionHelpers.generated.h"
 
-
 /**
  * Type of Interactable Lifecycle.
  *

@@ -164,6 +164,11 @@ void UActorInteractorComponentBase::SetDefaults_Implementation()
 	}
 }
 
+void UActorInteractorComponentBase::ConsumeInput_Implementation(UInputAction* ConsumedInput)
+{
+	OnInputActionConsumed.Broadcast(ConsumedInput);
+}
+
 void UActorInteractorComponentBase::InteractableSelected_Implementation(const TScriptInterface<IActorInteractableInterface>& SelectedInteractable)
 {
 	if (SelectedInteractable.GetObject())

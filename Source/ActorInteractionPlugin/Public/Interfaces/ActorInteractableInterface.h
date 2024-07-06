@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
+#include "Helpers/MounteaInteractionHelperEvents.h"
 #include "UObject/Interface.h"
 #include "ActorInteractableInterface.generated.h"
 
@@ -16,6 +17,8 @@ class UActorInteractableInterface : public UInterface
 
 class IActorInteractableInterface;
 class IActorInteractorInterface;
+
+class UInputAction;
 
 struct FDataTableRowHandle;
 
@@ -1046,4 +1049,6 @@ public:
 	virtual FInteractableStateChanged& GetInteractableStateChanged() = 0;
 
 	virtual FInteractableWidgetVisibilityChanged& GetInteractableWidgetVisibilityChangedHandle() = 0;
+
+	virtual FInputActionConsumed& GetInputActionConsumedHandle() = 0;
 };

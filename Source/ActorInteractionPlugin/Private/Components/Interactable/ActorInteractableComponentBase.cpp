@@ -834,6 +834,8 @@ void UActorInteractableComponentBase::SetInteractor_Implementation(const TScript
 		//NewInteractor->GetOnInteractableSelectedHandle().AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractableSelected);
 		//NewInteractor->GetOnInteractableFoundHandle().Broadcast(this);
 
+		NewInteractor->GetInputActionConsumedHandle().AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractorActionConsumed);
+
 		if (GetOwner() && GetOwner()->HasAuthority())
 		{
 			GetOwner()->SetOwner(Interactor->Execute_GetOwningActor(Interactor.GetObject()));
@@ -844,6 +846,7 @@ void UActorInteractableComponentBase::SetInteractor_Implementation(const TScript
 		if (OldInteractor.GetInterface() != nullptr)
 		{
 			//OldInteractor->GetOnInteractableSelectedHandle().RemoveDynamic(this, &UActorInteractableComponentBase::InteractableSelected);
+			OldInteractor->GetInputActionConsumedHandle().RemoveDynamic(this, &UActorInteractableComponentBase::InteractorActionConsumed);
 		}
 
 		if (GetOwner() && GetOwner()->HasAuthority())
@@ -1352,8 +1355,14 @@ void UActorInteractableComponentBase::InteractionStarted_Implementation(const fl
 		Execute_SetState(this, EInteractableStateV2::EIS_Active);
 		Execute_OnInteractionStartedEvent(this, TimeStarted, CausingInteractor);
 
-		// Only if cannot execute cosmetic events!
-		InteractionStarted_Client(TimeStarted, CausingInteractor);
+		if (UMounteaInteractionSystemBFL::CanExecuteCosmeticEvents(GetWorld()))
+		{
+			Interactor->GetInputActionConsumedHandle().AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractorActionConsumed);
+		}
+		else
+		{
+			InteractionStarted_Client(TimeStarted, CausingInteractor);
+		}
 	}
 }
 
@@ -1361,6 +1370,8 @@ void UActorInteractableComponentBase::InteractionStarted_Client_Implementation(c
 {
 	if (GetOwner() && !GetOwner()->HasAuthority())
 	{
+		Interactor->GetInputActionConsumedHandle().AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractorActionConsumed);
+		
 		OnInteractionStarted.Broadcast(TimeStarted, CausingInteractor);
 
 		if (bCanPersist && GetWorld()->GetTimerManager().IsTimerPaused(Timer_Interaction))
@@ -2107,6 +2118,11 @@ void UActorInteractableComponentBase::ProcessHideWidget()
 
 		OnInteractableWidgetVisibilityChanged.Broadcast(false);
 	}
+}
+
+void UActorInteractableComponentBase::InteractorActionConsumed(UInputAction* ConsumedAction)
+{
+	OnInputActionConsumed.Broadcast(ConsumedAction);
 }
 
 #if WITH_EDITOR || WITH_EDITORONLY_DATA

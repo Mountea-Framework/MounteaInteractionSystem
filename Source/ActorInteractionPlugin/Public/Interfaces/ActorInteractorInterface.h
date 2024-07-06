@@ -7,6 +7,7 @@
 #include "UObject/Interface.h"
 
 #include "Engine/EngineTypes.h"
+#include "Helpers/MounteaInteractionHelperEvents.h"
 
 #include "ActorInteractorInterface.generated.h"
 
@@ -540,6 +541,10 @@ public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor", meta=(DisplayName="SetDefaults"))
 	void SetDefaults();
 	virtual void SetDefaults_Implementation()  = 0;
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
+	void ConsumeInput(UInputAction* ConsumedInput);
+	virtual void ConsumeInput_Implementation(UInputAction* ConsumedInput) = 0;
 	
 	virtual FInteractableSelected& GetOnInteractableSelectedHandle() = 0;
 	virtual FInteractableFound& GetOnInteractableFoundHandle() = 0;
@@ -547,4 +552,6 @@ public:
 	virtual FInteractionKeyPressed& GetOnInteractionKeyPressedHandle() = 0;
 	virtual FInteractionKeyReleased& GetOnInteractionKeyReleasedHandle() = 0;
 	virtual FInteractorTagChanged& GetOnInteractorTagChangedHandle() = 0;
+
+	virtual FInputActionConsumed& GetInputActionConsumedHandle() = 0;
 };

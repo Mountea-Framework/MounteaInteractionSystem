@@ -8,6 +8,7 @@
 
 #include "Interfaces/ActorInteractableInterface.h"
 #include "Helpers/InteractionHelpers.h"
+#include "Helpers/MounteaInteractionHelperEvents.h"
 
 #include "ActorInteractableComponentBase.generated.h"
 
@@ -217,6 +218,9 @@ protected:
 	virtual void ProcessStopHighlight();
 	virtual void ProcessShowWidget();
 	virtual void ProcessHideWidget();
+
+	UFUNCTION()
+	virtual void InteractorActionConsumed(UInputAction* ConsumedAction);
 
 public:
 	
@@ -733,6 +737,9 @@ protected:
 	UPROPERTY(BlueprintAssignable, Category="Interaction")
 	FHighlightMaterialChanged OnHighlightMaterialChanged;
 
+	UPROPERTY(BlueprintAssignable, Category="Interaction")
+	FInputActionConsumed OnInputActionConsumed;
+
 	FInteractableDependencyStarted InteractableDependencyStarted;
 
 	FInteractableDependencyStopped InteractableDependencyStopped;
@@ -788,6 +795,9 @@ public:
 	
 	virtual FInteractableWidgetVisibilityChanged& GetInteractableWidgetVisibilityChangedHandle() override
 	{ return  OnInteractableWidgetVisibilityChanged; };
+
+	virtual FInputActionConsumed& GetInputActionConsumedHandle() override
+	{ return OnInputActionConsumed; }; 
 
 #pragma endregion 
 

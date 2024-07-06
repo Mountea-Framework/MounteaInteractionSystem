@@ -20,7 +20,7 @@ struct FKeyPerPlatformMapping
 	GENERATED_BODY()
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Input", meta=(ShowOnlyInnerProperties))
-	TMap<FName, TSoftObjectPtr<class UTexture2D>> PlatformSpecificKey;
+	TMap<FKey, TSoftObjectPtr<class UTexture2D>> PlatformSpecificKey;
 };
 
 /**
@@ -64,7 +64,7 @@ public:
 
 	/** Defines textures to be used for each specified Key. */
 	UPROPERTY(config, BlueprintReadOnly, EditAnywhere, Category = "Input", meta=(ShowOnlyInnerProperties))
-	TMap<FKey, FKeyPerPlatformMapping>		InteractionKeyTexturesMapping;
+	TMap<FString, FKeyPerPlatformMapping>		InteractionKeyTexturesMapping;
 	
 #if WITH_EDITOR
 	virtual FText GetSectionText() const override
