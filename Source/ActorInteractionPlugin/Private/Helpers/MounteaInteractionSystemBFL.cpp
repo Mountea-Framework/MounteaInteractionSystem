@@ -2,6 +2,12 @@
 
 
 #include "Helpers/MounteaInteractionSystemBFL.h"
+#include "Helpers/ActorInteractionPluginSettings.h"
+#include "Helpers/MounteaInteractionSettingsConfig.h"
+
+#include "CommonInputSubsystem.h"
+#include "CommonInputTypeEnum.h"
+#include "Kismet/GameplayStatics.h"
 
 #include "Kismet/KismetSystemLibrary.h"
 
@@ -130,6 +136,37 @@ FText UMounteaInteractionSystemBFL::ReplaceRegexInText(const FText& SourceText, 
 	return FText::FromString(ResultString);
 }
 
+ULocalPlayer* UMounteaInteractionSystemBFL::FindLocalPlayer(AActor* ForActor)
+{
+	if (!ForActor)
+		return nullptr;
+
+	if (!ForActor->GetWorld())
+		return nullptr;
+
+	APlayerController* localPlayerController = Cast<APlayerController>(ForActor);
+	if (localPlayerController)
+	{
+		return localPlayerController->GetLocalPlayer();
+	}
+	
+	APawn* localPawn = Cast<APawn>(ForActor);
+	if (localPawn)
+	{
+		localPlayerController = localPawn->GetController<APlayerController>();
+		if (localPlayerController)
+		{
+			return localPlayerController->GetLocalPlayer();
+		}
+	}
+
+	localPlayerController = ForActor->GetWorld()->GetFirstPlayerController();
+	if (localPlayerController)
+		return FindLocalPlayer(localPlayerController);
+
+	return nullptr;
+}
+
 bool UMounteaInteractionSystemBFL::IsGamePadConnected()
 {
 	auto genericApplication = FSlateApplication::Get().GetPlatformApplication();
@@ -139,3 +176,66 @@ bool UMounteaInteractionSystemBFL::IsGamePadConnected()
 	}
 	return false;
 }
+
+ECommonInputType UMounteaInteractionSystemBFL::GetActiveInputType(APlayerController* PlayerController)
+{
+	if (!PlayerController)
+		return ECommonInputType::MouseAndKeyboard;
+
+	const auto localPlayer = PlayerController->GetLocalPlayer();
+	if (!localPlayer)
+		return ECommonInputType::MouseAndKeyboard;
+	
+	UCommonInputSubsystem* commonInputSubsystem = UCommonInputSubsystem::Get(localPlayer);
+	if (!commonInputSubsystem)
+		return ECommonInputType::MouseAndKeyboard;
+
+	return commonInputSubsystem->GetCurrentInputType();
+}
+
+bool UMounteaInteractionSystemBFL::IsInputKeyPairSupported(APlayerController* PlayerController, const FKey& InputKey, TSoftObjectPtr<class UTexture2D>& FoundInputTexture)
+{
+	const UActorInteractionPluginSettings* settings = GetMutableDefault<UActorInteractionPluginSettings>();
+	if (!settings)
+		return false;
+
+	ULocalPlayer* localPlayer = FindLocalPlayer(PlayerController);
+	if (!localPlayer)
+		return false;
+
+	const auto interactionConfig = settings->DefaultInteractionSystemConfig;
+	if (!interactionConfig)
+		return false;
+
+	const auto interactionConfigRef = interactionConfig.LoadSynchronous();
+	if (!interactionConfigRef)
+		return false;
+
+	if (interactionConfigRef->MappingKeys.Num() == 0)
+		return false;
+
+	const FString platformName = UGameplayStatics::GetPlatformName();
+	const ECommonInputType activeInputType = GetActiveInputType(PlayerController);
+
+	for (const auto& Itr : interactionConfigRef->MappingKeys)
+	{
+		if (InputKey != Itr.Key)
+			continue;
+
+		TPair<ECommonInputType, FString> testPair(activeInputType, platformName);
+
+		const FKeyOnDevicePair* foundPair = Itr.Value.KeyPairs.FindByPredicate([&testPair](const FKeyOnDevicePair& Pair)
+		{
+			return Pair == testPair;
+		});
+
+		if (foundPair)
+		{
+			FoundInputTexture = foundPair->KeyTexture;
+			return true;
+		}
+	}
+
+	return false;
+}
+

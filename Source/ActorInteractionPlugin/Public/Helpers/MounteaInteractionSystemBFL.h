@@ -7,6 +7,7 @@
 #include "MounteaInteractionSystemBFL.generated.h"
 
 class UActorInteractionPluginSettings;
+enum class ECommonInputType : uint8;
 
 /**
  * 
@@ -76,7 +77,16 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Helpers")
 	static FText ReplaceRegexInText(const FText& SourceText, const TMap<FString, FText>& Replacements);
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Helpers")
+	static ULocalPlayer* FindLocalPlayer(AActor* ForActor);
 	
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Helpers")
 	static bool IsGamePadConnected();
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Helpers")
+	static ECommonInputType GetActiveInputType(class APlayerController* PlayerController);
+	
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Helpers")
+	static bool IsInputKeyPairSupported(class APlayerController* PlayerController, const FKey& InputKey, TSoftObjectPtr<class UTexture2D>& FoundInputTexture);
 };

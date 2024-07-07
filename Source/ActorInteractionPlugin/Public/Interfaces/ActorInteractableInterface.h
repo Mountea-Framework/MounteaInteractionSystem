@@ -24,6 +24,7 @@ struct FDataTableRowHandle;
 
 enum class EInteractableStateV2 : uint8;
 enum class EInteractableLifecycle : uint8;
+enum class ECommonInputType : uint8;
 
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractorFound, const TScriptInterface<IActorInteractorInterface>&, FoundInteractor);
@@ -72,6 +73,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractableDependencyStopped, cons
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteractableWidgetVisibilityChanged, const bool, bIsVisible);
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FInteractionDeviceChanged, const ECommonInputType, DeviceType, const FName&, DeviceName, const FString&, DeviceHardwareName);
 /**
  * 
  */
@@ -1024,6 +1026,10 @@ public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Interaction")
 	FString ToString() const;
 	virtual FString ToString_Implementation() const = 0;
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Interaction")
+	void OnInputDeviceChanged(const ECommonInputType DeviceType, const FName& DeviceName, const FString& DeviceHardwareName);
+	virtual void OnInputDeviceChanged_Implementation(const ECommonInputType DeviceType, const FName& DeviceName, const FString& DeviceHardwareName) =0;
 	
 	
 	virtual FOnInteractableSelected& GetOnInteractableSelectedHandle() = 0;
@@ -1051,4 +1057,5 @@ public:
 	virtual FInteractableWidgetVisibilityChanged& GetInteractableWidgetVisibilityChangedHandle() = 0;
 
 	virtual FInputActionConsumed& GetInputActionConsumedHandle() = 0;
+	virtual FInteractionDeviceChanged& GetInteractionDeviceChangedHandle() = 0;
 };

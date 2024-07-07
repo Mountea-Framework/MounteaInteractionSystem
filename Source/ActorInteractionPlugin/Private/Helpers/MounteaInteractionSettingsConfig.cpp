@@ -2,3 +2,10 @@
 
 
 #include "Helpers/MounteaInteractionSettingsConfig.h"
+
+#include "CommonInputTypeEnum.h"
+
+FKeyOnDevicePair::FKeyOnDevicePair() 
+		: SupportedDeviceType(ECommonInputType::MouseAndKeyboard)
+{
+}

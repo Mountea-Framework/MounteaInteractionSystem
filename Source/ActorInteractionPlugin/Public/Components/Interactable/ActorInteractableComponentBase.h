@@ -15,6 +15,8 @@
 #define LOCTEXT_NAMESPACE "InteractableComponent"
 
 class UInputMappingContext;
+enum class ECommonInputType : uint8;
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnWidgetUpdated);
 
 
@@ -38,9 +40,11 @@ public:
 	UActorInteractableComponentBase();
 
 protected:
-	
+
 	virtual void BeginPlay() override;
 	virtual void InitWidget() override;
+
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	virtual void OnComponentCreated() override;
 	virtual void OnRegister() override;
@@ -169,6 +173,8 @@ public:
 
 	virtual FString ToString_Implementation() const override;
 
+	virtual void OnInputDeviceChanged_Implementation(const ECommonInputType DeviceType, const FName& DeviceName, const FString& DeviceHardwareName) override;
+
 #pragma endregion
 
 #pragma region InteractableFunctions_Networking
@@ -221,6 +227,9 @@ protected:
 
 	UFUNCTION()
 	virtual void InteractorActionConsumed(UInputAction* ConsumedAction);
+
+	UFUNCTION()
+	void OnInputModeChanged(ECommonInputType CommonInput);
 
 public:
 	
@@ -740,6 +749,9 @@ protected:
 	UPROPERTY(BlueprintAssignable, Category="Interaction")
 	FInputActionConsumed OnInputActionConsumed;
 
+	UPROPERTY(BlueprintAssignable, Category="Interaction")
+	FInteractionDeviceChanged OnInteractionDeviceChanged;
+
 	FInteractableDependencyStarted InteractableDependencyStarted;
 
 	FInteractableDependencyStopped InteractableDependencyStopped;
@@ -797,7 +809,9 @@ public:
 	{ return  OnInteractableWidgetVisibilityChanged; };
 
 	virtual FInputActionConsumed& GetInputActionConsumedHandle() override
-	{ return OnInputActionConsumed; }; 
+	{ return OnInputActionConsumed; };
+	virtual FInteractionDeviceChanged& GetInteractionDeviceChangedHandle() override
+	{ return OnInteractionDeviceChanged; };
 
 #pragma endregion 
 

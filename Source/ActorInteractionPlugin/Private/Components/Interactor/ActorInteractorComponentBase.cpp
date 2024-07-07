@@ -20,8 +20,8 @@ UActorInteractorComponentBase::UActorInteractorComponentBase() :
 		DebugSettings(false),
 		CollisionChannel(ECC_Camera),
 		DefaultInteractorState(EInteractorStateV2::EIS_Awake),
-		InteractorState(EInteractorStateV2::EIS_Asleep),
-		SafetyTraceSetup(FSafetyTracingSetup(ESafetyTracingMode::ESTM_Location))
+		SafetyTraceSetup(FSafetyTracingSetup(ESafetyTracingMode::ESTM_Location)),
+		InteractorState(EInteractorStateV2::EIS_Asleep)
 {
 	bAutoActivate = true;
 	

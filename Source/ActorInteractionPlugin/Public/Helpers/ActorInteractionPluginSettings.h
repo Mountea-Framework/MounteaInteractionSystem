@@ -3,7 +3,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "InteractionHelpers.h"
 #include "Engine/DeveloperSettings.h"
 
 #include "ActorInteractionPluginSettings.generated.h"
@@ -13,15 +12,6 @@ class UInputMappingContext;
 class UDataTable;
 class UMaterialInterface;
 class UUserWidget;
-
-USTRUCT(BlueprintType)
-struct FKeyPerPlatformMapping
-{
-	GENERATED_BODY()
-
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Input", meta=(ShowOnlyInnerProperties))
-	TMap<FKey, TSoftObjectPtr<class UTexture2D>> PlatformSpecificKey;
-};
 
 /**
  * Mountea Interaction System global settings.
@@ -61,10 +51,6 @@ public:
 
 	/** Defines default Interaction Commands. Serves purpose of containing default commands. */
 	TSet<FString>												InteractionWidgetCommands;
-
-	/** Defines textures to be used for each specified Key. */
-	UPROPERTY(config, BlueprintReadOnly, EditAnywhere, Category = "Input", meta=(ShowOnlyInnerProperties))
-	TMap<FString, FKeyPerPlatformMapping>		InteractionKeyTexturesMapping;
 	
 #if WITH_EDITOR
 	virtual FText GetSectionText() const override

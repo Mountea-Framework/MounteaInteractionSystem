@@ -53,11 +53,13 @@ public class ActorInteractionPlugin : ModuleRules
 				"EnhancedInput",
 				"NetCore",
 				"EnhancedInput",
-
+				"ApplicationCore",
+				"CommonInput",
+				
 				"InteractionEditorNotifications",
 
 #if UE_4_26_OR_LATER
-				"DeveloperSettings",
+				"DeveloperSettings", 
 #endif
 				// ... add private dependencies that you statically link with here ...	
 			}
