@@ -44,6 +44,15 @@ UE 5.3 | 3.0.1.6 | 🟩
     <img width="33%" src="https://github.com/Mountea-Framework/MounteaInteractionSystem/assets/37410226/2b7513eb-5239-4331-96e5-469671813065">
 </p>
 
+## Dynamic Input Mapping
+
+<p align="center" width="100%">
+     <img width="33%" src="https://github.com/Mountea-Framework/MounteaInteractionSystem/assets/37410226/a38d4116-3505-459e-9c59-f7637fd08c8f">
+</p>
+
+
+
+
 ### Installation
 
 Download the plugin (either from Releases or from Marketplace). For a more detailed guide take a look at the Wiki page.
