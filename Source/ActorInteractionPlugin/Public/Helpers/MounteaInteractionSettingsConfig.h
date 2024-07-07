@@ -30,6 +30,9 @@ struct FKeyOnDevicePair
 	/** The platforms that support this key. */
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Input")
 	TArray<FString> SupportedPlatforms;
+	
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Input")
+	TArray<FString> BlacklistedDeviceIDs;
 
 	FKeyOnDevicePair();
 

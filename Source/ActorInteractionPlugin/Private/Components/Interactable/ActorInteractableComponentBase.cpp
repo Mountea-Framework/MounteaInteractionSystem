@@ -2178,7 +2178,16 @@ void UActorInteractableComponentBase::OnInputModeChanged(ECommonInputType Common
 				const auto currentInputType = commonInputSubsystem->GetCurrentInputType();
 				const auto currentInputName = commonInputSubsystem->GetCurrentGamepadName();
 
-				OnInteractionDeviceChanged.Broadcast(currentInputType, currentInputName, TEXT("Not Implemented"));
+				FString hardwareDeviceName;
+				FName inputDeviceName;
+				const FInputDeviceScope* DeviceScope = FInputDeviceScope::GetCurrent();
+				if (DeviceScope)
+				{
+					hardwareDeviceName = DeviceScope->HardwareDeviceIdentifier;
+					inputDeviceName = DeviceScope->InputDeviceName;
+				}
+				
+				OnInteractionDeviceChanged.Broadcast(currentInputType, currentInputName, hardwareDeviceName);
 			}
 		}
 	}
