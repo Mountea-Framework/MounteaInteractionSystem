@@ -8,6 +8,8 @@
 #include "Engine/EngineTypes.h"
 #include "InteractionHelpers.generated.h"
 
+class UMaterialInterface;
+
 /**
  * Type of Interactable Lifecycle.
  *

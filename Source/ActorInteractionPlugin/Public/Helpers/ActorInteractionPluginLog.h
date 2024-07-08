@@ -8,7 +8,7 @@
 ACTORINTERACTIONPLUGIN_API DECLARE_LOG_CATEGORY_EXTERN(LogActorInteraction, Display, All);
 
 // Forward declaration of the logging function
-void PrintLog(const FString& Message, FLinearColor Color, float Duration);
+void PrintLog(const FString& Message, const FLinearColor Color, const float Duration);
 
 // Logging macro definitions
 #define LOG_INFO(Format, ...) \

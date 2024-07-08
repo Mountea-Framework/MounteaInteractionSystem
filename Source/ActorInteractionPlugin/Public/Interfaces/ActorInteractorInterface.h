@@ -60,7 +60,7 @@ public:
 	 * 
 	 * @param SelectedInteractable Interactable Component which is being interacted with
 	 */
-	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category="Interaction")
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
 	void OnInteractableSelectedEvent(const TScriptInterface<IActorInteractableInterface>& SelectedInteractable);
 
 	/**
@@ -70,7 +70,7 @@ public:
 	 * 
 	 * @param FoundInteractable Interactable Component which is found
 	 */
-	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category="Interaction")
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
 	void OnInteractableFoundEvent(const TScriptInterface<IActorInteractableInterface>& FoundInteractable);
 	
 	/**
@@ -80,7 +80,7 @@ public:
 	 * 
 	 * @param LostInteractable Interactable Component which is lost
 	 */
-	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category="Interaction")
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
 	void OnInteractableLostEvent(const TScriptInterface<IActorInteractableInterface>& LostInteractable);
 
 	/**
@@ -91,7 +91,7 @@ public:
 	 * @param TimeKeyPressed Time Key was pressed
 	 * @param PressedKey Key which was pressed
 	 */
-	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category="Interaction")
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
 	void OnInteractionKeyPressedEvent(const float& TimeKeyPressed);
 
 	/**
@@ -102,7 +102,7 @@ public:
 	 * @param TimeKeyReleased Time Key was released
 	 * @param ReleasedKey Key which was released
 	 */
-	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category="Interaction")
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
 	void OnInteractionKeyReleasedEvent(const float& TimeKeyReleased);
 	
 	/**
@@ -112,7 +112,7 @@ public:
 	 * 
 	 * @param NewState New State if this Interactor
 	 */
-	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category="Interaction")
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
 	void OnInteractorStateChanged(const EInteractorStateV2& NewState);
 
 	/**
@@ -122,7 +122,7 @@ public:
 	 * 
 	 * @param NewCollisionChannel New Collision Channel set as Response Channel
 	 */
-	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category="Interaction")
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
 	void OnInteractorCollisionChanged(const TEnumAsByte<ECollisionChannel>& NewCollisionChannel);
 
 #pragma endregion
@@ -473,7 +473,7 @@ public:
 	 * @param Component		Whether this Interactor is Auto Activated or not
 	 * @param bReset				Whether the component should be reset
 	 */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Interaction")
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
 	void OnInteractorComponentActivated(UActorComponent* Component, bool bReset);
 	virtual void OnInteractorComponentActivated_Implementation(UActorComponent* Component, bool bReset) = 0;
 
@@ -493,7 +493,7 @@ public:
 	 *
 	 * @return A string containing debug and useful information about the interactor.
 	 */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Interaction")
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
 	FString ToString() const;
 	virtual FString ToString_Implementation() const = 0;
 

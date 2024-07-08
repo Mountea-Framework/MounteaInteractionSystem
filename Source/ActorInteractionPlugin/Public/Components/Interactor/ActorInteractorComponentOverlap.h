@@ -62,7 +62,7 @@ public:
 	 * 
 	 * @param CollisionComponent 
 	 */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Interaction")
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
 	void AddCollisionComponent(UPrimitiveComponent* CollisionComponent);
 	virtual void AddCollisionComponent_Implementation(UPrimitiveComponent* CollisionComponent);
 	
@@ -70,7 +70,7 @@ public:
 	 * 
 	 * @param CollisionComponents		
 	 */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Interaction")
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
 	void AddCollisionComponents(const TArray<UPrimitiveComponent*>& CollisionComponents);
 	virtual void AddCollisionComponents_Implementation(const TArray<UPrimitiveComponent*>& CollisionComponents);
 	
@@ -78,7 +78,7 @@ public:
 	 * 
 	 * @param CollisionComponent		
 	 */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Interaction")
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
 	void RemoveCollisionComponent(UPrimitiveComponent* CollisionComponent);
 	virtual void RemoveCollisionComponent_Implementation(UPrimitiveComponent* CollisionComponent);
 	
@@ -86,7 +86,7 @@ public:
 	 * 
 	 * @param CollisionComponents		
 	 */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Interaction")
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
 	void RemoveCollisionComponents(const TArray<UPrimitiveComponent*>& CollisionComponents);
 	virtual void RemoveCollisionComponents_Implementation(const TArray<UPrimitiveComponent*>& CollisionComponents);
 	
@@ -94,7 +94,7 @@ public:
 	 * 
 	 * @return 
 	 */
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Interactor")
 	TArray<UPrimitiveComponent*> GetCollisionComponents() const;
 	
 protected:
@@ -126,10 +126,10 @@ protected:
 
 public:
 
-	UPROPERTY(BlueprintAssignable, Category="Interaction")
+	UPROPERTY(BlueprintAssignable, Category="Mountea|Interaction|Interactor")
 	FCollisionShapeAdded																		OnCollisionShapeAdded;
 
-	UPROPERTY(BlueprintAssignable, Category="Interaction")
+	UPROPERTY(BlueprintAssignable, Category="Mountea|Interaction|Interactor")
 	FCollisionShapeRemoved																	OnCollisionShapeRemoved;
 	
 protected:

@@ -174,7 +174,7 @@ public:
 	/**
 	 * Returns Trace Type.
 	 */
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Interactor")
 	virtual ETraceType GetTraceType() const;
 	
 	/**
@@ -189,7 +189,7 @@ public:
 	/**
 	 * Returns Trace Interval in seconds.
 	 */
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Interactor")
 	virtual float GetTraceInterval() const;
 	
 	/**
@@ -205,7 +205,7 @@ public:
 	/**
 	 * Returns Trace Range in cm.
 	 */
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Interactor")
 	virtual float GetTraceRange() const;
 	
 	/**
@@ -222,7 +222,7 @@ public:
 	 * Returns Trace Shape Half Size in cm.
 	 * Defines how precise tracing is when using Loose tracing type.
 	 */
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Interactor")
 	virtual float GetTraceShapeHalfSize() const;
 	
 	/**
@@ -238,7 +238,7 @@ public:
 	/**
 	 * Returns whether using Custom Trace Transform.
 	 */
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Interactor")
 	virtual bool GetUseCustomStartTransform() const;
 	
 	/**
@@ -255,7 +255,7 @@ public:
 	 * Structure of all Tracing Data at one place.
 	 * Updated every time any value is changed.
 	 */
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Interactor")
 	virtual FTracingData GetLastTracingData() const;
 
 	/**
@@ -270,7 +270,7 @@ public:
 	/**
 	 * Returns current Custom Trace Start value.
 	 */
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Interactor")
 	virtual FTransform GetCustomTraceStart() const;
 
 protected:
@@ -417,13 +417,13 @@ protected:
 	 * Event called every time any Trace value has changed.
 	 * Will provide information about Old data and New data. Useful when debugging.
 	 */
-	UPROPERTY(BlueprintAssignable, Category="Interaction")
+	UPROPERTY(BlueprintAssignable, Category="Mountea|Interaction|Interactor")
 	FTracingDataChanged													OnTraceDataChanged;
 
 	/**
 	 * 
 	 */
-	UPROPERTY(BlueprintAssignable, Category="Interaction")
+	UPROPERTY(BlueprintAssignable, Category="Mountea|Interaction|Interactor")
 	FOnTraced																		OnTraced;
 
 #pragma endregion

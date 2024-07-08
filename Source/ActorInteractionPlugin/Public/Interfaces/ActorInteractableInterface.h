@@ -89,79 +89,79 @@ protected:
 	/**
 	 * Event bound to OnInteractableSelected.
 	 */
-	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	UFUNCTION(BlueprintImplementableEvent, Category="Mountea|Interaction|Interactable")
 	void OnInteractableSelectedEvent(const TScriptInterface<IActorInteractableInterface>& Interactable);
 	
 	/**
 	 * Event bound to OnInteractorFound.
 	 */
-	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	UFUNCTION(BlueprintImplementableEvent, Category="Mountea|Interaction|Interactable")
 	void OnInteractorFoundEvent(const TScriptInterface<IActorInteractorInterface>& FoundInteractor);
 
 	/**
 	 * Event bound to OnInteractorLost.
 	 */
-	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	UFUNCTION(BlueprintImplementableEvent, Category="Mountea|Interaction|Interactable")
 	void OnInteractorLostEvent(const TScriptInterface<IActorInteractorInterface>& LostInteractor);
 	
 	/**
 	 * Event bound to OnInteractorOverlapped.
 	 */
-	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	UFUNCTION(BlueprintImplementableEvent, Category="Mountea|Interaction|Interactable")
 	void OnInteractableBeginOverlapEvent(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
 
 	/**
 	 * Event bound to OnInteractorStopOverlap.
 	 */
-	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	UFUNCTION(BlueprintImplementableEvent, Category="Mountea|Interaction|Interactable")
 	void OnInteractableStopOverlapEvent(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
 	/**
 	 * Event bound to OnInteractorTraced.
 	 */
-	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	UFUNCTION(BlueprintImplementableEvent, Category="Mountea|Interaction|Interactable")
 	void OnInteractableTracedEvent(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
 	/**
 	 * Event bound to OnInteractionCompleted.
 	 */
-	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	UFUNCTION(BlueprintImplementableEvent, Category="Mountea|Interaction|Interactable")
 	void OnInteractionCompletedEvent(const float& FinishTime, const TScriptInterface<IActorInteractorInterface>& CausingInteractor);
 
 	/**
 	 * Event called once Interaction Cycle is completed.
 	 */
-	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	UFUNCTION(BlueprintImplementableEvent, Category="Mountea|Interaction|Interactable")
 	void OnInteractionCycleCompletedEvent(const float& CompletedTime, const int32 CyclesRemaining, const TScriptInterface<IActorInteractorInterface>& CausingInteractor);
 
 	/**
 	 * Event bound to OnInteractionStarted.
 	 */
-	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	UFUNCTION(BlueprintImplementableEvent, Category="Mountea|Interaction|Interactable")
 	void OnInteractionStartedEvent(const float& StartTime, const TScriptInterface<IActorInteractorInterface>& CausingInteractor);
 
 	/**
 	 * Event bound to OnInteractionStopped.
 	 */
-	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	UFUNCTION(BlueprintImplementableEvent, Category="Mountea|Interaction|Interactable")
 	void OnInteractionStoppedEvent(const float& TimeStarted, const TScriptInterface<IActorInteractorInterface>& CausingInteractor);
 
 	/**
 	 * Event bound to OnInteractionCanceled.
 	 */
-	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	UFUNCTION(BlueprintImplementableEvent, Category="Mountea|Interaction|Interactable")
 	void OnInteractionCanceledEvent();
 	
 	/**
 	 * Event bound to OnLifecycleCompleted.
 	 */
-	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	UFUNCTION(BlueprintImplementableEvent, Category="Mountea|Interaction|Interactable")
 	void OnLifecycleCompletedEvent();
 
 	/**
 	 * Event bound to OnCooldownCompleted.
 	 */
-	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	UFUNCTION(BlueprintImplementableEvent, Category="Mountea|Interaction|Interactable")
 	void OnCooldownCompletedEvent();
 
 #pragma endregion
@@ -1027,11 +1027,11 @@ public:
 	 *
 	 * @return A string containing debug and useful information about the Interactable.
 	 */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Interaction")
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactable")
 	FString ToString() const;
 	virtual FString ToString_Implementation() const = 0;
 
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Interaction")
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactable")
 	void OnInputDeviceChanged(const ECommonInputType DeviceType, const FName& DeviceName, const FString& DeviceHardwareName);
 	virtual void OnInputDeviceChanged_Implementation(const ECommonInputType DeviceType, const FName& DeviceName, const FString& DeviceHardwareName) =0;
 	

@@ -260,7 +260,7 @@ public:
 	 * * Other Actor contains Component which Implements Interactor Interface
 	 * * Interactor Interface does have same CollisionChannel as Interactable
 	 */
-	UFUNCTION(Category="Interaction")
+	UFUNCTION(Category="Mountea|Interaction|Interactable")
 	virtual void OnInteractableBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
 
 	/**
@@ -272,7 +272,7 @@ public:
 	 * * Other Actor contains Component which Implements Interactor Interface
 	 * * Interactor Interface does have same CollisionChannel as Interactable
 	 */
-	UFUNCTION(Category="Interaction")
+	UFUNCTION(Category="Mountea|Interaction|Interactable")
 	virtual void OnInteractableStopOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 		
 	/**
@@ -284,25 +284,25 @@ public:
 	 * * Other Actor contains Component which Implements Interactor Interface
 	 * * Interactor Interface does have same CollisionChannel as Interactable
 	 */
-	UFUNCTION(Category="Interaction")
+	UFUNCTION(Category="Mountea|Interaction|Interactable")
 	virtual void OnInteractableTraced(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
 	/**
 	 * Event called once Widget Settings are updated.
 	 */
-	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	UFUNCTION(BlueprintImplementableEvent, Category="Mountea|Interaction|Interactable")
 	void OnWidgetUpdatedEvent();
 
 	/**
 	* Event called once Highlight Type has changed.
 	*/
-	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	UFUNCTION(BlueprintImplementableEvent, Category="Mountea|Interaction|Interactable")
 	void OnHighlightTypeChangedEvent(const EHighlightType& NewHighlightType);
 
 	/**
 	* Event called once Highlight Material has changed.
 	*/
-	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	UFUNCTION(BlueprintImplementableEvent, Category="Mountea|Interaction|Interactable")
 	void OnHighlightMaterialChangedEvent(const UMaterialInterface* NewHighlightMaterial);
 	
 	UFUNCTION()
@@ -317,10 +317,10 @@ public:
 
 protected:
 
-	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	UFUNCTION(BlueprintImplementableEvent, Category="Mountea|Interaction|Interactable")
 	void OnIgnoredClassAdded(const TSoftClassPtr<UObject>& IgnoredClass);
 
-	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	UFUNCTION(BlueprintImplementableEvent, Category="Mountea|Interaction|Interactable")
 	void OnIgnoredClassRemoved(const TSoftClassPtr<UObject>& IgnoredClass);
 
 #pragma endregion
@@ -335,7 +335,7 @@ protected:
 	 * Once OnInteractableDependencyChanged is called this event is, too.
 	 * Be sure to call Parent event to access all C++ implementation!
 	 */
-	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	UFUNCTION(BlueprintImplementableEvent, Category="Mountea|Interaction|Interactable")
 	void OnInteractableDependencyChangedEvent(const TScriptInterface<IActorInteractableInterface>& Dependency);
 
 	/**
@@ -345,7 +345,7 @@ protected:
 	 * 
 	 * @param NewValue New value of the Auto Setup
 	 */
-	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	UFUNCTION(BlueprintImplementableEvent, Category="Mountea|Interaction|Interactable")
 	void OnInteractableAutoSetupChangedEvent(const bool NewValue);
 
 	/**
@@ -355,7 +355,7 @@ protected:
 	 * 
 	 * @param NewWeight New value of the Interactable Weight
 	 */
-	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	UFUNCTION(BlueprintImplementableEvent, Category="Mountea|Interaction|Interactable")
 	void OnInteractableWeightChangedEvent(const int32& NewWeight);
 
 	/**
@@ -365,7 +365,7 @@ protected:
 	 * 
 	 * @param NewState New value of the Interactable State
 	 */
-	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	UFUNCTION(BlueprintImplementableEvent, Category="Mountea|Interaction|Interactable")
 	void OnInteractableStateChangedEvent(const EInteractableStateV2& NewState);
 
 	/**
@@ -375,7 +375,7 @@ protected:
 	 * 
 	 * @param NewOwner New value of the Interactable Owner
 	 */
-	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	UFUNCTION(BlueprintImplementableEvent, Category="Mountea|Interaction|Interactable")
 	void OnInteractableOwnerChangedEvent(const AActor* NewOwner);
 
 	/**
@@ -385,7 +385,7 @@ protected:
 	 * 
 	 * @param NewChannel New value of the Interactable Collision Channel
 	 */
-	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	UFUNCTION(BlueprintImplementableEvent, Category="Mountea|Interaction|Interactable")
 	void OnInteractableCollisionChannelChangedEvent(const ECollisionChannel NewChannel);
 
 	/**
@@ -395,7 +395,7 @@ protected:
 	 * 
 	 * @param NewMode New value of the Interactable Lifecycle
 	 */
-	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	UFUNCTION(BlueprintImplementableEvent, Category="Mountea|Interaction|Interactable")
 	void OnLifecycleModeChangedEvent(const EInteractableLifecycle& NewMode);
 
 	/**
@@ -405,7 +405,7 @@ protected:
 	 * 
 	 * @param NewLifecycleCount New value of the Lifecycle Count
 	 */
-	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	UFUNCTION(BlueprintImplementableEvent, Category="Mountea|Interaction|Interactable")
 	void OnLifecycleCountChangedEvent(const int32 NewLifecycleCount);
 
 	/**
@@ -415,7 +415,7 @@ protected:
 	 * 
 	 * @param NewCooldownPeriod New value of the Cooldown Period
 	 */
-	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	UFUNCTION(BlueprintImplementableEvent, Category="Mountea|Interaction|Interactable")
 	void OnCooldownPeriodChangedEvent(const float NewCooldownPeriod);
 
 	/**
@@ -425,7 +425,7 @@ protected:
 	 * 
 	 * @param NewHighlightableComp New Highlightable Component added to list of Highlightables 
 	 */
-	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	UFUNCTION(BlueprintImplementableEvent, Category="Mountea|Interaction|Interactable")
 	void OnHighlightableComponentAddedEvent(const UMeshComponent* NewHighlightableComp);
 
 	/**
@@ -435,7 +435,7 @@ protected:
 	 * 
 	 * @param RemovedHighlightableComp Highlightable Component removed from the list of Highlightables 
 	 */
-	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	UFUNCTION(BlueprintImplementableEvent, Category="Mountea|Interaction|Interactable")
 	void OnHighlightableComponentRemovedEvent(const UMeshComponent* RemovedHighlightableComp);
 
 	/**
@@ -445,7 +445,7 @@ protected:
 	 * 
 	 * @param NewCollisionComp New Collision Component added to list of Colliders 
 	 */
-	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	UFUNCTION(BlueprintImplementableEvent, Category="Mountea|Interaction|Interactable")
 	void OnCollisionComponentAddedEvent(const UPrimitiveComponent* NewCollisionComp);
 
 	/**
@@ -455,7 +455,7 @@ protected:
 	 * 
 	 * @param RemovedCollisionComp Collision Component removed from list of Colliders 
 	 */
-	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	UFUNCTION(BlueprintImplementableEvent, Category="Mountea|Interaction|Interactable")
 	void OnCollisionComponentRemovedEvent(const UPrimitiveComponent* RemovedCollisionComp);
 
 	/**
@@ -465,7 +465,7 @@ protected:
 	 * 
 	 * @param NewInteractor Interactor set as new Interactor, could be nullptr
 	 */
-	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	UFUNCTION(BlueprintImplementableEvent, Category="Mountea|Interaction|Interactable")
 	void OnInteractorChangedEvent(const TScriptInterface<IActorInteractorInterface>& NewInteractor);
 
 #pragma endregion 
@@ -508,7 +508,7 @@ protected:
 	 * * Other Actor contains Component which Implements Interactor Interface
 	 * * Interactor Interface does have same CollisionChannel as Interactable
 	 */
-	UPROPERTY(BlueprintAssignable, Category="Interaction")
+	UPROPERTY(BlueprintAssignable, Category="Mountea|Interaction|Interactable")
 	FInteractorTraced OnInteractorTraced;
 
 	/**
@@ -518,7 +518,7 @@ protected:
 	 * * Other Actor contains Component which Implements Interactor Interface
 	 * * Interactor Interface does have same CollisionChannel as Interactable
 	 */
-	UPROPERTY(BlueprintAssignable, Category="Interaction")
+	UPROPERTY(BlueprintAssignable, Category="Mountea|Interaction|Interactable")
 	FInteractorOverlapped OnInteractorOverlapped;
 	
 	/**
@@ -528,7 +528,7 @@ protected:
 	 * * Other Actor contains Component which Implements Interactor Interface
 	 * * Interactor Interface does have same CollisionChannel as Interactable
 	 */
-	UPROPERTY(BlueprintAssignable, Category="Interaction")
+	UPROPERTY(BlueprintAssignable, Category="Mountea|Interaction|Interactable")
 	FInteractorStopOverlap OnInteractorStopOverlap;
 
 #pragma endregion
@@ -539,14 +539,14 @@ protected:
 	 * Event called once Ignored Interactor Class is successfully added.
 	 * Called by OnIgnoredInteractorClassAdded.
 	 */
-	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category="Interaction")
+	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category="Mountea|Interaction|Interactable")
 	FIgnoredInteractorClassAdded OnIgnoredInteractorClassAdded;
 
 	/**
 	 * Event called once Ignored Interactor Class is successfully removed.
 	 * Called by OnIgnoredInteractorClassRemoved.
 	 */
-	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category="Interaction")
+	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category="Mountea|Interaction|Interactor")
 	FIgnoredInteractorClassRemoved OnIgnoredInteractorClassRemoved;
 
 #pragma endregion 
@@ -559,7 +559,7 @@ protected:
 	 * Has native C++ implementation.
 	 * Calls OnInteractableSelectedEvent.
 	 */
-	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Interaction")
+	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Mountea|Interaction|Interactor")
 	FOnInteractableSelected OnInteractableSelected;
 
 	/**
@@ -567,7 +567,7 @@ protected:
 	 * This event doesn't usually start the interaction, only notifies that this Interactable has found an Interactor.
 	 * Called by OnInteractorFound
 	 */
-	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Interaction")
+	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Mountea|Interaction|Interactor")
 	FInteractorFound OnInteractorFound;
 
 	/**
@@ -575,7 +575,7 @@ protected:
 	 * This event is usually the first one in chain leading to Interaction Canceled.
 	 * Called by OnInteractorLost.
 	 */
-	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Interaction")
+	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Mountea|Interaction|Interactor")
 	FInteractorLost OnInteractorLost;
 
 	/**
@@ -584,7 +584,7 @@ protected:
 	 * Called when Type is Once or after Lifecycles run out.
 	 * Called from OnInteractionCompleted
 	 */
-	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Interaction")
+	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Mountea|Interaction|Interactor")
 	FInteractionCompleted OnInteractionCompleted;
 	
 	/**
@@ -592,48 +592,48 @@ protected:
 	 * Might be called multiple times, before 'OnInteractionCompleted' is called.
 	 * Never called if Type is Once.
 	 */
-	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Interaction")
+	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Mountea|Interaction|Interactor")
 	FInteractionCycleCompleted OnInteractionCycleCompleted;
 
 	/**
 	 * Event called once Interaction Starts. 
 	 * Called by OnInteractionStarted
 	 */
-	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Interaction")
+	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Mountea|Interaction|Interactor")
 	FInteractionStarted OnInteractionStarted;
 
 	/**
 	 * Event called once Interaction Stops.
 	 * Called by OnInteractionStopped
 	 */
-	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Interaction")
+	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Mountea|Interaction|Interactor")
 	FInteractionStopped OnInteractionStopped;
 
 	/**
 	 * Event called once Interaction is Canceled.
 	 * Called by OnInteractionCanceled
 	 */
-	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Interaction")
+	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Mountea|Interaction|Interactor")
 	FInteractionCanceled OnInteractionCanceled;
 
 	/**
 	 * Event called once Interaction Lifecycles is Completed.
 	 * Called by OnLifecycleCompleted
 	 */	
-	UPROPERTY(BlueprintAssignable, Category="Interaction")
+	UPROPERTY(BlueprintAssignable, Category="Mountea|Interaction|Interactor")
 	FLifecycleCompleted OnLifecycleCompleted;
 
 	/**
 	 * Event called once Interaction Cooldown is Completed and Interactable can be Interacted with again.
 	 * Called by OnCooldownCompleted
 	 */
-	UPROPERTY(BlueprintAssignable, Category="Interaction")
+	UPROPERTY(BlueprintAssignable, Category="Mountea|Interaction|Interactor")
 	FCooldownCompleted OnCooldownCompleted;
 
 	/**
 	 * Event called once any Interaction Dependency is changed, no matter if removed or added.
 	 */
-	UPROPERTY(BlueprintAssignable, Category="Interaction")
+	UPROPERTY(BlueprintAssignable, Category="Mountea|Interaction|Interactor")
 	FInteractableDependencyChanged OnInteractableDependencyChanged;
 
 #pragma endregion
@@ -644,28 +644,28 @@ protected:
 	 * Event called once Highlightable Component is added to Highlightable Meshes.
 	 * Returns which MeshComponent has been added.
 	 */
-	UPROPERTY(BlueprintAssignable, Category="Interaction")
+	UPROPERTY(BlueprintAssignable, Category="Mountea|Interaction|Interactor")
 	FHighlightableComponentAdded OnHighlightableComponentAdded;
 
 	/**
 	 * Event called once Highlightable Component is removed from Highlightable Meshes.
 	 * Returns which MeshComponent has been removed.
 	 */
-	UPROPERTY(BlueprintAssignable, Category="Interaction")
+	UPROPERTY(BlueprintAssignable, Category="Mountea|Interaction|Interactor")
 	FHighlightableComponentRemoved OnHighlightableComponentRemoved;
 
 	/**
 	 * Event called once Collision Component is added to Collision Shapes.
 	 * Returns which PrimitiveComponent has been added.
 	 */	
-	UPROPERTY(BlueprintAssignable, Category="Interaction")
+	UPROPERTY(BlueprintAssignable, Category="Mountea|Interaction|Interactor")
 	FCollisionComponentAdded OnCollisionComponentAdded;
 
 	/**
 	 * Event called once Collision Component is removed from Collision Shapes.
 	 * Returns which PrimitiveComponent has been removed.
 	 */		
-	UPROPERTY(BlueprintAssignable, Category="Interaction")
+	UPROPERTY(BlueprintAssignable, Category="Mountea|Interaction|Interactor")
 	FCollisionComponentRemoved OnCollisionComponentRemoved;
 
 #pragma endregion 
@@ -676,81 +676,81 @@ protected:
 	 * Event called once Auto Setup has changed.
 	 * Expected to be more a debugging event rather than in-game event.
 	 */
-	UPROPERTY(BlueprintAssignable, Category="Interaction")
+	UPROPERTY(BlueprintAssignable, Category="Mountea|Interaction|Interactor")
 	FInteractableAutoSetupChanged OnInteractableAutoSetupChanged;
 
 	/**
 	 * Event called once Interaction Weight has changed.
 	 * Expected to be more a debugging event rather than in-game event.
 	 */
-	UPROPERTY(BlueprintAssignable, Category="Interaction")
+	UPROPERTY(BlueprintAssignable, Category="Mountea|Interaction|Interactor")
 	FInteractableWeightChanged OnInteractableWeightChanged;
 
 	/**
 	 * Event called once Interactable State has changed.
 	 * Expected to be more a debugging event rather than in-game event.
 	 */
-	UPROPERTY(BlueprintAssignable, Category="Interaction")
+	UPROPERTY(BlueprintAssignable, Category="Mountea|Interaction|Interactor")
 	FInteractableStateChanged OnInteractableStateChanged;
 
 	/**
 	 * Event called once Interactable Owner has changed.
 	 * Expected to be more a debugging event rather than in-game event.
 	 */
-	UPROPERTY(BlueprintAssignable, Category="Interaction")
+	UPROPERTY(BlueprintAssignable, Category="Mountea|Interaction|Interactor")
 	FInteractableOwnerChanged OnInteractableOwnerChanged;
 
 	/**
 	 * Event called once Interactable Collision Channel has changed.
 	 * Expected to be more a debugging event rather than in-game event.
 	 */
-	UPROPERTY(BlueprintAssignable, Category="Interaction")
+	UPROPERTY(BlueprintAssignable, Category="Mountea|Interaction|Interactor")
 	FInteractableCollisionChannelChanged OnInteractableCollisionChannelChanged;
 
 	/**
 	 * Event called once Lifecycle Mode has changed.
 	 * Expected to be more a debugging event rather than in-game event.
 	 */
-	UPROPERTY(BlueprintAssignable, Category="Interaction")
+	UPROPERTY(BlueprintAssignable, Category="Mountea|Interaction|Interactor")
 	FLifecycleModeChanged OnLifecycleModeChanged;
 
 	/**
 	 * Event called once Lifecycle Count has changed.
 	 * Expected to be more a debugging event rather than in-game event.
 	 */
-	UPROPERTY(BlueprintAssignable, Category="Interaction")
+	UPROPERTY(BlueprintAssignable, Category="Mountea|Interaction|Interactor")
 	FLifecycleCountChanged OnLifecycleCountChanged;
 
 	/**
 	 * Event called once Cooldown Period has changed.
 	 * Expected to be more a debugging event rather than in-game event.
 	 */
-	UPROPERTY(BlueprintAssignable, Category="Interaction")
+	UPROPERTY(BlueprintAssignable, Category="Mountea|Interaction|Interactor")
 	FCooldownPeriodChanged OnCooldownPeriodChanged;
 		
 	/**
 	 * Event called once Interactor has been removed.
 	 * Expected to be more a debugging event rather than in-game event.
 	 */
-	UPROPERTY(BlueprintAssignable, Category="Interaction")
+	UPROPERTY(BlueprintAssignable, Category="Mountea|Interaction|Interactor")
 	FInteractorChanged OnInteractorChanged;
 
 	/**
 	 * Event called once HighlightType has changed.
 	 */
-	UPROPERTY(BlueprintAssignable, Category="Interaction")
+	UPROPERTY(BlueprintAssignable, Category="Mountea|Interaction|Interactor")
 	FHighlightTypeChanged OnHighlightTypeChanged;
 
 	/**
 	 * Event called once HighlightMaterial has changed.
 	 */
-	UPROPERTY(BlueprintAssignable, Category="Interaction")
+	UPROPERTY(BlueprintAssignable, Category="Mountea|Interaction|Interactor")
 	FHighlightMaterialChanged OnHighlightMaterialChanged;
 
-	UPROPERTY(BlueprintAssignable, Category="Interaction")
+	UPROPERTY(BlueprintAssignable, Category="Mountea|Interaction|Interactor")
 	FInputActionConsumed OnInputActionConsumed;
 
-	UPROPERTY(BlueprintAssignable, Category="Interaction")
+	UPROPERTY(BlueprintAssignable, Category="Mountea|Interaction|Interactor")
 	FInteractionDeviceChanged OnInteractionDeviceChanged;
 
 	FInteractableDependencyStarted InteractableDependencyStarted;
@@ -821,10 +821,10 @@ public:
 	/**
 	 * Event called any time any value of 'UserInterfaceSettings' has changed.
 	 */
-	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Interaction")
+	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Mountea|Interaction|Interactor")
 	FOnWidgetUpdated OnWidgetUpdated;
 
-	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Interaction")
+	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Mountea|Interaction|Interactor")
 	FInteractableWidgetVisibilityChanged OnInteractableWidgetVisibilityChanged;
 
 #pragma endregion 

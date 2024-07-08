@@ -43,7 +43,7 @@ protected:
 	/**
 	 * Event called from OnInteractionFailed
 	 */
-	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	UFUNCTION(BlueprintImplementableEvent, Category="Mountea|Interaction|Interactable")
 	void OnInteractionFailedEvent();
 	UFUNCTION()
 	virtual void InteractionFailed();
@@ -56,21 +56,21 @@ protected:
 	 * Event called once Key is pressed.
 	 * Is the same as Interaction Started, but with more understandable name.
 	 */
-	UFUNCTION(BlueprintImplementableEvent, Category="Interaction")
+	UFUNCTION(BlueprintImplementableEvent, Category="Mountea|Interaction|Interactable")
 	void OnKeyMashedEvent();
 
 	virtual void CleanupComponent() override;
 	
 public:
 
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Interactable")
 	int32 GetMinMashAmountRequired() const;
-	UFUNCTION(BlueprintCallable, Category="Interaction")
+	UFUNCTION(BlueprintCallable, Category="Mountea|Interaction|Interactable")
 	void SetMinMainAmountRequired(const int32 Value);
 
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interaction")
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Interactable")
 	float GetKeystrokeTimeThreshold() const;
-	UFUNCTION(BlueprintCallable, Category="Interaction")
+	UFUNCTION(BlueprintCallable, Category="Mountea|Interaction|Interactable")
 	void SetKeystrokeTimeThreshold(const float Value);
 	
 protected:
@@ -104,13 +104,13 @@ protected:
 	 * Either because of Time is out or not enough Key strokes are registered.
 	 * Calls OnInteractionFailedEvent.
 	 */
-	UPROPERTY(BlueprintAssignable, Category="Interaction")
+	UPROPERTY(BlueprintAssignable, Category="Mountea|Interaction|Interactable")
 	FOnInteractionFailed OnInteractionFailed;
 
 	/**
 	 * Event called once Key is pressed.
 	 * Is the same as Interaction Started, but with more understandable name.
 	 */
-	UPROPERTY(BlueprintAssignable, Category="Interaction")
+	UPROPERTY(BlueprintAssignable, Category="Mountea|Interaction|Interactable")
 	FOnKeyMashed OnKeyMashed;
 };

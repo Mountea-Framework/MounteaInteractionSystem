@@ -179,38 +179,38 @@ public:
 	 * Interactor overlaps with a chest of drawers. There are multiple interactables for each drawer and for items within them.
 	 * However, drawers have higher weight, thus always suppress items, unless specified otherwise.
 	 */
-	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Interaction")
+	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Mountea|Interaction|Interactor")
 	FInteractableSelected			OnInteractableUpdated;
 	
 	/**
 	 * This event is called once this Interactor finds any Interactable.
 	 * This event might happen for multiple Interactables. Each one is compared and if fit it is fed to OnInteractableSelected.
 	 */
-	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Interaction")
+	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Mountea|Interaction|Interactor")
 	FInteractableFound				OnInteractableFound;
 	
 	/**
 	 * This event is called one this Interactor loose its Active Interactable.
 	 */
-	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Interaction")
+	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Mountea|Interaction|Interactor")
 	FInteractableLost				OnInteractableLost;
 	
 	/**
 	 * This event should be called once starting the Interaction Action is requested and valid Key is pressed.
 	 */
-	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Interaction")
+	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Mountea|Interaction|Interactor")
 	FInteractionKeyPressed		OnInteractionKeyPressed;
 	
 	/**
 	 * This event should be called once stopping the Interaction Action is requested and valid Key is released.
 	 */
-	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Interaction")
+	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Mountea|Interaction|Interactor")
 	FInteractionKeyReleased	OnInteractionKeyReleased;
 	
 	/**
 	 * This event is called once SetState function sets new State.
 	 */
-	UPROPERTY(BlueprintAssignable, Category="Interaction")
+	UPROPERTY(BlueprintAssignable, Category="Mountea|Interaction|Interactor")
 	FStateChanged					OnStateChanged;
 	
 	/**
@@ -219,40 +219,40 @@ public:
 	 *
 	 * Servers purpose of driving Client only data, like UI.
 	 */
-	UPROPERTY(BlueprintAssignable, Category="Interaction")
+	UPROPERTY(BlueprintAssignable, Category="Mountea|Interaction|Interactor")
 	FStateChanged					OnStateChanged_Client;
 	
 	/**
 	 * This event is called once SetResponseChannel set new Collision Channel.
 	 */
-	UPROPERTY(BlueprintAssignable, Category="Interaction")
+	UPROPERTY(BlueprintAssignable, Category="Mountea|Interaction|Interactor")
 	FCollisionChanged				OnCollisionChanged;
 	
 	/**
 	 * This event is called once ToggleAutoActivate sets new value.
 	 */
-	UPROPERTY(BlueprintAssignable, Category="Interaction")
+	UPROPERTY(BlueprintAssignable, Category="Mountea|Interaction|Interactor")
 	FAutoActivateChanged		OnAutoActivateChanged;
 	
 	/**
 	 * This event is called once Ignored Actor is successfully added to List of Ignored Actors. 
 	 */
-	UPROPERTY(BlueprintAssignable, Category="Interaction")
+	UPROPERTY(BlueprintAssignable, Category="Mountea|Interaction|Interactor")
 	FIgnoredActorAdded			OnIgnoredActorAdded;
 	
 	/**
 	 * This event is called once Ignored Actor is successfully removed from List of Ignored Actors. 
 	 */
-	UPROPERTY(BlueprintAssignable, Category="Interaction")
+	UPROPERTY(BlueprintAssignable, Category="Mountea|Interaction|Interactor")
 	FIgnoredActorRemoved		OnIgnoredActorRemoved;
 	
 	/**
 	 * This event is called once Interactor's GameplayTag has changed.
 	 */
-	UPROPERTY(BlueprintAssignable, Category="Interaction")
+	UPROPERTY(BlueprintAssignable, Category="Mountea|Interaction|Interactor")
 	FInteractorTagChanged		OnInteractorTagChanged;
 
-	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category="Interaction")
+	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category="Mountea|Interaction|Interactor")
 	FInputActionConsumed		OnInputActionConsumed;
 	
 protected:

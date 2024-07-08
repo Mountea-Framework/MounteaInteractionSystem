@@ -9,7 +9,7 @@
 // Log category definition
 DEFINE_LOG_CATEGORY(LogActorInteraction);
 
-void PrintLog(const FString& Message, FLinearColor Color, float Duration)
+void PrintLog(const FString& Message, const FLinearColor Color, const float Duration)
 {
 	auto interactionSettings = GetMutableDefault<UActorInteractionPluginSettings>();
 	if (interactionSettings && !interactionSettings->bEditorDebugEnabled)

@@ -39,12 +39,12 @@ protected:
 	/**
 	 * Event called once collision is overlapped by Cursor.
 	 */
-	UPROPERTY(BlueprintAssignable, Category="Interaction")
+	UPROPERTY(BlueprintAssignable, Category="Mountea|Interaction|Interactable")
 	FOnCursorBeginsOverlap OnCursorBeginsOverlap;
 	/**
 	 * Event called once collision is no longer overlapped by Cursor.
 	 */
-	UPROPERTY(BlueprintAssignable, Category="Interaction")
+	UPROPERTY(BlueprintAssignable, Category="Mountea|Interaction|Interactable")
 	FOnCursorStopsOverlap OnCursorStopsOverlap;
 
 protected:
