@@ -3,28 +3,38 @@
 Actor Interaction Plugin is an Open-source Mountea Framework components-based simple framework providing utilities for smart Actor Interaction with other Actors.
 Developed with Game Developers in mind to allow as easy as possible implementation while maintaining high scalability and diverse options to tweak everything.
 
-
 ![UE](https://img.shields.io/badge/supported-4.26%2B-green)
 ![License](https://img.shields.io/github/license/Mountea-Framework/ActorInteractionPlugin)
 [![YouTube](https://img.shields.io/badge/YouTube-Subscribe-red?style=flat&logo=youtube)](https://www.youtube.com/@mounteaframework)
 [![Discord](https://badgen.net/discord/online-members/2vXWEEN?label=Discord&logo=discord&logoColor=ffffff&color=7389D8)](https://discord.com/invite/2vXWEEN)
 [![Discord](https://badgen.net/discord/members/2vXWEEN?label=Discord&logo=discord&logoColor=ffffff&color=7389D8)](https://discord.com/invite/2vXWEEN)
 
-### Discord Channel
+## Playable Demo
+Feel free to download the playable demo and take a look at what this plugin (in combination with its Dialogue sibling) can do in a matter of a few clicks!
+<p align="center" width="100%">
+    <a href="https://drive.google.com/drive/u/1/folders/1Mr0jdd1b1ZooE6uZ-SABMBGyOVXcKNU6">
+        <img width="20%" src="https://github.com/Mountea-Framework/MounteaInteractionSystem/assets/37410226/da51eced-84e4-4c96-a9ff-cd5a03055d64">
+    </a>
+</p>
+
+## Discord Channel
 
 [![Discord LINK](https://static.wikia.nocookie.net/siivagunner/images/9/9f/Discord_icon.svg/revision/latest?cb=20210814160101)](https://discord.gg/2vXWEEN)
 
 Join support and community Discord!
 
-### Compatible Engine Version
+## Compatible Engine Version
 
-## Legend
+### Legend
 🟩 - Supported
+
 🟨 - WIP
+
 🟪 - Deprecated
+
 🟥 - Partially supported
 
-## Support Table
+### Support Table
 Engine Version | Plugin Version | Support
 -------------- | -------------- | ----
 UE 4.25 | 2.0.0.0 | 🟪
