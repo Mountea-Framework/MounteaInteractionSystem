@@ -1,11 +1,11 @@
-﻿// All rights reserved Dominik Pavlicek 2022.
+﻿// All rights reserved Dominik Morse (Pavlicek) 2021
 
 
 #include "InteractorComponentAssetFactory.h"
 
 #include "Utilities/ActorInteractionEditorUtilities.h"
 
-#include "Components/ActorInteractorComponentBase.h"
+#include "Components/Interactor/ActorInteractorComponentBase.h"
 #include "Kismet2/KismetEditorUtilities.h"
 
 #define LOCTEXT_NAMESPACE "ActorInteraction"

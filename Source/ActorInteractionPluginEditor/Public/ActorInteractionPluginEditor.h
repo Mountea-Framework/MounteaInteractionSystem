@@ -1,11 +1,13 @@
-// All rights reserved Dominik Pavlicek 2022.
+// All rights reserved Dominik Morse (Pavlicek) 2021
 
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Interfaces/IHttpRequest.h"
 #include "Modules/ModuleManager.h"
 
 class FSlateStyleSet;
+class FHttpModule;
 
 DECLARE_LOG_CATEGORY_EXTERN(ActorInteractionPluginEditor, All, All);
 
@@ -23,12 +25,11 @@ public:
 	
 private:
 
-	TSharedPtr<FSlateStyleSet> InteractorComponentSet;
-	TSharedPtr<FSlateStyleSet> InteractableComponentSet;
-	
+	TSharedPtr<FSlateStyleSet> InteractionSet;	
 
 	TSharedPtr<class FInteractorComponentAssetActions> InteractorComponentAssetActions;
 	TSharedPtr<class FInteractableComponentAssetActions> InteractableComponentAssetActions;
+	TSharedPtr<class FInteractionSettingsConfigAssetActions> InteractionConfigSettingsAssetAction;
 	
 public:
 	
@@ -39,7 +40,12 @@ private:
 
 	void RegisterMenus();
 
+	void OnGetResponse(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
+	UFUNCTION() void SendHTTPGet();
+
 private:
 	
 	TSharedPtr<class FUICommandList> PluginCommands;
+
+	FHttpModule* Http;
 };

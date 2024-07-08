@@ -3,13 +3,14 @@
 #include "Helpers/ActorInteractionPluginSettings.h"
 
 #include "InputMappingContext.h"
+#include "Helpers/ActorInteractionPluginLog.h"
+#include "Helpers/MounteaInteractionSettingsConfig.h"
 #include "Materials/MaterialInterface.h"
 
 UActorInteractionPluginSettings::UActorInteractionPluginSettings() :
-		bEditorDebugEnabled(true),
-		WidgetUpdateFrequency(0.1f)
+	bEditorDebugEnabled(true),
+	WidgetUpdateFrequency(0.1f)
 {
-	
 	CategoryName = TEXT("Mountea Framework");
 	SectionName = TEXT("Mountea Interaction System");
 }
@@ -21,7 +22,11 @@ TSoftClassPtr<UUserWidget> UActorInteractionPluginSettings::GetInteractableDefau
 
 UMaterialInterface* UActorInteractionPluginSettings::GetDefaultHighlightMaterial() const
 {
-	return InteractableDefaultHighlightMaterial.LoadSynchronous();
+	if (DefaultInteractionSystemConfig.LoadSynchronous())
+	{
+		return DefaultInteractionSystemConfig.LoadSynchronous()->InteractableBaseSettings.DefaultHighlightSetup.HighlightMaterial;
+	}
+	return nullptr;
 }
 
 UInputMappingContext* UActorInteractionPluginSettings::GetDefaultInputMappingContext() const

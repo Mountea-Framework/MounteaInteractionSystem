@@ -1,4 +1,4 @@
-// Copyright Dominik Pavlicek 2022. All Rights Reserved.
+// Copyright Dominik Morse (Pavlicek) 2024. All Rights Reserved.
 
 #include "ActorInteractionPlugin.h"
 

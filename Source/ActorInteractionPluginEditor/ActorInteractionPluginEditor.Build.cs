@@ -1,4 +1,4 @@
-// All rights reserved Dominik Pavlicek 2022.
+// All rights reserved Dominik Morse (Pavlicek) 2021
 
 using System.IO;
 using UnrealBuildTool;
@@ -48,6 +48,10 @@ public class ActorInteractionPluginEditor : ModuleRules
 				"Kismet", 
 				
 				"WebBrowser",
+				"HTTP", 
+				"Json", 
+				"JsonUtilities",
+				
 				"EditorStyle",
 				"DeveloperSettings",
 				

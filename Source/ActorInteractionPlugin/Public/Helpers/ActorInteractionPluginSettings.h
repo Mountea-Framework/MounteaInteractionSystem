@@ -1,4 +1,4 @@
-// All rights reserved Dominik Pavlicek 2022.
+// All rights reserved Dominik Morse (Pavlicek) 2024.
 
 #pragma once
 
@@ -7,6 +7,7 @@
 
 #include "ActorInteractionPluginSettings.generated.h"
 
+class UMounteaInteractionSettingsConfig;
 class UInputMappingContext;
 class UDataTable;
 class UMaterialInterface;
@@ -25,6 +26,9 @@ class ACTORINTERACTIONPLUGIN_API UActorInteractionPluginSettings : public UDevel
 
 public:
 
+	UPROPERTY(config, BlueprintReadOnly, EditAnywhere, Category = "Interactor")
+	TSoftObjectPtr<UMounteaInteractionSettingsConfig>		DefaultInteractionSystemConfig;
+
 	/** Defines whether in-editor debug is enabled. */
 	UPROPERTY(config, BlueprintReadOnly, EditAnywhere, Category="Editor")
 	uint8															bEditorDebugEnabled : 1;
@@ -40,13 +44,9 @@ public:
 	/** Defines default DataTable which contains Interactable data values.*/
 	UPROPERTY(config, BlueprintReadOnly, EditAnywhere, Category = "Interaction Data", meta=(AllowedClasses = "/Script/Engine.DataTable"))
 	TSoftObjectPtr<UDataTable>						InteractableDefaultDataTable;
-
-	/** Defines default DataTable which contains Interactable data values.*/
-	UPROPERTY(config, BlueprintReadOnly, EditAnywhere, Category = "Interaction Data")
-	TSoftObjectPtr<UMaterialInterface>			InteractableDefaultHighlightMaterial;
-
+		
 	/** Defines default Interaction Mapping for Mountea Interaction System. */
-	UPROPERTY(config, BlueprintReadOnly, EditAnywhere, Category = "Interaction Data")
+	UPROPERTY(config, BlueprintReadOnly, EditAnywhere, Category = "Input")
 	TSoftObjectPtr<UInputMappingContext>		InteractionInputMapping;
 
 	/** Defines default Interaction Commands. Serves purpose of containing default commands. */
@@ -68,7 +68,7 @@ public:
 		return "Project";
 	}
 #endif
-
+	
 public:
 
 	bool IsEditorDebugEnabled() const
