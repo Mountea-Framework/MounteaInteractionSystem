@@ -77,3 +77,4 @@ DerivedDataCache/*
 .vscode/*
 .idea/*
 Config/UpdateConfig.ini
+*.zip
