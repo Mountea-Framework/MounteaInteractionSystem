@@ -15,6 +15,7 @@
 #include "Helpers/MounteaInteractionSystemBFL.h"
 #include "Interfaces/ActorInteractableInterface.h"
 #include "Net/UnrealNetwork.h"
+#include "Net/Core/PushModel/PushModel.h"
 
 UActorInteractorComponentBase::UActorInteractorComponentBase() :
 		DebugSettings(false),

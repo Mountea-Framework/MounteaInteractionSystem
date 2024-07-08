@@ -7,6 +7,7 @@
 #include "Helpers/MounteaInteractionSystemBFL.h"
 #include "Interfaces/ActorInteractableInterface.h"
 #include "Net/UnrealNetwork.h"
+#include "Net/Core/PushModel/PushModel.h"
 
 UActorInteractorComponentOverlap::UActorInteractorComponentOverlap()
 		: OverrideCollisionComponents(TArray<FName>()),
