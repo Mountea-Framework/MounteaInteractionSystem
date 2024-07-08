@@ -30,10 +30,11 @@ Engine Version | Plugin Version | Support
 UE 4.25 | 2.0.0.0 | 🟪
 UE 4.26 | 3.0.1.5 | 🟪
 UE 4.27 | 3.0.1.5 | 🟪
-UE 5.00 | 3.0.1.5 | 🟥
-UE 5.1 | 3.0.1.6 | 🟩
-UE 5.2 | 3.0.1.6 | 🟩
-UE 5.3 | 3.0.1.6 | 🟩
+UE 5.00 | 3.0.1.5 | 🟪
+UE 5.1 | 4.0.0.51 | 🟥
+UE 5.2 | 4.0.0.52 | 🟩
+UE 5.3 | 4.0.0.53 | 🟩
+UE 5.4 | 4.0.0.54 | 🟩
 
 # Features
 
@@ -77,8 +78,7 @@ The best way to describe the usage is to take a look or play the demo build.
 
 ## Additional Documentation and Acknowledgments
 
-* Roadmap: https://github.com/orgs/Mountea-Framework/projects/2
-* Documentation: https://sites.google.com/view/dominikpavlicek/home/documentation
+* Documentation: https://github.com/Mountea-Framework/MounteaInteractionSystem/wiki/How-to-Setup-Interaction
 
 ## Star History
 
