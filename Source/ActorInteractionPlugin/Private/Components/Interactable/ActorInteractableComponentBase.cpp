@@ -5,7 +5,10 @@
 #include "Helpers/ActorInteractionPluginLog.h"
 
 #if WITH_EDITOR
+
 #include "EditorHelper.h"
+#include "Misc/DataValidation.h"
+
 #endif
 
 #include "CommonInputSubsystem.h"
@@ -20,6 +23,7 @@
 
 #include "Interfaces/ActorInteractionWidget.h"
 #include "Interfaces/ActorInteractorInterface.h"
+
 
 #include "Net/UnrealNetwork.h"
 
@@ -68,6 +72,10 @@ UActorInteractableComponentBase::UActorInteractableComponentBase() :
 #endif
 
 #if WITH_EDITOR || WITH_EDITORONLY_DATA
+	if (GIsEditor && !GIsPlayInEditorWorld)
+	{
+		RequestEditorDefaults.AddUObject(this, &UActorInteractableComponentBase::ResetDefaults);
+	}
 	if (GIsEditor && !GIsPlayInEditorWorld && !bInteractableInitialized)
 	{
 		SetDefaultValues();
@@ -2222,6 +2230,11 @@ void UActorInteractableComponentBase::SetState_Server_Implementation(const EInte
 #if (!UE_BUILD_SHIPPING || WITH_EDITOR)
 #if WITH_EDITOR
 
+void UActorInteractableComponentBase::ResetDefaults()
+{
+	Execute_SetDefaults(this);
+}
+
 void UActorInteractableComponentBase::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent)
 {
 	const FName PropertyName = (PropertyChangedEvent.MemberProperty != nullptr) ? PropertyChangedEvent.GetPropertyName() : NAME_None;
@@ -2353,12 +2366,12 @@ void UActorInteractableComponentBase::PostEditChangeChainProperty(FPropertyChang
 	}
 }
 
-EDataValidationResult UActorInteractableComponentBase::IsDataValid(TArray<FText>& ValidationErrors)
+EDataValidationResult UActorInteractableComponentBase::IsDataValid(FDataValidationContext& Context) const
 {
-	const auto DefaultValue = Super::IsDataValid(ValidationErrors);
+	const auto DefaultValue = Super::IsDataValid(Context);
 	bool bAnyError = false;
 
-	if (DefaultInteractableState == EInteractableStateV2::EIS_Disabled)
+	// Validation
 	{
 		FString interactableName = GetName();
 		{
@@ -2383,12 +2396,10 @@ EDataValidationResult UActorInteractableComponentBase::IsDataValid(TArray<FText>
 		{
 			const FText ErrorMessage = FText::FromString
 			(
-				interactableName.Append(TEXT(": DefaultInteractableState cannot be")).Append(GetEnumValueAsString("EInteractableStateV2", DefaultInteractableState)).Append(TEXT("!"))
+				interactableName.Append(TEXT(": DefaultInteractableState cannot be ")).Append(GetEnumValueAsString("EInteractableStateV2", DefaultInteractableState)).Append(TEXT("!"))
 			);
-
-			DefaultInteractableState = EInteractableStateV2::EIS_Awake;
 		
-			ValidationErrors.Add(ErrorMessage);
+			Context.AddError(ErrorMessage);
 			bAnyError = true;
 		}
 
@@ -2398,10 +2409,8 @@ EDataValidationResult UActorInteractableComponentBase::IsDataValid(TArray<FText>
 			(
 				interactableName.Append(TEXT(": DefaultInteractableState cannot be lesser than -1!"))
 			);
-
-			InteractionPeriod = -1.f;
 		
-			ValidationErrors.Add(ErrorMessage);
+			Context.AddError(ErrorMessage);
 			bAnyError = true;
 		}
 	
@@ -2411,11 +2420,8 @@ EDataValidationResult UActorInteractableComponentBase::IsDataValid(TArray<FText>
 			(
 				interactableName.Append(TEXT(":")).Append(TEXT(" LifecycleCount cannot be %d!"), LifecycleCount)
 			);
-			
-			LifecycleCount = 2.f;
-			RemainingLifecycleCount = LifecycleCount;
 		
-			ValidationErrors.Add(ErrorMessage);
+			Context.AddError(ErrorMessage);
 			bAnyError = true;
 		}
 
@@ -2426,7 +2432,7 @@ EDataValidationResult UActorInteractableComponentBase::IsDataValid(TArray<FText>
 				interactableName.Append(TEXT(": Widget Class is NULL!"))
 			);
 
-			ValidationErrors.Add(ErrorMessage);
+			Context.AddError(ErrorMessage);
 			bAnyError = true;
 		}
 		else
@@ -2437,12 +2443,21 @@ EDataValidationResult UActorInteractableComponentBase::IsDataValid(TArray<FText>
 				(
 					interactableName.Append(TEXT(" : Widget Class must either implement 'ActorInteractionWidget Interface'!"))
 				);
-
-				SetWidgetClass(nullptr);
-				ValidationErrors.Add(ErrorMessage);
+				
+				Context.AddError(ErrorMessage);
 				bAnyError = true;
 			}
 		}
+	}
+
+	if (bAnyError && RequestEditorDefaults.IsBound())
+	{
+		RequestEditorDefaults.Broadcast();
+	}
+
+	if (bAnyError)
+	{
+		Context.AddWarning(FText::FromString("Interactable failed to Validate. `SetDefaults` has been called. Some settings might have been overriden by default values!"));
 	}
 	
 	return bAnyError ? EDataValidationResult::Invalid : DefaultValue;

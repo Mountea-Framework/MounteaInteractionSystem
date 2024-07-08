@@ -35,7 +35,7 @@ protected:
 
 #if WITH_EDITOR
 	virtual void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;
-	virtual EDataValidationResult IsDataValid(TArray<FText>& ValidationErrors) override;
+	virtual EDataValidationResult IsDataValid(FDataValidationContext& Context) const override;
 #endif
 	
 };
