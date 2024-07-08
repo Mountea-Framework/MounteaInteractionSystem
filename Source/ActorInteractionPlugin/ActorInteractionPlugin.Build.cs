@@ -1,4 +1,4 @@
-// Copyright Dominik Pavlicek 2022. All Rights Reserved.
+// Copyright Dominik Morse (Pavlicek) 2024. All Rights Reserved.
 
 using UnrealBuildTool;
 using System.IO;
@@ -51,11 +51,15 @@ public class ActorInteractionPlugin : ModuleRules
 				"InputCore",
 				"GameplayTags",
 				"EnhancedInput",
-
+				"NetCore",
+				"EnhancedInput",
+				"ApplicationCore",
+				"CommonInput",
+				
 				"InteractionEditorNotifications",
 
 #if UE_4_26_OR_LATER
-				"DeveloperSettings",
+				"DeveloperSettings", 
 #endif
 				// ... add private dependencies that you statically link with here ...	
 			}

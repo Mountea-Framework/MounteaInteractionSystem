@@ -1,4 +1,4 @@
-// All rights reserved Dominik Pavlicek 2022.
+// All rights reserved Dominik Morse (Pavlicek) 2024.
 
 #pragma once
 
@@ -7,6 +7,7 @@
 #include "UObject/Interface.h"
 
 #include "Engine/EngineTypes.h"
+#include "Helpers/MounteaInteractionHelperEvents.h"
 
 #include "ActorInteractorInterface.generated.h"
 
@@ -59,7 +60,7 @@ public:
 	 * 
 	 * @param SelectedInteractable Interactable Component which is being interacted with
 	 */
-	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category="Interaction")
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
 	void OnInteractableSelectedEvent(const TScriptInterface<IActorInteractableInterface>& SelectedInteractable);
 
 	/**
@@ -69,7 +70,7 @@ public:
 	 * 
 	 * @param FoundInteractable Interactable Component which is found
 	 */
-	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category="Interaction")
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
 	void OnInteractableFoundEvent(const TScriptInterface<IActorInteractableInterface>& FoundInteractable);
 	
 	/**
@@ -79,7 +80,7 @@ public:
 	 * 
 	 * @param LostInteractable Interactable Component which is lost
 	 */
-	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category="Interaction")
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
 	void OnInteractableLostEvent(const TScriptInterface<IActorInteractableInterface>& LostInteractable);
 
 	/**
@@ -90,7 +91,7 @@ public:
 	 * @param TimeKeyPressed Time Key was pressed
 	 * @param PressedKey Key which was pressed
 	 */
-	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category="Interaction")
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
 	void OnInteractionKeyPressedEvent(const float& TimeKeyPressed);
 
 	/**
@@ -101,7 +102,7 @@ public:
 	 * @param TimeKeyReleased Time Key was released
 	 * @param ReleasedKey Key which was released
 	 */
-	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category="Interaction")
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
 	void OnInteractionKeyReleasedEvent(const float& TimeKeyReleased);
 	
 	/**
@@ -111,7 +112,7 @@ public:
 	 * 
 	 * @param NewState New State if this Interactor
 	 */
-	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category="Interaction")
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
 	void OnInteractorStateChanged(const EInteractorStateV2& NewState);
 
 	/**
@@ -121,18 +122,8 @@ public:
 	 * 
 	 * @param NewCollisionChannel New Collision Channel set as Response Channel
 	 */
-	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category="Interaction")
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
 	void OnInteractorCollisionChanged(const TEnumAsByte<ECollisionChannel>& NewCollisionChannel);
-
-	/**
-	 * Event bound to OnAutoActivateChanged event.
-	 * Once OnAutoActivateChanged is called this event is, too.
-	 * Be sure to call Parent event to access all C++ implementation!
-	 * 
-	 * @param NewAutoActivate Whether this Interactor is Auto Activated or not
-	 */
-	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category="Interaction")
-	void OnInteractorAutoActivateChanged(const bool NewAutoActivate);
 
 #pragma endregion
 
@@ -155,6 +146,8 @@ public:
 	void EvaluateInteractable(const TScriptInterface<IActorInteractableInterface>& FoundInteractable);
 	virtual void EvaluateInteractable_Implementation(const TScriptInterface<IActorInteractableInterface>& FoundInteractable) = 0;
 
+	
+
 	/**
 	 * Function to start interaction.
 	 * Interaction will start only if CanInteract function evaluates true.
@@ -175,6 +168,8 @@ public:
 	void StopInteraction(const float StartTime);
 	virtual void StopInteraction_Implementation(const float StartTime) = 0;
 
+	
+
 	/**
 	 * Tries to Active Interactor by setting Interactor state to Active.
 	 * Returns whether it was successful or not.
@@ -194,8 +189,8 @@ public:
 	 * @param ErrorMessage Short explanation.
 	 */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
-	bool WakeUpInteractor(FString& ErrorMessage);
-	virtual bool WakeUpInteractor_Implementation(FString& ErrorMessage) = 0;
+	bool EnableInteractor(FString& ErrorMessage);
+	virtual bool EnableInteractor_Implementation(FString& ErrorMessage) = 0;
 
 	/**
 	 * Tries to Suppress Interactor by setting Interactor state to Suppressed.
@@ -214,6 +209,7 @@ public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
 	void DeactivateInteractor();
 	virtual void DeactivateInteractor_Implementation() = 0;
+	
 
 	/**
 	 * Function called by OnInteractableFound.
@@ -225,7 +221,6 @@ public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
 	void InteractableFound(const TScriptInterface<IActorInteractableInterface>& FoundInteractable);
 	virtual void InteractableFound_Implementation(const TScriptInterface<IActorInteractableInterface>& FoundInteractable) = 0;
-
 	
 	/**
 	 * Function called by OnInteractableLost. If Lost Interactable is not Active Interactable, then nothing happens.
@@ -246,6 +241,8 @@ public:
 	void InteractableSelected(const TScriptInterface<IActorInteractableInterface>& SelectedInteractable);
 	virtual void InteractableSelected_Implementation(const TScriptInterface<IActorInteractableInterface>& SelectedInteractable) = 0;
 
+
+	
 	/**
 	 * Tries to add Actor to Ignored Actors.
 	 * Duplicates and null not allowed.
@@ -295,6 +292,8 @@ public:
 	TArray<AActor*> GetIgnoredActors() const;
 	virtual TArray<AActor*> GetIgnoredActors_Implementation() const = 0;
 
+	
+
 	/**
 	 * Adds unique Interaction Dependency.
 	 * Those Interactors will be suppressed until this one is not interacting anymore.
@@ -333,6 +332,8 @@ public:
 	void ProcessDependencies();
 	virtual void ProcessDependencies_Implementation() = 0;
 
+	
+
 	/**
 	 * Optimized request for Interactor.
 	 * Can be overridden in C++ for specific class needs.
@@ -340,6 +341,8 @@ public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
 	bool CanInteract() const;
 	virtual bool CanInteract_Implementation() const = 0;
+
+	
 
 	/**
 	 * Returns Interactor Response Channel.
@@ -362,6 +365,8 @@ public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
 	void SetResponseChannel(const ECollisionChannel NewResponseChannel);
 	virtual void SetResponseChannel_Implementation(const ECollisionChannel NewResponseChannel) = 0;
+
+	
 
 	/**
 	 * Returns Interactor State.
@@ -397,12 +402,16 @@ public:
 	void SetDefaultState(const EInteractorStateV2 NewState);
 	virtual void SetDefaultState_Implementation(const EInteractorStateV2 NewState) = 0;
 
+	
+
 	/**
 	 * Returns whether Interactor auto activates or not.
 	 */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Interactor")
 	bool DoesAutoActivate() const;
 	virtual bool DoesAutoActivate_Implementation() const = 0;
+
+	
 
 	/**
 	 * Sets specified or null Interactable to be Active Interactable.
@@ -420,16 +429,22 @@ public:
 	TScriptInterface<IActorInteractableInterface> GetActiveInteractable() const;
 	virtual TScriptInterface<IActorInteractableInterface> GetActiveInteractable_Implementation() const = 0;
 
+	
+
 	/**
 	 * Development Only.
 	 * Toggles debug On/Off.
 	 * Does not affect Editor Debug!
 	 */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, CallInEditor, Category="Mountea|Interaction|Interactor", meta=(DevelopmentOnly))
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, CallInEditor, Category="Mountea|Interaction|Interactor")
 	void ToggleDebug();
 	virtual void ToggleDebug_Implementation() = 0;
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
+	FDebugSettings GetDebugSettings() const;
+	virtual FDebugSettings GetDebugSettings_Implementation() const = 0;
+
 	
-		
 	/**
 	 * Retrieves the interactor's gameplay tag.
 	 * 
@@ -450,10 +465,96 @@ public:
 	virtual void SetInteractorTag_Implementation(const FGameplayTag& NewInteractorTag) = 0;
 	
 
+	/**
+	 * Event bound to OnComponentActivated event.
+	 * Once OnComponentActivated is called this event is, too.
+	 * Be sure to call Parent event to access all C++ implementation!
+	 * 
+	 * @param Component		Whether this Interactor is Auto Activated or not
+	 * @param bReset				Whether the component should be reset
+	 */
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
+	void OnInteractorComponentActivated(UActorComponent* Component, bool bReset);
+	virtual void OnInteractorComponentActivated_Implementation(UActorComponent* Component, bool bReset) = 0;
+
+	/**
+	 * Gets the owning actor of this Interactor.
+	 * This function returns the actor that owns or Interactor or the Interactor itself if it's an Actor.
+	 *
+	 * @return The actor owning this Interactor.
+	 */
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
+	AActor* GetOwningActor() const;
+	virtual AActor* GetOwningActor_Implementation() const = 0;
+	
+	/**
+	 * Helper function to provide debug and useful information.
+	 * This function returns a string representation of the interactor, useful for logging and debugging.
+	 *
+	 * @return A string containing debug and useful information about the interactor.
+	 */
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
+	FString ToString() const;
+	virtual FString ToString_Implementation() const = 0;
+
+	/**
+	 * Returns the current safety tracing setup.
+	 *
+	 * @return FSafetyTracingSetup containing the current safety tracing mode, start location, and start socket name.
+	 */
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
+	FSafetyTracingSetup GetSafetyTracingSetup() const;
+	virtual FSafetyTracingSetup GetSafetyTracingSetup_Implementation() const = 0;
+
+	/**
+	 * Sets a new safety tracing setup.
+	 *
+	 * @param NewSafetyTracingSetup The new setup to be used, containing the safety tracing mode, start location, and start socket name.
+	 */
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
+	void SetSafetyTracingSetup(const FSafetyTracingSetup& NewSafetyTracingSetup);
+	virtual void SetSafetyTracingSetup_Implementation(const FSafetyTracingSetup& NewSafetyTracingSetup) = 0;
+	
+	/**
+	 * Performs a safety trace to check for obstacles between the interactor and the specified interactable actor.
+	 * This function is used to ensure that there are no obstructions that would prevent interaction with the specified actor.
+	 *
+	 * @param InteractableActor The actor to perform the safety trace against.
+	 * @return True if the trace is successful and there are no obstructions, false otherwise.
+	 */
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
+	bool PerformSafetyTrace(const AActor* InteractableActor);
+	virtual bool PerformSafetyTrace_Implementation(const AActor* InteractableActor) = 0;
+
+	/**
+	 * Checks if this Interactor has an interactable.
+	 * This function is used to determine if this interactor has any interactable at given time.
+	 *
+	 * @return True if an interactable is present, false otherwise.
+	 */
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
+	bool HasInteractable() const;
+	virtual bool HasInteractable_Implementation() const = 0;
+
+	/**
+	 * Finds default values from Developer settings and tries to set them for this component.
+	 * Will override current settings!
+	 * Will set those values only if not null.
+	 */
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor", meta=(DisplayName="SetDefaults"))
+	void SetDefaults();
+	virtual void SetDefaults_Implementation()  = 0;
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
+	void ConsumeInput(UInputAction* ConsumedInput);
+	virtual void ConsumeInput_Implementation(UInputAction* ConsumedInput) = 0;
+	
 	virtual FInteractableSelected& GetOnInteractableSelectedHandle() = 0;
 	virtual FInteractableFound& GetOnInteractableFoundHandle() = 0;
 	virtual FInteractableLost& GetOnInteractableLostHandle() = 0;
 	virtual FInteractionKeyPressed& GetOnInteractionKeyPressedHandle() = 0;
 	virtual FInteractionKeyReleased& GetOnInteractionKeyReleasedHandle() = 0;
 	virtual FInteractorTagChanged& GetOnInteractorTagChangedHandle() = 0;
+
+	virtual FInputActionConsumed& GetInputActionConsumedHandle() = 0;
 };
