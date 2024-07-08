@@ -56,6 +56,11 @@ Powerful configuration allows setting different textures for different Platforms
     <img width="66%" src="https://github.com/Mountea-Framework/MounteaInteractionSystem/assets/37410226/b35363c4-7f14-40d8-b5ab-b995f4551e9e">
 </p>
 
+## Free Examples
+All good products contain samples and this plugin is not difference! There are 10 (plus 1 Blueprint Base Class) ready to use examples of various Interaction widgets. All created with performance and scalability in mind.
+<p align="center" width="100%">
+    <img width="66%" src="https://github.com/Mountea-Framework/MounteaInteractionSystem/assets/37410226/f5385c29-6d5a-42e2-800e-11fb66b7755f">
+</p>
 
 ### Installation
 
