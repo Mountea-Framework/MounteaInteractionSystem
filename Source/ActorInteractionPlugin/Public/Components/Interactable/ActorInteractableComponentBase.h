@@ -40,7 +40,7 @@ public:
 	UActorInteractableComponentBase();
 
 protected:
-
+	
 	virtual void BeginPlay() override;
 	virtual void InitWidget() override;
 
@@ -174,7 +174,7 @@ public:
 
 	virtual FString ToString_Implementation() const override;
 
-	virtual void OnInputDeviceChanged_Implementation(const ECommonInputType DeviceType, const FName& DeviceName, const FString& DeviceHardwareName) override;
+	virtual void OnInputDeviceChanged_Implementation(const ECommonInputType DeviceType, const FName& DeviceName) override;
 
 #pragma endregion
 
@@ -228,7 +228,6 @@ protected:
 
 	UFUNCTION()
 	virtual void InteractorActionConsumed(UInputAction* ConsumedAction);
-
 	UFUNCTION()
 	void OnInputModeChanged(ECommonInputType CommonInput);
 

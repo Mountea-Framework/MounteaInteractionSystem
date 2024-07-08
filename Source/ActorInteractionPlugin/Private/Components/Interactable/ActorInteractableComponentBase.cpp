@@ -13,6 +13,7 @@
 
 #include "Components/BillboardComponent.h"
 #include "Components/WidgetComponent.h"
+#include "GameFramework/InputDeviceSubsystem.h"
 
 #include "Helpers/ActorInteractionFunctionLibrary.h"
 #include "Helpers/MounteaInteractionSystemBFL.h"
@@ -2180,29 +2181,26 @@ void UActorInteractableComponentBase::OnInputModeChanged(ECommonInputType Common
 {
 	if (UMounteaInteractionSystemBFL::CanExecuteCosmeticEvents(GetWorld()))
 	{
-		if (const auto localPlayer = UMounteaInteractionSystemBFL::FindLocalPlayer(GetOwner()))
+		if (!GetWidget())
+		{
+			return;
+		}
+		
+		if (const auto localPlayer = GetWidget()->GetOwningLocalPlayer())
 		{
 			if (UCommonInputSubsystem* commonInputSubsystem = UCommonInputSubsystem::Get(localPlayer))
 			{
+				
 				const auto currentInputType = commonInputSubsystem->GetCurrentInputType();
 				const auto currentInputName = commonInputSubsystem->GetCurrentGamepadName();
-
-				FString hardwareDeviceName;
-				FName inputDeviceName;
-				const FInputDeviceScope* DeviceScope = FInputDeviceScope::GetCurrent();
-				if (DeviceScope)
-				{
-					hardwareDeviceName = DeviceScope->HardwareDeviceIdentifier;
-					inputDeviceName = DeviceScope->InputDeviceName;
-				}
 				
-				OnInteractionDeviceChanged.Broadcast(currentInputType, currentInputName, hardwareDeviceName);
+				OnInteractionDeviceChanged.Broadcast(currentInputType, currentInputName);
 			}
 		}
 	}
 }
 
-void UActorInteractableComponentBase::OnInputDeviceChanged_Implementation(const ECommonInputType DeviceType, const FName& DeviceName, const FString& DeviceHardwareName)
+void UActorInteractableComponentBase::OnInputDeviceChanged_Implementation(const ECommonInputType DeviceType, const FName& DeviceName)
 {
 	FString InputTypeString = GetEnumValueAsString<ECommonInputType>("ECommonInputType", DeviceType);
 }

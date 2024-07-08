@@ -288,7 +288,7 @@ public:
 	/**
 	 * Returns list of Ignored Actors.
 	 */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Interactor")
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
 	TArray<AActor*> GetIgnoredActors() const;
 	virtual TArray<AActor*> GetIgnoredActors_Implementation() const = 0;
 
@@ -320,7 +320,7 @@ public:
 	 * Returns all Interaction Dependencies.
 	 * Those Interactors will be suppressed until this one is not interacting anymore.
 	 */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Interactor")
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
 	TArray<TScriptInterface<IActorInteractorInterface>> GetInteractionDependencies() const;
 	virtual TArray<TScriptInterface<IActorInteractorInterface>> GetInteractionDependencies_Implementation() const = 0;
 
@@ -348,7 +348,7 @@ public:
 	 * Returns Interactor Response Channel.
 	 * This is the channel Interactor is interacting with.
 	 */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Interactor")
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
 	ECollisionChannel GetResponseChannel() const;
 	virtual ECollisionChannel GetResponseChannel_Implementation() const = 0;
 
@@ -371,7 +371,7 @@ public:
 	/**
 	 * Returns Interactor State.
 	 */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Interactor")
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
 	EInteractorStateV2 GetState() const;
 	virtual EInteractorStateV2 GetState_Implementation() const = 0;
 
@@ -389,7 +389,7 @@ public:
 	/**
 	 * Returns Default Interactor State.
 	 */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Interactor")
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
 	EInteractorStateV2 GetDefaultState() const;
 	virtual EInteractorStateV2 GetDefaultState_Implementation() const = 0;
 
@@ -407,7 +407,7 @@ public:
 	/**
 	 * Returns whether Interactor auto activates or not.
 	 */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Interactor")
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
 	bool DoesAutoActivate() const;
 	virtual bool DoesAutoActivate_Implementation() const = 0;
 
@@ -425,7 +425,7 @@ public:
 	/**
 	 * Returns Active Interactable if there is any. Otherwise null.
 	 */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Interactor")
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
 	TScriptInterface<IActorInteractableInterface> GetActiveInteractable() const;
 	virtual TScriptInterface<IActorInteractableInterface> GetActiveInteractable_Implementation() const = 0;
 

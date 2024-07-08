@@ -70,7 +70,7 @@ struct FKeyOnDevice
 	GENERATED_BODY()
 
 	/** The list of key-device pairs. */
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Input", meta = (ShowOnlyInnerProperties))
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Input", meta = (ForceInlineRow, TitleProperty="SupportedDeviceType"))
 	TArray<FKeyOnDevicePair> KeyPairs;
 
 	FKeyOnDevice() {}
@@ -106,6 +106,6 @@ public:
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Interactable")
 	FInteractableBaseSettings												InteractableBaseSettings;
 
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Input", meta=(ShowOnlyInnerProperties))
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Input", meta=(ForceInlineRow))
 	TMap<FKey, FKeyOnDevice>											MappingKeys;
 };
