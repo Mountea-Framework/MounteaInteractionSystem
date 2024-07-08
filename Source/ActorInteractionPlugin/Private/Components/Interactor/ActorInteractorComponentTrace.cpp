@@ -4,11 +4,17 @@
 #include "Components/Interactor/ActorInteractorComponentTrace.h"
 
 #include "Interfaces/ActorInteractableInterface.h"
+
 #include "Kismet/KismetMathLibrary.h"
+
+#include "GameFramework/Actor.h"
+#include "Engine/HitResult.h"
+#include "Engine/World.h"
 
 #include "TimerManager.h"
 #include "Helpers/ActorInteractionPluginLog.h"
 #include "Helpers/InteractionHelpers.h"
+
 #include "Net/UnrealNetwork.h"
 
 #if WITH_EDITOR

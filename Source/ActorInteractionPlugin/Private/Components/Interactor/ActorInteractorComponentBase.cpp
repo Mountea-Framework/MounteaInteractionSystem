@@ -2,6 +2,7 @@
 
 
 #include "Components/Interactor/ActorInteractorComponentBase.h"
+#include "Components/MeshComponent.h"
 
 #if WITH_EDITOR
 
@@ -16,6 +17,10 @@
 #include "Helpers/ActorInteractionPluginLog.h"
 
 #include "Interfaces/ActorInteractableInterface.h"
+
+#include "GameFramework/Actor.h"
+#include "Engine/HitResult.h"
+#include "Engine/World.h"
 
 #include "Net/UnrealNetwork.h"
 #include "Net/Core/PushModel/PushModel.h"

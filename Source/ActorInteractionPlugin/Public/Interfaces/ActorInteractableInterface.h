@@ -20,6 +20,8 @@ class IActorInteractorInterface;
 
 class UInputAction;
 
+class UMeshComponent;
+
 struct FDataTableRowHandle;
 
 enum class EInteractableStateV2 : uint8;

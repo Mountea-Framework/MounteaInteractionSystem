@@ -17,7 +17,7 @@
 
 #include "Internationalization/Regex.h"
 
-
+#include "Components/MeshComponent.h"
 
 UMeshComponent* UMounteaInteractionSystemBFL::FindMeshByTag(const FName Tag, const AActor* Source)
 {
