@@ -52,8 +52,9 @@ UE 5.3 | 3.0.1.6 | 🟩
 
 Powerful configuration allows setting different textures for different Platforms, Input Types and even Gamepad Types!
 <p align="center" width="100%">
-    <img width="66%" src="https://github.com/Mountea-Framework/MounteaInteractionSystem/assets/37410226/d58df5c4-67dc-452c-b3a4-f21f9c54711c">
+    <img width="66%" src="https://github.com/Mountea-Framework/MounteaInteractionSystem/assets/37410226/b35363c4-7f14-40d8-b5ab-b995f4551e9e">
 </p>
+
 
 ### Installation
 
