@@ -1412,9 +1412,13 @@ void UActorInteractableComponentBase::InteractionStarted_Implementation(const fl
 
 void UActorInteractableComponentBase::InteractionStarted_Client_Implementation(const float& TimeStarted, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
 {
-	if (GetOwner() && !GetOwner()->HasAuthority())
+	if (GetOwner() && !GetOwner()->HasAuthority() && CausingInteractor.GetObject() != nullptr && CausingInteractor.GetInterface() != nullptr)
 	{
-		Interactor->GetInputActionConsumedHandle().AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractorActionConsumed);
+		// Just to keep everything safe LOCALLY update Interactor
+		if (Interactor != CausingInteractor)
+			Interactor = CausingInteractor;
+		
+		CausingInteractor->GetInputActionConsumedHandle().AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractorActionConsumed);
 		
 		OnInteractionStarted.Broadcast(TimeStarted, CausingInteractor);
 
@@ -1867,6 +1871,11 @@ void UActorInteractableComponentBase::UnbindHighlightableMesh_Implementation(UMe
 void UActorInteractableComponentBase::ToggleDebug_Implementation()
 {
 	DebugSettings.DebugMode = !DebugSettings.DebugMode;
+}
+
+FDebugSettings UActorInteractableComponentBase::GetDebugSettings_Implementation() const
+{
+	return DebugSettings;
 }
 
 void UActorInteractableComponentBase::AutoSetup()

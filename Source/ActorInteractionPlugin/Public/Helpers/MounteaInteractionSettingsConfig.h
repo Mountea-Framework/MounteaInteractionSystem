@@ -93,7 +93,7 @@ struct FKeyOnDevice
 /**
  * 
  */
-UCLASS(ClassGroup=(Mountea), EditInlineNew, meta = (DisplayName = "Mountea Interaction System Settings Configuration"), autoexpandcategories=("Interactor","Interactable"))
+UCLASS(ClassGroup=(Mountea), EditInlineNew, meta = (DisplayName = "Mountea Interaction System Settings Configuration"), autoexpandcategories=("Interactor","Interactable","Input"))
 class ACTORINTERACTIONPLUGIN_API UMounteaInteractionSettingsConfig : public UDataAsset
 {
 	GENERATED_BODY()

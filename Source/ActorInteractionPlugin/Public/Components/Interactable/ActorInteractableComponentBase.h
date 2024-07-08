@@ -155,6 +155,7 @@ public:
 	virtual void InteractableDependencyStoppedCallback_Implementation(const TScriptInterface<IActorInteractableInterface>& FormerMaster) override;
 
 	virtual void ToggleDebug_Implementation() override;
+	virtual FDebugSettings GetDebugSettings_Implementation() const override;
 	virtual void SetDefaults_Implementation() override;
 
 	virtual FGameplayTagContainer GetInteractableCompatibleTags_Implementation() const override;

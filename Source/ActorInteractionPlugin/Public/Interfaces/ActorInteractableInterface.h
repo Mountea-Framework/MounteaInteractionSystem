@@ -800,9 +800,13 @@ public:
 	 * Development Only.
 	 * Toggles debug On/Off.
 	 */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactable", meta=(DevelopmentOnly))
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactable")
 	void ToggleDebug();
 	virtual void ToggleDebug_Implementation() = 0;
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
+	FDebugSettings GetDebugSettings() const;
+	virtual FDebugSettings GetDebugSettings_Implementation() const = 0;
 
 	/**
 	 * Helper function.

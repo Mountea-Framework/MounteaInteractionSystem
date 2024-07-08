@@ -849,6 +849,11 @@ void UActorInteractorComponentBase::ToggleDebug_Implementation()
 	DebugSettings.DebugMode = !DebugSettings.DebugMode;
 }
 
+FDebugSettings UActorInteractorComponentBase::GetDebugSettings_Implementation() const
+{
+	return DebugSettings;
+}
+
 FGameplayTag UActorInteractorComponentBase::GetInteractorTag_Implementation() const
 {
 	return InteractorTag;

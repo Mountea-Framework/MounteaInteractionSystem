@@ -436,10 +436,13 @@ public:
 	 * Toggles debug On/Off.
 	 * Does not affect Editor Debug!
 	 */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, CallInEditor, Category="Mountea|Interaction|Interactor", meta=(DevelopmentOnly))
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, CallInEditor, Category="Mountea|Interaction|Interactor")
 	void ToggleDebug();
 	virtual void ToggleDebug_Implementation() = 0;
-	
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
+	FDebugSettings GetDebugSettings() const;
+	virtual FDebugSettings GetDebugSettings_Implementation() const = 0;
 
 	
 	/**

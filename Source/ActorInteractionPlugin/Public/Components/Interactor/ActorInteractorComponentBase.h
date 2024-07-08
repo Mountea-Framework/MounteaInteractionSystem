@@ -97,6 +97,7 @@ public:
 	virtual void SetActiveInteractable_Implementation(const TScriptInterface<IActorInteractableInterface>& NewInteractable) override;
 	virtual TScriptInterface<IActorInteractableInterface> GetActiveInteractable_Implementation() const override;
 	virtual void ToggleDebug_Implementation() override;
+	virtual FDebugSettings GetDebugSettings_Implementation() const override;
 	virtual FGameplayTag GetInteractorTag_Implementation() const override;
 	virtual void SetInteractorTag_Implementation(const FGameplayTag& NewInteractorTag) override;
 	virtual void OnInteractorComponentActivated_Implementation(UActorComponent* Component, bool bReset) override;

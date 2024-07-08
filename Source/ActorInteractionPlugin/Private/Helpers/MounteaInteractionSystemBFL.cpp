@@ -193,7 +193,7 @@ ECommonInputType UMounteaInteractionSystemBFL::GetActiveInputType(APlayerControl
 	return commonInputSubsystem->GetCurrentInputType();
 }
 
-bool UMounteaInteractionSystemBFL::IsInputKeyPairSupported(APlayerController* PlayerController, const FKey& InputKey, TSoftObjectPtr<class UTexture2D>& FoundInputTexture)
+bool UMounteaInteractionSystemBFL::IsInputKeyPairSupported(APlayerController* PlayerController, const FKey& InputKey, const FString& HardwareDeviceID, TSoftObjectPtr<class UTexture2D>& FoundInputTexture)
 {
 	const UActorInteractionPluginSettings* settings = GetMutableDefault<UActorInteractionPluginSettings>();
 	if (!settings)
@@ -224,9 +224,13 @@ bool UMounteaInteractionSystemBFL::IsInputKeyPairSupported(APlayerController* Pl
 
 		TPair<ECommonInputType, FString> testPair(activeInputType, platformName);
 
-		const FKeyOnDevicePair* foundPair = Itr.Value.KeyPairs.FindByPredicate([&testPair](const FKeyOnDevicePair& Pair)
+		const FKeyOnDevicePair* foundPair = Itr.Value.KeyPairs.FindByPredicate([&testPair, &HardwareDeviceID](const FKeyOnDevicePair& Pair)
 		{
-			return Pair == testPair;
+			if (Pair.BlacklistedDeviceIDs.IsEmpty())
+			{
+				return Pair == testPair;
+			}
+			return Pair == testPair && !Pair.BlacklistedDeviceIDs.Contains(HardwareDeviceID);
 		});
 
 		if (foundPair)
@@ -238,4 +242,3 @@ bool UMounteaInteractionSystemBFL::IsInputKeyPairSupported(APlayerController* Pl
 
 	return false;
 }
-

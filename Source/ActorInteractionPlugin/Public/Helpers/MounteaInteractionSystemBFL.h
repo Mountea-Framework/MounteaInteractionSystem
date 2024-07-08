@@ -88,5 +88,5 @@ public:
 	static ECommonInputType GetActiveInputType(class APlayerController* PlayerController);
 	
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Helpers")
-	static bool IsInputKeyPairSupported(class APlayerController* PlayerController, const FKey& InputKey, TSoftObjectPtr<class UTexture2D>& FoundInputTexture);
+	static bool IsInputKeyPairSupported(class APlayerController* PlayerController, const FKey& InputKey, const FString& HardwareDeviceID, TSoftObjectPtr<class UTexture2D>& FoundInputTexture);
 };
