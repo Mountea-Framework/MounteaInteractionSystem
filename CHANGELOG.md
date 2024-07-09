@@ -4,8 +4,8 @@ Current Version: 4.0.0.51
 
 All notable changes to this project will be documented in this file.
 
-## Version 4.0 ##
-### Updates
+** Version 4.0 **
+### Changed
 - Interfaces are now much more exposed to blueprints
 - - almost all functions are now Blueprint Native Events, therefore allows BP overriding
 - **Replication** of the whole system
@@ -23,12 +23,12 @@ All notable changes to this project will be documented in this file.
 - Added dependency on `CommonUI`
 - Added dependency on `EnhancedInput`
 
-### Fixes
+### Fixed
 - Fixed old interaction widgets
 - Fixed many small issues
 - Fixed loosing interactor after pausing interaction
 
-## Version 3.1 ##
+** Version 3.1 **
 ### Added 
 > - Added: Improved performance for Consoles and Mobile devices
 ### Fixed
