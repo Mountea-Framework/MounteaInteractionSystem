@@ -8,7 +8,7 @@ All notable changes to this project will be documented in this file.
 ### Changed
 > - Interfaces are now much more exposed to blueprints
 > - - almost all functions are now Blueprint Native Events, therefore allows BP overriding
-> - **Replication** of the whole system
+> - *Replication* of the whole system
 > - Example UI is now unified and contains even more examples
 > - System is updated to work with *Enhanced Input*
 > - Interactable is now completely passive
