@@ -51,6 +51,8 @@ public:
 	{ return OnInteractorTagChanged; };
 	virtual FInputActionConsumed& GetInputActionConsumedHandle() override
 	{ return OnInputActionConsumed; };
+	virtual FStateChanged& GetOnStateChangedHandle() override
+	{ return OnStateChanged; };
 
 #pragma endregion
 	
