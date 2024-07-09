@@ -67,13 +67,16 @@ UActorInteractableComponentBase::UActorInteractableComponentBase() :
 	bVisualizeComponent = true;
 #endif
 
-#if WITH_EDITOR || WITH_EDITORONLY_DATA
+#if !UE_GAME
+#if WITH_EDITOR
 	if (GIsEditor && !GIsPlayInEditorWorld && !bInteractableInitialized)
 	{
+		LOG_INFO(TEXT("[%s] Setting Default Values from Constructor"), *GetName())
 		SetDefaultValues();
 	}
 #endif
-
+#endif
+	
 	bInteractableInitialized = true;
 }
 
@@ -1310,7 +1313,7 @@ void UActorInteractableComponentBase::InteractorLost_Implementation(const TScrip
 	
 	GetWorld()->GetTimerManager().ClearTimer(Timer_Interaction);
 	GetWorld()->GetTimerManager().ClearTimer(Timer_ProgressExpiration);
-	GetWorld()->GetTimerManager().ClearTimer(Timer_Cooldown);
+	//GetWorld()->GetTimerManager().ClearTimer(Timer_Cooldown);
 		
 	if (GetOwner() && GetOwner()->HasAuthority())
 	{
