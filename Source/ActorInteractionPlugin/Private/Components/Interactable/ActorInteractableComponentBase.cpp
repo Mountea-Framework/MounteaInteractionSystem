@@ -1309,7 +1309,7 @@ void UActorInteractableComponentBase::InteractorLost_Implementation(const TScrip
 	
 	GetWorld()->GetTimerManager().ClearTimer(Timer_Interaction);
 	GetWorld()->GetTimerManager().ClearTimer(Timer_ProgressExpiration);
-	GetWorld()->GetTimerManager().ClearTimer(Timer_Cooldown);
+	//GetWorld()->GetTimerManager().ClearTimer(Timer_Cooldown);
 		
 	if (GetOwner() && GetOwner()->HasAuthority())
 	{
