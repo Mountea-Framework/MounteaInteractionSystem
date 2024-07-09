@@ -555,6 +555,7 @@ public:
 	virtual FInteractionKeyPressed& GetOnInteractionKeyPressedHandle() = 0;
 	virtual FInteractionKeyReleased& GetOnInteractionKeyReleasedHandle() = 0;
 	virtual FInteractorTagChanged& GetOnInteractorTagChangedHandle() = 0;
+	virtual FStateChanged& GetOnStateChangedHandle() = 0;
 
 	virtual FInputActionConsumed& GetInputActionConsumedHandle() = 0;
 };
