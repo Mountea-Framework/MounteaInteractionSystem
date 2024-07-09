@@ -231,6 +231,10 @@ protected:
 	UFUNCTION()
 	void OnInputModeChanged(ECommonInputType CommonInput);
 
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Interactable")
+	TSubclassOf<UUserWidget> GetInteractableWidgetClass() const
+	{ return WidgetClass; };
+
 public:
 	
 #if WITH_EDITOR || WITH_EDITORONLY_DATA
