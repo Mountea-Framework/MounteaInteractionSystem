@@ -70,7 +70,7 @@ UActorInteractableComponentBase::UActorInteractableComponentBase() :
 #if WITH_EDITOR
 	if (GIsEditor && !GIsPlayInEditorWorld && !bInteractableInitialized)
 	{
-		LOG_ERROR(TEXT("Setting Default Values from Constructor"))
+		LOG_INFO(TEXT("[%s] Setting Default Values from Constructor"), *GetName())
 		SetDefaultValues();
 	}
 #endif
