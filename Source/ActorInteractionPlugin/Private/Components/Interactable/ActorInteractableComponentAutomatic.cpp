@@ -34,7 +34,7 @@ void UActorInteractableComponentAutomatic::InteractableSelected_Implementation(c
 	{
 		if (GetWorld()->GetTimerManager().IsTimerActive(Timer_Interaction) == false)
 		{
-			OnInteractionStarted.Broadcast(GetWorld()->GetTimeSeconds(), GetInteractor());
+			OnInteractionStarted.Broadcast(GetWorld()->GetTimeSeconds(), Execute_GetInteractor(this));
 		}
 	}
 }
@@ -104,7 +104,7 @@ void UActorInteractableComponentAutomatic::OnInteractionCompletedCallback()
 		if (Execute_TriggerCooldown(this)) return;
 	}
 	
-	OnInteractionCompleted.Broadcast(GetWorld()->GetTimeSeconds(), GetInteractor());
+	OnInteractionCompleted.Broadcast(GetWorld()->GetTimeSeconds(), Execute_GetInteractor(this));
 }
 
 #undef LOCTEXT_NAMESPACE

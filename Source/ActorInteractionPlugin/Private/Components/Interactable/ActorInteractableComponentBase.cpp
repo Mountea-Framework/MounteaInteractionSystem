@@ -71,6 +71,7 @@ UActorInteractableComponentBase::UActorInteractableComponentBase() :
 	bVisualizeComponent = true;
 #endif
 
+#if !UE_GAME
 #if WITH_EDITOR || WITH_EDITORONLY_DATA
 	if (GIsEditor && !GIsPlayInEditorWorld)
 	{
@@ -80,6 +81,7 @@ UActorInteractableComponentBase::UActorInteractableComponentBase() :
 	{
 		SetDefaultValues();
 	}
+#endif
 #endif
 
 	bInteractableInitialized = true;

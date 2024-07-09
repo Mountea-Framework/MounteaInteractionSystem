@@ -78,7 +78,7 @@ void UActorInteractableComponentHold::OnInteractionCompletedCallback()
 			if (Execute_TriggerCooldown(this)) return;
 		}
 	
-		OnInteractionCompleted.Broadcast(GetWorld()->GetTimeSeconds(), GetInteractor());
+		OnInteractionCompleted.Broadcast(GetWorld()->GetTimeSeconds(), Execute_GetInteractor(this));
 	}
 }
 
