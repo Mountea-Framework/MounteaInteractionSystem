@@ -37,7 +37,7 @@ All notable changes to this project will be documented in this file.
 > - Changed: Deprecated *SnoozeInteractable* functions
 > - Changed: Depreacted *Asleep* Interactable State
 
-## Version 3.0 ##
+** Version 3.0 **
 ### Added 
 > - Added: New Interactor Component Base Class implementing IActorInteractorInterface
 > - Added: Child Classes for this new Interactor Base class, replacing existing monolithic ActorInteractorComponent solution
