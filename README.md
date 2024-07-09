@@ -12,7 +12,7 @@ Developed with Game Developers in mind to allow as easy as possible implementati
 ## Playable Demo
 Feel free to download the playable demo and take a look at what this plugin (in combination with its Dialogue sibling) can do in a matter of a few clicks!
 <p align="center" width="100%">
-    <a href="https://drive.google.com/drive/u/1/folders/1Mr0jdd1b1ZooE6uZ-SABMBGyOVXcKNU6">
+    <a href="https://drive.google.com/file/d/1XS6meFqXbDM_YfbjQijcco6q1O1wl9-J/view?usp=drive_link">
         <img width="20%" src="https://github.com/Mountea-Framework/MounteaInteractionSystem/assets/37410226/da51eced-84e4-4c96-a9ff-cd5a03055d64">
     </a>
 </p>
