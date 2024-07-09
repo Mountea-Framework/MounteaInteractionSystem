@@ -5,7 +5,7 @@
 // Log category definition
 DEFINE_LOG_CATEGORY(LogActorInteractionEditor);
 
-void PrintLog(const FString& Message, const FLinearColor Color, const float Duration)
+void PrintInteractionEditorLog(const FString& Message, const FLinearColor Color, const float Duration)
 {
 	if (GEditor)
 	{
