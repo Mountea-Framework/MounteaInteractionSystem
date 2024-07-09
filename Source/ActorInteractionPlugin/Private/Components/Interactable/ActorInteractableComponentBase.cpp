@@ -66,13 +66,16 @@ UActorInteractableComponentBase::UActorInteractableComponentBase() :
 	bVisualizeComponent = true;
 #endif
 
-#if WITH_EDITOR || WITH_EDITORONLY_DATA
+#if !UE_GAME
+#if WITH_EDITOR
 	if (GIsEditor && !GIsPlayInEditorWorld && !bInteractableInitialized)
 	{
+		LOG_ERROR(TEXT("Setting Default Values from Constructor"))
 		SetDefaultValues();
 	}
 #endif
-
+#endif
+	
 	bInteractableInitialized = true;
 }
 
