@@ -71,20 +71,19 @@ UActorInteractableComponentBase::UActorInteractableComponentBase() :
 	bVisualizeComponent = true;
 #endif
 
-#if !UE_GAME
-#if WITH_EDITOR || WITH_EDITORONLY_DATA
-	if (GIsEditor && !GIsPlayInEditorWorld)
-	{
-		RequestEditorDefaults.AddUObject(this, &UActorInteractableComponentBase::ResetDefaults);
-	}
-	if (GIsEditor && !GIsPlayInEditorWorld && !bInteractableInitialized)
-	{
-		SetDefaultValues();
-	}
-#endif
-#endif
+#if WITH_EDITOR && !UE_GAME
 
-	bInteractableInitialized = true;
+	if (!bInteractableInitialized)
+	{
+		if (GetOwner() == nullptr)
+		{
+			SetDefaultValues();
+		}
+
+		bInteractableInitialized = true;
+	}
+#endif
+	
 }
 
 void UActorInteractableComponentBase::BeginPlay()
@@ -1320,7 +1319,8 @@ void UActorInteractableComponentBase::InteractorLost_Implementation(const TScrip
 	
 	GetWorld()->GetTimerManager().ClearTimer(Timer_Interaction);
 	GetWorld()->GetTimerManager().ClearTimer(Timer_ProgressExpiration);
-	GetWorld()->GetTimerManager().ClearTimer(Timer_Cooldown);
+
+	//GetWorld()->GetTimerManager().ClearTimer(Timer_Cooldown);
 		
 	if (GetOwner() && GetOwner()->HasAuthority())
 	{
@@ -1338,10 +1338,6 @@ void UActorInteractableComponentBase::InteractorLost_Implementation(const TScrip
 	switch (InteractableState)
 	{
 		case EInteractableStateV2::EIS_Cooldown:
-			if (Execute_GetInteractor(this).GetObject() == nullptr)
-			{
-				Execute_SetState(this, DefaultInteractableState);
-			}
 			break;
 		case EInteractableStateV2::EIS_Asleep:
 		case EInteractableStateV2::EIS_Suppressed:
