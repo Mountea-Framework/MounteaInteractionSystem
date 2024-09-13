@@ -65,20 +65,6 @@ UActorInteractableComponentBase::UActorInteractableComponentBase() :
 #if WITH_EDITORONLY_DATA
 	bVisualizeComponent = true;
 #endif
-
-#if WITH_EDITOR && !UE_GAME
-
-	if (!bInteractableInitialized)
-	{
-		if (GetOwner() == nullptr)
-		{
-			SetDefaultValues();
-		}
-
-		bInteractableInitialized = true;
-	}
-#endif
-	
 }
 
 void UActorInteractableComponentBase::BeginPlay()
@@ -199,9 +185,7 @@ void UActorInteractableComponentBase::InitWidget()
 
 void UActorInteractableComponentBase::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-	
+	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);	
 }
 
 void UActorInteractableComponentBase::OnComponentCreated()
