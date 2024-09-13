@@ -242,9 +242,9 @@ public:
 
 	/**
 	 * Overrides data with default values from Project Settings.
-	 * Interactable Defaults are set automatically!
+	 * Project Settings must be defined!
 	 */
-	UFUNCTION(BlueprintCallable, CallInEditor, Category="MounteaInteraction")
+	UFUNCTION(BlueprintCallable, Category="MounteaInteraction")
 	void SetDefaultValues();
 	
 #endif

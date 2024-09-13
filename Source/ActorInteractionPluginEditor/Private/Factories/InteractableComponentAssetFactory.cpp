@@ -10,7 +10,7 @@
 #include "Kismet2/KismetEditorUtilities.h"
 #include "Engine/DataTable.h"
 
-#define LOCTEXT_NAMESPACE "ActorInteraction"
+#define LOCTEXT_NAMESPACE "InteractableComponentAssetFactory"
 
 UInteractableComponentAssetFactory::UInteractableComponentAssetFactory(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
