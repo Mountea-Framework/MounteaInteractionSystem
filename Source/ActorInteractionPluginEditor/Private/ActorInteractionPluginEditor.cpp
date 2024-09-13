@@ -22,6 +22,7 @@
 
 #include "ToolMenus.h"
 #include "AssetActions/InteractionSettingsConfig.h"
+#include "DetailsPanel/MounteaInteractableBase_DetailsPanel.h"
 #include "Helpers/MounteaInteractionSystemEditorLog.h"
 #include "Interfaces/IHttpResponse.h"
 
@@ -136,6 +137,25 @@ void FActorInteractionPluginEditor::StartupModule()
 			UActorInteractorComponentBase::StaticClass(),
 			FKismetEditorUtilities::FOnBlueprintCreated::CreateRaw(this, &FActorInteractionPluginEditor::HandleNewInteractorBlueprintCreated)
 		);
+	}
+
+	// Register Custom Detail Panels
+	{
+		FPropertyEditorModule& PropertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
+		{
+			TArray<FOnGetDetailCustomizationInstance> CustomClassLayouts =
+			{
+				FOnGetDetailCustomizationInstance::CreateStatic(&MounteaInteractableBase_DetailsPanel::MakeInstance),
+			};
+			RegisteredCustomClassLayouts =
+			{
+				UActorInteractableComponentBase::StaticClass()->GetFName(),
+			};
+			for (int32 i = 0; i < RegisteredCustomClassLayouts.Num(); i++)
+			{
+				PropertyModule.RegisterCustomClassLayout(RegisteredCustomClassLayouts[i], CustomClassLayouts[i]);
+			}
+		}
 	}
 
 	// Register Help Button

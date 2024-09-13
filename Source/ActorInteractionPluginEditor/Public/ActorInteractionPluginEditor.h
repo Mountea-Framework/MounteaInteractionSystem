@@ -46,6 +46,6 @@ private:
 private:
 	
 	TSharedPtr<class FUICommandList> PluginCommands;
-
+	TArray<FName> RegisteredCustomClassLayouts;
 	FHttpModule* Http;
 };
