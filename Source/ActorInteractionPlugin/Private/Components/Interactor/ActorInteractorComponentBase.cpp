@@ -1031,7 +1031,7 @@ void UActorInteractorComponentBase::SetState_Server_Implementation(const EIntera
 
 void UActorInteractorComponentBase::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent)
 {
-	Super::PostEditChangeChainProperty(PropertyChangedEvent)
+	Super::PostEditChangeChainProperty(PropertyChangedEvent);
 	
 	const FName PropertyName = (PropertyChangedEvent.MemberProperty != nullptr) ? PropertyChangedEvent.GetPropertyName() : NAME_None;
 	
