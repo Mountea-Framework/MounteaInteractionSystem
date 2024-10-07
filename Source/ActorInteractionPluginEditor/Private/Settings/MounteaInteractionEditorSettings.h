@@ -41,12 +41,12 @@ public:
 #if WITH_EDITOR
 	virtual FText GetSectionText() const override
 	{
-		return NSLOCTEXT("MounteaInteractionEditorSystem", "MounteaSettingsEditorSection", "Mountea Interaction System (Editor)");
+		return NSLOCTEXT("MounteaInteractionEditorSystem", "MounteaInteractionSettingsEditorSection", "Mountea Interaction System (Editor)");
 	}
 
 	virtual FText GetSectionDescription() const override
 	{
-		return NSLOCTEXT("MounteaInteractionEditorSystem", "MounteaSettingsEditorDescription", "Default values for Mountea Plugins (Editor).");
+		return NSLOCTEXT("MounteaInteractionEditorSystem", "MounteaInteractionSettingsEditorDescription", "Default values for Mountea Plugins (Editor).");
 	}
 
 	virtual FName GetContainerName() const override

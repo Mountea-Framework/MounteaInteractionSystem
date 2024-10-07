@@ -60,7 +60,9 @@ public class ActorInteractionPluginEditor : ModuleRules
 				"ToolMenus",
 				"InputCore",
 				
-				"UMG"
+				"UMG",
+				
+				"GameplayTags"
 			}
 		);
 		
