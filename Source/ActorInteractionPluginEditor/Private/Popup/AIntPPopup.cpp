@@ -8,6 +8,7 @@
 #include "Interfaces/IPluginManager.h"
 #include "Misc/FileHelper.h"
 #include "Serialization/JsonSerializer.h"
+#include "Widgets/Layout/SScaleBox.h"
 
 void AIntPPopup::OnBrowserLinkClicked(const FSlateHyperlinkRun::FMetadata& Metadata)
 {
@@ -261,10 +262,15 @@ void AIntPPopup::Open(const FString& Changelog)
 			
 					+ SHorizontalBox::Slot()
 					.AutoWidth()
-					[
-						SNew(SImage)
-						.ColorAndOpacity(FLinearColor::Red)
-						.Image(FAIntPHelpStyle::GetBrush("AIntPStyleSet.Icon.HeartIcon"))
+					[						
+						SNew(SScaleBox)
+						.VAlign(VAlign_Center)
+						.HAlign(HAlign_Center)
+						[
+							SNew(SImage)
+							.ColorAndOpacity(FLinearColor::Red)
+							.Image(FAIntPHelpStyle::GetBrush("AIntPStyleSet.Icon.HeartIcon"))
+						]
 					]
 				]
 			]
@@ -302,8 +308,13 @@ void AIntPPopup::Open(const FString& Changelog)
 					+ SHorizontalBox::Slot()
 					.AutoWidth()
 					[
-						SNew(SImage)
-						.Image(FAIntPHelpStyle::GetBrush("AIntPStyleSet.Icon.MoneyIcon"))
+						SNew(SScaleBox)
+						.VAlign(VAlign_Center)
+						.HAlign(HAlign_Center)
+						[
+							SNew(SImage)
+							.Image(FAIntPHelpStyle::GetBrush("AIntPStyleSet.Icon.MoneyIcon"))
+						]
 					]
 				]
 			]
@@ -341,8 +352,13 @@ void AIntPPopup::Open(const FString& Changelog)
 					+ SHorizontalBox::Slot()
 					.AutoWidth()
 					[
-						SNew(SImage)
-						.Image(FAIntPHelpStyle::GetBrush("AIntPStyleSet.Icon.SupportDiscord"))
+						SNew(SScaleBox)
+						.VAlign(VAlign_Center)
+						.HAlign(HAlign_Center)
+						[
+							SNew(SImage)
+							.Image(FAIntPHelpStyle::GetBrush("AIntPStyleSet.Icon.SupportDiscord"))
+						]
 					]
 				]
 			]
@@ -380,8 +396,13 @@ void AIntPPopup::Open(const FString& Changelog)
 					+ SHorizontalBox::Slot()
 					.AutoWidth()
 					[
-						SNew(SImage)
-						.Image(FAIntPHelpStyle::GetBrush("AIntPStyleSet.Icon.UBIcon"))
+						SNew(SScaleBox)
+						.VAlign(VAlign_Center)
+						.HAlign(HAlign_Center)
+						[
+							SNew(SImage)
+							.Image(FAIntPHelpStyle::GetBrush("AIntPStyleSet.Icon.UBIcon"))
+						]
 					]
 				]
 			]
@@ -418,9 +439,14 @@ void AIntPPopup::Open(const FString& Changelog)
 					+ SHorizontalBox::Slot()
 					.AutoWidth()
 					[
-						SNew(SImage)
-						.ColorAndOpacity(FLinearColor::Red)
-						.Image(FAIntPHelpStyle::GetBrush("AIntPStyleSet.Icon.Close"))
+						SNew(SScaleBox)
+						.VAlign(VAlign_Center)
+						.HAlign(HAlign_Center)
+						[
+							SNew(SImage)
+							.ColorAndOpacity(FLinearColor::Red)
+							.Image(FAIntPHelpStyle::GetBrush("AIntPStyleSet.Icon.Close"))
+						]
 					]
 				]
 			]
