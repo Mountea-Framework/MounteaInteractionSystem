@@ -413,7 +413,7 @@ void FActorInteractionPluginEditor::RegisterMenus()
 					PluginCommands,
 					LOCTEXT("MounteaSystemEditor_SupportButton_Label", "Mountea Support"),
 					LOCTEXT("MounteaSystemEditor_SupportButton_ToolTip", "🆘 Open Mountea Framework Support channel"),
-					FSlateIcon(FAIntPHelpStyle::GetStyleSetName(), "AIntPSupport.Help.Icon")
+					FSlateIcon(FAIntPHelpStyle::GetStyleSetName(), "AIntPStyleSet.Help")
 				);
 				SupportEntry.Name = FName("MounteaFrameworkSupport");
 			}
@@ -432,7 +432,7 @@ void FActorInteractionPluginEditor::RegisterMenus()
 					FOnGetContent::CreateRaw(this, &FActorInteractionPluginEditor::MakeMounteaMenuWidget),
 					LOCTEXT("MounteaMainMenu_Label", "Mountea Framework"),
 					LOCTEXT("MounteaMainMenu_Tooltip", "📂 Open Mountea Framework menu.\n\n❔ Provides link to Documentation, Support Discord and Dialogue tool."),
-					FSlateIcon(FAIntPHelpStyle::Get().GetStyleSetName(), "AIntPSupport.Dialoguer.Icon"),
+					FSlateIcon(FAIntPHelpStyle::Get().GetStyleSetName(), "AIntPStyleSet.Dialoguer"),
 					false,
 					"MounteaMenu"
 				));
@@ -455,7 +455,7 @@ TSharedRef<SWidget> FActorInteractionPluginEditor::MakeMounteaMenuWidget() const
 		MenuBuilder.AddMenuEntry(
 			LOCTEXT("MounteaSystemEditor_SupportButton_Label", "Mountea Support"),
 			LOCTEXT("MounteaSystemEditor_SupportButton_ToolTip", "🆘 Open Mountea Framework Support channel"),
-			FSlateIcon(FAIntPHelpStyle::GetStyleSetName(), "AIntPSupport.Help.Icon"),
+			FSlateIcon(FAIntPHelpStyle::GetStyleSetName(), "AIntPStyleSet.Help"),
 			FUIAction(
 				FExecuteAction::CreateRaw(this, &FActorInteractionPluginEditor::PluginButtonClicked)
 			)
@@ -464,7 +464,7 @@ TSharedRef<SWidget> FActorInteractionPluginEditor::MakeMounteaMenuWidget() const
 		MenuBuilder.AddMenuEntry(
 			LOCTEXT("MounteaSystemEditor_WikiButton_Label", "Mountea Wiki"),
 			LOCTEXT("MounteaSystemEditor_WikiButton_ToolTip", "📖 Open Mountea Framework Documentation"),
-			FSlateIcon(FAIntPHelpStyle::GetStyleSetName(), "AIntPSupport.Wiki.Icon"),
+			FSlateIcon(FAIntPHelpStyle::GetStyleSetName(), "AIntPStyleSet.Wiki"),
 			FUIAction(
 				FExecuteAction::CreateRaw(this, &FActorInteractionPluginEditor::WikiButtonClicked)
 			)
@@ -478,7 +478,7 @@ TSharedRef<SWidget> FActorInteractionPluginEditor::MakeMounteaMenuWidget() const
 		MenuBuilder.AddMenuEntry(
 			LOCTEXT("MounteaSystemEditor_DialoguerButton_Label", "Mountea Dialoguer"),
 			LOCTEXT("MounteaSystemEditor_DialoguerButton_ToolTip", "⛰ Open Mountea Dialoguer Standalone Tool\n\n❔ Mountea Dialoguer is a standalone tool created for Dialogue crafting. Mountea Dialogue System supports native import for `.mnteadlg` files."),
-			FSlateIcon(FAIntPHelpStyle::GetStyleSetName(), "AIntPSupport.Dialoguer.Icon"),
+			FSlateIcon(FAIntPHelpStyle::GetStyleSetName(), "AIntPStyleSet.Dialoguer"),
 			FUIAction(
 				FExecuteAction::CreateRaw(this, &FActorInteractionPluginEditor::DialoguerButtonClicked)
 			)

@@ -60,8 +60,8 @@ TSharedRef<FSlateStyleSet> FAIntPHelpStyle::Create()
 	TSharedRef< FSlateStyleSet > Style = MakeShareable(new FSlateStyleSet("AIntPHelpStyle"));
 	Style->SetContentRoot(IPluginManager::Get().FindPlugin("ActorInteractionPlugin")->GetBaseDir() / TEXT("Resources"));
 
-	Style->Set("AIntPSupport.PluginAction", new IMAGE_BRUSH(TEXT("Mountea_Logo"), Icon40x40));
-	Style->Set("AIntPSupport.PluginAction.Small", new IMAGE_BRUSH(TEXT("HelpIcon"), Icon20x20));
+	Style->Set("AIntPStyleSet.PluginAction", new IMAGE_BRUSH(TEXT("Mountea_Logo"), Icon40x40));
+	Style->Set("AIntPStyleSet.PluginAction.Small", new IMAGE_BRUSH(TEXT("Help_Icon"), Icon20x20));
 
 	Style->Set("AIntPStyleSet.Help.Small", new IMAGE_BRUSH(TEXT("Help_Icon"), Icon16x16));
 	Style->Set("AIntPStyleSet.Help", new IMAGE_BRUSH(TEXT("Help_Icon"), Icon40x40));
