@@ -1,11 +1,14 @@
+// All rights reserved Dominik Morse (Pavlicek) 2024
+
 #include "AIntPPopup.h"
 #include "AIntPPopupConfig.h"
-#include "EditorStyleSet.h"
 #include "Widgets/Layout/SScrollBox.h"
 #include "Widgets/Text/SRichTextBlock.h"
-#include "SWebBrowser.h"
 #include "HelpButton/AIntPHelpStyle.h"
 #include "Interfaces/IPluginManager.h"
+#include "Misc/FileHelper.h"
+#include "Serialization/JsonSerializer.h"
+#include "Widgets/Layout/SScaleBox.h"
 
 void AIntPPopup::OnBrowserLinkClicked(const FSlateHyperlinkRun::FMetadata& Metadata)
 {
@@ -19,28 +22,37 @@ void AIntPPopup::OnBrowserLinkClicked(const FSlateHyperlinkRun::FMetadata& Metad
 
 void AIntPPopup::FormatChangelog(FString& InChangelog)
 {
+	FString partyEmoji = TEXT("🎉");
+	FString miracleEmoji = TEXT("✨");
+
+	FString HeaderMessage = partyEmoji + FString(R"(<LargeText>Welcome, and thank you for choosing the Mountea Interaction System!</>)") + TEXT(" ") + partyEmoji;
 	FString WelcomeMessage = FString(R"(
-<LargeText>Hello and thank you for using Mountea Interaction System!</>
 
-First thing first, if you've been enjoying using it, it would mean a lot if you could just drop <a id="browser" href="https://www.unrealengine.com/marketplace/en-US/product/ea38ae1f87b24807a66fdf4fa65ef521">a small review on the marketplace page</> :).
+We're delighted to have you on board. If you're enjoying your experience, we'd greatly appreciate it if you could take a moment to leave <a id="browser" href="https://www.unrealengine.com/marketplace/en-US/product/ca842c00ec0d4db0b3aad17701e1637b">a quick review on our marketplace page</>. Your feedback means the world to us!
 
-I also made a paid <a id="browser" href="https://www.unrealengine.com/marketplace/en-US/product/fbe5d74e46b846f0aeb8ca759e64b71d">Modular Sword Pack</>. It's a simple yet powerful tool that allows creating thousands upon thousands of unique swords with a simple click, now with a free upgrade of Modular Scabbard System!
-
-But let's keep it short, here are the cool new features (and bugfixes) of this version!
-
+Additionally, I'd like to invite you to check out the <a id="browser" href="https://www.unrealengine.com/marketplace/en-US/product/fbe5d74e46b846f0aeb8ca759e64b71d">Modular Sword Pack</>. This versatile tool allows you to create thousands of unique swords with ease, and now it includes the Modular Scabbard System at no extra cost.
 
 )");
 
+	FString DialoguerMessage = miracleEmoji + FString(R"(<LargeText>We're thrilled to announce a game-changing addition to our toolkit: the new standalone dialogue builder!</>)") + TEXT(" ") + miracleEmoji; 
+	FString RestOfMessage =  FString(R"(
+
+You can now easily <a id="browser" href="https://mountea-framework.github.io/MounteaDialoguer/">check it out here</>, a powerful tool that allows you to create, manage, and refine dialogues like never before. This tool isn't just built for Unreal Engine - it's designed to export dialogues for any engine and media format. Seamlessly import your dialogues into Unreal and export them back for other platforms, making your creative process more flexible and efficient than ever!
+
+Now, let's get straight to the exciting new features and bug fixes in this version!
+)");
+	
 	if (InChangelog.IsEmpty())
 	{
-		const FString InvalidChangelog =FString(R"(
-		
-We are sorry, but there has been an error trying to access online Changelog. We are sorry for this.
-The changelist is available publicly <a id="browser" href="https://github.com/Mountea-Framework/MounteaInteractionSystem/blob/5.1/CHANGELOG.md">on our GitHub</>.
-		)");
+		const FString InvalidChangelog = FString(R"(
+We're sorry, but there was an error retrieving the online Changelog. We apologize for the inconvenience.
 
+You can still access the complete changelog publicly <a id="browser" href="https://github.com/Mountea-Framework/MounteaInteractionSystem/blob/5.4/CHANGELOG.md">on our GitHub</>.
 
-		InChangelog = InChangelog.Append(WelcomeMessage).Append(InvalidChangelog);
+Thank you for your understanding!
+)");
+
+		InChangelog = InChangelog.Append(WelcomeMessage).Append(DialoguerMessage).Append(RestOfMessage).Append(InvalidChangelog);
 		return;
 	}
 	
@@ -49,22 +61,23 @@ The changelist is available publicly <a id="browser" href="https://github.com/Mo
 	InChangelog = InChangelog.Replace(TEXT("### Fixed"),		TEXT("<RichTextBlock.BoldHighlight>Fixed</>"));
 	InChangelog = InChangelog.Replace(TEXT("### Changed"),		TEXT("<RichTextBlock.BoldHighlight>Changed</>"));
 	
-	InChangelog = InChangelog.Replace(TEXT("> -"),				TEXT("*"));
-	InChangelog = InChangelog.Replace(TEXT(">   -"),			TEXT("   *"));
-	InChangelog = InChangelog.Replace(TEXT(">     -"),			TEXT("     *"));
+	InChangelog = InChangelog.Replace(TEXT("> - - -"),			TEXT("     •"));
+	InChangelog = InChangelog.Replace(TEXT("> - -"),			TEXT("   ○"));
+	InChangelog = InChangelog.Replace(TEXT("> -"),				TEXT("●"));
+	InChangelog = InChangelog.Replace(TEXT("> -"),				TEXT("●"));
+	InChangelog = InChangelog.Replace(TEXT(">   -"),			TEXT("   ○"));
+	InChangelog = InChangelog.Replace(TEXT(">     -"),			TEXT("     •"));
 
-
-	FormatTextWithTags(InChangelog, TEXT("***"), TEXT("***"),		TEXT("<RichTextBlock.Italic>"),			TEXT("</>"));
-	
-	FormatTextWithTags(InChangelog, TEXT("**"), TEXT("**"),		TEXT("<LargeText>"),					TEXT("</>"));
-
-	FormatTextWithTags(InChangelog, TEXT("`"), TEXT("`"),			TEXT("<RichTextBlock.TextHighlight>"),	TEXT("</>"));
+	FormatTextWithTags(InChangelog, TEXT("***"), TEXT("***"),TEXT("<RichTextBlock.Italic>"),	TEXT("</>"));	
+	FormatTextWithTags(InChangelog, TEXT("**"), TEXT("**"),TEXT("<LargeText>"),					TEXT("</>"));
+	FormatTextWithTags(InChangelog, TEXT("`"), TEXT("`"),	TEXT("<RichTextBlock.TextHighlight>"),TEXT("</>"));
+	FormatTextWithTags(InChangelog, TEXT("*"), TEXT("*"),	TEXT("<RichTextBlock.TextHighlight>"),TEXT("</>"));
 	
 	const FString TempString = InChangelog;
 
 	InChangelog.Empty();
 
-	InChangelog = WelcomeMessage.Append(TempString);
+	InChangelog = InChangelog.Append(HeaderMessage).Append(WelcomeMessage).Append(DialoguerMessage).Append(RestOfMessage).Append(TempString);
 }
 
 void AIntPPopup::FormatTextWithTags(FString& SourceText, const FString& StartMarker, const FString& EndMarker, const FString& StartTag, const FString& EndTag)
@@ -89,11 +102,43 @@ void AIntPPopup::FormatTextWithTags(FString& SourceText, const FString& StartMar
 	}
 }
 
+MounteaInteractionSystemPopup::FPluginVersion AIntPPopup::GetPluginVersion()
+{
+	const FName PluginName = TEXT("ActorInteractionPlugin");
+	const TSharedPtr<IPlugin> Plugin = IPluginManager::Get().FindPlugin(PluginName.ToString());
+	if (!Plugin.IsValid())
+	{
+		return MounteaInteractionSystemPopup::FPluginVersion("1", "0.0.0.1");
+	}
+
+	const FString PluginFilePath = Plugin->GetBaseDir() / FString::Printf(TEXT("%s.uplugin"), *PluginName.ToString());
+
+	FString FileContents;
+	if (!FFileHelper::LoadFileToString(FileContents, *PluginFilePath))
+	{
+		return MounteaInteractionSystemPopup::FPluginVersion("1", "0.0.0.1");
+	}
+	
+	TSharedPtr<FJsonObject> JsonObject;
+	TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(FileContents);
+	if (!FJsonSerializer::Deserialize(Reader, JsonObject) || !JsonObject.IsValid())
+	{
+		return MounteaInteractionSystemPopup::FPluginVersion("1", "0.0.0.1");
+	}
+
+	const int32 VersionNumber = JsonObject->GetIntegerField("Version");
+	const FString VersionName = JsonObject->GetStringField("VersionName");
+
+	const FString Version = FString::Printf(TEXT("%d"), VersionNumber);
+
+	return MounteaInteractionSystemPopup::FPluginVersion(Version, VersionName);
+}
+
 void AIntPPopup::Register(const FString& Changelog)
 {
 	const FString PluginDirectory = IPluginManager::Get().FindPlugin(TEXT("ActorInteractionPlugin"))->GetBaseDir();
 	const FString UpdatedConfigFile = PluginDirectory + "/Config/UpdateConfig.ini";
-	const FString CurrentPluginVersion = "0.0.0.1";
+	FString CurrentPluginVersion = GetPluginVersion().PluginVersionName;
 
 	UAIntPPopupConfig* AIntPPopupConfig = GetMutableDefault<UAIntPPopupConfig>();
 
@@ -106,6 +151,15 @@ void AIntPPopup::Register(const FString& Changelog)
 		AIntPPopupConfig->SaveConfig(CPF_Config, *UpdatedConfigFile);
 	}
 
+	// Override Plugin Version from GitHub
+	if (!Changelog.IsEmpty())
+	{
+		FString ChangelogVersion = Changelog.Left(24);
+		ChangelogVersion = ChangelogVersion.Right(7);
+		
+		CurrentPluginVersion = ChangelogVersion;
+	}
+	
 	if (AIntPPopupConfig->PluginVersionUpdate != CurrentPluginVersion)
 	{
 		AIntPPopupConfig->PluginVersionUpdate = CurrentPluginVersion;
@@ -208,10 +262,15 @@ void AIntPPopup::Open(const FString& Changelog)
 			
 					+ SHorizontalBox::Slot()
 					.AutoWidth()
-					[
-						SNew(SImage)
-						.ColorAndOpacity(FLinearColor::Red)
-						.Image(FAIntPHelpStyle::GetBrush("AIntPStyleSet.Icon.HeartIcon"))
+					[						
+						SNew(SScaleBox)
+						.VAlign(VAlign_Center)
+						.HAlign(HAlign_Center)
+						[
+							SNew(SImage)
+							.ColorAndOpacity(FLinearColor::Red)
+							.Image(FAIntPHelpStyle::GetBrush("AIntPStyleSet.Icon.HeartIcon"))
+						]
 					]
 				]
 			]
@@ -249,8 +308,13 @@ void AIntPPopup::Open(const FString& Changelog)
 					+ SHorizontalBox::Slot()
 					.AutoWidth()
 					[
-						SNew(SImage)
-						.Image(FAIntPHelpStyle::GetBrush("AIntPStyleSet.Icon.MoneyIcon"))
+						SNew(SScaleBox)
+						.VAlign(VAlign_Center)
+						.HAlign(HAlign_Center)
+						[
+							SNew(SImage)
+							.Image(FAIntPHelpStyle::GetBrush("AIntPStyleSet.Icon.MoneyIcon"))
+						]
 					]
 				]
 			]
@@ -288,8 +352,13 @@ void AIntPPopup::Open(const FString& Changelog)
 					+ SHorizontalBox::Slot()
 					.AutoWidth()
 					[
-						SNew(SImage)
-						.Image(FAIntPHelpStyle::GetBrush("AIntPStyleSet.Icon.SupportDiscord"))
+						SNew(SScaleBox)
+						.VAlign(VAlign_Center)
+						.HAlign(HAlign_Center)
+						[
+							SNew(SImage)
+							.Image(FAIntPHelpStyle::GetBrush("AIntPStyleSet.Icon.SupportDiscord"))
+						]
 					]
 				]
 			]
@@ -327,8 +396,13 @@ void AIntPPopup::Open(const FString& Changelog)
 					+ SHorizontalBox::Slot()
 					.AutoWidth()
 					[
-						SNew(SImage)
-						.Image(FAIntPHelpStyle::GetBrush("AIntPStyleSet.Icon.UBIcon"))
+						SNew(SScaleBox)
+						.VAlign(VAlign_Center)
+						.HAlign(HAlign_Center)
+						[
+							SNew(SImage)
+							.Image(FAIntPHelpStyle::GetBrush("AIntPStyleSet.Icon.UBIcon"))
+						]
 					]
 				]
 			]
@@ -365,9 +439,14 @@ void AIntPPopup::Open(const FString& Changelog)
 					+ SHorizontalBox::Slot()
 					.AutoWidth()
 					[
-						SNew(SImage)
-						.ColorAndOpacity(FLinearColor::Red)
-						.Image(FAIntPHelpStyle::GetBrush("AIntPStyleSet.Icon.Close"))
+						SNew(SScaleBox)
+						.VAlign(VAlign_Center)
+						.HAlign(HAlign_Center)
+						[
+							SNew(SImage)
+							.ColorAndOpacity(FLinearColor::Red)
+							.Image(FAIntPHelpStyle::GetBrush("AIntPStyleSet.Icon.Close"))
+						]
 					]
 				]
 			]
