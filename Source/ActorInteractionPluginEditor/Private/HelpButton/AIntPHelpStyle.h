@@ -19,6 +19,12 @@ public:
 	/** @return The Slate style set for the Actor Interaction Plugin Help Button */
 	static const ISlateStyle& Get();
 
+	static const FSlateBrush* GetBrush(FName PropertyName)
+	{
+		const auto& Style = Get();
+		return Style.GetBrush(PropertyName);
+	}
+
 	static FName GetStyleSetName();
 
 private:
