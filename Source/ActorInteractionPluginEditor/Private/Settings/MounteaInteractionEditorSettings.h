@@ -14,6 +14,10 @@ class ACTORINTERACTIONPLUGINEDITOR_API UMounteaInteractionEditorSettings : publi
 {
 	GENERATED_BODY()
 
+public:
+
+	UMounteaInteractionEditorSettings();
+
 private:
 
 #pragma region GameplayTags
