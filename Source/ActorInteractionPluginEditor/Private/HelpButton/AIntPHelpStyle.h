@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "Styling/SlateStyle.h"
 
-class FAIntPHelpStyle
+class FAIntPHelpStyle : public FAppStyle
 {
 public:
 
