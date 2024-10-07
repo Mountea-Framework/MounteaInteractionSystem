@@ -63,6 +63,10 @@ TSharedRef<FSlateStyleSet> FAIntPHelpStyle::Create()
 	Style->Set("AIntPSupport.PluginAction", new IMAGE_BRUSH(TEXT("Mountea_Logo"), Icon40x40));
 	Style->Set("AIntPSupport.PluginAction.small", new IMAGE_BRUSH(TEXT("HelpIcon"), Icon20x20));
 
+	Style->Set("AIntPSupport.Help.Icon", new IMAGE_BRUSH(TEXT("Help_Icon"), Icon16x16));
+	Style->Set("AIntPSupport.Dialoguer.Icon", new IMAGE_BRUSH(TEXT("Dialoguer_Icon"), Icon16x16));
+	Style->Set("AIntPSupport.Wiki.Icon", new IMAGE_BRUSH(TEXT("Wiki_Icon"), Icon16x16));
+
 	Style->Set("AIntPStyleSet.Icon.Close", new IMAGE_BRUSH(TEXT("CloseIcon"), Icon12x12));
 	Style->Set("AIntPStyleSet.Icon.SupportDiscord", new IMAGE_BRUSH(TEXT("DiscordIcon"), Icon12x12));
 	Style->Set("AIntPStyleSet.Icon.HeartIcon", new IMAGE_BRUSH(TEXT("HeartIcon"), Icon12x12));

@@ -37,6 +37,8 @@ const FString ChangelogURL = FString("https://raw.githubusercontent.com/Mountea-
 
 #define LOCTEXT_NAMESPACE "FActorInteractionPluginEditor"
 
+static const FName MenuName("LevelEditor.LevelEditorToolBar.PlayToolBar");
+
 void FActorInteractionPluginEditor::StartupModule()
 {
 	// Try to request Changelog from GitHub
@@ -158,7 +160,7 @@ void FActorInteractionPluginEditor::StartupModule()
 		}
 	}
 
-	// Register Help Button
+	// Register Menu Button
 	{
 		FAIntPHelpStyle::Initialize();
 		FAIntPHelpStyle::ReloadTextures();
@@ -257,9 +259,29 @@ void FActorInteractionPluginEditor::HandleNewInteractableBlueprintCreated(UBluep
 	Blueprint->BroadcastChanged();
 }
 
-void FActorInteractionPluginEditor::PluginButtonClicked()
+void FActorInteractionPluginEditor::PluginButtonClicked() const
 {
 	const FString URL = "https://discord.gg/waYT2cn37z"; // Interaction Specific Link
+
+	if (!URL.IsEmpty())
+	{
+		FPlatformProcess::LaunchURL(*URL, nullptr, nullptr);
+	}
+}
+
+void FActorInteractionPluginEditor::WikiButtonClicked() const
+{
+	const FString URL = "https://github.com/Mountea-Framework/MounteaInteractionSystem/wiki/How-to-Setup-Interaction";
+
+	if (!URL.IsEmpty())
+	{
+		FPlatformProcess::LaunchURL(*URL, nullptr, nullptr);
+	}
+}
+
+void FActorInteractionPluginEditor::DialoguerButtonClicked() const
+{
+	const FString URL = "https://mountea-framework.github.io/MounteaDialoguer/";
 
 	if (!URL.IsEmpty())
 	{
@@ -274,37 +296,95 @@ void FActorInteractionPluginEditor::RegisterMenus()
 
 	// Register in Window tab
 	{
-		UToolMenu* Menu = UToolMenus::Get()->ExtendMenu("LevelEditor.MainMenu.Help");
+		if (UToolMenu* Menu = UToolMenus::Get()->ExtendMenu("LevelEditor.MainMenu.Help"))
 		{
-			FToolMenuSection& Section = Menu->FindOrAddSection("MounteaFramework");
-			Section.Label = FText::FromString(TEXT("Mountea Framework"));
-						
-			FToolMenuEntry Entry = Section.AddMenuEntryWithCommandList
-			(
-				FAIntPCommands::Get().PluginAction,
-				PluginCommands,
-				NSLOCTEXT("MounteaSupport", "TabTitle", "Mountea Support"),
-				NSLOCTEXT("MounteaSupport", "TooltipText", "Opens Mountea Framework Support channel"),
-				FSlateIcon(FAIntPHelpStyle::GetStyleSetName(), "AIntPSupport.PluginAction.small")
-			);
+			if (Menu->ContainsSection("MounteaFramework") == false)
+			{
+				FToolMenuSection& Section = Menu->FindOrAddSection("MounteaFramework");
+				
+				Section.InsertPosition.Position = EToolMenuInsertType::First;
+				Section.Label = FText::FromString(TEXT("Mountea Framework"));
+				
+				FToolMenuEntry SupportEntry = Section.AddMenuEntryWithCommandList
+				(
+					FAIntPCommands::Get().PluginAction,
+					PluginCommands,
+					LOCTEXT("MounteaSystemEditor_SupportButton_Label", "Mountea Support"),
+					LOCTEXT("MounteaSystemEditor_SupportButton_ToolTip", "🆘 Open Mountea Framework Support channel"),
+					FSlateIcon(FAIntPHelpStyle::GetStyleSetName(), "AIntPSupport.Help.Icon")
+				);
+				SupportEntry.Name = FName("MounteaFrameworkSupport");
+			}
 		}
 	}
 
 	// Register in Level Editor Toolbar
 	{
-		UToolMenu* ToolbarMenu = UToolMenus::Get()->ExtendMenu("LevelEditor.LevelEditorToolBar.PlayToolBar");
+		UToolMenu* ToolbarMenu = UToolMenus::Get()->ExtendMenu(MenuName);
 		{
-			FToolMenuSection& Section = ToolbarMenu->FindOrAddSection("MounteaFramework");
-			{
-				Section.Label = FText::FromString(TEXT("Mountea Framework"));
-				
-				FToolMenuEntry& Entry = Section.AddEntry(FToolMenuEntry::InitToolBarButton(FAIntPCommands::Get().PluginAction));
-				Entry.SetCommandList(PluginCommands);
-				
-				Entry.InsertPosition.Position = EToolMenuInsertType::First;
-			}
+			ToolbarMenu->RemoveSection("MounteaFramework"); // Cleanup
+			FToolMenuEntry& Entry = ToolbarMenu->FindOrAddSection("MounteaFramework")
+				.AddEntry(FToolMenuEntry::InitComboButton(
+					"MounteaMenu",
+					FUIAction(),
+					FOnGetContent::CreateRaw(this, &FActorInteractionPluginEditor::MakeMounteaMenuWidget),
+					LOCTEXT("MounteaMainMenu_Label", "Mountea Framework"),
+					LOCTEXT("MounteaMainMenu_Tooltip", "📂 Open Mountea Framework menu.\n\n❔ Provides link to Documentation, Support Discord and Dialogue tool."),
+					FSlateIcon(FAIntPHelpStyle::Get().GetStyleSetName(), "AIntPSupport.Dialoguer.Icon"),
+					false,
+					"MounteaMenu"
+				));
+			
+			Entry.Label = LOCTEXT("MounteaFramework_Label", "Mountea Framework");
+			Entry.Name = TEXT("MounteaMenu");
+			Entry.StyleNameOverride = "CalloutToolbar";
+			Entry.SetCommandList(PluginCommands);
 		}
 	}
+}
+
+TSharedRef<SWidget> FActorInteractionPluginEditor::MakeMounteaMenuWidget() const
+{
+	FMenuBuilder MenuBuilder(true, PluginCommands);
+
+	MenuBuilder.BeginSection("MounteaMenu_Links", LOCTEXT("MounteaMenuOptions_Options", "Mountea Links"));
+	{
+		// Support Entry
+		MenuBuilder.AddMenuEntry(
+			LOCTEXT("MounteaSystemEditor_SupportButton_Label", "Mountea Support"),
+			LOCTEXT("MounteaSystemEditor_SupportButton_ToolTip", "🆘 Open Mountea Framework Support channel"),
+			FSlateIcon(FAIntPHelpStyle::GetStyleSetName(), "AIntPSupport.Help.Icon"),
+			FUIAction(
+				FExecuteAction::CreateRaw(this, &FActorInteractionPluginEditor::PluginButtonClicked)
+			)
+		);
+		// Wiki Entry
+		MenuBuilder.AddMenuEntry(
+			LOCTEXT("MounteaSystemEditor_WikiButton_Label", "Mountea Wiki"),
+			LOCTEXT("MounteaSystemEditor_WikiButton_ToolTip", "📖 Open Mountea Framework Documentation"),
+			FSlateIcon(FAIntPHelpStyle::GetStyleSetName(), "AIntPSupport.Wiki.Icon"),
+			FUIAction(
+				FExecuteAction::CreateRaw(this, &FActorInteractionPluginEditor::WikiButtonClicked)
+			)
+		);
+	}
+	MenuBuilder.EndSection();
+
+	MenuBuilder.BeginSection("MounteaMenu_Tools", LOCTEXT("MounteaMenuOptions_Tools", "Mountea Tools"));
+	{
+		// Dialoguer Entry
+		MenuBuilder.AddMenuEntry(
+			LOCTEXT("MounteaSystemEditor_DialoguerButton_Label", "Mountea Dialoguer"),
+			LOCTEXT("MounteaSystemEditor_DialoguerButton_ToolTip", "⛰ Open Mountea Dialoguer Standalone Tool\n\n❔ Mountea Dialoguer is a standalone tool created for Dialogue crafting. Mountea Dialogue System supports native import for `.mnteadlg` files."),
+			FSlateIcon(FAIntPHelpStyle::GetStyleSetName(), "AIntPSupport.Dialoguer.Icon"),
+			FUIAction(
+				FExecuteAction::CreateRaw(this, &FActorInteractionPluginEditor::DialoguerButtonClicked)
+			)
+		);
+	}
+	MenuBuilder.EndSection();
+
+	return MenuBuilder.MakeWidget();
 }
 
 void FActorInteractionPluginEditor::OnGetResponse(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)

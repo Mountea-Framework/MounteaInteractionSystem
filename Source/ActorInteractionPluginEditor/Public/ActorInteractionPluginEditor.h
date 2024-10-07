@@ -34,11 +34,14 @@ private:
 public:
 	
 	/** This function will be bound to Command. */
-	void PluginButtonClicked();
+	void PluginButtonClicked() const;
+	void WikiButtonClicked() const;
+	void DialoguerButtonClicked() const;
 
 private:
 
 	void RegisterMenus();
+	TSharedRef<SWidget> MakeMounteaMenuWidget() const;
 
 	void OnGetResponse(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
 	UFUNCTION() void SendHTTPGet();
