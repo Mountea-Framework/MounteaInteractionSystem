@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "Styling/SlateStyle.h"
 
-class FAIntPHelpStyle
+class FAIntPHelpStyle : public FAppStyle
 {
 public:
 
@@ -18,6 +18,12 @@ public:
 
 	/** @return The Slate style set for the Actor Interaction Plugin Help Button */
 	static const ISlateStyle& Get();
+
+	static const FSlateBrush* GetBrush(FName PropertyName)
+	{
+		const auto& Style = Get();
+		return Style.GetBrush(PropertyName);
+	}
 
 	static FName GetStyleSetName();
 
