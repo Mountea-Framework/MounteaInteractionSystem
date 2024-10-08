@@ -22,6 +22,13 @@ public:
 	// Handle Blueprint Events
 	void HandleNewInteractorBlueprintCreated(UBlueprint* Blueprint);
 	void HandleNewInteractableBlueprintCreated(UBlueprint* Blueprint);
+
+protected:
+		
+	bool DoesHaveValidTags() const;
+	void RefreshGameplayTags();
+	void UpdateTagsConfig(const FString& NewContent);
+	void CreateTagsConfig(const FString& NewContent);
 	
 private:
 
@@ -34,14 +41,19 @@ private:
 public:
 	
 	/** This function will be bound to Command. */
-	void PluginButtonClicked();
+	void PluginButtonClicked() const;
+	void WikiButtonClicked() const;
+	void DialoguerButtonClicked() const;
 
 private:
 
 	void RegisterMenus();
+	TSharedRef<SWidget> MakeMounteaMenuWidget() const;
 
 	void OnGetResponse(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
 	UFUNCTION() void SendHTTPGet();
+	void OnGetResponse_Tags(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
+	UFUNCTION() void SendHTTPGet_Tags();
 
 private:
 	
