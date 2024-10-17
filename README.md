@@ -1,15 +1,16 @@
-# Mountea Interaction System
-
-Actor Interaction Plugin is an Open-source Mountea Framework components-based simple framework providing utilities for smart Actor Interaction with other Actors.
-Developed with Game Developers in mind to allow as easy as possible implementation while maintaining high scalability and diverse options to tweak everything.
-
-[![Unreal Marketplace-808080](https://github.com/user-attachments/assets/7b2b9448-4e89-4ecf-b7e9-fa72aadc7c02)](https://www.unrealengine.com/marketplace/en-US/product/ca842c00ec0d4db0b3aad17701e1637b)
+[![Documentation](https://img.shields.io/badge/documentation-github?style=flat&logo=GitHub&labelColor=5a5a5a&color=98c510)](https://github.com/Mountea-Framework/MounteaInteractionSystem/wiki/How-to-Setup-Interaction)
+[![Marketplace](https://img.shields.io/badge/marketplace-epicgames?style=flat&logo=UnrealEngine&labelColor=5a5a5a&color=98c510)](https://www.unrealengine.com/marketplace/en-US/product/ca842c00ec0d4db0b3aad17701e1637b)
 ![UE](https://img.shields.io/badge/supported-4.26%2B-green)
 ![License](https://img.shields.io/github/license/Mountea-Framework/ActorInteractionPlugin)
 [![YouTube](https://img.shields.io/badge/YouTube-Subscribe-red?style=flat&logo=youtube)](https://www.youtube.com/@mounteaframework)
 [![Discord](https://badgen.net/discord/online-members/2vXWEEN?label=Discord&logo=discord&logoColor=ffffff&color=7389D8)](https://discord.com/invite/2vXWEEN)
 [![Discord](https://badgen.net/discord/members/2vXWEEN?label=Discord&logo=discord&logoColor=ffffff&color=7389D8)](https://discord.com/invite/2vXWEEN)
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/a89e2403ce31422ea6235995246b9ef7)](https://app.codacy.com/gh/Mountea-Framework/MounteaInteractionSystem/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
+
+# Mountea Interaction System
+
+Actor Interaction Plugin is an Open-source Mountea Framework components-based simple framework providing utilities for smart Actor Interaction with other Actors.
+Developed with Game Developers in mind to allow as easy as possible implementation while maintaining high scalability and diverse options to tweak everything.
 
 ## Playable Demo
 Feel free to download the playable demo and take a look at what this plugin (in combination with its Dialogue sibling) can do in a matter of a few clicks!
