@@ -391,6 +391,16 @@ void FActorInteractionPluginEditor::DialoguerButtonClicked() const
 	}
 }
 
+void FActorInteractionPluginEditor::LauncherButtonClicked() const
+{
+	const FString URL = "https://github.com/Mountea-Framework/MounteaProjectLauncher";
+
+	if (!URL.IsEmpty())
+	{
+		FPlatformProcess::LaunchURL(*URL, nullptr, nullptr);
+	}
+}
+
 void FActorInteractionPluginEditor::RegisterMenus()
 {
 	// Owner will be used for cleanup in call to UToolMenus::UnregisterOwner
@@ -425,19 +435,19 @@ void FActorInteractionPluginEditor::RegisterMenus()
 		UToolMenu* ToolbarMenu = UToolMenus::Get()->ExtendMenu(MenuName);
 		{
 			ToolbarMenu->RemoveSection("MounteaFramework"); // Cleanup
-			FToolMenuEntry& Entry = ToolbarMenu->FindOrAddSection("MounteaFramework")
+			FToolMenuEntry& Entry = ToolbarMenu->FindOrAddSection("MounteaInteractionFramework")
 				.AddEntry(FToolMenuEntry::InitComboButton(
 					"MounteaMenu",
 					FUIAction(),
 					FOnGetContent::CreateRaw(this, &FActorInteractionPluginEditor::MakeMounteaMenuWidget),
-					LOCTEXT("MounteaMainMenu_Label", "Mountea Framework"),
-					LOCTEXT("MounteaMainMenu_Tooltip", "📂 Open Mountea Framework menu.\n\n❔ Provides link to Documentation, Support Discord and Dialogue tool."),
-					FSlateIcon(FAIntPHelpStyle::Get().GetStyleSetName(), "AIntPStyleSet.Dialoguer"),
+					LOCTEXT("MounteaMainMenu_Label", "Mountea Interaction Menu"),
+					LOCTEXT("MounteaMainMenu_Tooltip", "📂 Open Mountea Interaction Menu.\n\n❔ Provides link to Documentation, Support Discord and other Mountea Tools."),
+					FSlateIcon(FAIntPHelpStyle::Get().GetStyleSetName(), "AIntPStyleSet.Interaction"),
 					false,
 					"MounteaMenu"
 				));
 			
-			Entry.Label = LOCTEXT("MounteaFramework_Label", "Mountea Framework");
+			Entry.Label = LOCTEXT("MounteaMainMenu_Label", "Mountea Interaction Menu");
 			Entry.Name = TEXT("MounteaMenu");
 			Entry.StyleNameOverride = "CalloutToolbar";
 			Entry.SetCommandList(PluginCommands);
@@ -462,8 +472,8 @@ TSharedRef<SWidget> FActorInteractionPluginEditor::MakeMounteaMenuWidget() const
 		);
 		// Wiki Entry
 		MenuBuilder.AddMenuEntry(
-			LOCTEXT("MounteaSystemEditor_WikiButton_Label", "Mountea Wiki"),
-			LOCTEXT("MounteaSystemEditor_WikiButton_ToolTip", "📖 Open Mountea Framework Documentation"),
+			LOCTEXT("MounteaSystemEditor_WikiButton_Label", "Mountea Interaction Wiki"),
+			LOCTEXT("MounteaSystemEditor_WikiButton_ToolTip", "📖 Open Mountea Interaction Documentation"),
 			FSlateIcon(FAIntPHelpStyle::GetStyleSetName(), "AIntPStyleSet.Wiki"),
 			FUIAction(
 				FExecuteAction::CreateRaw(this, &FActorInteractionPluginEditor::WikiButtonClicked)
@@ -481,6 +491,16 @@ TSharedRef<SWidget> FActorInteractionPluginEditor::MakeMounteaMenuWidget() const
 			FSlateIcon(FAIntPHelpStyle::GetStyleSetName(), "AIntPStyleSet.Dialoguer"),
 			FUIAction(
 				FExecuteAction::CreateRaw(this, &FActorInteractionPluginEditor::DialoguerButtonClicked)
+			)
+		);
+
+		// Launcher Tool Entry
+		MenuBuilder.AddMenuEntry(
+			LOCTEXT("MounteaSystemEditor_LauncherButton_Label", "Mountea Project Launcher"),
+			LOCTEXT("MounteaSystemEditor_LauncherButton_ToolTip", "🚀 Open Mountea Project Launcher\n\n❔ Mountea Project Launcher is a standalone tool created for project launcher which can launch projects locally with multiple settings.\nUseful for testing."),
+			FSlateIcon(FAIntPHelpStyle::GetStyleSetName(), "AIntPStyleSet.Launcher"),
+			FUIAction(
+				FExecuteAction::CreateRaw(this, &FActorInteractionPluginEditor::LauncherButtonClicked)
 			)
 		);
 	}

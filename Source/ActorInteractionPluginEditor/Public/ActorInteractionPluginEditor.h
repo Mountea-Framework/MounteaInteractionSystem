@@ -44,6 +44,7 @@ public:
 	void PluginButtonClicked() const;
 	void WikiButtonClicked() const;
 	void DialoguerButtonClicked() const;
+	void LauncherButtonClicked() const;
 
 private:
 
