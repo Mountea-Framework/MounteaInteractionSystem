@@ -9,7 +9,7 @@
 
 # Mountea Interaction System
 
-Actor Interaction Plugin is an Open-source Mountea Framework components-based simple framework providing utilities for smart Actor Interaction with other Actors.
+Mountea Interaction System is an Open-source Mountea Framework components-based simple framework providing utilities for smart Actor Interaction with other Actors.
 Developed with Game Developers in mind to allow as easy as possible implementation while maintaining high scalability and diverse options to tweak everything.
 
 ## Playable Demo
@@ -21,8 +21,13 @@ Feel free to download the playable demo and take a look at what this plugin (in 
 </p>
 
 ## Discord Channel
+<a href="https://discord.gg/waYT2cn37z"><img src="https://anbhelp.zendesk.com/hc/article_attachments/360021176052/discord.gif" alt="Discord LINK" width="100"></a>
 
-[![Discord LINK](https://static.wikia.nocookie.net/siivagunner/images/9/9f/Discord_icon.svg/revision/latest?cb=20210814160101)](https://discord.gg/2vXWEEN)
+## Documentation
+Online [Documentation](https://github.com/Mountea-Framework/MounteaInteractionSystem/wiki/How-to-Setup-Interaction) including a Quick Start guide which will help you set up the plugin in a few easy-to-follow steps.
+
+## Tutorial videos
+<a href="https://www.youtube.com/playlist?list=PLIU53wA8zZmg5eBKEcpZr7G8JBBZ4QPKq"><img src="https://cdnl.iconscout.com/lottie/premium/thumb/youtube-8622218-6842833.gif" alt="TUTORIAL playlist" width="150"></a>
 
 Join support and community Discord!
 
@@ -44,10 +49,10 @@ UE 4.25 | 2.0.0.0 | 🟪
 UE 4.26 | 3.0.1.5 | 🟪
 UE 4.27 | 3.0.1.5 | 🟪
 UE 5.00 | 3.0.1.5 | 🟪
-UE 5.1 | 4.0.0.51 | 🟥
-UE 5.2 | 4.0.0.52 | 🟩
-UE 5.3 | 4.0.0.53 | 🟩
-UE 5.4 | 4.0.0.54 | 🟩
+UE 5.1 | [4.0.2.51](https://github.com/Mountea-Framework/MounteaInteractionSystem/releases/tag/4.0.2.51) | 🟥
+UE 5.2 | [4.0.2.52](https://github.com/Mountea-Framework/MounteaInteractionSystem/releases/tag/4.0.2.52) | 🟩
+UE 5.3 | [4.0.2.53](https://github.com/Mountea-Framework/MounteaInteractionSystem/releases/tag/4.0.2.53) | 🟩
+UE 5.4 | [4.0.2.54](https://github.com/Mountea-Framework/MounteaInteractionSystem/releases/tag/4.0.2.54) | 🟩
 
 # Features
 
