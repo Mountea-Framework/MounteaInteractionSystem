@@ -1,7 +1,7 @@
 [![Documentation](https://img.shields.io/badge/documentation-github?style=flat&logo=GitHub&labelColor=5a5a5a&color=98c510)](https://github.com/Mountea-Framework/MounteaInteractionSystem/wiki/How-to-Setup-Interaction)
 [![Marketplace](https://img.shields.io/badge/marketplace-epicgames?style=flat&logo=UnrealEngine&labelColor=5a5a5a&color=98c510)](https://www.unrealengine.com/marketplace/en-US/product/ca842c00ec0d4db0b3aad17701e1637b)
 ![UE](https://img.shields.io/badge/supported-4.26%2B-green)
-![License](https://img.shields.io/github/license/Mountea-Framework/ActorInteractionPlugin)
+[![license](https://img.shields.io/badge/license-Apache%20License%20++-99c711?labelColor=555555&style=flat&link=https://github.com/Mountea-Framework/MounteaInteractionSystem/blob/master/LICENSE)](https://github.com/Mountea-Framework/MounteaInteractionSystem/blob/master/LICENSE)
 [![YouTube](https://img.shields.io/badge/YouTube-Subscribe-red?style=flat&logo=youtube)](https://www.youtube.com/@mounteaframework)
 [![Discord](https://badgen.net/discord/online-members/2vXWEEN?label=Discord&logo=discord&logoColor=ffffff&color=7389D8)](https://discord.com/invite/2vXWEEN)
 [![Discord](https://badgen.net/discord/members/2vXWEEN?label=Discord&logo=discord&logoColor=ffffff&color=7389D8)](https://discord.com/invite/2vXWEEN)
@@ -35,11 +35,8 @@ Join support and community Discord!
 
 ### Legend
 🟩 - Supported
-
 🟨 - WIP
-
 🟪 - Deprecated
-
 🟥 - Partially supported
 
 ### Support Table
@@ -53,6 +50,7 @@ UE 5.1 | [4.0.2.51](https://github.com/Mountea-Framework/MounteaInteractionSyste
 UE 5.2 | [4.0.2.52](https://github.com/Mountea-Framework/MounteaInteractionSystem/releases/tag/4.0.2.52) | 🟩
 UE 5.3 | [4.0.2.53](https://github.com/Mountea-Framework/MounteaInteractionSystem/releases/tag/4.0.2.53) | 🟩
 UE 5.4 | [4.0.2.54](https://github.com/Mountea-Framework/MounteaInteractionSystem/releases/tag/4.0.2.54) | 🟩
+UE 5.5 | - | 🟨
 
 # Features
 
