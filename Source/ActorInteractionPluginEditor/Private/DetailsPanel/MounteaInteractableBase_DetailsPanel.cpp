@@ -23,10 +23,6 @@ void MounteaInteractableBase_DetailsPanel::CustomizeDetails(IDetailLayoutBuilder
 	EditingComponent = weakComponent.Get();
 	if (!EditingComponent) return;
 
-	// Only edit if editing from Actor Editor
-	/*if (DetailBuilder.GetBaseClass()->IsChildOf(AActor::StaticClass()) == false)
-	{ return; };*/
-
 	IDetailCategoryBuilder& ItrCategoryBuild = DetailBuilder.EditCategory(TEXT("MounteaInteraction"), FText::GetEmpty(), ECategoryPriority::Important);
 	ItrCategoryBuild.AddCustomRow(LOCTEXT("InteractableComponentsPanel_Defaults", "Load Defaults"), false)
 	.WholeRowWidget
