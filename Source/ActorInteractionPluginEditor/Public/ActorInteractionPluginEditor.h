@@ -42,7 +42,10 @@ public:
 	
 	/** This function will be bound to Command. */
 	void PluginButtonClicked() const;
+	void SettingsButtonClicked() const;
+	void EditorSettingsButtonClicked() const;
 	void WikiButtonClicked() const;
+	void YoutubeButtonClicked() const;
 	void DialoguerButtonClicked() const;
 	void LauncherButtonClicked() const;
 

@@ -24,7 +24,7 @@
 #include "ToolMenus.h"
 #include "AssetActions/InteractionSettingsConfig.h"
 #include "DetailsPanel/MounteaInteractableBase_DetailsPanel.h"
-#include "Helpers/MounteaInteractionSystemEditorLog.h"
+#include "ISettingsModule.h"
 #include "Interfaces/IHttpResponse.h"
 
 #include "Interfaces/IMainFrameModule.h"
@@ -371,9 +371,29 @@ void FActorInteractionPluginEditor::PluginButtonClicked() const
 	}
 }
 
+void FActorInteractionPluginEditor::SettingsButtonClicked() const
+{
+	FModuleManager::LoadModuleChecked<ISettingsModule>("Settings").ShowViewer("Project",  TEXT("Mountea Framework"), TEXT("Mountea Interaction System"));
+}
+
+void FActorInteractionPluginEditor::EditorSettingsButtonClicked() const
+{
+	FModuleManager::LoadModuleChecked<ISettingsModule>("Settings").ShowViewer("Project",  TEXT("Mountea Framework"), TEXT("Mountea Interaction System (Editor)"));
+}
+
 void FActorInteractionPluginEditor::WikiButtonClicked() const
 {
 	const FString URL = "https://github.com/Mountea-Framework/MounteaInteractionSystem/wiki/How-to-Setup-Interaction";
+
+	if (!URL.IsEmpty())
+	{
+		FPlatformProcess::LaunchURL(*URL, nullptr, nullptr);
+	}
+}
+
+void FActorInteractionPluginEditor::YoutubeButtonClicked() const
+{
+	const FString URL = "https://www.youtube.com/playlist?list=PLIU53wA8zZmgwxOt7-Z4RP65NiqecBZay";
 
 	if (!URL.IsEmpty())
 	{
@@ -458,7 +478,28 @@ void FActorInteractionPluginEditor::RegisterMenus()
 TSharedRef<SWidget> FActorInteractionPluginEditor::MakeMounteaMenuWidget() const
 {
 	FMenuBuilder MenuBuilder(true, PluginCommands);
+	MenuBuilder.BeginSection("MounteaMenu_Tools", LOCTEXT("MounteaMenuOptions_Settings", "Mountea Interaction Settings"));
+	{
+		MenuBuilder.AddMenuEntry(
+			LOCTEXT("MounteaSystemEditor_SettingsButton_Label", "Mountea Interaction Settings"),
+			LOCTEXT("MounteaSystemEditor_SettingsButton_ToolTip", "⚙ Open Mountea Interaction Settings\n\n❔ Configure core interaction system settings including default behaviors, input mappings, widget settings, and logging options. Customize the foundation of the interaction system here, including widget update frequency, interaction commands, and more."),
+			FSlateIcon(FAIntPHelpStyle::GetStyleSetName(), "AIntPStyleSet.Settings"),
+			FUIAction(
+				FExecuteAction::CreateRaw(this, &FActorInteractionPluginEditor::SettingsButtonClicked)
+			)
+		);
 
+		MenuBuilder.AddMenuEntry(
+			LOCTEXT("MounteaSystemEditor_EditorSettingsButton_Label", "Mountea Interaction Editor Settings"),
+			LOCTEXT("MounteaSystemEditor_EditorSettingsButton_ToolTip", "⚙ Open Mountea Interaction Editor Settings\n\n❔ Customize your interaction editor experience with settings for:\n\n🏷️ Gameplay Tags: Set automatic gameplay tag checks and provide URLs for external resources.\n\nAll settings are saved in DefaultMounteaSettings.ini."),
+			FSlateIcon(FAIntPHelpStyle::GetStyleSetName(), "AIntPStyleSet.Settings"),
+			FUIAction(
+				FExecuteAction::CreateRaw(this, &FActorInteractionPluginEditor::EditorSettingsButtonClicked)
+			)
+		);
+	}
+	MenuBuilder.EndSection();
+	
 	MenuBuilder.BeginSection("MounteaMenu_Links", LOCTEXT("MounteaMenuOptions_Options", "Mountea Links"));
 	{
 		// Support Entry
@@ -477,6 +518,15 @@ TSharedRef<SWidget> FActorInteractionPluginEditor::MakeMounteaMenuWidget() const
 			FSlateIcon(FAIntPHelpStyle::GetStyleSetName(), "AIntPStyleSet.Wiki"),
 			FUIAction(
 				FExecuteAction::CreateRaw(this, &FActorInteractionPluginEditor::WikiButtonClicked)
+			)
+		);
+		// YouTube button
+		MenuBuilder.AddMenuEntry(
+			LOCTEXT("MounteaSystemEditor_YoutubeButton_Label", "Mountea Interaction Youtube"),
+			LOCTEXT("MounteaSystemEditor_YoutubeButton_ToolTip", "👁️ Watch Mountea Interaction Youtube Videos\n\n❔ Visual learning resources featuring step-by-step tutorials, implementation guides, and practical examples. Perfect for both beginners and advanced users looking to expand their knowledge through video content."),
+			FSlateIcon(FAIntPHelpStyle::GetStyleSetName(), "AIntPStyleSet.Youtube"),
+			FUIAction(
+				FExecuteAction::CreateRaw(this, &FActorInteractionPluginEditor::YoutubeButtonClicked)
 			)
 		);
 	}
