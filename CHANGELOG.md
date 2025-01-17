@@ -1,10 +1,22 @@
-Current Version: 4.0.0.52
+Current Version: 4.2.1.55
 
 # Changelog
 
 All notable changes to this project will be documented in this file.
 
-** Version 4.0.2 **
+** Version 4.2.1 **
+### Added 
+> - Support for **5.5**
+
+### Changed
+> - Ribbon Button to Guide Player
+> - - Design now matches `Dialogue System`
+> - Events in `Interactor` are now re-arranged to logical order
+
+### Fixed
+> - 
+
+** Version 4.2.0 **
 ### Added 
 > - Auto Gameplay Tags download
 > - - This way default Gameplay Tags will always be present
