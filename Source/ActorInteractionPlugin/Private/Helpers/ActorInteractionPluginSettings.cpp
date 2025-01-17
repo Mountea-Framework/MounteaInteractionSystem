@@ -3,14 +3,13 @@
 #include "Helpers/ActorInteractionPluginSettings.h"
 
 #include "InputMappingContext.h"
-#include "Helpers/ActorInteractionPluginLog.h"
 #include "Helpers/MounteaInteractionSettingsConfig.h"
 #include "Materials/MaterialInterface.h"
 
 UActorInteractionPluginSettings::UActorInteractionPluginSettings() :
 	bEditorDebugEnabled(true),
-	WidgetUpdateFrequency(0.1f),
-	LogVerbosity(14)
+	LogVerbosity(14),
+	WidgetUpdateFrequency(0.1f)
 {
 	CategoryName = TEXT("Mountea Framework");
 	SectionName = TEXT("Mountea Interaction System");
