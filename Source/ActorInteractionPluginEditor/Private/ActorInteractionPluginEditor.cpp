@@ -24,7 +24,7 @@
 #include "ToolMenus.h"
 #include "AssetActions/InteractionSettingsConfig.h"
 #include "DetailsPanel/MounteaInteractableBase_DetailsPanel.h"
-#include "Helpers/MounteaInteractionSystemEditorLog.h"
+#include "ISettingsModule.h"
 #include "Interfaces/IHttpResponse.h"
 
 #include "Interfaces/IMainFrameModule.h"
@@ -371,6 +371,16 @@ void FActorInteractionPluginEditor::PluginButtonClicked() const
 	}
 }
 
+void FActorInteractionPluginEditor::SettingsButtonClicked() const
+{
+	FModuleManager::LoadModuleChecked<ISettingsModule>("Settings").ShowViewer("Project",  TEXT("Mountea Framework"), TEXT("Mountea Interaction System"));
+}
+
+void FActorInteractionPluginEditor::EditorSettingsButtonClicked() const
+{
+	FModuleManager::LoadModuleChecked<ISettingsModule>("Settings").ShowViewer("Project",  TEXT("Mountea Framework"), TEXT("Mountea Interaction System (Editor)"));
+}
+
 void FActorInteractionPluginEditor::WikiButtonClicked() const
 {
 	const FString URL = "https://github.com/Mountea-Framework/MounteaInteractionSystem/wiki/How-to-Setup-Interaction";
@@ -381,9 +391,29 @@ void FActorInteractionPluginEditor::WikiButtonClicked() const
 	}
 }
 
+void FActorInteractionPluginEditor::YoutubeButtonClicked() const
+{
+	const FString URL = "https://www.youtube.com/playlist?list=PLIU53wA8zZmgwxOt7-Z4RP65NiqecBZay";
+
+	if (!URL.IsEmpty())
+	{
+		FPlatformProcess::LaunchURL(*URL, nullptr, nullptr);
+	}
+}
+
 void FActorInteractionPluginEditor::DialoguerButtonClicked() const
 {
 	const FString URL = "https://mountea-framework.github.io/MounteaDialoguer/";
+
+	if (!URL.IsEmpty())
+	{
+		FPlatformProcess::LaunchURL(*URL, nullptr, nullptr);
+	}
+}
+
+void FActorInteractionPluginEditor::LauncherButtonClicked() const
+{
+	const FString URL = "https://github.com/Mountea-Framework/MounteaProjectLauncher";
 
 	if (!URL.IsEmpty())
 	{
@@ -425,19 +455,19 @@ void FActorInteractionPluginEditor::RegisterMenus()
 		UToolMenu* ToolbarMenu = UToolMenus::Get()->ExtendMenu(MenuName);
 		{
 			ToolbarMenu->RemoveSection("MounteaFramework"); // Cleanup
-			FToolMenuEntry& Entry = ToolbarMenu->FindOrAddSection("MounteaFramework")
+			FToolMenuEntry& Entry = ToolbarMenu->FindOrAddSection("MounteaInteractionFramework")
 				.AddEntry(FToolMenuEntry::InitComboButton(
 					"MounteaMenu",
 					FUIAction(),
 					FOnGetContent::CreateRaw(this, &FActorInteractionPluginEditor::MakeMounteaMenuWidget),
-					LOCTEXT("MounteaMainMenu_Label", "Mountea Framework"),
-					LOCTEXT("MounteaMainMenu_Tooltip", "📂 Open Mountea Framework menu.\n\n❔ Provides link to Documentation, Support Discord and Dialogue tool."),
-					FSlateIcon(FAIntPHelpStyle::Get().GetStyleSetName(), "AIntPStyleSet.Dialoguer"),
+					LOCTEXT("MounteaMainMenu_Label", "Mountea Interaction Menu"),
+					LOCTEXT("MounteaMainMenu_Tooltip", "📂 Open Mountea Interaction Menu.\n\n❔ Provides link to Documentation, Support Discord and other Mountea Tools."),
+					FSlateIcon(FAIntPHelpStyle::Get().GetStyleSetName(), "AIntPStyleSet.Interaction"),
 					false,
 					"MounteaMenu"
 				));
 			
-			Entry.Label = LOCTEXT("MounteaFramework_Label", "Mountea Framework");
+			Entry.Label = LOCTEXT("MounteaMainMenu_Label", "Mountea Interaction Menu");
 			Entry.Name = TEXT("MounteaMenu");
 			Entry.StyleNameOverride = "CalloutToolbar";
 			Entry.SetCommandList(PluginCommands);
@@ -448,7 +478,28 @@ void FActorInteractionPluginEditor::RegisterMenus()
 TSharedRef<SWidget> FActorInteractionPluginEditor::MakeMounteaMenuWidget() const
 {
 	FMenuBuilder MenuBuilder(true, PluginCommands);
+	MenuBuilder.BeginSection("MounteaMenu_Tools", LOCTEXT("MounteaMenuOptions_Settings", "Mountea Interaction Settings"));
+	{
+		MenuBuilder.AddMenuEntry(
+			LOCTEXT("MounteaSystemEditor_SettingsButton_Label", "Mountea Interaction Settings"),
+			LOCTEXT("MounteaSystemEditor_SettingsButton_ToolTip", "⚙ Open Mountea Interaction Settings\n\n❔ Configure core interaction system settings including default behaviors, input mappings, widget settings, and logging options. Customize the foundation of the interaction system here, including widget update frequency, interaction commands, and more."),
+			FSlateIcon(FAIntPHelpStyle::GetStyleSetName(), "AIntPStyleSet.Settings"),
+			FUIAction(
+				FExecuteAction::CreateRaw(this, &FActorInteractionPluginEditor::SettingsButtonClicked)
+			)
+		);
 
+		MenuBuilder.AddMenuEntry(
+			LOCTEXT("MounteaSystemEditor_EditorSettingsButton_Label", "Mountea Interaction Editor Settings"),
+			LOCTEXT("MounteaSystemEditor_EditorSettingsButton_ToolTip", "⚙ Open Mountea Interaction Editor Settings\n\n❔ Customize your interaction editor experience with settings for:\n\n🏷️ Gameplay Tags: Set automatic gameplay tag checks and provide URLs for external resources.\n\nAll settings are saved in DefaultMounteaSettings.ini."),
+			FSlateIcon(FAIntPHelpStyle::GetStyleSetName(), "AIntPStyleSet.Settings"),
+			FUIAction(
+				FExecuteAction::CreateRaw(this, &FActorInteractionPluginEditor::EditorSettingsButtonClicked)
+			)
+		);
+	}
+	MenuBuilder.EndSection();
+	
 	MenuBuilder.BeginSection("MounteaMenu_Links", LOCTEXT("MounteaMenuOptions_Options", "Mountea Links"));
 	{
 		// Support Entry
@@ -462,11 +513,20 @@ TSharedRef<SWidget> FActorInteractionPluginEditor::MakeMounteaMenuWidget() const
 		);
 		// Wiki Entry
 		MenuBuilder.AddMenuEntry(
-			LOCTEXT("MounteaSystemEditor_WikiButton_Label", "Mountea Wiki"),
-			LOCTEXT("MounteaSystemEditor_WikiButton_ToolTip", "📖 Open Mountea Framework Documentation"),
+			LOCTEXT("MounteaSystemEditor_WikiButton_Label", "Mountea Interaction Wiki"),
+			LOCTEXT("MounteaSystemEditor_WikiButton_ToolTip", "📖 Open Mountea Interaction Documentation"),
 			FSlateIcon(FAIntPHelpStyle::GetStyleSetName(), "AIntPStyleSet.Wiki"),
 			FUIAction(
 				FExecuteAction::CreateRaw(this, &FActorInteractionPluginEditor::WikiButtonClicked)
+			)
+		);
+		// YouTube button
+		MenuBuilder.AddMenuEntry(
+			LOCTEXT("MounteaSystemEditor_YoutubeButton_Label", "Mountea Interaction Youtube"),
+			LOCTEXT("MounteaSystemEditor_YoutubeButton_ToolTip", "👁️ Watch Mountea Interaction Youtube Videos\n\n❔ Visual learning resources featuring step-by-step tutorials, implementation guides, and practical examples. Perfect for both beginners and advanced users looking to expand their knowledge through video content."),
+			FSlateIcon(FAIntPHelpStyle::GetStyleSetName(), "AIntPStyleSet.Youtube"),
+			FUIAction(
+				FExecuteAction::CreateRaw(this, &FActorInteractionPluginEditor::YoutubeButtonClicked)
 			)
 		);
 	}
@@ -481,6 +541,16 @@ TSharedRef<SWidget> FActorInteractionPluginEditor::MakeMounteaMenuWidget() const
 			FSlateIcon(FAIntPHelpStyle::GetStyleSetName(), "AIntPStyleSet.Dialoguer"),
 			FUIAction(
 				FExecuteAction::CreateRaw(this, &FActorInteractionPluginEditor::DialoguerButtonClicked)
+			)
+		);
+
+		// Launcher Tool Entry
+		MenuBuilder.AddMenuEntry(
+			LOCTEXT("MounteaSystemEditor_LauncherButton_Label", "Mountea Project Launcher"),
+			LOCTEXT("MounteaSystemEditor_LauncherButton_ToolTip", "🚀 Open Mountea Project Launcher\n\n❔ Mountea Project Launcher is a standalone tool created for project launcher which can launch projects locally with multiple settings.\nUseful for testing."),
+			FSlateIcon(FAIntPHelpStyle::GetStyleSetName(), "AIntPStyleSet.Launcher"),
+			FUIAction(
+				FExecuteAction::CreateRaw(this, &FActorInteractionPluginEditor::LauncherButtonClicked)
 			)
 		);
 	}

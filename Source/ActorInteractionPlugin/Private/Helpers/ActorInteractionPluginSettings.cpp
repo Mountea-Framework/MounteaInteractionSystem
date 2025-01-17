@@ -3,12 +3,12 @@
 #include "Helpers/ActorInteractionPluginSettings.h"
 
 #include "InputMappingContext.h"
-#include "Helpers/ActorInteractionPluginLog.h"
 #include "Helpers/MounteaInteractionSettingsConfig.h"
 #include "Materials/MaterialInterface.h"
 
 UActorInteractionPluginSettings::UActorInteractionPluginSettings() :
 	bEditorDebugEnabled(true),
+	LogVerbosity(14),
 	WidgetUpdateFrequency(0.1f)
 {
 	CategoryName = TEXT("Mountea Framework");
@@ -32,4 +32,9 @@ UMaterialInterface* UActorInteractionPluginSettings::GetDefaultHighlightMaterial
 UInputMappingContext* UActorInteractionPluginSettings::GetDefaultInputMappingContext() const
 {
 	return InteractionInputMapping.LoadSynchronous();
-};
+}
+
+EMounteaInteractionLoggingVerbosity UActorInteractionPluginSettings::GetAllowedLoggVerbosity() const
+{
+	return static_cast<EMounteaInteractionLoggingVerbosity>(LogVerbosity);
+}
