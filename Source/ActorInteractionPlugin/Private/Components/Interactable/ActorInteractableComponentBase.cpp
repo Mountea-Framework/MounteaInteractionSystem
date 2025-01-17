@@ -73,75 +73,75 @@ void UActorInteractableComponentBase::BeginPlay()
 
 	// Interaction Events
 	{
-		OnInteractableSelected.											AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableSelectedEvent);
-		OnInteractorFound.													AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractorFound);
-		OnInteractorLost.													AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractorLost);
+		OnInteractableSelected.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableSelectedEvent);
+		OnInteractorFound.AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractorFound);
+		OnInteractorLost.AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractorLost);
 
-		OnInteractorOverlapped.										AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableBeginOverlapEvent);
-		OnInteractorStopOverlap.										AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableStopOverlapEvent);
-		OnInteractorTraced.												AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableTraced);
+		OnInteractorOverlapped.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableBeginOverlapEvent);
+		OnInteractorStopOverlap.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableStopOverlapEvent);
+		OnInteractorTraced.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableTraced);
 
-		OnInteractionCompleted.											AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractionCompleted);
-		OnInteractionCycleCompleted.								AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractionCycleCompleted);
-		OnInteractionStarted.												AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractionStarted);
-		OnInteractionStopped.											AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractionStopped);
-		OnInteractionCanceled.											AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractionCanceled);
-		OnLifecycleCompleted.											AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractionLifecycleCompleted);
-		OnCooldownCompleted.											AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractionCooldownCompleted);
+		OnInteractionCompleted.AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractionCompleted);
+		OnInteractionCycleCompleted.AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractionCycleCompleted);
+		OnInteractionStarted.AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractionStarted);
+		OnInteractionStopped.AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractionStopped);
+		OnInteractionCanceled.AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractionCanceled);
+		OnLifecycleCompleted.AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractionLifecycleCompleted);
+		OnCooldownCompleted.AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractionCooldownCompleted);
 	}
 	
 	// Attributes Events
 	{
-		OnInteractableDependencyChanged.						AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableDependencyChangedEvent);
-		OnInteractableAutoSetupChanged.						AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableAutoSetupChangedEvent);
-		OnInteractableWeightChanged.								AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableWeightChangedEvent);
-		OnInteractableStateChanged.									AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableStateChangedEvent);
-		OnInteractableOwnerChanged.								AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableOwnerChangedEvent);
-		OnInteractableCollisionChannelChanged.				AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableCollisionChannelChangedEvent);
-		OnLifecycleModeChanged.										AddUniqueDynamic(this, &UActorInteractableComponentBase::OnLifecycleModeChangedEvent);
-		OnLifecycleCountChanged.									AddUniqueDynamic(this, &UActorInteractableComponentBase::OnLifecycleCountChangedEvent);
-		OnCooldownPeriodChanged.									AddUniqueDynamic(this, &UActorInteractableComponentBase::OnCooldownPeriodChangedEvent);
-		OnInteractorChanged.												AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractorChangedEvent);
+		OnInteractableDependencyChanged.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableDependencyChangedEvent);
+		OnInteractableAutoSetupChanged.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableAutoSetupChangedEvent);
+		OnInteractableWeightChanged.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableWeightChangedEvent);
+		OnInteractableStateChanged.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableStateChangedEvent);
+		OnInteractableOwnerChanged.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableOwnerChangedEvent);
+		OnInteractableCollisionChannelChanged.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractableCollisionChannelChangedEvent);
+		OnLifecycleModeChanged.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnLifecycleModeChangedEvent);
+		OnLifecycleCountChanged.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnLifecycleCountChangedEvent);
+		OnCooldownPeriodChanged.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnCooldownPeriodChangedEvent);
+		OnInteractorChanged.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInteractorChangedEvent);
 	}
 
 	// Ignored Classes Events
 	{
-		OnIgnoredInteractorClassAdded.							AddUniqueDynamic(this, &UActorInteractableComponentBase::OnIgnoredClassAdded);
-		OnIgnoredInteractorClassRemoved.						AddUniqueDynamic(this, &UActorInteractableComponentBase::OnIgnoredClassRemoved);
+		OnIgnoredInteractorClassAdded.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnIgnoredClassAdded);
+		OnIgnoredInteractorClassRemoved.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnIgnoredClassRemoved);
 	}
 
 	// Highlight Events
 	{
-		OnHighlightableComponentAdded.							AddUniqueDynamic(this, &UActorInteractableComponentBase::OnHighlightableComponentAddedEvent);
-		OnHighlightableComponentRemoved.						AddUniqueDynamic(this, &UActorInteractableComponentBase::OnHighlightableComponentRemovedEvent);
+		OnHighlightableComponentAdded.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnHighlightableComponentAddedEvent);
+		OnHighlightableComponentRemoved.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnHighlightableComponentRemovedEvent);
 	}
 	
 	// Collision Events
 	{
-		OnCollisionComponentAdded.									AddUniqueDynamic(this, &UActorInteractableComponentBase::OnCollisionComponentAddedEvent);
-		OnCollisionComponentRemoved.							AddUniqueDynamic(this, &UActorInteractableComponentBase::OnCollisionComponentRemovedEvent);
+		OnCollisionComponentAdded.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnCollisionComponentAddedEvent);
+		OnCollisionComponentRemoved.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnCollisionComponentRemovedEvent);
 	}
 
 	// Widget
 	{
-		OnWidgetUpdated.													AddUniqueDynamic(this, &UActorInteractableComponentBase::OnWidgetUpdatedEvent);
+		OnWidgetUpdated.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnWidgetUpdatedEvent);
 	}
 	
 	// Highlight
 	{
-		OnHighlightTypeChanged.										AddUniqueDynamic(this, &UActorInteractableComponentBase::OnHighlightTypeChangedEvent);
-		OnHighlightMaterialChanged.									AddUniqueDynamic(this, &UActorInteractableComponentBase::OnHighlightMaterialChangedEvent);
+		OnHighlightTypeChanged.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnHighlightTypeChangedEvent);
+		OnHighlightMaterialChanged.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnHighlightMaterialChangedEvent);
 	}
 
 	// Dependency
 	{
-		InteractableDependencyStarted.							AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractableDependencyStartedCallback);
-		InteractableDependencyStopped.							AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractableDependencyStoppedCallback);
+		InteractableDependencyStarted.AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractableDependencyStartedCallback);
+		InteractableDependencyStopped.AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractableDependencyStoppedCallback);
 	}
 
 	// Activation
 	{
-		OnComponentActivated.											AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractableComponentActivated);
+		OnComponentActivated.AddUniqueDynamic(this, &UActorInteractableComponentBase::InteractableComponentActivated);
 	}
 
 	// Bind Changing Input Devices
@@ -157,7 +157,7 @@ void UActorInteractableComponentBase::BeginPlay()
 			}
 		}
 		
-		OnInteractionDeviceChanged.							AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInputDeviceChanged);
+		OnInteractionDeviceChanged.AddUniqueDynamic(this, &UActorInteractableComponentBase::OnInputDeviceChanged);
 	}
 	
 	RemainingLifecycleCount = LifecycleCount;

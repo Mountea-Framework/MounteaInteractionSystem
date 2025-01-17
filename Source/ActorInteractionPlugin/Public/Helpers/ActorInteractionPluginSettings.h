@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "MounteaInteractionGeneralDataTypes.h"
 #include "Engine/DeveloperSettings.h"
 
 #include "ActorInteractionPluginSettings.generated.h"
@@ -32,6 +33,13 @@ public:
 	/** Defines whether in-editor debug is enabled. */
 	UPROPERTY(config, BlueprintReadOnly, EditAnywhere, Category="Editor")
 	uint8															bEditorDebugEnabled : 1;
+
+	/**
+	 * Defines logging level that is allowed to be shown.
+	 * Affects on-screen messages.
+	 */
+	UPROPERTY(config, EditDefaultsOnly, Category = "Logging", meta=(Bitmask, BitmaskEnum="/Script/ActorInteractionPlugin.EMounteaInteractionLoggingVerbosity"))
+	uint8 LogVerbosity;
 
 	/** Defines how often is the Interaction widget updated per second.*/
 	UPROPERTY(config, BlueprintReadOnly, EditAnywhere, Category = "Widgets", meta=(Units="s", UIMin=0.001, ClampMin=0.001))
@@ -85,4 +93,6 @@ public:
 	UMaterialInterface* GetDefaultHighlightMaterial() const;
 
 	UInputMappingContext* GetDefaultInputMappingContext() const;
+
+	EMounteaInteractionLoggingVerbosity GetAllowedLoggVerbosity() const;
 };
