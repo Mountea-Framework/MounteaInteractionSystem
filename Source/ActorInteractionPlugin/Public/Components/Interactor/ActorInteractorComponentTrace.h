@@ -12,7 +12,7 @@
  * 
  */
 UENUM(BlueprintType)
-enum class ETraceType : uint8
+enum class EMounteaTraceType : uint8
 {
 	ETT_Precise		UMETA(DisplayName = "Precise", Tooltip = "Raycast/Line Trace."),
 	ETT_Loose			UMETA(DisplayName = "Loose", Tooltip = "Cubecast/Cube Trace."),
@@ -59,7 +59,7 @@ struct FTracingData
 	GENERATED_BODY()
 
 	UPROPERTY(Category="MounteaInteraction|FTracingData", VisibleAnywhere, BlueprintReadWrite)
-	ETraceType TracingType;
+	EMounteaTraceType TracingType;
 	UPROPERTY(Category="MounteaInteraction|FTracingData", VisibleAnywhere, BlueprintReadWrite)
 	float TracingInterval;
 	UPROPERTY(Category="MounteaInteraction|FTracingData", VisibleAnywhere, BlueprintReadWrite)
@@ -72,7 +72,7 @@ struct FTracingData
 	FTransform CustomTracingTransform;
 
 	FTracingData() :
-	TracingType(ETraceType::ETT_Loose),
+	TracingType(EMounteaTraceType::ETT_Loose),
 	TracingInterval(0.01f),
 	TracingRange(250.f),
 	TracingShapeHalfSize(5.f),
@@ -82,7 +82,7 @@ struct FTracingData
 
 	FTracingData
 	(
-		ETraceType NewType,
+		EMounteaTraceType NewType,
 		float NewInterval,
 		float NewRange,
 		float NewShapeHalfSize,
@@ -175,7 +175,7 @@ public:
 	 * Returns Trace Type.
 	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Interactor")
-	virtual ETraceType GetTraceType() const;
+	virtual EMounteaTraceType GetTraceType() const;
 	
 	/**
 	 * Sets Trace Type.
@@ -183,8 +183,8 @@ public:
 	 * @param NewTraceType	Value to be set.
 	 */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="MounteaInteraction|Tracing")
-	void SetTraceType(const ETraceType& NewTraceType);
-	virtual void SetTraceType_Implementation(const ETraceType& NewTraceType);
+	void SetTraceType(const EMounteaTraceType& NewTraceType);
+	virtual void SetTraceType_Implementation(const EMounteaTraceType& NewTraceType);
 
 	/**
 	 * Returns Trace Interval in seconds.
@@ -309,7 +309,7 @@ protected:
 	void ProcessTrace_Server();
 
 	UFUNCTION(Server, Unreliable)
-	void SetTraceType_Server(const ETraceType& NewTraceType);
+	void SetTraceType_Server(const EMounteaTraceType& NewTraceType);
 
 	UFUNCTION(Server, Unreliable)
 	void SetTraceInterval_Server(float NewInterval);
@@ -347,7 +347,7 @@ protected:
 	 * - Precise Tracing is using LineTrace and requires higher precision. Useful with smaller objects.
 	 */
 	UPROPERTY(Replicated,  EditAnywhere, Category="MounteaInteraction|Required")
-	ETraceType																		TraceType;
+	EMounteaTraceType																		TraceType;
 	
 	/**
 	 * Optimization feature.
