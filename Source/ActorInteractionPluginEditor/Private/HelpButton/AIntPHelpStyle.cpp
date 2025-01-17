@@ -60,6 +60,9 @@ TSharedRef<FSlateStyleSet> FAIntPHelpStyle::Create()
 	TSharedRef< FSlateStyleSet > Style = MakeShareable(new FSlateStyleSet("AIntPHelpStyle"));
 	Style->SetContentRoot(IPluginManager::Get().FindPlugin("ActorInteractionPlugin")->GetBaseDir() / TEXT("Resources"));
 
+	Style->Set("AIntPStyleSet.Interaction", new IMAGE_BRUSH(TEXT("InteractorIcon"), Icon40x40));
+	Style->Set("AIntPStyleSet.Launcher", new IMAGE_BRUSH(TEXT("MPLIcon"), Icon40x40));
+
 	Style->Set("AIntPStyleSet.PluginAction", new IMAGE_BRUSH(TEXT("Mountea_Logo"), Icon40x40));
 	Style->Set("AIntPStyleSet.PluginAction.Small", new IMAGE_BRUSH(TEXT("Help_Icon"), Icon20x20));
 
@@ -71,6 +74,12 @@ TSharedRef<FSlateStyleSet> FAIntPHelpStyle::Create()
 
 	Style->Set("AIntPStyleSet.Wiki.Small", new IMAGE_BRUSH(TEXT("Wiki_Icon"), Icon16x16));
 	Style->Set("AIntPStyleSet.Wiki", new IMAGE_BRUSH(TEXT("Wiki_Icon"), Icon40x40));
+
+	Style->Set("AIntPStyleSet.Settings.Small", new IMAGE_BRUSH(TEXT("settings_icon"), Icon16x16));
+	Style->Set("AIntPStyleSet.Settings", new IMAGE_BRUSH(TEXT("settings_icon"), Icon40x40));
+
+	Style->Set("AIntPStyleSet.Youtube.Small", new IMAGE_BRUSH(TEXT("youtube_icon"), Icon16x16));
+	Style->Set("AIntPStyleSet.Youtube", new IMAGE_BRUSH(TEXT("youtube_icon"), Icon40x40));
 
 	Style->Set("AIntPStyleSet.Icon.Close", new IMAGE_BRUSH(TEXT("CloseIcon"), Icon16x16));
 	Style->Set("AIntPStyleSet.Icon.SupportDiscord", new IMAGE_BRUSH(TEXT("Help_Icon"), Icon16x16));
