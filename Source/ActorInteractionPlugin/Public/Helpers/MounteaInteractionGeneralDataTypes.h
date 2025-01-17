@@ -2,6 +2,9 @@
 
 #pragma once
 
+#include "CoreMinimal.h"
+#include "MounteaInteractionGeneralDataTypes.generated.h"
+
 UENUM(BlueprintType, meta = (Bitflags, UseEnumValuesAsMaskValuesInEditor = "true"))
 enum class EMounteaInteractionLoggingVerbosity : uint8
 {
