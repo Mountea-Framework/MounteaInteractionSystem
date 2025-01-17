@@ -9,7 +9,8 @@
 
 UActorInteractionPluginSettings::UActorInteractionPluginSettings() :
 	bEditorDebugEnabled(true),
-	WidgetUpdateFrequency(0.1f)
+	WidgetUpdateFrequency(0.1f),
+	LogVerbosity(14)
 {
 	CategoryName = TEXT("Mountea Framework");
 	SectionName = TEXT("Mountea Interaction System");
@@ -32,4 +33,9 @@ UMaterialInterface* UActorInteractionPluginSettings::GetDefaultHighlightMaterial
 UInputMappingContext* UActorInteractionPluginSettings::GetDefaultInputMappingContext() const
 {
 	return InteractionInputMapping.LoadSynchronous();
-};
+}
+
+EMounteaInteractionLoggingVerbosity UActorInteractionPluginSettings::GetAllowedLoggVerbosity() const
+{
+	return static_cast<EMounteaInteractionLoggingVerbosity>(LogVerbosity);
+}

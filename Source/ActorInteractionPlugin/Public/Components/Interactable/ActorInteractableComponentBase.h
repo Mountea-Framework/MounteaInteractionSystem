@@ -503,6 +503,93 @@ protected:
 	
 protected:
 
+	#pragma region InteractionEvents
+
+	/**
+	 * Event called once Interaction Starts. 
+	 * Called by OnInteractionStarted
+	 */
+	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Mountea|Interaction|Interactor")
+	FInteractionStarted OnInteractionStarted;
+
+	/**
+	 * Event called once Interaction Stops.
+	 * Called by OnInteractionStopped
+	 */
+	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Mountea|Interaction|Interactor")
+	FInteractionStopped OnInteractionStopped;
+
+	/**
+	 * Event called once Interaction is Canceled.
+	 * Called by OnInteractionCanceled
+	 */
+	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Mountea|Interaction|Interactor")
+	FInteractionCanceled OnInteractionCanceled;
+
+	/**
+	 * Event called once Interaction is completed. Provides information which Interactor caused completion.
+	 * This event is the last event in chain.
+	 * Called when Type is Once or after Lifecycles run out.
+	 * Called from OnInteractionCompleted
+	 */
+	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Mountea|Interaction|Interactor")
+	FInteractionCompleted OnInteractionCompleted;
+
+	/**
+	 * Event called once single Interaction Cycle is completed. Provides information which Interactor caused completion.
+	 * Might be called multiple times, before 'OnInteractionCompleted' is called.
+	 * Never called if Type is Once.
+	 */
+	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Mountea|Interaction|Interactor")
+	FInteractionCycleCompleted OnInteractionCycleCompleted;
+	
+	/**
+	 * Event called once Interaction Lifecycles is Completed.
+	 * Called by OnLifecycleCompleted
+	 */	
+	UPROPERTY(BlueprintAssignable, Category="Mountea|Interaction|Interactor")
+	FLifecycleCompleted OnLifecycleCompleted;
+	
+	/**
+	 * Event called once Interactor selects any Interactable. Provides info which Interactable has been selected.
+	 * Selected Interactable might differ to this one. In such case, this event calls OnInteractorLost and cancels any interaction which might be in progress.
+	 * Has native C++ implementation.
+	 * Calls OnInteractableSelectedEvent.
+	 */
+	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Mountea|Interaction|Interactor")
+	FOnInteractableSelected OnInteractableSelected;
+
+	/**
+	 * Event called once Interactor is found. Provides info which Interactor is found.
+	 * This event doesn't usually start the interaction, only notifies that this Interactable has found an Interactor.
+	 * Called by OnInteractorFound
+	 */
+	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Mountea|Interaction|Interactor")
+	FInteractorFound OnInteractorFound;
+
+	/**
+	 * Event called once Interactor is lost. Provides info which Interactor is lost.
+	 * This event is usually the first one in chain leading to Interaction Canceled.
+	 * Called by OnInteractorLost.
+	 */
+	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Mountea|Interaction|Interactor")
+	FInteractorLost OnInteractorLost;
+	
+	/**
+	 * Event called once Interaction Cooldown is Completed and Interactable can be Interacted with again.
+	 * Called by OnCooldownCompleted
+	 */
+	UPROPERTY(BlueprintAssignable, Category="Mountea|Interaction|Interactor")
+	FCooldownCompleted OnCooldownCompleted;
+
+	/**
+	 * Event called once any Interaction Dependency is changed, no matter if removed or added.
+	 */
+	UPROPERTY(BlueprintAssignable, Category="Mountea|Interaction|Interactor")
+	FInteractableDependencyChanged OnInteractableDependencyChanged;
+
+#pragma endregion
+
 #pragma region InteractionReactionEvents
 	
 	/**
@@ -555,92 +642,6 @@ protected:
 
 #pragma endregion 
 
-#pragma region InteractionEvents
-
-	/**
-	 * Event called once Interactor selects any Interactable. Provides info which Interactable has been selected.
-	 * Selected Interactable might differ to this one. In such case, this event calls OnInteractorLost and cancels any interaction which might be in progress.
-	 * Has native C++ implementation.
-	 * Calls OnInteractableSelectedEvent.
-	 */
-	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Mountea|Interaction|Interactor")
-	FOnInteractableSelected OnInteractableSelected;
-
-	/**
-	 * Event called once Interactor is found. Provides info which Interactor is found.
-	 * This event doesn't usually start the interaction, only notifies that this Interactable has found an Interactor.
-	 * Called by OnInteractorFound
-	 */
-	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Mountea|Interaction|Interactor")
-	FInteractorFound OnInteractorFound;
-
-	/**
-	 * Event called once Interactor is lost. Provides info which Interactor is lost.
-	 * This event is usually the first one in chain leading to Interaction Canceled.
-	 * Called by OnInteractorLost.
-	 */
-	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Mountea|Interaction|Interactor")
-	FInteractorLost OnInteractorLost;
-
-	/**
-	 * Event called once Interaction is completed. Provides information which Interactor caused completion.
-	 * This event is the last event in chain.
-	 * Called when Type is Once or after Lifecycles run out.
-	 * Called from OnInteractionCompleted
-	 */
-	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Mountea|Interaction|Interactor")
-	FInteractionCompleted OnInteractionCompleted;
-	
-	/**
-	 * Event called once single Interaction Cycle is completed. Provides information which Interactor caused completion.
-	 * Might be called multiple times, before 'OnInteractionCompleted' is called.
-	 * Never called if Type is Once.
-	 */
-	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Mountea|Interaction|Interactor")
-	FInteractionCycleCompleted OnInteractionCycleCompleted;
-
-	/**
-	 * Event called once Interaction Starts. 
-	 * Called by OnInteractionStarted
-	 */
-	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Mountea|Interaction|Interactor")
-	FInteractionStarted OnInteractionStarted;
-
-	/**
-	 * Event called once Interaction Stops.
-	 * Called by OnInteractionStopped
-	 */
-	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Mountea|Interaction|Interactor")
-	FInteractionStopped OnInteractionStopped;
-
-	/**
-	 * Event called once Interaction is Canceled.
-	 * Called by OnInteractionCanceled
-	 */
-	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category="Mountea|Interaction|Interactor")
-	FInteractionCanceled OnInteractionCanceled;
-
-	/**
-	 * Event called once Interaction Lifecycles is Completed.
-	 * Called by OnLifecycleCompleted
-	 */	
-	UPROPERTY(BlueprintAssignable, Category="Mountea|Interaction|Interactor")
-	FLifecycleCompleted OnLifecycleCompleted;
-
-	/**
-	 * Event called once Interaction Cooldown is Completed and Interactable can be Interacted with again.
-	 * Called by OnCooldownCompleted
-	 */
-	UPROPERTY(BlueprintAssignable, Category="Mountea|Interaction|Interactor")
-	FCooldownCompleted OnCooldownCompleted;
-
-	/**
-	 * Event called once any Interaction Dependency is changed, no matter if removed or added.
-	 */
-	UPROPERTY(BlueprintAssignable, Category="Mountea|Interaction|Interactor")
-	FInteractableDependencyChanged OnInteractableDependencyChanged;
-
-#pragma endregion
 
 #pragma region InteractionComponents
 
