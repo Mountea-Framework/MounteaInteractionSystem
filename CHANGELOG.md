@@ -1,10 +1,30 @@
-Current Version: 4.0.0.54
+Current Version: 4.0.0.52
 
 # Changelog
 
 All notable changes to this project will be documented in this file.
 
-** Version 4.0 **
+** Version 4.0.2 **
+### Added 
+> - Auto Gameplay Tags download
+> - - This way default Gameplay Tags will always be present
+
+### Changed
+> - *Participant* now has button in Details panel to *Load Defaults*
+> - - This button is available for instances in Level as well as for base Blueprint classes
+> - Right-click menu updated
+> - - Menu is now on top
+> - Toolbar Ribbon buttons reworked
+> - - Dropdown menu now offers more links with better descriptions
+> - Updated welcome screen
+
+### Fixed
+> - Fixed build issues with default data
+> - Fixed editor issues with changing properties using code
+> - Fixed *WBP_InteractableBase* icons loading issues
+> - Fixed broken Input Actions and Mappings
+
+** Version 4.0.0 **
 ### Changed
 > - Interfaces are now much more exposed to blueprints
 > - - almost all functions are now Blueprint Native Events, therefore allows BP overriding
@@ -28,7 +48,7 @@ All notable changes to this project will be documented in this file.
 > - Fixed many small issues
 > - Fixed loosing interactor after pausing interaction
 
-** Version 3.1 **
+** Version 3.0.1 **
 ### Added 
 > - Added: Improved performance for Consoles and Mobile devices
 ### Fixed
@@ -37,7 +57,7 @@ All notable changes to this project will be documented in this file.
 > - Changed: Deprecated *SnoozeInteractable* functions
 > - Changed: Depreacted *Asleep* Interactable State
 
-** Version 3.0 **
+** Version 3.0.0 **
 ### Added 
 > - Added: New Interactor Component Base Class implementing IActorInteractorInterface
 > - Added: Child Classes for this new Interactor Base class, replacing existing monolithic ActorInteractorComponent solution

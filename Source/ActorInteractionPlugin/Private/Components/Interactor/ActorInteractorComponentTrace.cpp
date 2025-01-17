@@ -23,7 +23,7 @@
 #endif
 
 UActorInteractorComponentTrace::UActorInteractorComponentTrace() :
-		TraceType(ETraceType::ETT_Loose),
+		TraceType(EMounteaTraceType::ETT_Loose),
 		TraceInterval(0.1f),
 		TraceRange(250.f),
 		TraceShapeHalfSize(5.f),
@@ -210,13 +210,13 @@ void UActorInteractorComponentTrace::ProcessTrace_Implementation()
 
 	switch (TraceType)
 	{
-		case ETraceType::ETT_Precise:
+		case EMounteaTraceType::ETT_Precise:
 			ProcessTrace_Precise(TraceData);
 			break;
-		case ETraceType::ETT_Loose:
+		case EMounteaTraceType::ETT_Loose:
 			ProcessTrace_Loose(TraceData);
 			break;
-		case ETraceType::Default:
+		case EMounteaTraceType::Default:
 		default:
 			break;
 	}
@@ -263,7 +263,7 @@ void UActorInteractorComponentTrace::ProcessTrace_Implementation()
 
 			if (InteractorTag.IsValid() && !localInteractable->Execute_GetInteractableCompatibleTags(Itr).HasTag(InteractorTag))
 			{
-				LOG_INFO(TEXT("[ProcessTrace] Interactor Tag %s is not compatible with %s Interactable on %s Actor"), *InteractorTag.ToString(), *localInteractable->Execute_GetInteractableName(Itr).ToString(), *HitActor->GetName())
+				LOG_WARNING(TEXT("[ProcessTrace] Interactor Tag %s is not compatible with %s Interactable on %s Actor"), *InteractorTag.ToString(), *localInteractable->Execute_GetInteractableName(Itr).ToString(), *HitActor->GetName())
 				continue;
 			}
 
@@ -356,10 +356,10 @@ bool UActorInteractorComponentTrace::CanTrace_Implementation() const
 	return Execute_CanInteract(this);
 }
 
-ETraceType UActorInteractorComponentTrace::GetTraceType() const
+EMounteaTraceType UActorInteractorComponentTrace::GetTraceType() const
 { return TraceType; }
 
-void UActorInteractorComponentTrace::SetTraceType_Implementation(const ETraceType& NewTraceType)
+void UActorInteractorComponentTrace::SetTraceType_Implementation(const EMounteaTraceType& NewTraceType)
 {
 	if (!GetOwner())
 	{
@@ -545,7 +545,7 @@ void UActorInteractorComponentTrace::PostTraced_Implementation()
 	OnTraced.Broadcast();
 }
 
-void UActorInteractorComponentTrace::SetTraceType_Server_Implementation(const ETraceType& NewTraceType)
+void UActorInteractorComponentTrace::SetTraceType_Server_Implementation(const EMounteaTraceType& NewTraceType)
 {
 	SetTraceType(NewTraceType);
 }
@@ -666,10 +666,10 @@ void UActorInteractorComponentTrace::DrawTracingDebugStart(FInteractionTraceData
 	{
 		switch (TraceType)
 		{
-			case ETraceType::ETT_Precise:
+			case EMounteaTraceType::ETT_Precise:
 				DrawDebugLine(GetWorld(), InteractionTraceData.StartLocation, InteractionTraceData.EndLocation, FColor::Blue, false, TraceInterval, 0, 0.25f);
 				break;
-			case ETraceType::ETT_Loose:
+			case EMounteaTraceType::ETT_Loose:
 				DrawDebugSphere(GetWorld(), InteractionTraceData.StartLocation, 10.f, 6, FColor::Blue, false, TraceInterval, 0, 0.25f);
 				break;
 		}
