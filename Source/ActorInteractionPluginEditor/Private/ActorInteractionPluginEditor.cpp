@@ -25,6 +25,7 @@
 #include "AssetActions/InteractionSettingsConfig.h"
 #include "DetailsPanel/MounteaInteractableBase_DetailsPanel.h"
 #include "ISettingsModule.h"
+#include "PropertyEditorModule.h"
 #include "Interfaces/IHttpResponse.h"
 
 #include "Interfaces/IMainFrameModule.h"
