@@ -2085,7 +2085,7 @@ void UActorInteractableComponentBase::ProcessStartHighlight()
 	{
 		case EHighlightType::EHT_PostProcessing:
 			{
-				for (const auto Itr : HighlightableComponents)
+				for (const auto& Itr : HighlightableComponents)
 				{
 					Itr->SetRenderCustomDepth(bInteractionHighlight);
 					Itr->SetCustomDepthStencilValue(StencilID);
@@ -2094,7 +2094,7 @@ void UActorInteractableComponentBase::ProcessStartHighlight()
 			break;
 		case EHighlightType::EHT_OverlayMaterial:
 			{
-				for (const auto Itr : HighlightableComponents)
+				for (const auto& Itr : HighlightableComponents)
 				{
 					Itr->SetOverlayMaterial(HighlightMaterial);
 				}
@@ -2112,7 +2112,7 @@ void UActorInteractableComponentBase::ProcessStopHighlight()
 	{
 		case EHighlightType::EHT_PostProcessing:
 			{
-				for (const auto Itr : HighlightableComponents)
+				for (const auto& Itr : HighlightableComponents)
 				{
 					Itr->SetCustomDepthStencilValue(0);
 				}
@@ -2120,7 +2120,7 @@ void UActorInteractableComponentBase::ProcessStopHighlight()
 			break;
 		case EHighlightType::EHT_OverlayMaterial:
 			{
-				for (const auto Itr : HighlightableComponents)
+				for (const auto& Itr : HighlightableComponents)
 				{
 					Itr->SetOverlayMaterial(nullptr);
 				}

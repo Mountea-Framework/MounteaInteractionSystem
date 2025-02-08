@@ -50,7 +50,7 @@ void FActorInteractionPluginEditor::StartupModule()
 
 	// Register Category
 	{
-		FAssetToolsModule::GetModule().Get().RegisterAdvancedAssetCategory(FName("MounteaInteraction"), FText::FromString(TEXT("\U0001F539 Mountea Interaction")));
+		FAssetToolsModule::GetModule().Get().RegisterAdvancedAssetCategory(FName("MounteaInteraction"), FText::FromString(TEXT("👉🏻 Mountea Interaction")));
 	}
 
 	// Thumbnails and Icons
