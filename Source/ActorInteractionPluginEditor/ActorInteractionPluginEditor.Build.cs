@@ -62,7 +62,9 @@ public class ActorInteractionPluginEditor : ModuleRules
 				
 				"UMG",
 				
-				"GameplayTags"
+				"GameplayTags", 
+				
+				"WorkspaceMenuStructure"
 			}
 		);
 		

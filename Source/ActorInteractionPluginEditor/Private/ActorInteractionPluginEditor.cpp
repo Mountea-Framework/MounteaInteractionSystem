@@ -25,6 +25,9 @@
 #include "AssetActions/InteractionSettingsConfig.h"
 #include "DetailsPanel/MounteaInteractableBase_DetailsPanel.h"
 #include "ISettingsModule.h"
+#include "WorkspaceMenuStructure.h"
+#include "WorkspaceMenuStructureModule.h"
+#include "HelpButton/InteractionSystemTutorialPage.h"
 #include "Interfaces/IHttpResponse.h"
 
 #include "Interfaces/IMainFrameModule.h"
@@ -179,6 +182,11 @@ void FActorInteractionPluginEditor::StartupModule()
 		mainFrame.GetMainFrameCommandBindings()->Append(PluginCommands.ToSharedRef());
 
 		UToolMenus::RegisterStartupCallback(FSimpleMulticastDelegate::FDelegate::CreateRaw(this, &FActorInteractionPluginEditor::RegisterMenus));
+	}
+
+	// Register Tab Spawner
+	{
+		RegisterTabSpawners(FGlobalTabmanager::Get());
 	}
 }
 
@@ -421,6 +429,30 @@ void FActorInteractionPluginEditor::LauncherButtonClicked() const
 	}
 }
 
+void FActorInteractionPluginEditor::RegisterTabSpawners(const TSharedRef<FTabManager>& TabManager)
+{
+	TabManager->RegisterTabSpawner("InteractionSystemTutorial", 
+		FOnSpawnTab::CreateRaw(this, &FActorInteractionPluginEditor::OnSpawnInteractionSystemTutorialTab))
+		.SetDisplayName(FText::FromString("Interaction System Tutorial"))
+		.SetTooltipText(FText::FromString("Learn about the Mountea Interaction System"))
+		.SetGroup(WorkspaceMenu::GetMenuStructure().GetDeveloperToolsMiscCategory());
+}
+
+TSharedRef<SDockTab> FActorInteractionPluginEditor::OnSpawnInteractionSystemTutorialTab(const FSpawnTabArgs& SpawnTabArgs)
+{
+	return SNew(SDockTab)
+		.TabRole(ETabRole::NomadTab)
+		.Label(FText::FromString("Interaction System Tutorial"))
+		[
+			SNew(SInteractionSystemTutorialPage)
+		];
+}
+
+void FActorInteractionPluginEditor::TutorialButtonClicked() const
+{
+	FGlobalTabmanager::Get()->TryInvokeTab(FName("InteractionSystemTutorial"));
+}
+
 void FActorInteractionPluginEditor::RegisterMenus()
 {
 	// Owner will be used for cleanup in call to UToolMenus::UnregisterOwner
@@ -478,6 +510,20 @@ void FActorInteractionPluginEditor::RegisterMenus()
 TSharedRef<SWidget> FActorInteractionPluginEditor::MakeMounteaMenuWidget() const
 {
 	FMenuBuilder MenuBuilder(true, PluginCommands);
+	MenuBuilder.BeginSection("MounteaMenu_Tools", LOCTEXT("MounteaMenuOptions_Tutorial", "Mountea Interaction Tutorial"));
+	{
+		MenuBuilder.AddMenuEntry(
+		LOCTEXT("MounteaSystemEditor_TutorialButton_Label", "Interaction System Tutorial"),
+		LOCTEXT("MounteaSystemEditor_TutorialButton_ToolTip", "📖 Open the Mountea Interaction System Tutorial"),
+		FSlateIcon(FAIntPHelpStyle::GetStyleSetName(), "AIntPStyleSet.Tutorial"),
+		FUIAction(
+			FExecuteAction::CreateRaw(this, &FActorInteractionPluginEditor::TutorialButtonClicked)
+	)
+);
+
+	};
+	MenuBuilder.EndSection();
+	
 	MenuBuilder.BeginSection("MounteaMenu_Tools", LOCTEXT("MounteaMenuOptions_Settings", "Mountea Interaction Settings"));
 	{
 		MenuBuilder.AddMenuEntry(
