@@ -972,7 +972,7 @@ void UActorInteractableComponentBase::SetLifecycleCount_Implementation(const int
 	switch (LifecycleMode)
 	{
 		case EInteractableLifecycle::EIL_Cycled:
-			if (NewLifecycleCount < -1)
+			if (NewLifecycleCount <= -1)
 			{
 				LifecycleCount = -1;
 				OnLifecycleCountChanged.Broadcast(LifecycleCount);
