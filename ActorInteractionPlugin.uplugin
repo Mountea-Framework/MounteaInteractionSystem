@@ -1,7 +1,7 @@
 {
 	"FileVersion": 3,
 	"Version": 4,
-	"VersionName": "4.2.1.54",
+	"VersionName": "4.2.3.54",
 	"FriendlyName": "Mountea Interaction System",
 	"Description": "Mountea Interaction System is an Open-source Mountea Framework components-based simple framework providing utilities for smart Actor Interaction with other Actors.\nDeveloped with Game Developers in mind to allow as easy as possible implementation while maintaining high scalability and diverse options to tweak everything.",
 	"Category": "Mountea Framework",
