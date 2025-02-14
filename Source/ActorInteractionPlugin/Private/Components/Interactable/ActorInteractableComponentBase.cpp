@@ -2219,6 +2219,8 @@ void UActorInteractableComponentBase::ResetDefaults()
 
 void UActorInteractableComponentBase::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent)
 {
+	Super::PostEditChangeChainProperty(PropertyChangedEvent);
+
 	const FName PropertyName = (PropertyChangedEvent.MemberProperty != nullptr) ? PropertyChangedEvent.GetPropertyName() : NAME_None;
 
 	FString interactableName = GetName();
