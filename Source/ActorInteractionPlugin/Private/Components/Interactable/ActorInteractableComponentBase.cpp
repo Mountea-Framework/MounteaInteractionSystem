@@ -1005,8 +1005,8 @@ void UActorInteractableComponentBase::SetCooldownPeriod_Implementation(const flo
 	switch (LifecycleMode)
 	{
 		case EInteractableLifecycle::EIL_Cycled:
-			LifecycleCount = FMath::Max(0.1f, NewCooldownPeriod);
-			OnLifecycleCountChanged.Broadcast(LifecycleCount);
+			CooldownPeriod = FMath::Max(0.1f, NewCooldownPeriod);
+			OnCooldownPeriodChanged.Broadcast(CooldownPeriod);
 			break;
 		case EInteractableLifecycle::EIL_OnlyOnce:
 		case EInteractableLifecycle::Default:
