@@ -972,7 +972,7 @@ void UActorInteractableComponentBase::SetLifecycleCount_Implementation(const int
 	switch (LifecycleMode)
 	{
 		case EInteractableLifecycle::EIL_Cycled:
-			if (NewLifecycleCount < -1)
+			if (NewLifecycleCount <= -1)
 			{
 				LifecycleCount = -1;
 				OnLifecycleCountChanged.Broadcast(LifecycleCount);
@@ -1005,8 +1005,8 @@ void UActorInteractableComponentBase::SetCooldownPeriod_Implementation(const flo
 	switch (LifecycleMode)
 	{
 		case EInteractableLifecycle::EIL_Cycled:
-			LifecycleCount = FMath::Max(0.1f, NewCooldownPeriod);
-			OnLifecycleCountChanged.Broadcast(LifecycleCount);
+			CooldownPeriod = FMath::Max(0.1f, NewCooldownPeriod);
+			OnCooldownPeriodChanged.Broadcast(CooldownPeriod);
 			break;
 		case EInteractableLifecycle::EIL_OnlyOnce:
 		case EInteractableLifecycle::Default:
@@ -2219,6 +2219,8 @@ void UActorInteractableComponentBase::ResetDefaults()
 
 void UActorInteractableComponentBase::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent)
 {
+	Super::PostEditChangeChainProperty(PropertyChangedEvent);
+
 	const FName PropertyName = (PropertyChangedEvent.MemberProperty != nullptr) ? PropertyChangedEvent.GetPropertyName() : NAME_None;
 
 	FString interactableName = GetName();
