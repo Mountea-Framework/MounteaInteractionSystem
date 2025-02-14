@@ -46,11 +46,11 @@ UE 4.25 | 2.0.0.0 | 🟪
 UE 4.26 | 3.0.1.5 | 🟪
 UE 4.27 | 3.0.1.5 | 🟪
 UE 5.00 | 3.0.1.5 | 🟪
-UE 5.1 | [4.0.2.51](https://github.com/Mountea-Framework/MounteaInteractionSystem/releases/tag/4.0.2.51) | 🟥
+UE 5.1 | [4.0.2.51](https://github.com/Mountea-Framework/MounteaInteractionSystem/releases/tag/4.0.2.51) | 🟩
 UE 5.2 | [4.0.2.52](https://github.com/Mountea-Framework/MounteaInteractionSystem/releases/tag/4.0.2.52) | 🟩
 UE 5.3 | [4.0.2.53](https://github.com/Mountea-Framework/MounteaInteractionSystem/releases/tag/4.0.2.53) | 🟩
 UE 5.4 | [4.0.2.54](https://github.com/Mountea-Framework/MounteaInteractionSystem/releases/tag/4.0.2.54) | 🟩
-UE 5.5 | - | 🟨
+UE 5.5 | [4.0.2.54](https://github.com/Mountea-Framework/MounteaInteractionSystem/releases/tag/4.0.2.54) | 🟩
 
 # Features
 
