@@ -10,7 +10,7 @@
 // Log category definition
 DEFINE_LOG_CATEGORY(LogActorInteraction);
 
-void PrintLog(const ELogVerbosity::Type Verbosity, const FString& Message, FLinearColor Color, float Duration)
+void PrintInteractionLog(const ELogVerbosity::Type Verbosity, const FString& Message, FLinearColor Color, float Duration)
 {
 	if (!GWorld) return;
 
