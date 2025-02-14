@@ -78,3 +78,4 @@ DerivedDataCache/*
 .idea/*
 Config/UpdateConfig.ini
 *.zip
+*.png~
