@@ -47,13 +47,12 @@ void SInteractionSystemTutorialPage::Construct(const FArguments& InArgs)
 Before you start creating any super complex interactions, there are a few steps that must be done. 
 In order to make everything work, you should set up default values and collision channels. 
 So let's start with those annoying configurations before so we can focus on interactions later.
-
 )");
 
 	FString CollisionMessage = FString(R"(<RichTextBlock.BoldHighlight>Collision Channels</>
 
-Interaction System can simply work out of the box with collision channels Engine contains by default, 
-but it is much safer to use custom ones.
+Interaction System can simply work out of the box with collision channels Engine contains by default, but it is much safer to use custom ones.
+This way you also have much finer control over your interactable objects.
 
 )") + arrowEmoji + FString(R"( Open <RichTextBlock.Italic>Project Settings</> and open <RichTextBlock.Italic>Collision</> category. 
 Here you need to create collision channels for your needs.
@@ -69,6 +68,7 @@ Here you need to create collision channels for your needs.
 
 )") + sparkleEmoji + FString(R"( You can quickly open the settings here: <a id="settings" href="Mountea">Open Mountea Interaction System Settings</>
 )") + bookEmoji + FString(R"( Detailed guide on Wiki page: <a id="browser" href="https://github.com/Mountea-Framework/MounteaInteractionSystem/wiki/How-to-Setup-Interaction#interaction-defaults-">Interaction Defaults Setup</>
+)") + folderEmoji + FString(R"( Default Config File is located here: <a id="folder" href="/ActorInteractionPlugin/Config">Open Default Config Folder</>
 )");
 	
 	FString ExampleFolderMessage = FString(R"(

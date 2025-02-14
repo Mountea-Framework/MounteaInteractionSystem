@@ -435,7 +435,8 @@ void FActorInteractionPluginEditor::RegisterTabSpawners(const TSharedRef<FTabMan
 		FOnSpawnTab::CreateRaw(this, &FActorInteractionPluginEditor::OnSpawnInteractionSystemTutorialTab))
 		.SetDisplayName(FText::FromString("Interaction System Tutorial"))
 		.SetTooltipText(FText::FromString("Learn about the Mountea Interaction System"))
-		.SetGroup(WorkspaceMenu::GetMenuStructure().GetDeveloperToolsMiscCategory());
+		.SetGroup(WorkspaceMenu::GetMenuStructure().GetDeveloperToolsMiscCategory())
+		.SetIcon(FSlateIcon(FAppStyle::GetAppStyleSetName(), "InputBindingEditor.OutputLog"));
 }
 
 TSharedRef<SDockTab> FActorInteractionPluginEditor::OnSpawnInteractionSystemTutorialTab(const FSpawnTabArgs& SpawnTabArgs)
