@@ -59,6 +59,12 @@ private:
 	void OnGetResponse_Tags(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
 	UFUNCTION() void SendHTTPGet_Tags();
 
+	void RegisterTabSpawners(const TSharedRef<FTabManager>& TabManager);
+	void TutorialButtonClicked() const;
+	
+private:
+	TSharedRef<SDockTab> OnSpawnInteractionSystemTutorialTab(const FSpawnTabArgs& SpawnTabArgs);
+	
 private:
 	
 	TSharedPtr<class FUICommandList> PluginCommands;
