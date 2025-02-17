@@ -1,8 +1,24 @@
-Current Version: 4.2.1.55
+Current Version: 4.2.3.55
 
 # Changelog
 
 All notable changes to this project will be documented in this file.
+
+** Version 4.2.3 **
+### Added 
+> - Toolbar Tutorial button
+
+### Changed
+> - Ribbon Button to Guide Player
+> - - Design now matches `Dialogue System`
+> - Emoji for Content Browser menu
+
+### Fixed
+> - Compilation errors for `HighlightableComponents`
+> - Conflicting `PrintLog` functions with other systems
+> - `SetLifecycleCount` can set count to -1
+> - `SetCooldownPeriod` now really sets Cooldown period
+> - Editor crash for `InteractableBase`
 
 ** Version 4.2.1 **
 ### Added 
