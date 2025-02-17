@@ -87,6 +87,7 @@ TSharedRef<FSlateStyleSet> FAIntPHelpStyle::Create()
 	Style->Set("AIntPStyleSet.Icon.UBIcon", new IMAGE_BRUSH(TEXT("UnrealBucketIcon"), Icon16x16));
 	Style->Set("AIntPStyleSet.Icon.MoneyIcon", new IMAGE_BRUSH(TEXT("MoneyIcon"), Icon16x16));
 
+	Style->Set("AIntPStyleSet.Tutorial", new IMAGE_BRUSH(TEXT("tutorialPage_icon"), Icon40x40));
 	return Style;
 }
 
