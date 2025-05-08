@@ -114,7 +114,7 @@ EDataValidationResult UActorInteractableComponentPress::IsDataValid(TArray<FText
 
 		const FText ErrorMessage = FText::FromString
 		(
-			interactableName.Append(TEXT(": Widget Class is NULL!"))
+			interactableName.Append(TEXT(": Interaction Period set to -1!!"))
 		);
 
 		ValidationErrors.Add(ErrorMessage);
