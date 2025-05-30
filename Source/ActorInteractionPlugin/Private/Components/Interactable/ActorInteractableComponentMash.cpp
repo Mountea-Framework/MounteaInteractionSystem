@@ -54,8 +54,17 @@ void UActorInteractableComponentMash::OnInteractionCompletedCallback()
 	{
 		if (Execute_TriggerCooldown(this)) return;
 	}
-	
-	OnInteractionCompleted.Broadcast(GetWorld()->GetTimeSeconds(), Execute_GetInteractor(this));
+
+	if (ActualMashAmount >= MinMashAmountRequired)
+	{
+		OnInteractionCompleted.Broadcast(GetWorld()->GetTimeSeconds(), Execute_GetInteractor(this));
+	}
+	else
+	{
+		OnInteractionFailed.Broadcast();
+	}
+
+	CleanupComponent();
 }
 
 void UActorInteractableComponentMash::CleanupComponent()
@@ -129,20 +138,6 @@ void UActorInteractableComponentMash::InteractionStopped_Implementation(const fl
 void UActorInteractableComponentMash::InteractionCanceled_Implementation()
 {
 	Super::InteractionCanceled_Implementation();
-
-	CleanupComponent();
-}
-
-void UActorInteractableComponentMash::InteractionCompleted_Implementation(const float& TimeCompleted, const TScriptInterface<IActorInteractorInterface>& CausingInteractor)
-{
-	if (ActualMashAmount >= MinMashAmountRequired)
-	{
-		Super::InteractionCompleted_Implementation(TimeCompleted, CausingInteractor);
-	}
-	else
-	{
-		OnInteractionFailed.Broadcast();
-	}
 
 	CleanupComponent();
 }
