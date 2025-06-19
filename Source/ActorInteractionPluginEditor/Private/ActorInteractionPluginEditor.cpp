@@ -13,8 +13,11 @@
 #include "AssetActions/InteractableComponentAssetActions.h"
 
 #include "AssetToolsModule.h"
+#include "ContentBrowserModule.h"
+#include "FileHelpers.h"
 #include "GameplayTagsManager.h"
 #include "HttpModule.h"
+#include "IContentBrowserSingleton.h"
 #include "HelpButton/AIntPCommands.h"
 #include "HelpButton/AIntPHelpStyle.h"
 #include "Kismet2/KismetEditorUtilities.h"
@@ -28,6 +31,7 @@
 #include "WorkspaceMenuStructure.h"
 #include "WorkspaceMenuStructureModule.h"
 #include "HelpButton/InteractionSystemTutorialPage.h"
+#include "Helpers/MounteaInteractionSystemEditorLog.h"
 #include "Interfaces/IHttpResponse.h"
 
 #include "Interfaces/IMainFrameModule.h"
@@ -519,13 +523,43 @@ TSharedRef<SWidget> FActorInteractionPluginEditor::MakeMounteaMenuWidget() const
 		FSlateIcon(FAIntPHelpStyle::GetStyleSetName(), "AIntPStyleSet.Tutorial"),
 		FUIAction(
 			FExecuteAction::CreateRaw(this, &FActorInteractionPluginEditor::TutorialButtonClicked)
-	)
-);
+			)
+		);
+		
+		MenuBuilder.AddMenuEntry(
+        		LOCTEXT("MounteaSystemEditor_OpenExampleLevel_Label", "Open Example Level"),
+        		LOCTEXT("MounteaSystemEditor_OpenExampleLevel_ToolTip", "🌄 Opens an example level demonstrating Mountea Interaction System"),
+        		FSlateIcon(FAIntPHelpStyle::GetStyleSetName(), "AIntPStyleSet.Level"),
+        		FUIAction(
+        			FExecuteAction::CreateLambda([]()
+        			{
+        				const FString mapPath = TEXT("/ActorInteractionPlugin/Example/M_Example");
+						if (FPackageName::DoesPackageExist(mapPath))
+							FEditorFileUtils::LoadMap(mapPath, false, true);
+        				else
+        					EDITOR_LOG_ERROR(TEXT("Example map not found at:\nContent/Mountea/Maps/ExampleMap.umap"))
+        			})
+        		)
+        	);
 
+		MenuBuilder.AddMenuEntry(
+			LOCTEXT("MounteaSystemEditor_OpenPluginFolder_Label", "Open Plugin Folder"),
+			LOCTEXT("MounteaSystemEditor_OpenPluginFolder_ToolTip", "📂 Open the Mountea plugin's folder on disk"),
+			FSlateIcon(FAIntPHelpStyle::GetStyleSetName(), "AIntPStyleSet.Folder"),
+			FUIAction(
+				FExecuteAction::CreateLambda([]()
+				{
+					const FContentBrowserModule& contentBrowserModule = FModuleManager::LoadModuleChecked<FContentBrowserModule>("ContentBrowser");
+					TArray<FString> folderPaths;
+					folderPaths.Add(TEXT("/ActorInteractionPlugin"));
+					contentBrowserModule.Get().SetSelectedPaths(folderPaths, true);
+				})
+			)
+		);
 	};
 	MenuBuilder.EndSection();
 	
-	MenuBuilder.BeginSection("MounteaMenu_Tools", LOCTEXT("MounteaMenuOptions_Settings", "Mountea Interaction Settings"));
+	MenuBuilder.BeginSection("MounteaMenu_Settings", LOCTEXT("MounteaMenuOptions_Settings", "Mountea Interaction Settings"));
 	{
 		MenuBuilder.AddMenuEntry(
 			LOCTEXT("MounteaSystemEditor_SettingsButton_Label", "Mountea Interaction Settings"),
