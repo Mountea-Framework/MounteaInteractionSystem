@@ -23,6 +23,7 @@ public:
 
 	static void		FormatChangelog(FString& InChangelog);
 	static void		FormatTextWithTags(FString& SourceText, const FString& StartMarker, const FString& EndMarker, const FString& StartTag, const FString& EndTag);
-
+	static bool		IsVersionGreater(const FString& NewVersion, const FString& OldVersion);
+	
 	static MounteaInteractionSystemPopup::FPluginVersion GetPluginVersion();
 };
