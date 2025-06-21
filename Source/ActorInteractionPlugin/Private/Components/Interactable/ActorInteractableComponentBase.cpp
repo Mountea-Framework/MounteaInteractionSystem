@@ -1266,16 +1266,9 @@ void UActorInteractableComponentBase::InteractorFound_Implementation(const TScri
 		if (Execute_CanBeTriggered(this))
 		{
 			Execute_SetInteractor(this, FoundInteractor);
-		
-			if (UMounteaInteractionSystemBFL::CanExecuteCosmeticEvents(GetWorld()))
-			{
-				ProcessToggleActive(true);
-			}
-			else
-			{
-				InteractorFound_Client(FoundInteractor);
-				ProcessToggleActive_Client(true);
-			}
+			
+			InteractorFound_Client(FoundInteractor);
+			ProcessToggleActive_Client(true);
 		
 			Execute_OnInteractorFoundEvent(this, FoundInteractor);
 		}
@@ -1299,8 +1292,6 @@ void UActorInteractableComponentBase::InteractorLost_Implementation(const TScrip
 	
 	GetWorld()->GetTimerManager().ClearTimer(Timer_Interaction);
 	GetWorld()->GetTimerManager().ClearTimer(Timer_ProgressExpiration);
-	
-	//GetWorld()->GetTimerManager().ClearTimer(Timer_Cooldown);
 		
 	if (GetOwner() && GetOwner()->HasAuthority())
 	{
@@ -1536,19 +1527,19 @@ void UActorInteractableComponentBase::InteractionCooldownCompleted_Implementatio
 	{		
 		if (Interactor->Execute_GetActiveInteractable(Interactor.GetObject()) == this)
 		{
-			ProcessToggleActive(true);
+			ProcessToggleActive_Client(true);
 			
 			Execute_SetState(this, EInteractableStateV2::EIS_Awake);
 		}
 		else
 		{
-			ProcessToggleActive(false);
+			ProcessToggleActive_Client(false);
 			Execute_SetState(this, DefaultInteractableState);
 		}
 	}
 	else
 	{
-		ProcessToggleActive(false);
+		ProcessToggleActive_Client(false);
 		Execute_SetState(this, DefaultInteractableState);
 	}
 	
