@@ -40,7 +40,7 @@
 
 DEFINE_LOG_CATEGORY(ActorInteractionPluginEditor);
 
-const FString ChangelogURL = FString("https://raw.githubusercontent.com/Mountea-Framework/MounteaInteractionSystem/5.1/CHANGELOG.md");
+const FString ChangelogURL = FString("https://raw.githubusercontent.com/Mountea-Framework/MounteaInteractionSystem/master/CHANGELOG.md");
 
 #define LOCTEXT_NAMESPACE "FActorInteractionPluginEditor"
 
