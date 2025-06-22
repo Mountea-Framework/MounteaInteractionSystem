@@ -102,6 +102,23 @@ void AIntPPopup::FormatTextWithTags(FString& SourceText, const FString& StartMar
 	}
 }
 
+bool AIntPPopup::IsVersionGreater(const FString& NewVersion, const FString& OldVersion)
+{
+	TArray<FString> NewParts, OldParts;
+	NewVersion.ParseIntoArray(NewParts, TEXT("."), true);
+	OldVersion.ParseIntoArray(OldParts, TEXT("."), true);
+	while (NewParts.Num() < 4) NewParts.Add(TEXT("0"));
+	while (OldParts.Num() < 4) OldParts.Add(TEXT("0"));
+	for (int32 i = 0; i < 4; ++i)
+	{
+		int32 NewNum = FCString::Atoi(*NewParts[i]);
+		int32 OldNum = FCString::Atoi(*OldParts[i]);
+		if (NewNum > OldNum) return true;
+		if (NewNum < OldNum) return false;
+	}
+	return false;
+}
+
 MounteaInteractionSystemPopup::FPluginVersion AIntPPopup::GetPluginVersion()
 {
 	const FName PluginName = TEXT("ActorInteractionPlugin");
@@ -160,8 +177,8 @@ void AIntPPopup::Register(const FString& Changelog)
 		
 		CurrentPluginVersion = ChangelogVersion;
 	}
-	
-	if (AIntPPopupConfig->PluginVersionUpdate != CurrentPluginVersion)
+
+	if (IsVersionGreater(CurrentPluginVersion, AIntPPopupConfig->PluginVersionUpdate))
 	{
 		AIntPPopupConfig->PluginVersionUpdate = CurrentPluginVersion;
 		AIntPPopupConfig->SaveConfig(CPF_Config, *NormalizedConfigFilePath);
