@@ -252,10 +252,3 @@ bool UMounteaInteractionSystemBFL::IsInputKeyPairSupported(APlayerController* Pl
 
 	return false;
 }
-
-ENetRole UMounteaInteractionSystemBFL::GetOwnerLocalRole(const AActor* ForActor)
-{
-	if (!IsValid(ForActor))
-		return ROLE_None;
-	return ForActor->GetLocalRole();
-}
