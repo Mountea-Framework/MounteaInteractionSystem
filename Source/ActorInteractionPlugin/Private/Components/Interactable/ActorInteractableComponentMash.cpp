@@ -54,7 +54,7 @@ void UActorInteractableComponentMash::OnInteractionCompletedCallback()
 	{
 		if (Execute_TriggerCooldown(this)) return;
 	}
-
+	
 	if (ActualMashAmount >= MinMashAmountRequired)
 	{
 		OnInteractionCompleted.Broadcast(GetWorld()->GetTimeSeconds(), Execute_GetInteractor(this));
