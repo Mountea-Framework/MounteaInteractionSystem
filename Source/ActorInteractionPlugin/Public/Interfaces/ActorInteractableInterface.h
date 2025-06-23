@@ -6,6 +6,8 @@
 #include "GameplayTagContainer.h"
 #include "Helpers/MounteaInteractionHelperEvents.h"
 #include "UObject/Interface.h"
+#include "Engine/TimerHandle.h"
+#include "Engine/EngineTypes.h"
 #include "ActorInteractableInterface.generated.h"
 
 // This class does not need to be modified.
