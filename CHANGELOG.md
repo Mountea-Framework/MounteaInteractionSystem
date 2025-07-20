@@ -1,8 +1,21 @@
-Current Version: 4.2.3.55
+Current Version: 4.2.4.56
 
 # Changelog
 
 All notable changes to this project will be documented in this file.
+
+** Version 4.2.4 **
+### Added
+> - Added new features to Toolbar menu
+
+### Changed
+> - Updated Toolbar menu
+> - Changed version validation process to match against Major, Minor and Hotfix values
+
+### Fixed
+> - Validation message for Interaction Period (Press Component)
+> - Delegate call in `OnInteractionCompletedCallback` (Mash Component)
+> - Fixed listen server/client UI issues
 
 ** Version 4.2.3 **
 ### Added 
