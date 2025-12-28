@@ -80,3 +80,4 @@ DerivedDataCache/*
 Config/UpdateConfig.ini
 *.zip
 *.png~
+*.DS_Store
