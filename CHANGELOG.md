@@ -100,10 +100,10 @@ All notable changes to this project will be documented in this file.
 
 ** Version 3.0.0 **
 ### Added 
-> - Added: New Interactor Component Base Class implementing IActorInteractorInterface
-> - Added: Child Classes for this new Interactor Base class, replacing existing monolithic ActorInteractorComponent solution
-> - Added: New Interactable Base Component class implementing IActorInteractableInterface
-> - Added: New child Classes for this new Interactable Base class, replacing existing monolithic ActorInteractableComponent solution
+> - Added: New Interactor Component Base Class implementing IMounteaInteractorInterface
+> - Added: Child Classes for this new Interactor Base class, replacing existing monolithic MounteaInteractorComponent solution
+> - Added: New Interactable Base Component class implementing IMounteaInteractableInterface
+> - Added: New child Classes for this new Interactable Base class, replacing existing monolithic MounteaInteractableComponent solution
 > - Added: New Interactable Widget Interface for easier communication between Widgets and Interactables
 > - Added: Editor billboard so Interactable Components are now easier to spot
 > - Added: New Overlay Materials (for 5.1 only)

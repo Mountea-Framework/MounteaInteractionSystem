@@ -1,0 +1,71 @@
+// All rights reserved Dominik Morse (Pavlicek) 2021
+
+using System.IO;
+using UnrealBuildTool;
+
+public class MounteaInteractionSystemEditor : ModuleRules
+{
+	public MounteaInteractionSystemEditor(ReadOnlyTargetRules Target) : base(Target)
+	{
+		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
+		
+		PrecompileForTargets = PrecompileTargetsType.None;
+		bPrecompile = false;
+		bUsePrecompiled = false;
+
+		PublicDependencyModuleNames.AddRange
+			(
+				new string[]
+				{
+					"Core",
+					"CoreUObject",
+					
+					"BlueprintGraph",
+					
+					"Engine",
+					
+					"KismetCompiler",
+					"PropertyEditor",
+					"UnrealEd",
+					"Kismet"
+				}
+			);
+		
+		PrivateDependencyModuleNames.AddRange
+		(
+			new string[]
+			{
+				"MounteaInteractionSystem",
+				"UnrealEd",
+				"Projects",
+				
+				"Slate",
+				"SlateCore",
+				
+				"AssetTools",
+				
+				"BlueprintGraph",
+				"Kismet", 
+				
+				"WebBrowser",
+				"HTTP", 
+				"Json", 
+				"JsonUtilities",
+				
+				"EditorStyle",
+				"DeveloperSettings",
+				
+				"MainFrame",
+				"ToolMenus",
+				"InputCore",
+				
+				"UMG",
+				
+				"GameplayTags", 
+				
+				"WorkspaceMenuStructure"
+			}
+		);
+		
+	}
+}
