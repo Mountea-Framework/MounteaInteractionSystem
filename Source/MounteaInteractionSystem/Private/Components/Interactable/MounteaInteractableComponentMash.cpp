@@ -158,4 +158,4 @@ void UMounteaInteractableComponentMash::SetKeystrokeTimeThreshold(const float Va
 	KeystrokeTimeThreshold = FMath::Max(Value, 0.01f);
 }
 
-#undef LOCTEXT_NAMESPAC
+#undef LOCTEXT_NAMESPACE

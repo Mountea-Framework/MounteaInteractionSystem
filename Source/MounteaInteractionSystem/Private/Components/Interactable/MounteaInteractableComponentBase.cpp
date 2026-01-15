@@ -2480,4 +2480,4 @@ void UMounteaInteractableComponentBase::GetLifetimeReplicatedProps(TArray<FLifet
 	DOREPLIFETIME_CONDITION(UMounteaInteractableComponentBase, CollisionChannel,						COND_None);
 }
 
-#undef LOCTEXT_NAMES
+#undef LOCTEXT_NAMESPACE
