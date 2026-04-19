@@ -52,7 +52,6 @@ public:
 private:
 
 	void RegisterMenus();
-	TSharedRef<SWidget> MakeMounteaMenuWidget() const;
 
 	void OnGetResponse(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
 	UFUNCTION() void SendHTTPGet();

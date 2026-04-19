@@ -3,7 +3,6 @@
 #include "Helpers/MounteaInteractionSystemSettings.h"
 
 #include "InputMappingContext.h"
-#include "StructUtilsMetadata.h"
 #include "Helpers/MounteaInteractionSettingsConfig.h"
 #include "Materials/MaterialInterface.h"
 
@@ -18,7 +17,7 @@ UMounteaInteractionSystemSettings::UMounteaInteractionSystemSettings() :
 
 TSoftClassPtr<UUserWidget> UMounteaInteractionSystemSettings::GetInteractableDefaultWidgetClass() const
 {
-	{ return InteractableDefaultWidgetClass; };
+	return InteractableDefaultWidgetClass;
 }
 
 UMaterialInterface* UMounteaInteractionSystemSettings::GetDefaultHighlightMaterial() const

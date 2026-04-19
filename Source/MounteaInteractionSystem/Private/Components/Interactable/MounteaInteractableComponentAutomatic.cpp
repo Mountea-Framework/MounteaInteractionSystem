@@ -107,4 +107,4 @@ void UMounteaInteractableComponentAutomatic::OnInteractionCompletedCallback()
 	OnInteractionCompleted.Broadcast(GetWorld()->GetTimeSeconds(), Execute_GetInteractor(this));
 }
 
-#undef LOCTEXT_NAMESPACE
+#undef LOCTEXT_NAMESPAC

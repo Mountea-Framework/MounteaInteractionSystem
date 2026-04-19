@@ -82,4 +82,4 @@ void UMounteaInteractableComponentHold::OnInteractionCompletedCallback()
 	}
 }
 
-#undef LOCTEXT_NAMESPACE
+#undef LOCTEXT_NAMESPAC

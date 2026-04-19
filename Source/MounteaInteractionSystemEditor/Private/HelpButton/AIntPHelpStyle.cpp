@@ -6,6 +6,7 @@
 #include "Styling/SlateStyleRegistry.h"
 #include "Slate/SlateGameResources.h"
 #include "Interfaces/IPluginManager.h"
+#include "Brushes/SlateImageBrush.h"
 
 TSharedPtr< FSlateStyleSet > FAIntPHelpStyle::StyleInstance = nullptr;
 
@@ -47,55 +48,60 @@ FName FAIntPHelpStyle::GetStyleSetName()
 #define IMAGE_BRUSH( RelativePath, ... ) FSlateImageBrush( Style->RootToContentDir( RelativePath, TEXT(".png") ), __VA_ARGS__ )
 #define BOX_BRUSH( RelativePath, ... ) FSlateBoxBrush( Style->RootToContentDir( RelativePath, TEXT(".png") ), __VA_ARGS__ )
 #define BORDER_BRUSH( RelativePath, ... ) FSlateBorderBrush( Style->RootToContentDir( RelativePath, TEXT(".png") ), __VA_ARGS__ )
-#define TTF_FONT( RelativePath, ... ) FSlateFontInfo( Style->RootToContentDir( RelativePath, TEXT(".ttf") ), __VA_ARGS__ )
-#define OTF_FONT( RelativePath, ... ) FSlateFontInfo( Style->RootToContentDir( RelativePath, TEXT(".otf") ), __VA_ARGS__ )
-
-const FVector2D Icon12x12(12.0f, 12.0f);
-const FVector2D Icon16x16(16.0f, 16.0f);
-const FVector2D Icon20x20(20.0f, 20.0f);
-const FVector2D Icon40x40(40.0f, 40.0f);
+#define SVG_BRUSH( RelativePath, ... ) FSlateVectorImageBrush( Style->RootToContentDir( RelativePath, TEXT(".svg") ), __VA_ARGS__ )
+#define SVG_BRUSH_TINT( RelativePath, Size, Tint ) FSlateVectorImageBrush( Style->RootToContentDir( RelativePath, TEXT(".svg") ), Size, Tint )
+#define DEFAULT_FONT(...) FCoreStyle::GetDefaultFontStyle(__VA_ARGS__)
 
 TSharedRef<FSlateStyleSet> FAIntPHelpStyle::Create()
 {
+	const FVector2D Icon12x12(12.0f, 12.0f);
+	const FVector2D Icon14x14(14.0f, 14.0f);
+	const FVector2D Icon16x16(16.0f, 16.0f);
+	const FVector2D Icon20x20(20.0f, 20.0f);
+	const FVector2D Icon24x24(24.0f, 24.0f);
+	const FVector2D Icon32x32(32.0f, 32.0f);
+	const FVector2D Icon40x40(40.0f, 40.0f);
+	const FVector2D Icon64x64(64.0f, 64.0f);
+	const FVector2D Icon128x128(128.f, 128.f);
+	const FVector2D Icon200x70(200.f, 70.f);
+	
 	TSharedRef< FSlateStyleSet > Style = MakeShareable(new FSlateStyleSet("AIntPHelpStyle"));
 	Style->SetContentRoot(IPluginManager::Get().FindPlugin("MounteaInteractionSystem")->GetBaseDir() / TEXT("Resources"));
 
+	Style->Set("AIntPStyleSet.MounteaLogo", new IMAGE_BRUSH(TEXT("Mountea_Logo"), Icon40x40));
 	Style->Set("AIntPStyleSet.Interaction", new IMAGE_BRUSH(TEXT("InteractorIcon"), Icon40x40));
 	Style->Set("AIntPStyleSet.Launcher", new IMAGE_BRUSH(TEXT("MPLIcon"), Icon40x40));
 
 	Style->Set("AIntPStyleSet.PluginAction", new IMAGE_BRUSH(TEXT("Mountea_Logo"), Icon40x40));
-	Style->Set("AIntPStyleSet.PluginAction.Small", new IMAGE_BRUSH(TEXT("Help_Icon"), Icon20x20));
 
-	Style->Set("AIntPStyleSet.Help.Small", new IMAGE_BRUSH(TEXT("Help_Icon"), Icon16x16));
-	Style->Set("AIntPStyleSet.Help", new IMAGE_BRUSH(TEXT("Help_Icon"), Icon40x40));
+	Style->Set("AIntPStyleSet.Help", new SVG_BRUSH_TINT(TEXT("WebIcons/message-circle-question-mark"), Icon40x40, FLinearColor::White));
 
-	Style->Set("AIntPStyleSet.Dialoguer.Small", new IMAGE_BRUSH(TEXT("Dialoguer_Icon"), Icon16x16));
 	Style->Set("AIntPStyleSet.Dialoguer", new IMAGE_BRUSH(TEXT("Dialoguer_Icon"), Icon40x40));
 
-	Style->Set("AIntPStyleSet.Wiki.Small", new IMAGE_BRUSH(TEXT("Wiki_Icon"), Icon16x16));
-	Style->Set("AIntPStyleSet.Wiki", new IMAGE_BRUSH(TEXT("Wiki_Icon"), Icon40x40));
+	Style->Set("AIntPStyleSet.Wiki", new SVG_BRUSH_TINT(TEXT("WebIcons/book-open-text"), Icon40x40, FLinearColor::White));
 
-	Style->Set("AIntPStyleSet.Settings.Small", new IMAGE_BRUSH(TEXT("settings_icon"), Icon16x16));
-	Style->Set("AIntPStyleSet.Settings", new IMAGE_BRUSH(TEXT("settings_icon"), Icon40x40));
+	Style->Set("AIntPStyleSet.Settings", new SVG_BRUSH_TINT(TEXT("WebIcons/settings"), Icon40x40, FLinearColor::White));
 
-	Style->Set("AIntPStyleSet.Youtube.Small", new IMAGE_BRUSH(TEXT("youtube_icon"), Icon16x16));
-	Style->Set("AIntPStyleSet.Youtube", new IMAGE_BRUSH(TEXT("youtube_icon"), Icon40x40));
+	Style->Set("AIntPStyleSet.Youtube", new SVG_BRUSH_TINT(TEXT("WebIcons/brand-youtube"), Icon40x40, FLinearColor::White));
 
-	Style->Set("AIntPStyleSet.Icon.Close", new IMAGE_BRUSH(TEXT("CloseIcon"), Icon16x16));
-	Style->Set("AIntPStyleSet.Icon.SupportDiscord", new IMAGE_BRUSH(TEXT("Help_Icon"), Icon16x16));
-	Style->Set("AIntPStyleSet.Icon.HeartIcon", new IMAGE_BRUSH(TEXT("HeartIcon"), Icon16x16));
+	Style->Set("AIntPStyleSet.Icon.Close", new SVG_BRUSH_TINT(TEXT("WebIcons/x"), Icon16x16, FLinearColor::White));
+	Style->Set("AIntPStyleSet.Icon.SupportDiscord", new SVG_BRUSH_TINT(TEXT("WebIcons/Discord-Symbol-White"), Icon16x16, FLinearColor::White));
+	Style->Set("AIntPStyleSet.Icon.HeartIcon", new SVG_BRUSH_TINT(TEXT("WebIcons/heart"), Icon16x16, FLinearColor::White));
 	Style->Set("AIntPStyleSet.Icon.UBIcon", new IMAGE_BRUSH(TEXT("UnrealBucketIcon"), Icon16x16));
-	Style->Set("AIntPStyleSet.Icon.MoneyIcon", new IMAGE_BRUSH(TEXT("MoneyIcon"), Icon16x16));
+	Style->Set("AIntPStyleSet.Icon.MoneyIcon", new SVG_BRUSH_TINT(TEXT("WebIcons/hand-coins"), Icon16x16, FLinearColor::White));
 
-	Style->Set("AIntPStyleSet.Tutorial", new IMAGE_BRUSH(TEXT("tutorialPage_icon"), Icon40x40));
+	Style->Set("AIntPStyleSet.Tutorial", new SVG_BRUSH_TINT(TEXT("WebIcons/graduation-cap"), Icon40x40, FLinearColor::White));
 
-	Style->Set("AIntPStyleSet.Level", new IMAGE_BRUSH(TEXT("LevelIcon"), Icon40x40));
-	Style->Set("AIntPStyleSet.Folder", new IMAGE_BRUSH(TEXT("FolderIcon"), Icon40x40));
+	Style->Set("AIntPStyleSet.Level", new SVG_BRUSH_TINT(TEXT("WebIcons/mountain-snow"), Icon40x40, FLinearColor::White));
+	Style->Set("AIntPStyleSet.Folder", new SVG_BRUSH_TINT(TEXT("WebIcons/folder-open"), Icon40x40, FLinearColor::White));
 	return Style;
 }
 
 #undef IMAGE_BRUSH
 #undef BOX_BRUSH
 #undef BORDER_BRUSH
+#undef SVG_BRUSH
+#undef SVG_BRUSH_TINT
+#undef DEFAULT_FONT
 #undef TTF_FONT
 #undef OTF_FONT
