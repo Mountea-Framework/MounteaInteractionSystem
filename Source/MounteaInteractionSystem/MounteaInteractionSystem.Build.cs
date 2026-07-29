@@ -39,8 +39,6 @@ public class MounteaInteractionSystem : ModuleRules
 				"ApplicationCore",
 				"CommonInput",
 
-				"MounteaInteractionSystemEditorNotifications",
-
 #if UE_4_26_OR_LATER
 				"DeveloperSettings",
 #endif
