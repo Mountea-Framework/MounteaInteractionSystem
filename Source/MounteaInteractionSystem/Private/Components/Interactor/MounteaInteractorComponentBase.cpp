@@ -1,99 +1,311 @@
-﻿// All rights reserved Dominik Morse (Pavlicek) 2024.
-
+// All rights reserved Dominik Morse (Pavlicek) 2024.
 
 #include "Components/Interactor/MounteaInteractorComponentBase.h"
-#include "Components/MeshComponent.h"
-
-#if WITH_EDITOR
-
-#include "EditorHelper.h"
-#include "Misc/DataValidation.h"
-
-#endif
-
-#include "Helpers/MounteaInteractionFunctionLibrary.h"
-#include "Helpers/MounteaInteractionHelpers.h"
-#include "Helpers/MounteaInteractionSystemBFL.h"
+#include "Net/UnrealNetwork.h"
+#include "Engine/World.h"
+#include "Engine/CollisionProfile.h"
+#include "GameFramework/Actor.h"
+#include "GameplayTagContainer.h"
+#include "Helpers/MounteaInteractionStatics.h"
+#include "Interfaces/MounteaInteractableInterface.h"
+#include "Subsystems/MounteaInteractionWorldSubsystem.h"
 #include "Helpers/MounteaInteractionSystemLog.h"
 
-#include "Interfaces/MounteaInteractableInterface.h"
-
-#include "GameFramework/Actor.h"
-#include "Engine/HitResult.h"
-#include "Engine/World.h"
-
-#include "Net/UnrealNetwork.h"
-#include "Net/Core/PushModel/PushModel.h"
-
-UMounteaInteractorComponentBase::UMounteaInteractorComponentBase() :
-		DebugSettings(false),
-		CollisionChannel(ECC_Camera),
-		DefaultInteractorState(EInteractorStateV2::EIS_Awake),
-		SafetyTraceSetup(FSafetyTracingSetup(ESafetyTracingMode::ESTM_Location)),
-		InteractorState(EInteractorStateV2::EIS_Asleep)
-{
-	bAutoActivate = true;
-	
-	SetIsReplicatedByDefault(true);
-	SetActiveFlag(true);
-
-	PrimaryComponentTick.bStartWithTickEnabled = false;
-
-	ComponentTags.Add(FName("Mountea"));
-	ComponentTags.Add(FName("Interaction"));
-
-#if WITH_EDITOR || WITH_EDITORONLY_DATA
-	if (GIsEditor && !GIsPlayInEditorWorld)
-	{
-		RequestEditorDefaults.AddUObject(this, &UMounteaInteractorComponentBase::ResetDefaults);
-	}
+#if WITH_EDITOR
+#include "Misc/DataValidation.h"
 #endif
+
+#define LOCTEXT_NAMESPACE "MounteaInteractorComponentBase"
+
+UMounteaInteractorComponentBase::UMounteaInteractorComponentBase()
+{
+	PrimaryComponentTick.bCanEverTick = false;
+	SetIsReplicatedByDefault(true);
 }
 
 void UMounteaInteractorComponentBase::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	OnInteractableUpdated.			AddUniqueDynamic(this, &UMounteaInteractorComponentBase::InteractableSelected);
-	OnInteractableFound.				AddUniqueDynamic(this, &UMounteaInteractorComponentBase::InteractableFound);
-	OnInteractableLost.					AddUniqueDynamic(this, &UMounteaInteractorComponentBase::InteractableLost);
-	
-	OnInteractionKeyPressed.		AddUniqueDynamic(this, &UMounteaInteractorComponentBase::OnInteractionKeyPressedEvent);
-	OnInteractionKeyReleased.	AddUniqueDynamic(this, &UMounteaInteractorComponentBase::OnInteractionKeyReleasedEvent);
-	
-	OnStateChanged.					AddUniqueDynamic(this, &UMounteaInteractorComponentBase::OnInteractorStateChanged);
-	OnCollisionChanged.				AddUniqueDynamic(this, &UMounteaInteractorComponentBase::OnInteractorCollisionChanged);
-	OnComponentActivated.			AddUniqueDynamic(this, &UMounteaInteractorComponentBase::OnInteractorComponentActivated);
 
-	if (GetOwner() &&( bAutoActivate || IsActive()))
-	{
-		Execute_AddIgnoredActor(this, GetOwner());
-
-		Execute_SetState(this, DefaultInteractorState);
-	}	
+	Execute_SetDefaults(this);
+	InteractorState = DefaultInteractorState;
 }
 
-FString UMounteaInteractorComponentBase::ToString_Implementation() const
+void UMounteaInteractorComponentBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	TScriptInterface<IMounteaInteractableInterface> activeInteractable = Execute_GetActiveInteractable(this);
-	FText activeInteractableName = activeInteractable.GetObject() ? FText::FromString(activeInteractable->Execute_GetInteractableName(activeInteractable.GetObject()).ToString()) : FText::FromString("None");
+	ClearDetected();
+	Super::EndPlay(EndPlayReason);
+}
 
-	FText interactorStateText = FText::FromString(UEnum::GetValueAsString(Execute_GetState(this)));
+void UMounteaInteractorComponentBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	FText collisionChannelText = FText::FromString(UEnum::GetValueAsString(Execute_GetResponseChannel(this)));
+	DOREPLIFETIME(UMounteaInteractorComponentBase, InteractorState);
+	DOREPLIFETIME(UMounteaInteractorComponentBase, CollisionChannel);
+	DOREPLIFETIME(UMounteaInteractorComponentBase, DefaultInteractorState);
+	DOREPLIFETIME(UMounteaInteractorComponentBase, InteractorTag);
+	DOREPLIFETIME(UMounteaInteractorComponentBase, SafetyTraceSetup);
+	DOREPLIFETIME(UMounteaInteractorComponentBase, ListOfIgnoredActors);
+	DOREPLIFETIME(UMounteaInteractorComponentBase, InteractionDependencies);
+}
 
-	FText interactorTagText = InteractorTag.IsValid() ? FText::FromString(InteractorTag.ToString()) : FText::FromString("None");
+#pragma region IMounteaInteractorInterface_FocusAPI
 
-	return FText::Format(
-		NSLOCTEXT("InteractorDebugData", "Format", "Active Interactable: {0}\nInteractor State: {1}\nCollision Channel: {2}\nInteractor Tag: {3}"),
-		activeInteractableName, interactorStateText, collisionChannelText, interactorTagText
-	).ToString();
+AActor* UMounteaInteractorComponentBase::GetFocusedActor_Implementation() const
+{
+	return FocusedActor.Get();
+}
+
+TArray<FInteractionActionCandidate> UMounteaInteractorComponentBase::GetActionList_Implementation() const
+{
+	return ActionList;
+}
+
+int32 UMounteaInteractorComponentBase::GetHighlightedActionIndex_Implementation() const
+{
+	return HighlightedActionIndex;
+}
+
+TScriptInterface<IMounteaInteractableInterface> UMounteaInteractorComponentBase::GetLockedAction_Implementation() const
+{
+	if (!LockedAction.IsValid()) return TScriptInterface<IMounteaInteractableInterface>();
+
+	TScriptInterface<IMounteaInteractableInterface> result;
+	result.SetObject(LockedAction.GetObject());
+	result.SetInterface(LockedAction.Get());
+	return result;
+}
+
+bool UMounteaInteractorComponentBase::IsSelectionLocked_Implementation() const
+{
+	return bSelectionLocked;
+}
+
+void UMounteaInteractorComponentBase::CycleAction_Implementation(const int32 Direction)
+{
+	if (bSelectionLocked || ActionList.IsEmpty()) return;
+
+	HighlightedActionIndex = (HighlightedActionIndex + Direction + ActionList.Num()) % ActionList.Num();
+	OnHighlightedActionChanged.Broadcast(HighlightedActionIndex);
+	Execute_OnHighlightedActionChangedEvent(this, HighlightedActionIndex);
+}
+
+#pragma endregion
+
+#pragma region IMounteaInteractorInterface_Interaction
+
+void UMounteaInteractorComponentBase::StartInteraction_Implementation(const float StartTime)
+{
+	if (!GetOwner() || !GetOwner()->HasAuthority())
+	{
+		StartInteraction_Server(StartTime);
+		return;
+	}
+
+	if (ActionList.IsEmpty() || bSelectionLocked) return;
+	if (!Execute_CanInteract(this)) return;
+
+	const FInteractionActionCandidate& candidate = ActionList[FMath::Clamp(HighlightedActionIndex, 0, ActionList.Num() - 1)];
+	if (!candidate.Interactable.GetInterface()) return;
+
+	bSelectionLocked = true;
+	LockedAction = TWeakInterfacePtr<IMounteaInteractableInterface>(candidate.Interactable.GetInterface());
+
+	TScriptInterface<IMounteaInteractorInterface> self;
+	self.SetObject(this);
+	self.SetInterface(this);
+
+	IMounteaInteractableInterface::Execute_RequestInteractorJoin(candidate.Interactable.GetObject(), self);
+
+	OnInteractionKeyPressed.Broadcast(StartTime);
+	Execute_OnInteractionKeyPressedEvent(this, StartTime);
+}
+
+void UMounteaInteractorComponentBase::StopInteraction_Implementation(const float StopTime)
+{
+	if (!GetOwner() || !GetOwner()->HasAuthority())
+	{
+		StopInteraction_Server(StopTime);
+		return;
+	}
+
+	if (!bSelectionLocked) return;
+
+	TScriptInterface<IMounteaInteractorInterface> self;
+	self.SetObject(this);
+	self.SetInterface(this);
+
+	if (LockedAction.IsValid())
+	{
+		IMounteaInteractableInterface::Execute_RequestInteractorLeave(LockedAction.GetObject(), self);
+	}
+
+	bSelectionLocked = false;
+	LockedAction.Reset();
+
+	OnInteractionKeyReleased.Broadcast(StopTime);
+	Execute_OnInteractionKeyReleasedEvent(this, StopTime);
+}
+
+bool UMounteaInteractorComponentBase::CanInteract_Implementation() const
+{
+	return InteractorState == EInteractorStateV3::EIS_Scanning || InteractorState == EInteractorStateV3::EIS_Active;
+}
+
+bool UMounteaInteractorComponentBase::IsValidInteractor_Implementation() const
+{
+	return Execute_CanInteract(this) && !DetectedSet.IsEmpty();
+}
+
+bool UMounteaInteractorComponentBase::HasInteractable_Implementation() const
+{
+	return FocusedActor.IsValid() && !ActionList.IsEmpty();
+}
+
+#pragma endregion
+
+#pragma region IMounteaInteractorInterface_StateMachine
+
+bool UMounteaInteractorComponentBase::ActivateInteractor_Implementation(FString& ErrorMessage)
+{
+	if (InteractorState == EInteractorStateV3::EIS_Active)
+	{
+		ErrorMessage = TEXT("Already active");
+		return false;
+	}
+	if (InteractorState == EInteractorStateV3::EIS_Disabled)
+	{
+		ErrorMessage = TEXT("Cannot activate from Disabled state");
+		return false;
+	}
+
+	Execute_SetState(this, EInteractorStateV3::EIS_Active);
+	return true;
+}
+
+bool UMounteaInteractorComponentBase::EnableInteractor_Implementation(FString& ErrorMessage)
+{
+	if (InteractorState == EInteractorStateV3::EIS_Scanning)
+	{
+		ErrorMessage = TEXT("Already enabled");
+		return false;
+	}
+
+	Execute_SetState(this, EInteractorStateV3::EIS_Scanning);
+	return true;
+}
+
+bool UMounteaInteractorComponentBase::SuppressInteractor_Implementation(FString& ErrorMessage)
+{
+	if (InteractorState == EInteractorStateV3::EIS_Suppressed)
+	{
+		ErrorMessage = TEXT("Already suppressed");
+		return false;
+	}
+
+	Execute_SetState(this, EInteractorStateV3::EIS_Suppressed);
+	return true;
+}
+
+void UMounteaInteractorComponentBase::DeactivateInteractor_Implementation()
+{
+	Execute_SetState(this, EInteractorStateV3::EIS_Disabled);
+}
+
+EInteractorStateV3 UMounteaInteractorComponentBase::GetState_Implementation() const
+{
+	return InteractorState;
+}
+
+void UMounteaInteractorComponentBase::SetState_Implementation(const EInteractorStateV3 NewState)
+{
+	if (InteractorState == NewState) return;
+
+	if (GetOwner() && !GetOwner()->HasAuthority())
+	{
+		SetState_Server(NewState);
+		return;
+	}
+
+	InteractorState = NewState;
+	OnRep_InteractorState();
+}
+
+EInteractorStateV3 UMounteaInteractorComponentBase::GetDefaultState_Implementation() const
+{
+	return DefaultInteractorState;
+}
+
+void UMounteaInteractorComponentBase::SetDefaultState_Implementation(const EInteractorStateV3 NewState)
+{
+	DefaultInteractorState = NewState;
+}
+
+#pragma endregion
+
+#pragma region IMounteaInteractorInterface_Properties
+
+ECollisionChannel UMounteaInteractorComponentBase::GetResponseChannel_Implementation() const
+{
+	return CollisionChannel.GetValue();
+}
+
+void UMounteaInteractorComponentBase::SetResponseChannel_Implementation(const ECollisionChannel NewResponseChannel)
+{
+	if (!GetOwner() || !GetOwner()->HasAuthority())
+	{
+		SetResponseChannel_Server(NewResponseChannel);
+		return;
+	}
+	CollisionChannel = NewResponseChannel;
+	OnCollisionChanged.Broadcast(CollisionChannel.GetValue());
+	Execute_OnInteractorCollisionChangedEvent(this, CollisionChannel);
+}
+
+FGameplayTag UMounteaInteractorComponentBase::GetInteractorTag_Implementation() const
+{
+	return InteractorTag;
+}
+
+void UMounteaInteractorComponentBase::SetInteractorTag_Implementation(const FGameplayTag& NewInteractorTag)
+{
+	if (!GetOwner() || !GetOwner()->HasAuthority())
+	{
+		SetInteractorTag_Server(NewInteractorTag);
+		return;
+	}
+	InteractorTag = NewInteractorTag;
+	OnInteractorTagChanged.Broadcast(NewInteractorTag);
+	Execute_OnInteractorStateChangedEvent(this, InteractorState);
+}
+
+bool UMounteaInteractorComponentBase::DoesAutoActivate_Implementation() const
+{
+	return DefaultInteractorState == EInteractorStateV3::EIS_Active;
 }
 
 AActor* UMounteaInteractorComponentBase::GetOwningActor_Implementation() const
 {
 	return GetOwner();
 }
+
+FString UMounteaInteractorComponentBase::ToString_Implementation() const
+{
+	return FString::Printf(TEXT("Interactor: %s | State: %s | Detected: %d | Focused: %s"),
+		*GetName(),
+		*StaticEnum<EInteractorStateV3>()->GetNameStringByValue(static_cast<int64>(InteractorState)),
+		DetectedSet.Num(),
+		*GetNameSafe(FocusedActor.Get()));
+}
+
+void UMounteaInteractorComponentBase::SetDefaults_Implementation()
+{
+}
+
+#pragma endregion
+
+#pragma region IMounteaInteractorInterface_SafetyTrace
 
 FSafetyTracingSetup UMounteaInteractorComponentBase::GetSafetyTracingSetup_Implementation() const
 {
@@ -102,763 +314,119 @@ FSafetyTracingSetup UMounteaInteractorComponentBase::GetSafetyTracingSetup_Imple
 
 void UMounteaInteractorComponentBase::SetSafetyTracingSetup_Implementation(const FSafetyTracingSetup& NewSafetyTracingSetup)
 {
-	if (!GetOwner())
-	{
-		LOG_ERROR(TEXT("[SetSafetyTracingSetup] No owner!"))
-		return;
-	}
-
-	if (NewSafetyTracingSetup == SafetyTraceSetup)
-		return;
-		
-	if (GetOwner()->HasAuthority())
-	{
-		SafetyTraceSetup = NewSafetyTracingSetup;
-	}
-	else
+	if (!GetOwner() || !GetOwner()->HasAuthority())
 	{
 		SetSafetyTracingSetup_Server(NewSafetyTracingSetup);
+		return;
 	}
+	SafetyTraceSetup = NewSafetyTracingSetup;
 }
 
 bool UMounteaInteractorComponentBase::PerformSafetyTrace_Implementation(const AActor* InteractableActor)
 {
-	if (!InteractableActor)
-		return false;
+	if (!IsValid(InteractableActor) || SafetyTraceSetup.SafetyTracingMode == ESafetyTracingMode::ESTM_None) return true;
+	if (!GetOwner() || !GetWorld()) return true;
 
-	if (!GetOwner())
-		return false;
-	
-	FHitResult safetyTrace;
-	FCollisionQueryParams queryParams;
-	queryParams.AddIgnoredActor(GetOwner());
+	FHitResult hitResult;
+	const FVector start = GetOwner()->GetActorLocation();
+	const FVector end = InteractableActor->GetActorLocation();
 
-	FVector traceStartLocation = GetOwner()->GetActorLocation();
+	FCollisionQueryParams params;
+	params.AddIgnoredActor(GetOwner());
 
-	switch (SafetyTraceSetup.SafetyTracingMode)
-	{
-		case ESafetyTracingMode::ESTM_Location:
-			traceStartLocation = SafetyTraceSetup.StartLocation;
-			break;
-		case ESafetyTracingMode::ESTM_Socket:
-			{
-				if (const auto ownerMesh =  UMounteaInteractionSystemBFL::FindMeshByName(SafetyTraceSetup.StartSocketName, GetOwner()))
-				{
-					traceStartLocation =
-						ownerMesh->DoesSocketExist(SafetyTraceSetup.StartSocketName) ?
-						ownerMesh->GetSocketLocation(SafetyTraceSetup.StartSocketName) :
-						traceStartLocation;
-				}
-			}
-			break;
-		case ESafetyTracingMode::Default:
-		case ESafetyTracingMode::ESTM_None:
-			return true;
-	}
+	const FName traceChannelName = SafetyTraceSetup.OverrideTraceChannelName.IsNone() ? FName("InteractionTrace") : SafetyTraceSetup.OverrideTraceChannelName;
+	bool bTraceChannelFound = false;
+	const ECollisionChannel traceChannel = UMounteaInteractionStatics::ResolveInteractionChannel(traceChannelName, bTraceChannelFound);
+	const ECollisionChannel resolvedTraceChannel = bTraceChannelFound ? traceChannel : ECC_Visibility;
+	const bool bHit = GetWorld()->LineTraceSingleByChannel(hitResult, start, end, resolvedTraceChannel, params);
+	if (!bHit) return true;
 
-	bool bHit = GetWorld()->LineTraceSingleByChannel(safetyTrace, traceStartLocation, InteractableActor->GetActorLocation(), SafetyTraceSetup.ValidationCollisionChannel, queryParams);
-
-#if WITH_EDITOR || UE_BUILD_DEBUG
-	if (DebugSettings.DebugMode)
-	{
-		DrawDebugBox(GetWorld(), traceStartLocation, FVector(5.f), FColor::Blue, false, 2.f, 0, 1.f);
-		DrawDebugBox(GetWorld(), InteractableActor->GetActorLocation(), FVector(5.f), FColor::Red, false, 2.f, 0, 1.f);
-		DrawDebugDirectionalArrow(GetWorld(), traceStartLocation, InteractableActor->GetActorLocation(), 2.f, FColor::Purple, false, 2.f, 0, 1.f);
-	}
-#endif
-
-	return bHit && safetyTrace.GetActor() == InteractableActor;
+	return hitResult.GetActor() == InteractableActor;
 }
 
-void UMounteaInteractorComponentBase::SetDefaults_Implementation()
-{
-	const auto defaultValues = UMounteaInteractionFunctionLibrary::GetDefaultInteractorSettings();
-	{
-		CollisionChannel			= defaultValues.InteractorCollisionChannel;
-		InteractorTag				= defaultValues.InteractorTag;
-		DefaultInteractorState = defaultValues.DefaultInteractorState;
-	}
-}
+#pragma endregion
 
-void UMounteaInteractorComponentBase::ConsumeInput_Implementation(UInputAction* ConsumedInput)
-{
-	OnInputActionConsumed.Broadcast(ConsumedInput);
-}
-
-void UMounteaInteractorComponentBase::InteractableSelected_Implementation(const TScriptInterface<IMounteaInteractableInterface>& SelectedInteractable)
-{
-	if (SelectedInteractable.GetObject())
-	{
-		SelectedInteractable->GetOnInteractableSelectedHandle().Broadcast(SelectedInteractable);
-	}
-	
-	Execute_OnInteractableSelectedEvent(this, SelectedInteractable);
-}
-
-void UMounteaInteractorComponentBase::InteractableFound_Implementation(const TScriptInterface<IMounteaInteractableInterface>& FoundInteractable)
-{
-	if (FoundInteractable.GetInterface() == nullptr) return;
-
-	if (FoundInteractable != ActiveInteractable)
-	{
-		for (const auto& Itr : InteractionDependencies)
-		{
-			if (Itr.GetInterface())
-			{
-				Itr->Execute_SetState(this, EInteractorStateV2::EIS_Suppressed);
-			}
-		}
-	
-		Execute_EvaluateInteractable(this, FoundInteractable);
-
-		Execute_OnInteractableFoundEvent(this, FoundInteractable);
-	}
-}
-
-void UMounteaInteractorComponentBase::InteractableLost_Implementation(const TScriptInterface<IMounteaInteractableInterface>& LostInteractable)
-{
-	if (LostInteractable.GetInterface() == nullptr)
-		return;
-
-	if (!ActiveInteractable.GetObject() || !ActiveInteractable.GetInterface())
-		return;
-	
-	if (LostInteractable == ActiveInteractable)
-	{
-		ActiveInteractable->GetOnInteractorLostHandle().Broadcast(this);
-		
-		Execute_SetState(this, EInteractorStateV2::EIS_Awake);
-		
-		Execute_SetActiveInteractable(this, nullptr);
-		
-		Execute_OnInteractableLostEvent(this, LostInteractable);
-	}
-}
-
-bool UMounteaInteractorComponentBase::IsValidInteractor_Implementation() const
-{
-	switch (InteractorState)
-	{
-		case EInteractorStateV2::EIS_Awake:
-		case EInteractorStateV2::EIS_Asleep:
-		case EInteractorStateV2::EIS_Active:
-			return true;
-		case EInteractorStateV2::EIS_Suppressed:
-		case EInteractorStateV2::EIS_Disabled:
-		case EInteractorStateV2::Default:
-		default:
-			return false;
-	}
-}
-
-void UMounteaInteractorComponentBase::EvaluateInteractable_Implementation(const TScriptInterface<IMounteaInteractableInterface>& FoundInteractable)
-{
-	if (!Execute_IsValidInteractor(this)) return;
-	
-	if (FoundInteractable.GetInterface() == nullptr)
-	{
-		OnInteractableLost.Broadcast(ActiveInteractable);
-		return;
-	}
-	
-	if (ActiveInteractable.GetInterface() == nullptr)
-	{
-		Execute_SetActiveInteractable(this, FoundInteractable);
-		OnInteractableUpdated.Broadcast(FoundInteractable);
-
-		return;
-	}
-
-	/***
-	 * TODO ?
-	 * Even when not tracing again active, active stays
-	 */
-	if (ActiveInteractable != FoundInteractable)
-	{
-		if (FoundInteractable->Execute_GetInteractableWeight(FoundInteractable.GetObject()) > ActiveInteractable->Execute_GetInteractableWeight(FoundInteractable.GetObject()))
-		{
-			if (ActiveInteractable.GetInterface() != nullptr)
-			{
-				OnInteractableLost.Broadcast(ActiveInteractable);
-			}
-			
-			
-			Execute_SetActiveInteractable(this, FoundInteractable);
-			OnInteractableUpdated.Broadcast(FoundInteractable);
-		}
-		else
-		{
-			if (FoundInteractable.GetInterface() != nullptr)
-			{
-				OnInteractableLost.Broadcast(FoundInteractable);
-			}
-
-			OnInteractableUpdated.Broadcast(ActiveInteractable);
-		}
-	}
-	else
-	{
-		Execute_SetActiveInteractable(this, FoundInteractable);
-		OnInteractableUpdated.Broadcast(FoundInteractable);
-	}
-}
-
-void UMounteaInteractorComponentBase::StartInteraction_Implementation(const float StartTime)
-{
-	if (!GetOwner())
-	{
-		LOG_ERROR(TEXT("[StartInteraction] No Owner!"))
-		return;
-	}
-
-	if (GetOwner()->HasAuthority())
-	{
-		if (Execute_CanInteract(this) && ActiveInteractable.GetInterface())
-		{
-			Execute_SetState(this,EInteractorStateV2::EIS_Active);
-			ActiveInteractable->GetOnInteractionStartedHandle().Broadcast(StartTime, this);
-		}
-	}
-	else
-	{
-		StartInteraction_Server(StartTime);
-	}
-}
-
-void UMounteaInteractorComponentBase::StopInteraction_Implementation(const float StopTime)
-{
-	if (!GetOwner())
-	{
-		LOG_ERROR(TEXT("[StopInteraction] No Owner!"))
-		return;
-	}
-
-	if (GetOwner()->HasAuthority())
-	{
-		if (Execute_CanInteract(this) && ActiveInteractable.GetInterface())
-		{
-			Execute_SetState(this,DefaultInteractorState);
-			ActiveInteractable->GetOnInteractionStoppedHandle().Broadcast(StopTime, this);
-		}
-	}
-	else
-	{
-		StopInteraction_Server(StopTime);
-	}
-}
-
-bool UMounteaInteractorComponentBase::ActivateInteractor_Implementation(FString& ErrorMessage)
-{
-	const EInteractorStateV2 CachedState = InteractorState;
-	
-	Execute_SetState(this, EInteractorStateV2::EIS_Active);
-	
-	switch (CachedState)
-	{
-		case EInteractorStateV2::EIS_Awake:
-			ErrorMessage.Append(TEXT("Interactor Component has been Activated"));
-			return true;
-		case EInteractorStateV2::EIS_Active:
-			ErrorMessage.Append(TEXT("Interactor Component is already Active"));
-			break;
-		case EInteractorStateV2::EIS_Disabled:
-		case EInteractorStateV2::EIS_Suppressed:
-		case EInteractorStateV2::EIS_Asleep:
-			ErrorMessage.Append(TEXT("Interactor Component cannot be Activated"));
-			break;
-		case EInteractorStateV2::Default:
-		default:
-			ErrorMessage.Append(TEXT("Interactor Component cannot proces activation request, invalid state"));
-			break;
-	}
-	
-	return false;
-}
-
-bool UMounteaInteractorComponentBase::EnableInteractor_Implementation(FString& ErrorMessage)
-{
-	const EInteractorStateV2 CachedState = InteractorState;
-	
-	Execute_SetState(this, EInteractorStateV2::EIS_Awake);
-	
-	switch (CachedState)
-	{
-		case EInteractorStateV2::EIS_Disabled:
-		case EInteractorStateV2::EIS_Asleep:
-		case EInteractorStateV2::EIS_Suppressed:
-		case EInteractorStateV2::EIS_Awake:
-			ErrorMessage.Append(TEXT("Interactor Component has been Awaken"));
-			return true;
-		case EInteractorStateV2::EIS_Active:
-			ErrorMessage.Append(TEXT("Interactor Component is Awaken and no longer Active"));
-			return true;
-		case EInteractorStateV2::Default:
-		default:
-			ErrorMessage.Append(TEXT("Interactor Component cannot proces activation request, invalid state"));
-			break;
-	}
-	
-	return false;
-}
-
-bool UMounteaInteractorComponentBase::SuppressInteractor_Implementation(FString& ErrorMessage)
-{
-	const EInteractorStateV2 CachedState = InteractorState;
-	
-	Execute_SetState(this, EInteractorStateV2::EIS_Suppressed);
-
-	switch (CachedState)
-	{
-		case EInteractorStateV2::EIS_Asleep:
-			ErrorMessage.Append(TEXT("Interactor Component is Asleep, cannot be Suppressed"));
-			break;
-		case EInteractorStateV2::EIS_Disabled:
-			ErrorMessage.Append(TEXT("Interactor Component is Inactive, cannot be Suppressed"));
-			break;
-		case EInteractorStateV2::EIS_Suppressed:
-			ErrorMessage.Append(TEXT("Interactor Component is already Suppressed"));
-			break;
-		case EInteractorStateV2::EIS_Awake:
-		case EInteractorStateV2::EIS_Active:
-			ErrorMessage.Append(TEXT("Interactor Component has been Suppressed"));
-			return true;
-		case EInteractorStateV2::Default:
-		default:
-			ErrorMessage.Append(TEXT("Interactor Component cannot proces activation request, invalid state"));
-			break;
-	}
-	
-	return false;
-}
-
-void UMounteaInteractorComponentBase::DeactivateInteractor_Implementation()
-{	Execute_SetState(this, EInteractorStateV2::EIS_Disabled); }
+#pragma region IMounteaInteractorInterface_IgnoredActors
 
 void UMounteaInteractorComponentBase::AddIgnoredActor_Implementation(AActor* IgnoredActor)
 {
-	if (!GetOwner())
-	{
-		LOG_ERROR(TEXT("[AddIgnoredActor] No owner!"));
-		return;
-	}
-
-	if (GetOwner()->HasAuthority())
-	{
-		if (IgnoredActor == nullptr) return;
-		if (ListOfIgnoredActors.Contains(IgnoredActor)) return;
-
-		ListOfIgnoredActors.Add(IgnoredActor);
-
-		OnIgnoredActorAdded.Broadcast(IgnoredActor);
-
-		MARK_PROPERTY_DIRTY_FROM_NAME(UMounteaInteractorComponentBase, ListOfIgnoredActors, this);
-	}
-	else
+	if (!IsValid(IgnoredActor)) return;
+	if (!GetOwner() || !GetOwner()->HasAuthority())
 	{
 		AddIgnoredActor_Server(IgnoredActor);
+		return;
 	}
+	ListOfIgnoredActors.AddUnique(IgnoredActor);
+	OnIgnoredActorAdded.Broadcast(IgnoredActor);
 }
 
 void UMounteaInteractorComponentBase::AddIgnoredActors_Implementation(const TArray<AActor*>& IgnoredActors)
 {
-	if (!GetOwner())
-	{
-		LOG_ERROR(TEXT("[AddIgnoredActors] No owner!"));
-		return;
-	}
-
-	if (GetOwner()->HasAuthority())
-	{
-		bool bListModified = false;
-		for (const auto& Itr : IgnoredActors)
-		{
-			if (Itr == nullptr) continue;
-			if (ListOfIgnoredActors.Contains(Itr)) continue;	
-
-			ListOfIgnoredActors.Add(Itr);
-			OnIgnoredActorAdded.Broadcast(Itr);
-			bListModified = true;
-		}
-
-		if (bListModified)
-		{
-			MARK_PROPERTY_DIRTY_FROM_NAME(UMounteaInteractorComponentBase, ListOfIgnoredActors, this);
-		}
-	}
-	else
-	{
-		AddIgnoredActors_Server(IgnoredActors);
-	}
+	for (AActor* a : IgnoredActors) Execute_AddIgnoredActor(this, a);
 }
 
 void UMounteaInteractorComponentBase::RemoveIgnoredActor_Implementation(AActor* UnignoredActor)
 {
-	if (!GetOwner())
-	{
-		LOG_ERROR(TEXT("[RemoveIgnoredActor] No owner!"));
-		return;
-	}
-
-	if (GetOwner()->HasAuthority())
-	{
-		if (UnignoredActor == nullptr) return;
-		if (ListOfIgnoredActors.Contains(UnignoredActor))
-		{
-			ListOfIgnoredActors.Remove(UnignoredActor);
-			OnIgnoredActorRemoved.Broadcast(UnignoredActor);
-
-			MARK_PROPERTY_DIRTY_FROM_NAME(UMounteaInteractorComponentBase, ListOfIgnoredActors, this);
-		}
-	}
-	else
+	if (!IsValid(UnignoredActor)) return;
+	if (!GetOwner() || !GetOwner()->HasAuthority())
 	{
 		RemoveIgnoredActor_Server(UnignoredActor);
+		return;
 	}
+	ListOfIgnoredActors.Remove(UnignoredActor);
+	OnIgnoredActorRemoved.Broadcast(UnignoredActor);
 }
 
 void UMounteaInteractorComponentBase::RemoveIgnoredActors_Implementation(const TArray<AActor*>& UnignoredActors)
 {
-	if (!GetOwner())
-	{
-		LOG_ERROR(TEXT("[RemoveIgnoredActors] No owner!"));
-		return;
-	}
-
-	if (GetOwner()->HasAuthority())
-	{
-		bool bListModified = false;
-		for (const auto& Itr : UnignoredActors)
-		{
-			if (Itr == nullptr) continue;
-			if (ListOfIgnoredActors.Contains(Itr))
-			{
-				ListOfIgnoredActors.Remove(Itr);
-				OnIgnoredActorRemoved.Broadcast(Itr);
-				bListModified = true;
-			}
-		}
-
-		if (bListModified)
-		{
-			MARK_PROPERTY_DIRTY_FROM_NAME(UMounteaInteractorComponentBase, ListOfIgnoredActors, this);
-		}
-	}
-	else
-	{
-		RemoveIgnoredActors_Server(UnignoredActors);
-	}
+	for (AActor* a : UnignoredActors) Execute_RemoveIgnoredActor(this, a);
 }
 
 TArray<AActor*> UMounteaInteractorComponentBase::GetIgnoredActors_Implementation() const
-{ return ListOfIgnoredActors; }
+{
+	TArray<AActor*> out;
+	for (auto a : ListOfIgnoredActors) { if (IsValid(a)) out.Add(a); }
+	return out;
+}
+
+#pragma endregion
+
+#pragma region IMounteaInteractorInterface_Dependencies
 
 void UMounteaInteractorComponentBase::AddInteractionDependency_Implementation(const TScriptInterface<IMounteaInteractorInterface>& InteractionDependency)
 {
-	if (!GetOwner())
-	{
-		LOG_ERROR(TEXT("[AddInteractionDependency] No owner!"));
-		return;
-	}
-
-	if (GetOwner()->HasAuthority())
-	{
-		if (InteractionDependency.GetInterface() == nullptr) return;
-		if (InteractionDependencies.Contains(InteractionDependency))
-		{
-			return;
-		}
-
-		InteractionDependencies.Add(InteractionDependency);
-		Execute_ProcessDependencies(this);
-
-		MARK_PROPERTY_DIRTY_FROM_NAME(UMounteaInteractorComponentBase, InteractionDependencies, this);
-	}
-	else
-	{
-		AddInteractionDependency_Server(InteractionDependency);
-	}
+	if (!InteractionDependency.GetInterface()) return;
+	InteractionDependencies.AddUnique(InteractionDependency);
 }
 
 void UMounteaInteractorComponentBase::RemoveInteractionDependency_Implementation(const TScriptInterface<IMounteaInteractorInterface>& InteractionDependency)
 {
-	if (!GetOwner())
-	{
-		LOG_ERROR(TEXT("[RemoveInteractionDependency] No owner!"));
-		return;
-	}
-
-	if (GetOwner()->HasAuthority())
-	{
-		if (InteractionDependency.GetInterface() == nullptr) return;
-		if (InteractionDependencies.Contains(InteractionDependency))
-		{
-			InteractionDependency->Execute_SetState(this, InteractionDependency->Execute_GetDefaultState(this));
-			InteractionDependencies.Remove(InteractionDependency);
-
-			MARK_PROPERTY_DIRTY_FROM_NAME(UMounteaInteractorComponentBase, InteractionDependencies, this);
-		}
-	}
-	else
-	{
-		RemoveInteractionDependency_Server(InteractionDependency);
-	}
+	InteractionDependencies.Remove(InteractionDependency);
 }
 
 TArray<TScriptInterface<IMounteaInteractorInterface>> UMounteaInteractorComponentBase::GetInteractionDependencies_Implementation() const
-{	return InteractionDependencies;}
+{
+	return InteractionDependencies;
+}
 
 void UMounteaInteractorComponentBase::ProcessDependencies_Implementation()
 {
-	if (!GetOwner())
+	for (const TScriptInterface<IMounteaInteractorInterface>& dep : InteractionDependencies)
 	{
-		LOG_ERROR(TEXT("[ProcessDependencies] No owner!"));
-		return;
-	}
-
-	if (GetOwner()->HasAuthority())
-	{
-		if (InteractionDependencies.Num() == 0) return;
-	
-		for (const auto& Itr : InteractionDependencies)
+		if (!dep.GetInterface()) continue;
+		const EInteractorStateV3 depState = IMounteaInteractorInterface::Execute_GetState(dep.GetObject());
+		if (depState == EInteractorStateV3::EIS_Suppressed)
 		{
-			switch (InteractorState)
-			{
-			case EInteractorStateV2::EIS_Active:
-			case EInteractorStateV2::EIS_Suppressed:
-			case EInteractorStateV2::EIS_Asleep:
-				Itr->Execute_SetState(this, EInteractorStateV2::EIS_Suppressed);
-				break;
-			case EInteractorStateV2::EIS_Awake:
-				Itr->Execute_SetState(this, Itr->Execute_GetDefaultState(this));
-				break;
-			case EInteractorStateV2::EIS_Disabled:
-				Itr->Execute_SetState(this, Itr->Execute_GetDefaultState(this));
-				RemoveInteractionDependency(Itr);
-				break;
-			case EInteractorStateV2::Default:
-			default:
-				break;
-			}
-		}
-	}
-	else
-	{
-		ProcessDependencies_Server();
-	}
-}
-
-bool UMounteaInteractorComponentBase::CanInteract_Implementation() const
-{
-	switch (InteractorState)
-	{
-		case EInteractorStateV2::EIS_Active:
-		case EInteractorStateV2::EIS_Awake:
-			return true;
-		case EInteractorStateV2::EIS_Asleep:
-		case EInteractorStateV2::EIS_Suppressed:
-		case EInteractorStateV2::EIS_Disabled:
-		case EInteractorStateV2::Default:
-		default:
-			return false;
-	}
-}
-
-ECollisionChannel UMounteaInteractorComponentBase::GetResponseChannel_Implementation() const
-{ return CollisionChannel; }
-
-void UMounteaInteractorComponentBase::SetResponseChannel_Implementation(const ECollisionChannel NewResponseChannel)
-{
-	if (!GetOwner())
-	{
-		LOG_ERROR(TEXT("[SetResponseChannel] No owner!"));
-		return;
-	}
-
-	if (GetOwner()->HasAuthority())
-	{
-		CollisionChannel = NewResponseChannel;
-
-		OnCollisionChanged.Broadcast(NewResponseChannel);
-	}
-	else
-	{
-		SetResponseChannel_Server(NewResponseChannel);
-	}
-}
-
-EInteractorStateV2 UMounteaInteractorComponentBase::GetState_Implementation() const
-{	return InteractorState; }
-
-void UMounteaInteractorComponentBase::SetState_Implementation(const EInteractorStateV2 NewState)
-{
-	if (!GetOwner())
-	{
-		LOG_ERROR(TEXT("[SetState] Interactor has no Owner!"))
-		return;
-	}
-
-	if (GetOwner()->HasAuthority())
-	{
-		switch (NewState)
-		{
-			case EInteractorStateV2::EIS_Awake:
-				switch (InteractorState)
-				{
-					case EInteractorStateV2::EIS_Asleep:
-					case EInteractorStateV2::EIS_Disabled:
-					case EInteractorStateV2::EIS_Suppressed:
-					case EInteractorStateV2::EIS_Active:
-						InteractorState = NewState;
-						ProcessStateChanged();
-						break;
-					case EInteractorStateV2::EIS_Awake:
-					case EInteractorStateV2::Default:
-					default: break;
-				}
-				break;
-			case EInteractorStateV2::EIS_Asleep:
-				switch (InteractorState)
-				{
-					case EInteractorStateV2::EIS_Awake:
-					case EInteractorStateV2::EIS_Suppressed:
-					case EInteractorStateV2::EIS_Active:
-					case EInteractorStateV2::EIS_Disabled:
-						InteractorState = NewState;
-						ProcessStateChanged();
-						break;
-					case EInteractorStateV2::EIS_Asleep:
-					case EInteractorStateV2::Default:
-					default: break;
-				}
-				break;
-			case EInteractorStateV2::EIS_Suppressed:
-				switch (InteractorState)
-				{
-					case EInteractorStateV2::EIS_Awake:
-					case EInteractorStateV2::EIS_Asleep:
-					case EInteractorStateV2::EIS_Active:
-						InteractorState = NewState;
-						ProcessStateChanged();
-						break;
-					case EInteractorStateV2::EIS_Suppressed:
-					case EInteractorStateV2::EIS_Disabled:
-					case EInteractorStateV2::Default:
-					default: break;
-				}
-				break;
-			case EInteractorStateV2::EIS_Active:
-				switch (InteractorState)
-				{
-					case EInteractorStateV2::EIS_Awake:
-						InteractorState = NewState;
-						ProcessStateChanged();
-						break;
-					case EInteractorStateV2::EIS_Asleep:
-					case EInteractorStateV2::EIS_Active:
-					case EInteractorStateV2::EIS_Suppressed:
-					case EInteractorStateV2::EIS_Disabled:
-					case EInteractorStateV2::Default:
-					default: break;
-				}
-				break;
-			case EInteractorStateV2::EIS_Disabled:
-				switch (InteractorState)
-				{
-					case EInteractorStateV2::EIS_Asleep:
-					case EInteractorStateV2::EIS_Awake:
-					case EInteractorStateV2::EIS_Suppressed:
-					case EInteractorStateV2::EIS_Active:
-						InteractorState = NewState;
-						ProcessStateChanged();
-						break;
-					case EInteractorStateV2::EIS_Disabled:
-					case EInteractorStateV2::Default:
-					default: break;
-				}
-				break;
-			case EInteractorStateV2::Default:
-			default: break;
-		}
-
-		Execute_ProcessDependencies(this);
-	}
-	else
-	{
-		SetState_Server(NewState);
-	}
-}
-
-EInteractorStateV2 UMounteaInteractorComponentBase::GetDefaultState_Implementation() const
-{ return DefaultInteractorState; }
-
-void UMounteaInteractorComponentBase::SetDefaultState_Implementation(const EInteractorStateV2 NewState)
-{
-	if (!GetOwner())
-	{
-		LOG_ERROR(TEXT("[SetDefaultState] No owner!"));
-		return;
-	}
-
-	if (GetOwner()->HasAuthority())
-	{
-		if
-		(
-			NewState == EInteractorStateV2::EIS_Active  ||
-			NewState == EInteractorStateV2::Default
-		)
-		{
-			LOG_ERROR(TEXT("[SetDefaultState] Tried to set invalid Default State!"));
+			FString err;
+			Execute_SuppressInteractor(this, err);
 			return;
 		}
-
-		DefaultInteractorState = NewState;
-	}
-	else
-	{
-		SetDefaultState_Server(NewState);
 	}
 }
 
-bool UMounteaInteractorComponentBase::DoesAutoActivate_Implementation() const
-{	return DefaultInteractorState == EInteractorStateV2::EIS_Awake ? true : false;}
+#pragma endregion
 
-void UMounteaInteractorComponentBase::SetActiveInteractable_Implementation(const TScriptInterface<IMounteaInteractableInterface>& NewInteractable)
-{
-	if (!GetOwner())
-	{
-		LOG_ERROR(TEXT("[SetActiveInteractable] No owner!"));
-		return;
-	}
-
-	if (GetOwner()->HasAuthority())
-	{
-		if (NewInteractable.GetInterface() == nullptr && ActiveInteractable.GetInterface() == nullptr)
-		{
-			return;
-		}
-
-		if (NewInteractable.GetInterface() == nullptr && ActiveInteractable.GetInterface() != nullptr)
-		{
-			ActiveInteractable = NewInteractable;
-		}
-
-		if (NewInteractable.GetInterface() != nullptr && ActiveInteractable.GetInterface() == nullptr)
-		{
-			ActiveInteractable = NewInteractable;
-
-			OnInteractableUpdated.Broadcast(ActiveInteractable);
-		}
-
-		SetActiveInteractable_Client(ActiveInteractable);
-	}
-	else
-	{
-		SetActiveInteractable_Server(NewInteractable);
-	}
-}
-
-TScriptInterface<IMounteaInteractableInterface> UMounteaInteractorComponentBase::GetActiveInteractable_Implementation() const
-{	return ActiveInteractable; }
+#pragma region IMounteaInteractorInterface_Debug
 
 void UMounteaInteractorComponentBase::ToggleDebug_Implementation()
 {
@@ -870,74 +438,212 @@ FDebugSettings UMounteaInteractorComponentBase::GetDebugSettings_Implementation(
 	return DebugSettings;
 }
 
-FGameplayTag UMounteaInteractorComponentBase::GetInteractorTag_Implementation() const
+void UMounteaInteractorComponentBase::OnInteractorComponentActivated_Implementation(UActorComponent* Component, bool bReset)
 {
-	return InteractorTag;
+	if (DefaultInteractorState == EInteractorStateV3::EIS_Active)
+	{
+		FString err;
+		Execute_ActivateInteractor(this, err);
+	}
 }
 
-void UMounteaInteractorComponentBase::SetInteractorTag_Implementation(const FGameplayTag& NewInteractorTag)
+void UMounteaInteractorComponentBase::ConsumeInput_Implementation(UInputAction* ConsumedInput)
 {
-	if (!GetOwner())
+}
+
+#pragma endregion
+
+#pragma region FocusSystem
+
+void UMounteaInteractorComponentBase::RefreshFocus()
+{
+	// ---- Tier 1: find best actor from DetectedSet ----
+	AActor* bestActor = nullptr;
+	int32 bestWeight = -1;
+	float bestDistanceSq = TNumericLimits<float>::Max();
+
+	const FVector selfLoc = GetOwner() ? GetOwner()->GetActorLocation() : FVector::ZeroVector;
+
+	for (const TScriptInterface<IMounteaInteractableInterface>& interactable : DetectedSet)
 	{
-		LOG_ERROR(TEXT("[SetInteractorTag] No owner!"));
-		return;
+		if (!interactable.GetInterface()) continue;
+
+		AActor* interactableOwner = IMounteaInteractableInterface::Execute_GetInteractableOwner(interactable.GetObject());
+		if (!IsValid(interactableOwner)) continue;
+
+		if (!Execute_PerformSafetyTrace(this, interactableOwner)) continue;
+
+		const int32 weight = IMounteaInteractableInterface::Execute_GetInteractableWeight(interactable.GetObject());
+		const float distSq = FVector::DistSquared(selfLoc, interactableOwner->GetActorLocation());
+
+		const bool bBetter = weight > bestWeight || (weight == bestWeight && distSq < bestDistanceSq);
+		if (bBetter)
+		{
+			bestWeight = weight;
+			bestDistanceSq = distSq;
+			bestActor = interactableOwner;
+		}
 	}
 
-	if (GetOwner()->HasAuthority())
-	{
-		if (InteractorTag != NewInteractorTag)
-		{
-			InteractorTag = NewInteractorTag;
+	// ---- Focus change handling ----
+	const bool bFocusChanged = bestActor != FocusedActor.Get();
 
-			OnInteractorTagChanged.Broadcast(NewInteractorTag);
+	if (bFocusChanged)
+	{
+		if (UMounteaInteractionWorldSubsystem* subsystem = GetWorld() ? GetWorld()->GetSubsystem<UMounteaInteractionWorldSubsystem>() : nullptr)
+		{
+			if (FocusedActor.IsValid())
+			{
+				subsystem->ReleaseAttentionWidget(FocusedActor.Get());
+			}
+			if (IsValid(bestActor))
+			{
+				subsystem->AssignAttentionWidget(bestActor);
+			}
 		}
+
+		if (bSelectionLocked)
+		{
+			if (LockedAction.IsValid())
+			{
+				AActor* lockedOwner = IMounteaInteractableInterface::Execute_GetInteractableOwner(LockedAction.GetObject());
+				if (lockedOwner != bestActor)
+				{
+					bSelectionLocked = false;
+					LockedAction.Reset();
+				}
+			}
+		}
+
+		FocusedActor = bestActor;
+		OnFocusedActorChanged.Broadcast(FocusedActor.Get());
+		Execute_OnFocusedActorChangedEvent(this, FocusedActor.Get());
+	}
+
+	// ---- Tier 2: rebuild action list from FocusedActor ----
+	TArray<FInteractionActionCandidate> newActionList;
+
+	if (FocusedActor.IsValid())
+	{
+		TArray<UActorComponent*> interactableComps;
+		FocusedActor->GetComponents(interactableComps);
+
+		const FVector focusedLoc = FocusedActor->GetActorLocation();
+
+		for (UActorComponent* comp : interactableComps)
+		{
+			if (!comp || !comp->GetClass()->ImplementsInterface(UMounteaInteractableInterface::StaticClass())) continue;
+
+			TScriptInterface<IMounteaInteractableInterface> interactable;
+			interactable.SetObject(comp);
+			interactable.SetInterface(Cast<IMounteaInteractableInterface>(comp));
+
+			if (!IMounteaInteractableInterface::Execute_CanBeTriggered(comp)) continue;
+
+			FInteractionActionCandidate candidate;
+			candidate.Interactable = interactable;
+			candidate.CachedWeight = IMounteaInteractableInterface::Execute_GetInteractableWeight(comp);
+			candidate.CachedDistanceSq = FVector::DistSquared(selfLoc, focusedLoc);
+
+			newActionList.Add(candidate);
+		}
+
+		newActionList.Sort([](const FInteractionActionCandidate& A, const FInteractionActionCandidate& B)
+		{
+			return A.CachedWeight > B.CachedWeight;
+		});
+	}
+
+	const bool bListChanged = newActionList != ActionList;
+	ActionList = MoveTemp(newActionList);
+
+	if (ActionList.IsEmpty())
+	{
+		HighlightedActionIndex = 0;
 	}
 	else
 	{
-		SetInteractorTag_Server(NewInteractorTag);
+		HighlightedActionIndex = FMath::Clamp(HighlightedActionIndex, 0, ActionList.Num() - 1);
+
+		if (ActionList[0].Interactable.GetInterface() &&
+			IMounteaInteractableInterface::Execute_IsStandaloneInteraction(ActionList[0].Interactable.GetObject()))
+		{
+			HighlightedActionIndex = 0;
+		}
+	}
+
+	if (bListChanged)
+	{
+		OnActionListChanged.Broadcast(ActionList);
+		Execute_OnActionListChangedEvent(this, ActionList);
 	}
 }
 
-void UMounteaInteractorComponentBase::OnInteractorComponentActivated_Implementation(UActorComponent* Component, bool bReset)
+void UMounteaInteractorComponentBase::AddDetected(const TScriptInterface<IMounteaInteractableInterface>& Interactable)
 {
-	Execute_AddIgnoredActor(this, GetOwner());
+	if (!Interactable.GetInterface()) return;
 
-	Execute_SetState(this, DefaultInteractorState);
+	if (AActor* owner = IMounteaInteractableInterface::Execute_GetInteractableOwner(Interactable.GetObject()))
+	{
+		for (const TObjectPtr<AActor>& ignored : ListOfIgnoredActors)
+		{
+			if (ignored == owner) return;
+		}
+	}
+
+	DetectedSet.Add(Interactable);
+	RefreshFocus();
 }
 
-void UMounteaInteractorComponentBase::AddIgnoredActors_Server_Implementation(const TArray<AActor*>& IgnoredActors)
+void UMounteaInteractorComponentBase::RemoveDetected(const TScriptInterface<IMounteaInteractableInterface>& Interactable)
 {
-	Execute_AddIgnoredActors(this, IgnoredActors);
+	DetectedSet.Remove(Interactable);
+	RefreshFocus();
 }
 
-void UMounteaInteractorComponentBase::AddIgnoredActor_Server_Implementation(AActor* IgnoredActor)
+void UMounteaInteractorComponentBase::ClearDetected()
 {
-	Execute_AddIgnoredActor(this, IgnoredActor);
+	DetectedSet.Empty();
+
+	if (FocusedActor.IsValid())
+	{
+		if (UMounteaInteractionWorldSubsystem* subsystem = GetWorld() ? GetWorld()->GetSubsystem<UMounteaInteractionWorldSubsystem>() : nullptr)
+		{
+			subsystem->ReleaseAttentionWidget(FocusedActor.Get());
+		}
+	}
+
+	FocusedActor.Reset();
+	ActionList.Empty();
+	HighlightedActionIndex = 0;
+
+	if (bSelectionLocked)
+	{
+		bSelectionLocked = false;
+		LockedAction.Reset();
+	}
+
+	OnFocusedActorChanged.Broadcast(nullptr);
+	OnActionListChanged.Broadcast(ActionList);
 }
 
-void UMounteaInteractorComponentBase::AddInteractionDependency_Server_Implementation(const TScriptInterface<IMounteaInteractorInterface>& InteractionDependency)
+#pragma endregion
+
+#pragma region Networking
+
+void UMounteaInteractorComponentBase::SetState_Server_Implementation(const EInteractorStateV3 NewState)
 {
-	Execute_AddInteractionDependency(this, InteractionDependency);
+	Execute_SetState(this, NewState);
 }
 
-void UMounteaInteractorComponentBase::RemoveInteractionDependency_Server_Implementation(const TScriptInterface<IMounteaInteractorInterface>& InteractionDependency)
+void UMounteaInteractorComponentBase::StartInteraction_Server_Implementation(const float StartTime)
 {
-	Execute_RemoveInteractionDependency(this, InteractionDependency);
+	Execute_StartInteraction(this, StartTime);
 }
 
-void UMounteaInteractorComponentBase::RemoveIgnoredActor_Server_Implementation(AActor* IgnoredActor)
+void UMounteaInteractorComponentBase::StopInteraction_Server_Implementation(const float StopTime)
 {
-	Execute_RemoveIgnoredActor(this, IgnoredActor);
-}
-
-void UMounteaInteractorComponentBase::RemoveIgnoredActors_Server_Implementation(const TArray<AActor*>& IgnoredActors)
-{
-	Execute_RemoveIgnoredActors(this, IgnoredActors);
-}
-
-void UMounteaInteractorComponentBase::ProcessDependencies_Server_Implementation()
-{
-	Execute_ProcessDependencies(this);
+	Execute_StopInteraction(this, StopTime);
 }
 
 void UMounteaInteractorComponentBase::SetResponseChannel_Server_Implementation(const ECollisionChannel NewResponseCollision)
@@ -945,14 +651,9 @@ void UMounteaInteractorComponentBase::SetResponseChannel_Server_Implementation(c
 	Execute_SetResponseChannel(this, NewResponseCollision);
 }
 
-void UMounteaInteractorComponentBase::SetDefaultState_Server_Implementation(const EInteractorStateV2 NewState)
+void UMounteaInteractorComponentBase::SetDefaultState_Server_Implementation(const EInteractorStateV3 NewState)
 {
 	Execute_SetDefaultState(this, NewState);
-}
-
-void UMounteaInteractorComponentBase::SetActiveInteractable_Server_Implementation(const TScriptInterface<IMounteaInteractableInterface>& NewInteractable)
-{
-	Execute_SetActiveInteractable(this, NewInteractable);
 }
 
 void UMounteaInteractorComponentBase::SetInteractorTag_Server_Implementation(const FGameplayTag& NewInteractorTag)
@@ -960,14 +661,14 @@ void UMounteaInteractorComponentBase::SetInteractorTag_Server_Implementation(con
 	Execute_SetInteractorTag(this, NewInteractorTag);
 }
 
-void UMounteaInteractorComponentBase::SetActiveInteractable_Client_Implementation(const TScriptInterface<IMounteaInteractableInterface>& NewInteractable)
+void UMounteaInteractorComponentBase::AddIgnoredActor_Server_Implementation(AActor* IgnoredActor)
 {
-	if (NewInteractable.GetObject() != nullptr)
-	{
-		OnInteractableUpdated.Broadcast(NewInteractable);
-	}
-	else
-		OnInteractableLost.Broadcast(NewInteractable);
+	Execute_AddIgnoredActor(this, IgnoredActor);
+}
+
+void UMounteaInteractorComponentBase::RemoveIgnoredActor_Server_Implementation(AActor* IgnoredActor)
+{
+	Execute_RemoveIgnoredActor(this, IgnoredActor);
 }
 
 void UMounteaInteractorComponentBase::SetSafetyTracingSetup_Server_Implementation(const FSafetyTracingSetup& NewSafetyTracingSetup)
@@ -977,73 +678,26 @@ void UMounteaInteractorComponentBase::SetSafetyTracingSetup_Server_Implementatio
 
 void UMounteaInteractorComponentBase::OnRep_InteractorState()
 {
-	ProcessStateChanged_Client();
-}
-
-void UMounteaInteractorComponentBase::ProcessInteractableChanged()
-{
-	if (ActiveInteractable.GetObject() != nullptr)
-	{
-		OnInteractableUpdated.Broadcast(ActiveInteractable);
-	}
-	else
-		OnInteractableLost.Broadcast(ActiveInteractable);
-}
-
-void UMounteaInteractorComponentBase::OnRep_ActiveInteractable()
-{
-	// ...
+	OnStateChanged.Broadcast(InteractorState);
+	Execute_OnInteractorStateChangedEvent(this, InteractorState);
 }
 
 void UMounteaInteractorComponentBase::ProcessStateChanged()
 {
-	// Client side call
-	OnStateChanged.Broadcast(InteractorState);
+	OnRep_InteractorState();
 }
 
-void UMounteaInteractorComponentBase::ProcessStateChanged_Client()
-{
-	OnStateChanged_Client.Broadcast(InteractorState);
-	
-	ProcessStateChanged();
-}
+#pragma endregion
 
-void UMounteaInteractorComponentBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	DOREPLIFETIME_CONDITION(UMounteaInteractorComponentBase, InteractorTag,						COND_OwnerOnly);
-	DOREPLIFETIME_CONDITION(UMounteaInteractorComponentBase, CollisionChannel,					COND_OwnerOnly);
-	DOREPLIFETIME_CONDITION(UMounteaInteractorComponentBase, DefaultInteractorState,			COND_OwnerOnly);
-	DOREPLIFETIME_CONDITION(UMounteaInteractorComponentBase, ListOfIgnoredActors,				COND_OwnerOnly);
-	DOREPLIFETIME_CONDITION(UMounteaInteractorComponentBase, SafetyTraceSetup,				COND_OwnerOnly);
-	
-	DOREPLIFETIME_CONDITION(UMounteaInteractorComponentBase, InteractorState,						COND_None);
-	DOREPLIFETIME_CONDITION(UMounteaInteractorComponentBase, ActiveInteractable,				COND_None);
-	DOREPLIFETIME_CONDITION(UMounteaInteractorComponentBase, InteractionDependencies,		COND_None);
-}
-
-bool UMounteaInteractorComponentBase::HasInteractable_Implementation() const
-{
-	return ActiveInteractable.GetObject() != nullptr && ActiveInteractable.GetInterface() != nullptr;
-}
-
-void UMounteaInteractorComponentBase::StopInteraction_Server_Implementation(const float StopTime)
-{
-	Execute_StopInteraction(this, StopTime);
-}
-
-void UMounteaInteractorComponentBase::StartInteraction_Server_Implementation(const float StartTime)
-{
-	Execute_StartInteraction(this, StartTime);
-}
-
-void UMounteaInteractorComponentBase::SetState_Server_Implementation(const EInteractorStateV2 NewState)
-{
-	Execute_SetState(this, NewState);
-}
+#pragma region Editor
 
 #if WITH_EDITOR
+
+void UMounteaInteractorComponentBase::SetDefaultValues()
+{
+	Execute_SetDefaults(this);
+	RequestEditorDefaults.Broadcast();
+}
 
 void UMounteaInteractorComponentBase::ResetDefaults()
 {
@@ -1053,98 +707,16 @@ void UMounteaInteractorComponentBase::ResetDefaults()
 void UMounteaInteractorComponentBase::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeChainProperty(PropertyChangedEvent);
-	
-	const FName PropertyName = (PropertyChangedEvent.MemberProperty != nullptr) ? PropertyChangedEvent.GetPropertyName() : NAME_None;
-	
-	FString InteractorName = GetName();
-	// Format Name
-	{
-		if (InteractorName.Contains(TEXT("_GEN_VARIABLE")))
-		{
-			InteractorName.ReplaceInline(TEXT("_GEN_VARIABLE"), TEXT(""));
-		}
-		if(InteractorName.EndsWith(TEXT("_C")) && InteractorName.StartsWith(TEXT("Default__")))
-		{
-		
-			InteractorName.RightChopInline(9);
-			InteractorName.LeftChopInline(2);
-		}
-	}
-
-	if (PropertyName == GET_MEMBER_NAME_CHECKED(UMounteaInteractorComponentBase, DefaultInteractorState))
-	{
-		if
-		(
-			DefaultInteractorState == EInteractorStateV2::EIS_Active  ||
-			DefaultInteractorState == EInteractorStateV2::Default
-		)
-		{
-			const FText ErrorMessage = FText::FromString
-			(
-				InteractorName.Append(TEXT(": DefaultInteractorState cannot be")).Append(GetEnumValueAsString("EInteractorStateV2", DefaultInteractorState)).Append(TEXT("!"))
-			);
-			FEditorHelper::DisplayEditorNotification(ErrorMessage, SNotificationItem::CS_Fail, 5.f, 2.f, TEXT("Icons.Error"));
-
-			DefaultInteractorState = EInteractorStateV2::EIS_Awake;
-		}
-	}
 }
 
 EDataValidationResult UMounteaInteractorComponentBase::IsDataValid(FDataValidationContext& Context) const
 {
-	const auto DefaultValue = Super::IsDataValid(Context);
-	bool bAnyError = false;
-
-	FString InteractorName = GetName();
-	// Format Name
-	{
-		if (InteractorName.Contains(TEXT("_GEN_VARIABLE")))
-		{
-			InteractorName.ReplaceInline(TEXT("_GEN_VARIABLE"), TEXT(""));
-		}
-		if(InteractorName.EndsWith(TEXT("_C")) && InteractorName.StartsWith(TEXT("Default__")))
-		{
-		
-			InteractorName.RightChopInline(9);
-			InteractorName.LeftChopInline(2);
-		}
-	}
-
-	if
-	(
-		DefaultInteractorState == EInteractorStateV2::EIS_Active  ||
-		DefaultInteractorState == EInteractorStateV2::Default
-	)
-	{
-		const FText ErrorMessage = FText::FromString
-		(
-			InteractorName.Append(TEXT(": DefaultInteractorState cannot be ")).Append(GetEnumValueAsString("EInteractorStateV2", DefaultInteractorState)).Append(TEXT("!"))
-		);
-		
-		Context.AddError(ErrorMessage);
-		bAnyError = true;
-	}
-
-	if (bAnyError && RequestEditorDefaults.IsBound())
-	{
-		RequestEditorDefaults.Broadcast();
-	}
-
-	if (bAnyError)
-	{
-		Context.AddWarning(FText::FromString("Interactable failed to Validate. `SetDefaults` has been called. Some settings might have been overriden by default values!"));
-	}
-	
-	return bAnyError ? EDataValidationResult::Invalid : DefaultValue;
+	EDataValidationResult validationResult = Super::IsDataValid(Context);
+	return validationResult;
 }
 
 #endif
 
-#if WITH_EDITOR || WITH_EDITORONLY_DATA
+#pragma endregion
 
-void UMounteaInteractorComponentBase::SetDefaultValues()
-{
-	Execute_SetDefaults(this);
-}
-
-#endif
+#undef LOCTEXT_NAMESPACE
