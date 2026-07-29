@@ -1,85 +1,51 @@
 ﻿// All rights reserved Dominik Morse (Pavlicek) 2024.
 
-
 #include "Components/Interactable/MounteaInteractableComponentHold.h"
-#include "TimerManager.h"
 #include "Interfaces/MounteaInteractorInterface.h"
 #include "TimerManager.h"
-#include "Helpers/MounteaInteractionSystemLog.h"
-#include "Helpers/MounteaInteractionSystemBFL.h"
+#include "Engine/World.h"
 
 #define LOCTEXT_NAMESPACE "MounteaInteractableComponentHold"
 
 UMounteaInteractableComponentHold::UMounteaInteractableComponentHold()
 {
-	bInteractionHighlight = true;
-	DefaultInteractableState = EInteractableStateV2::EIS_Awake;
-	InteractionPeriod = 3.f;
-	InteractableName = NSLOCTEXT("MounteaInteractableComponentHold", "Hold", "Hold");
 }
 
 void UMounteaInteractableComponentHold::InteractionStarted_Implementation(const float& TimeStarted, const TScriptInterface<IMounteaInteractorInterface>& CausingInteractor)
 {
-	if (GetOwner() && GetOwner()->HasAuthority())
-	{
-		if (!GetWorld()) return;
-	
-		if (!Execute_CanInteract(this))
-			return;
-		
-		// Force Interaction Period to be at least 0.1s
-		const float TempInteractionPeriod = FMath::Max(0.1f, InteractionPeriod);
+	Super::InteractionStarted_Implementation(TimeStarted, CausingInteractor);
 
-		// Either unpause or start from start
-		if (bCanPersist && GetWorld()->GetTimerManager().IsTimerPaused(Timer_Interaction))
-		{
-			GetWorld()->GetTimerManager().UnPauseTimer(Timer_Interaction);
-		}
-		else
-		{
-			FTimerDelegate Delegate;
-			Delegate.BindUObject(this, &UMounteaInteractableComponentHold::OnInteractionCompletedCallback);
+	// Only authority drives the hold timer
+	if (!GetOwner() || !GetOwner()->HasAuthority())
+				return;
+	if (!GetWorld())
+				return;
 
-			GetWorld()->GetTimerManager().SetTimer
-			(
-				Timer_Interaction,
-				Delegate,
-				TempInteractionPeriod,
-				false
-			);
-		}
+	const float period = FMath::Max(0.01f, InteractionPeriod);
 
-		Super::InteractionStarted_Implementation(TimeStarted, CausingInteractor);
-	}
+	GetWorld()->GetTimerManager().SetTimer(Timer_Hold, this,
+		&UMounteaInteractableComponentHold::OnHoldCompleted, period, false);
 }
 
-void UMounteaInteractableComponentHold::OnInteractionCompletedCallback()
+void UMounteaInteractableComponentHold::InteractionStopped_Implementation(const float& TimeStarted, const TScriptInterface<IMounteaInteractorInterface>& CausingInteractor)
 {
-	if (GetOwner() && GetOwner()->HasAuthority())
+	if (GetWorld())
 	{
-		if (!GetWorld())
+		// If hold was not completed, the stop counts as a cancel
+		if (GetWorld()->GetTimerManager().IsTimerActive(Timer_Hold))
 		{
-			LOG_WARNING(TEXT("[OnInteractionCompletedCallback] No World, this is bad!"))
-			OnInteractionCanceled.Broadcast();
-			return;
+			GetWorld()->GetTimerManager().ClearTimer(Timer_Hold);
+			Execute_InteractionCanceled(this);
 		}
-
-		if (UMounteaInteractionSystemBFL::CanExecuteCosmeticEvents(GetWorld()))
-		{
-			ProcessToggleActive(false);
-		}
-		else
-		{
-			ProcessToggleActive_Client(false);
-		}
-		
-		if (LifecycleMode == EInteractableLifecycle::EIL_Cycled)
-		{
-			if (Execute_TriggerCooldown(this)) return;
-		}
-	
-		OnInteractionCompleted.Broadcast(GetWorld()->GetTimeSeconds(), Execute_GetInteractor(this));
 	}
+
+	Super::InteractionStopped_Implementation(TimeStarted, CausingInteractor);
 }
 
-#undef LOCTEXT_NAMESPAC
+void UMounteaInteractableComponentHold::OnHoldCompleted()
+{
+	FString err;
+	Execute_CompleteInteractable(this, err);
+}
+
+#undef LOCTEXT_NAMESPACE
