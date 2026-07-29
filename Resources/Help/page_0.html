@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<title>Interaction System Setup Guide</title>
+	</head>
+	<body>
+		<div class="doc-page">
+			<header>
+				<div class="version">Version · 5.0</div>
+				<h1>Before You Start</h1>
+				<p>
+					A quick checklist before you create your first interaction.
+					Complete these steps once per project and you are good to go.
+				</p>
+			</header>
+
+			<section>
+				<h2>Collision Channels</h2>
+				<p>
+					Two channels — <code>InteractionOverlap</code> and
+					<code>InteractionTrace</code> — are
+					<strong>automatically registered</strong> when the plugin loads.
+					No manual setup is required in most cases.
+				</p>
+				<p>
+					If the channels are missing after a fresh install, use
+					<strong>Setup Interaction Channels</strong> from the
+					<strong>Mountea Framework</strong> toolbar menu, then restart
+					the editor.
+				</p>
+				<div class="ui-action-row">
+					<a
+						class="ui-action"
+						href="#"
+						data-miais-type="settings"
+						data-miais-target="Collision"
+					>Open Collision Settings</a>
+				</div>
+			</section>
+
+			<section>
+				<h2>Interaction Defaults</h2>
+				<p>
+					Open the Mountea Interaction System settings and confirm the
+					<strong>Default Interaction System Config</strong> asset is
+					assigned. Without it the system cannot initialise properly.
+				</p>
+				<div class="ui-action-row">
+					<a
+						class="ui-action"
+						href="#"
+						data-miais-type="settings"
+						data-miais-target="Mountea"
+					>Open Mountea Interaction Settings</a>
+				</div>
+			</section>
+
+			<section>
+				<h2>Example Content</h2>
+				<p>
+					The plugin ships with example assets to help you get started.
+					Browse them in the Content Browser to see a working interaction
+					setup you can copy or learn from.
+				</p>
+				<div class="ui-action-row">
+					<a
+						class="ui-action"
+						href="#"
+						data-miais-type="folder"
+						data-miais-target="/MounteaInteractionSystem/Example"
+					>Open Example Folder</a>
+					<a
+						class="ui-action"
+						href="#"
+						data-miais-type="external"
+						data-miais-target="https://github.com/Mountea-Framework/MounteaInteractionSystem/wiki"
+					>Wiki</a>
+				</div>
+			</section>
+		</div>
+	</body>
+</html>

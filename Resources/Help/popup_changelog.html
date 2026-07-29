@@ -1,0 +1,97 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"></head><body><section class="doc-page changelog-page"><header><h1>What is New</h1><p>Thanks for using the Mountea Interaction System. Here are the latest changes.</p></header><p>Current Version: 4.2.4.56</p>
+<h1>Changelog</h1>
+<p>All notable changes to this project will be documented in this file.</p>
+<p><strong> Version 4.2.4 </strong></p>
+<h3>Added</h3>
+<p>> - Added new features to Toolbar menu</p>
+<h3>Changed</h3>
+<p>> - Updated Toolbar menu</p>
+<p>> - Changed version validation process to match against Major, Minor and Hotfix values</p>
+<h3>Fixed</h3>
+<p>> - Validation message for Interaction Period (Press Component)</p>
+<p>> - Delegate call in <code>OnInteractionCompletedCallback</code> (Mash Component)</p>
+<p>> - Fixed listen server/client UI issues</p>
+<p><strong> Version 4.2.3 </strong></p>
+<h3>Added</h3>
+<p>> - Toolbar Tutorial button</p>
+<h3>Changed</h3>
+<p>> - Ribbon Button to Guide Player</p>
+<p>> - - Design now matches <code>Dialogue System</code></p>
+<p>> - Emoji for Content Browser menu</p>
+<h3>Fixed</h3>
+<p>> - Compilation errors for <code>HighlightableComponents</code></p>
+<p>> - Conflicting <code>PrintLog</code> functions with other systems</p>
+<p>> - <code>SetLifecycleCount</code> can set count to -1</p>
+<p>> - <code>SetCooldownPeriod</code> now really sets Cooldown period</p>
+<p>> - Editor crash for <code>InteractableBase</code></p>
+<p><strong> Version 4.2.1 </strong></p>
+<h3>Added</h3>
+<p>> - Support for <strong>5.5</strong></p>
+<h3>Changed</h3>
+<p>> - Ribbon Button to Guide Player</p>
+<p>> - - Design now matches <code>Dialogue System</code></p>
+<p>> - Events in <code>Interactor</code> are now re-arranged to logical order</p>
+<h3>Fixed</h3>
+<p>> -</p>
+<p><strong> Version 4.2.0 </strong></p>
+<h3>Added</h3>
+<p>> - Auto Gameplay Tags download</p>
+<p>> - - This way default Gameplay Tags will always be present</p>
+<h3>Changed</h3>
+<p>> - <em>Participant</em> now has button in Details panel to <em>Load Defaults</em></p>
+<p>> - - This button is available for instances in Level as well as for base Blueprint classes</p>
+<p>> - Right-click menu updated</p>
+<p>> - - Menu is now on top</p>
+<p>> - Toolbar Ribbon buttons reworked</p>
+<p>> - - Dropdown menu now offers more links with better descriptions</p>
+<p>> - Updated welcome screen</p>
+<h3>Fixed</h3>
+<p>> - Fixed build issues with default data</p>
+<p>> - Fixed editor issues with changing properties using code</p>
+<p>> - Fixed <em>WBP_InteractableBase</em> icons loading issues</p>
+<p>> - Fixed broken Input Actions and Mappings</p>
+<p><strong> Version 4.0.0 </strong></p>
+<h3>Changed</h3>
+<p>> - Interfaces are now much more exposed to blueprints</p>
+<p>> - - almost all functions are now Blueprint Native Events, therefore allows BP overriding</p>
+<p>> - <strong><em>Replication</em></strong> of the whole system</p>
+<p>> - Example UI is now unified and contains even more examples</p>
+<p>> - System is updated to work with <em>Enhanced Input</em></p>
+<p>> - Interactable is now completely passive</p>
+<p>> - - all logic is driven by Interactor component</p>
+<p>> - Added new Editor/Debug Build logging to Console and Screen</p>
+<p>> - Whole interactor system now contains additional safety trace to avoid starting interaction while obstacles are in a way</p>
+<p>> - - If you have interactable behind a wall and its interaction collision is peaking through it a safety check is cast based on different collision channel (camera by default) to ensure you can see the interactable</p>
+<p>> - Added regex replacement for better managing Interaction Data in data table</p>
+<p>> - Added Gameplay Tag support to further refine searching for interactables</p>
+<p>> - Added automatic UI switching based on Input Mode, Platform & Input Device</p>
+<p>> - - This way button "A" can be mapped for Xbox Controller and "X" for PS5 Controller (only for Platforms now, hardware ID is not available for now)</p>
+<p>> - Added dependency on <code>CommonUI</code></p>
+<p>> - Added dependency on <code>EnhancedInput</code></p>
+<h3>Fixed</h3>
+<p>> - Fixed old interaction widgets</p>
+<p>> - Fixed many small issues</p>
+<p>> - Fixed loosing interactor after pausing interaction</p>
+<p><strong> Version 3.0.1 </strong></p>
+<h3>Added</h3>
+<p>> - Added: Improved performance for Consoles and Mobile devices</p>
+<h3>Fixed</h3>
+<p>> - Fixed: Wrong state machine decisions when going from Cooldown to Awake for Interactables</p>
+<h3>Changed</h3>
+<p>> - Changed: Deprecated <em>SnoozeInteractable</em> functions</p>
+<p>> - Changed: Depreacted <em>Asleep</em> Interactable State</p>
+<p><strong> Version 3.0.0 </strong></p>
+<h3>Added</h3>
+<p>> - Added: New Interactor Component Base Class implementing IMounteaInteractorInterface</p>
+<p>> - Added: Child Classes for this new Interactor Base class, replacing existing monolithic MounteaInteractorComponent solution</p>
+<p>> - Added: New Interactable Base Component class implementing IMounteaInteractableInterface</p>
+<p>> - Added: New child Classes for this new Interactable Base class, replacing existing monolithic MounteaInteractableComponent solution</p>
+<p>> - Added: New Interactable Widget Interface for easier communication between Widgets and Interactables</p>
+<p>> - Added: Editor billboard so Interactable Components are now easier to spot</p>
+<p>> - Added: New Overlay Materials (for 5.1 only)</p>
+<h3>Fixed</h3>
+<p>> - Fixed: Missing descriptions for multiple functions</p>
+<p>> - Fixed: Missing descriptions for multiple variables</p>
+<h3>Changed</h3>
+<p>> - Changed: Added explicit warning about using old Interactor and Interactable Components</p>
+</section></body></html>
