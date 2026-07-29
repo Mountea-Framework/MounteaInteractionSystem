@@ -1,4 +1,4 @@
-﻿// All rights reserved Dominik Morse (Pavlicek) 2024.
+// All rights reserved Dominik Morse (Pavlicek) 2024.
 
 #pragma once
 
@@ -10,18 +10,15 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInteractionFailed);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnKeyMashed);
 
 /**
- * Actor Interactable Mash Component
+ * v5.0 Actor Interactable Mash Component
  *
- * Child class of Actor Interactable Base Component.
- * This component requires to press interaction key multiple times within specified time period.
- * This interaction can fail if the interaction key is not pressed enough times or time runs out.
- * 
- * Implements MounteaInteractableInterface.
- * Networking is not implemented.
+ * Player must press the interaction key MinMashAmountRequired times within KeystrokeTimeThreshold
+ * seconds between each press. Runs out of time → interaction fails.
+ * ActualMashAmount is replicated so all clients see consistent progress.
  *
  * @see https://github.com/Mountea-Framework/MounteaInteractionSystem/wiki/Actor-Interactable-Component-Mash
  */
-UCLASS(ClassGroup=(Mountea), meta=(BlueprintSpawnableComponent, DisplayName = "Interactable Component Mash"))
+UCLASS(ClassGroup=(Mountea), meta=(BlueprintSpawnableComponent, DisplayName="Interactable Component Mash"))
 class MOUNTEAINTERACTIONSYSTEM_API UMounteaInteractableComponentMash : public UMounteaInteractableComponentBase
 {
 	GENERATED_BODY()
@@ -30,86 +27,68 @@ public:
 
 	UMounteaInteractableComponentMash();
 
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Interactable")
+	int32 GetMinMashAmountRequired() const { return MinMashAmountRequired; }
+
+	UFUNCTION(BlueprintCallable, Category="Mountea|Interaction|Interactable")
+	void SetMinMashAmountRequired(const int32 Value);
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Interactable")
+	float GetKeystrokeTimeThreshold() const { return KeystrokeTimeThreshold; }
+
+	UFUNCTION(BlueprintCallable, Category="Mountea|Interaction|Interactable")
+	void SetKeystrokeTimeThreshold(const float Value);
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Interactable")
+	int32 GetActualMashAmount() const { return ActualMashAmount; }
+
 protected:
-	
-	virtual void BeginPlay() override;
+
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 	virtual void InteractionStarted_Implementation(const float& TimeStarted, const TScriptInterface<IMounteaInteractorInterface>& CausingInteractor) override;
 	virtual void InteractionStopped_Implementation(const float& TimeStarted, const TScriptInterface<IMounteaInteractorInterface>& CausingInteractor) override;
 	virtual void InteractionCanceled_Implementation() override;
 
-protected:
-	
-	/**
-	 * Event called from OnInteractionFailed
-	 */
 	UFUNCTION(BlueprintImplementableEvent, Category="Mountea|Interaction|Interactable")
 	void OnInteractionFailedEvent();
-	UFUNCTION()
-	virtual void InteractionFailed();
-	virtual void OnInteractionFailedCallback();
 
-	UFUNCTION()
-	void OnInteractionCompletedCallback();
-	
-	/**
-	 * Event called once Key is pressed.
-	 * Is the same as Interaction Started, but with more understandable name.
-	 */
 	UFUNCTION(BlueprintImplementableEvent, Category="Mountea|Interaction|Interactable")
 	void OnKeyMashedEvent();
 
-	virtual void CleanupComponent() override;
-	
-public:
+private:
 
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Interactable")
-	int32 GetMinMashAmountRequired() const;
-	UFUNCTION(BlueprintCallable, Category="Mountea|Interaction|Interactable")
-	void SetMinMainAmountRequired(const int32 Value);
+	UFUNCTION()
+	void OnKeystrokeThresholdExpired();
 
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Interactable")
-	float GetKeystrokeTimeThreshold() const;
-	UFUNCTION(BlueprintCallable, Category="Mountea|Interaction|Interactable")
-	void SetKeystrokeTimeThreshold(const float Value);
-	
-protected:
-	
-	/**
-	 * How many time the button must be pressed to accept the interaction as completed.
-	 */
-	UPROPERTY(SaveGame, EditAnywhere, BlueprintReadOnly,  Category="MounteaInteraction|Required", meta=(Units = "times", UIMin = 2, ClampMin = 2))
-	int32 MinMashAmountRequired;
+	void ResetMashState();
 
-	/**
-	 * How much time it is allowed between each Key stroke before interaction fails.
-	 */
-	UPROPERTY(SaveGame, EditAnywhere, BlueprintReadOnly,  Category="MounteaInteraction|Required", meta=(Units = "s", UIMin = 0.01, ClampMin = 0.01))
-	float KeystrokeTimeThreshold;
+	FTimerHandle Timer_KeystrokeThreshold;
 
 protected:
 
-	FTimerHandle TimerHandle_Mashed;
+	/** How many key presses are required to complete the interaction. */
+	UPROPERTY(SaveGame, EditAnywhere, BlueprintReadOnly, Category="MounteaInteraction|Required",
+		meta=(Units="times", UIMin=2, ClampMin=2))
+	int32 MinMashAmountRequired = 5;
 
-	/**
-	 * How many times the key was mashed.
-	 */
-	UPROPERTY(VisibleAnywhere, Category="MounteaInteraction|Read Only")
-	int32 ActualMashAmount;
-	
-protected:
+	/** Max time allowed between consecutive key presses before interaction fails. */
+	UPROPERTY(SaveGame, EditAnywhere, BlueprintReadOnly, Category="MounteaInteraction|Required",
+		meta=(Units="s", UIMin=0.01, ClampMin=0.01))
+	float KeystrokeTimeThreshold = 1.f;
 
-	/**
-	 * Event called once Interaction Mash fails.
-	 * Either because of Time is out or not enough Key strokes are registered.
-	 * Calls OnInteractionFailedEvent.
-	 */
+	/** Current mash count (replicated for consistent progress display). */
+	UPROPERTY(ReplicatedUsing=OnRep_ActualMashAmount, VisibleAnywhere, Category="MounteaInteraction|Read Only")
+	int32 ActualMashAmount = 0;
+
 	UPROPERTY(BlueprintAssignable, Category="Mountea|Interaction|Interactable")
 	FOnInteractionFailed OnInteractionFailed;
 
-	/**
-	 * Event called once Key is pressed.
-	 * Is the same as Interaction Started, but with more understandable name.
-	 */
 	UPROPERTY(BlueprintAssignable, Category="Mountea|Interaction|Interactable")
 	FOnKeyMashed OnKeyMashed;
+
+private:
+
+	UFUNCTION()
+	void OnRep_ActualMashAmount();
 };
