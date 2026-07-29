@@ -1,229 +1,236 @@
-﻿// All rights reserved Dominik Morse 2024
+// All rights reserved Dominik Morse (Pavlicek) 2024
 
 #include "MounteaInteractionSystemTutorialPage.h"
 
 #include "ContentBrowserModule.h"
 #include "IContentBrowserSingleton.h"
-#include "Widgets/Text/SRichTextBlock.h"
-#include "Widgets/Layout/SScrollBox.h"
-#include "Widgets/Layout/SBorder.h"
-#include "Widgets/Images/SImage.h"
-#include "Widgets/Layout/SBox.h"
-#include "Modules/ModuleManager.h"
 #include "ISettingsModule.h"
+#include "Misc/FileHelper.h"
+#include "Modules/ModuleManager.h"
+#include "Widgets/Input/SButton.h"
+#include "Widgets/Layout/SBorder.h"
+#include "Widgets/Layout/SBox.h"
+#include "Widgets/Layout/SScrollBox.h"
+#include "Widgets/Text/STextBlock.h"
 
-void OpenSettingsPage(const FString& SettingsCategory)
-{
-	ISettingsModule& SettingsModule = FModuleManager::LoadModuleChecked<ISettingsModule>("Settings");
+#include "Settings/MounteaInteractionEditorSettings.h"
+#include "Slate/MounteaInteractionWebBrowserWrapper.h"
+#include "Statics/MounteaInteractionWebPageStatics.h"
 
-	if (SettingsCategory == "Mountea")
-	{
-		SettingsModule.ShowViewer("Project", TEXT("Mountea Framework"), TEXT("Mountea Interaction System"));
-	}
-	else if (SettingsCategory == "Collision")
-	{
-		SettingsModule.ShowViewer("Project", TEXT("Engine"), TEXT("Collision"));
-	}
-}
-
-void OpenContentBrowserFolder(const FString& FolderName)
-{
-	FString PluginContentPath = TEXT("/MounteaInteractionSystem/") + FolderName;
-
-	FContentBrowserModule& ContentBrowserModule = FModuleManager::LoadModuleChecked<FContentBrowserModule>("ContentBrowser");
-	ContentBrowserModule.Get().SyncBrowserToFolders({ FolderName });
-}
+#define LOCTEXT_NAMESPACE "MounteaInteractionSystemTutorialPage"
 
 void SInteractionSystemTutorialPage::Construct(const FArguments& InArgs)
 {
-	FString arrowEmoji = TEXT("➡");
-	FString bookEmoji = TEXT("📖");
-	FString sparkleEmoji = TEXT("✨");
-	FString folderEmoji = TEXT("📂");
+	TSharedRef<SVerticalBox> navigationBox = SNew(SVerticalBox);
 
-	FString TitleMessage = FString(R"(<LargeText>Before You Start</>)");
+	if (const UMounteaInteractionEditorSettings* editorSettings = GetDefault<UMounteaInteractionEditorSettings>())
+	{
+		TArray<int32> pageIds;
+		editorSettings->GetEditorTemplatePages().GetKeys(pageIds);
+		pageIds.Sort();
 
-	FString IntroMessage = FString(R"(
-Before you start creating any super complex interactions, there are a few steps that must be done. 
-In order to make everything work, you should set up default values and collision channels. 
-So let's start with those annoying configurations before so we can focus on interactions later.
-)");
-
-	FString CollisionMessage = FString(R"(<RichTextBlock.BoldHighlight>Collision Channels</>
-
-Interaction System can simply work out of the box with collision channels Engine contains by default, but it is much safer to use custom ones.
-This way you also have much finer control over your interactable objects.
-
-)") + arrowEmoji + FString(R"( Open <RichTextBlock.Italic>Project Settings</> and open <RichTextBlock.Italic>Collision</> category. 
-Here you need to create collision channels for your needs.
-
-)") + sparkleEmoji + FString(R"( You can quickly open the settings here: <a id="settings" href="Collision">Open Collision Settings</>
-)") + bookEmoji + FString(R"( Detailed guide here: <a id="browser" href="https://github.com/Mountea-Framework/MounteaInteractionSystem/wiki/How-to-Setup-Interaction#collision-channels-">Collision Channels Setup</>
-)");
-
-	FString InteractionMessage = FString(R"(<RichTextBlock.BoldHighlight>Interaction Defaults</>
-
-)") + arrowEmoji + FString(R"( Open <RichTextBlock.Italic>Project Settings</> and open <RichTextBlock.Italic>Mountea Interaction System</> category.
-<RichTextBlock.BoldHighlight>Default Interaction System Config</> must <RichTextBlock.BoldHighlight>not</> be empty!
-
-)") + sparkleEmoji + FString(R"( You can quickly open the settings here: <a id="settings" href="Mountea">Open Mountea Interaction System Settings</>
-)") + bookEmoji + FString(R"( Detailed guide on Wiki page: <a id="browser" href="https://github.com/Mountea-Framework/MounteaInteractionSystem/wiki/How-to-Setup-Interaction#interaction-defaults-">Interaction Defaults Setup</>
-)") + folderEmoji + FString(R"( Default Config File is located here: <a id="folder" href="/MounteaInteractionSystem/Config">Open Default Config Folder</>
-)");
-	
-	FString ExampleFolderMessage = FString(R"(
-<RichTextBlock.BoldHighlight>Example Content</>
-
-The Mountea Interaction System includes example assets to help you get started.
-)") + folderEmoji + FString(R"( Open the example assets folder: <a id="folder" href="/MounteaInteractionSystem/Example">Open Example Folder</>
-)");
+		for (const int32 pageId : pageIds)
+		{
+			if (const FInteractionEditorPageConfig* pageConfig = editorSettings->GetEditorTemplatePages().Find(pageId))
+			{
+				navigationBox->AddSlot()
+				.AutoHeight()
+				[
+					CreateNavigationButton(pageConfig->PageTitle, pageId)
+				];
+			}
+		}
+	}
 
 	ChildSlot
 	[
 		SNew(SBorder)
-		.Padding(10)
+		.BorderBackgroundColor(FLinearColor::Transparent)
+		.Padding(0)
 		[
-			SNew(SScrollBox)
+			SNew(SHorizontalBox)
 
-			// Title
-			+ SScrollBox::Slot()
-			.Padding(10)
+			+ SHorizontalBox::Slot()
+			.FillWidth(0.25f)
+			.Padding(0)
 			[
-				SNew(SRichTextBlock)
-				.Text(FText::FromString(TitleMessage))
-				.DecoratorStyleSet(&FCoreStyle::Get())
-				.AutoWrapText(true)
-				+ SRichTextBlock::HyperlinkDecorator(TEXT("browser"), FSlateHyperlinkRun::FOnClick::CreateLambda([](const FSlateHyperlinkRun::FMetadata& Metadata)
-				{
-					const FString* URL = Metadata.Find(TEXT("href"));
-					if (URL) { FPlatformProcess::LaunchURL(**URL, nullptr, nullptr); }
-				}))
-				+ SRichTextBlock::HyperlinkDecorator(TEXT("settings"), FSlateHyperlinkRun::FOnClick::CreateLambda([](const FSlateHyperlinkRun::FMetadata& Metadata)
-				{
-					const FString* Category = Metadata.Find(TEXT("href"));
-					if (Category) { OpenSettingsPage(*Category); }
-				}))
-			]
-
-			// Intro
-			+ SScrollBox::Slot()
-			.Padding(10)
-			[
-				SNew(SRichTextBlock)
-				.Text(FText::FromString(IntroMessage))
-				.DecoratorStyleSet(&FCoreStyle::Get())
-				.AutoWrapText(true)
-			]
-
-			// Image Divider
-			+ SScrollBox::Slot()
-			.Padding(FMargin(0, 5, 0, 5))
-			[
-				SNew(SBox)
-				.HeightOverride(2)
+				SNew(SBorder)
+				.BorderImage(FAppStyle::GetBrush("Brushes.Background"))
+				.Padding(25)
 				[
-					SNew(SImage)
-					.Image(FCoreStyle::Get().GetBrush("WhiteBrush"))
-					.ColorAndOpacity(FLinearColor(1, 1, 1, 0.3))
+					SNew(SScrollBox)
+					+ SScrollBox::Slot()
+					[
+						navigationBox
+					]
 				]
 			]
 
-			// Collision Channels
-			+ SScrollBox::Slot()
-			.Padding(10)
+			+ SHorizontalBox::Slot()
+			.FillWidth(0.75f)
 			[
-				SNew(SRichTextBlock)
-				.Text(FText::FromString(CollisionMessage))
-				.DecoratorStyleSet(&FCoreStyle::Get())
-				.AutoWrapText(true)
-				+ SRichTextBlock::HyperlinkDecorator(TEXT("browser"), FSlateHyperlinkRun::FOnClick::CreateLambda([](const FSlateHyperlinkRun::FMetadata& Metadata)
-				{
-					const FString* URL = Metadata.Find(TEXT("href"));
-					if (URL) { FPlatformProcess::LaunchURL(**URL, nullptr, nullptr); }
-				}))
-				+ SRichTextBlock::HyperlinkDecorator(TEXT("settings"), FSlateHyperlinkRun::FOnClick::CreateLambda([](const FSlateHyperlinkRun::FMetadata& Metadata)
-				{
-					const FString* Category = Metadata.Find(TEXT("href"));
-					if (Category) { OpenSettingsPage(*Category); }
-				}))
-			]
+				SNew(SOverlay)
 
-			// Image Divider
-			+ SScrollBox::Slot()
-			.Padding(FMargin(0, 5, 0, 5))
-			[
-				SNew(SBox)
-				.HeightOverride(2)
+				+ SOverlay::Slot()
 				[
-					SNew(SImage)
-					.Image(FCoreStyle::Get().GetBrush("WhiteBrush"))
-					.ColorAndOpacity(FLinearColor(1, 1, 1, 0.3))
-				]
-			]
-
-			// Interaction Defaults
-			+ SScrollBox::Slot()
-			.Padding(10)
-			[
-				SNew(SRichTextBlock)
-				.Text(FText::FromString(InteractionMessage))
-				.DecoratorStyleSet(&FCoreStyle::Get())
-				.AutoWrapText(true)
-				+ SRichTextBlock::HyperlinkDecorator(TEXT("browser"), FSlateHyperlinkRun::FOnClick::CreateLambda([](const FSlateHyperlinkRun::FMetadata& Metadata)
-				{
-					const FString* URL = Metadata.Find(TEXT("href"));
-					if (URL) { FPlatformProcess::LaunchURL(**URL, nullptr, nullptr); }
-				}))
-				+ SRichTextBlock::HyperlinkDecorator(TEXT("settings"), FSlateHyperlinkRun::FOnClick::CreateLambda([](const FSlateHyperlinkRun::FMetadata& Metadata)
-				{
-					const FString* Category = Metadata.Find(TEXT("href"));
-					if (Category) { OpenSettingsPage(*Category); }
-				}))
-				+ SRichTextBlock::HyperlinkDecorator(TEXT("folder"), FSlateHyperlinkRun::FOnClick::CreateLambda([](const FSlateHyperlinkRun::FMetadata& Metadata)
-				{
-					const FString* FolderName = Metadata.Find(TEXT("href"));
-					if (FolderName)
+					SAssignNew(WebBrowser, SMounteaInteractionWebBrowserWrapper)
+					.InitialURL(TEXT("about:blank"))
+					.OnConsoleMessage_Raw(this, &SInteractionSystemTutorialPage::HandleConsoleMessage)
+					.OnLoadStarted_Lambda([this]()
 					{
-						OpenContentBrowserFolder(*FolderName);
-					}
-				}))
-			]
-
-			// Image Divider
-			+ SScrollBox::Slot()
-			.Padding(FMargin(0, 5, 0, 5))
-			[
-				SNew(SBox)
-				.HeightOverride(2)
-				[
-					SNew(SImage)
-					.Image(FCoreStyle::Get().GetBrush("WhiteBrush"))
-					.ColorAndOpacity(FLinearColor(1, 1, 1, 0.3))
-				]
-			]
-
-			// Example Folder
-			+ SScrollBox::Slot()
-			.Padding(10)
-			[
-				SNew(SRichTextBlock)
-				.Text(FText::FromString(ExampleFolderMessage))
-				.DecoratorStyleSet(&FCoreStyle::Get())
-				.AutoWrapText(true)
-				+ SRichTextBlock::HyperlinkDecorator(TEXT("browser"), FSlateHyperlinkRun::FOnClick::CreateLambda([](const FSlateHyperlinkRun::FMetadata& Metadata)
-				{
-					const FString* URL = Metadata.Find(TEXT("href"));
-					if (URL) { FPlatformProcess::LaunchURL(**URL, nullptr, nullptr); }
-				}))
-				+ SRichTextBlock::HyperlinkDecorator(TEXT("folder"), FSlateHyperlinkRun::FOnClick::CreateLambda([](const FSlateHyperlinkRun::FMetadata& Metadata)
-				{
-					const FString* FolderName = Metadata.Find(TEXT("href"));
-					if (FolderName)
+						bBlockInput = true;
+					})
+					.OnLoadCompleted_Lambda([this]()
 					{
-						OpenContentBrowserFolder(*FolderName);
-					}
-				}))
+						if (!WebBrowser.IsValid())
+							return;
+
+						WebBrowser->ExecuteJavascript(TEXT(
+							"(function() {"
+							"  var start = window.pageYOffset || document.documentElement.scrollTop;"
+							"  var startTime = null;"
+							"  var duration = 100;"
+							"  function animation(currentTime) {"
+							"    if (startTime === null) startTime = currentTime;"
+							"    var timeElapsed = currentTime - startTime;"
+							"    var progress = Math.min(timeElapsed / duration, 1);"
+							"    var ease = 1 - Math.pow(1 - progress, 3);"
+							"    window.scrollTo(0, start * (1 - ease));"
+							"    if (timeElapsed < duration) requestAnimationFrame(animation);"
+							"  }"
+							"  requestAnimationFrame(animation);"
+							"})();"
+						));
+
+						RegisterActiveTimer(0.2f, FWidgetActiveTimerDelegate::CreateLambda(
+							[this](double, float) -> EActiveTimerReturnType
+							{
+								bBlockInput = false;
+								return EActiveTimerReturnType::Stop;
+							}
+						));
+					})
+				]
+
+				+ SOverlay::Slot()
+				[
+					SNew(SBox)
+					.Visibility_Lambda([this]() { return bBlockInput ? EVisibility::Visible : EVisibility::Collapsed; })
+					[
+						SNew(SBorder)
+						.BorderImage(FAppStyle::GetBrush("NoBorder"))
+						.Padding(0)
+					]
+				]
 			]
 		]
 	];
+
+	SwitchToPage(0);
 }
+
+TSharedRef<SWidget> SInteractionSystemTutorialPage::CreateNavigationButton(const FText& Label, const int32 PageId)
+{
+	TSharedPtr<SBorder> borderWidget;
+
+	TSharedRef<SButton> button = SNew(SButton)
+		.ButtonStyle(FAppStyle::Get(), "NoBorder")
+		.OnClicked_Lambda([this, PageId]()
+		{
+			SwitchToPage(PageId);
+			return FReply::Handled();
+		})
+		.ContentPadding(4)
+		[
+			SAssignNew(borderWidget, SBorder)
+			.Padding(FMargin(10, 8))
+			[
+				SNew(STextBlock)
+				.Text(Label)
+				.Font_Lambda([this, PageId]()
+				{
+					return CurrentPageId == PageId
+						? FCoreStyle::GetDefaultFontStyle("Bold", 12)
+						: FCoreStyle::GetDefaultFontStyle("Regular", 10);
+				})
+			]
+		];
+
+	borderWidget->SetBorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"));
+	borderWidget->SetBorderBackgroundColor(TAttribute<FSlateColor>::CreateLambda([this, PageId, WeakButton = TWeakPtr<SButton>(button)]() -> FSlateColor
+	{
+		const bool bSelected = (CurrentPageId == PageId);
+		const bool bHovered = WeakButton.IsValid() && WeakButton.Pin()->IsHovered();
+
+		if (bSelected && bHovered) return FLinearColor(0.12f, 0.52f, 1.0f, 0.60f);
+		if (bSelected)             return FLinearColor(0.10f, 0.42f, 0.90f, 0.45f);
+		if (bHovered)              return FLinearColor(1.0f, 1.0f, 1.0f, 0.10f);
+		return FLinearColor::Transparent;
+	}));
+
+	return button;
+}
+
+void SInteractionSystemTutorialPage::SwitchToPage(const int32 PageId)
+{
+	if (!WebBrowser.IsValid())
+		return;
+
+	CurrentPageId = PageId;
+
+	FString htmlContent;
+	const FString filePath = GetHtmlPath(PageId);
+
+	if (FFileHelper::LoadFileToString(htmlContent, *filePath))
+	{
+		const FString htmlWithAssets = MounteaInteractionWebPageStatics::InjectSharedAssets(htmlContent);
+		const FString baseUrl = MounteaInteractionWebPageStatics::MakeFileBaseUrl(filePath);
+		WebBrowser->LoadString(htmlWithAssets, baseUrl);
+	}
+	else
+		UE_LOG(LogTemp, Error, TEXT("[MounteaInteractionTutorial] Failed to load page %d from: %s"), PageId, *filePath);
+}
+
+FString SInteractionSystemTutorialPage::GetHtmlPath(const int32 PageId)
+{
+	if (const UMounteaInteractionEditorSettings* editorSettings = GetDefault<UMounteaInteractionEditorSettings>())
+		return editorSettings->GetEditorTemplatePagePath(PageId);
+
+	return FString();
+}
+
+void SInteractionSystemTutorialPage::HandleConsoleMessage(const FString& Message, const FString& Source, int32 Line, EWebBrowserConsoleLogSeverity Severity)
+{
+	if (!Message.StartsWith(TEXT("MIAIS_LINK:")))
+		return;
+
+	const FString data = Message.RightChop(11);
+
+	FString dataType, value;
+	if (!data.Split(TEXT(":"), &dataType, &value))
+		return;
+
+	if (dataType.Equals(TEXT("external")))
+	{
+		FPlatformProcess::LaunchURL(*value, nullptr, nullptr);
+	}
+	else if (dataType.Equals(TEXT("page")))
+	{
+		SwitchToPage(FCString::Atoi(*value));
+	}
+	else if (dataType.Equals(TEXT("settings")))
+	{
+		ISettingsModule& settingsModule = FModuleManager::LoadModuleChecked<ISettingsModule>("Settings");
+		if (value.Equals(TEXT("Mountea")))
+			settingsModule.ShowViewer(TEXT("Project"), TEXT("Mountea Framework"), TEXT("Mountea Interaction System"));
+		else if (value.Equals(TEXT("Collision")))
+			settingsModule.ShowViewer(TEXT("Project"), TEXT("Engine"), TEXT("Collision"));
+	}
+	else if (dataType.Equals(TEXT("folder")))
+	{
+		FContentBrowserModule& contentBrowserModule = FModuleManager::LoadModuleChecked<FContentBrowserModule>("ContentBrowser");
+		contentBrowserModule.Get().SyncBrowserToFolders({ value });
+	}
+}
+
+#undef LOCTEXT_NAMESPACE
