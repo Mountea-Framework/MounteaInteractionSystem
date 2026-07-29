@@ -3,7 +3,7 @@
 
 #include "Helpers/MounteaInteractionSystemBFL.h"
 #include "Helpers/MounteaInteractionSystemSettings.h"
-#include "Helpers/MounteaInteractionSettingsConfig.h"
+#include "Settings/MounteaInteractableUIConfig.h"
 
 #include "CommonInputSubsystem.h"
 #include "CommonInputTypeEnum.h"
@@ -23,7 +23,8 @@
 
 UMeshComponent* UMounteaInteractionSystemBFL::FindMeshByTag(const FName Tag, const AActor* Source)
 {
-	if (!Source) return nullptr;
+	if (!Source)
+				return nullptr;
 
 	TArray<UMeshComponent*> MeshComponents;
 	Source->GetComponents(MeshComponents);
@@ -41,7 +42,8 @@ UMeshComponent* UMounteaInteractionSystemBFL::FindMeshByTag(const FName Tag, con
 
 UMeshComponent* UMounteaInteractionSystemBFL::FindMeshByName(const FName Name, const AActor* Source)
 {
-	if (!Source) return nullptr;
+	if (!Source)
+				return nullptr;
 
 	TArray<UMeshComponent*> MeshComponents;
 	Source->GetComponents(MeshComponents);
@@ -59,7 +61,8 @@ UMeshComponent* UMounteaInteractionSystemBFL::FindMeshByName(const FName Name, c
 
 UPrimitiveComponent* UMounteaInteractionSystemBFL::FindPrimitiveByTag(const FName Tag, const AActor* Source)
 {
-	if (!Source) return nullptr;
+	if (!Source)
+				return nullptr;
 
 	TArray<UPrimitiveComponent*> MeshComponents;
 	Source->GetComponents(MeshComponents);
@@ -77,7 +80,8 @@ UPrimitiveComponent* UMounteaInteractionSystemBFL::FindPrimitiveByTag(const FNam
 
 UPrimitiveComponent* UMounteaInteractionSystemBFL::FindPrimitiveByName(const FName Name, const AActor* Source)
 {
-	if (!Source) return nullptr;
+	if (!Source)
+				return nullptr;
 
 	TArray<UPrimitiveComponent*> MeshComponents;
 	Source->GetComponents(MeshComponents);
@@ -213,21 +217,17 @@ bool UMounteaInteractionSystemBFL::IsInputKeyPairSupported(APlayerController* Pl
 	if (!localPlayer)
 		return false;
 
-	const auto interactionConfig = settings->DefaultInteractionSystemConfig;
-	if (!interactionConfig)
+	const UMounteaInteractableUIConfig* UIConfig = settings->GetInteractableUIConfig();
+	if (!UIConfig)
 		return false;
 
-	const auto interactionConfigRef = interactionConfig.LoadSynchronous();
-	if (!interactionConfigRef)
-		return false;
-
-	if (interactionConfigRef->MappingKeys.Num() == 0)
+	if (UIConfig->MappingKeys.Num() == 0)
 		return false;
 
 	const FString platformName = UGameplayStatics::GetPlatformName();
 	const ECommonInputType activeInputType = GetActiveInputType(PlayerController);
 
-	for (const auto& Itr : interactionConfigRef->MappingKeys)
+	for (const auto& Itr : UIConfig->MappingKeys)
 	{
 		if (InputKey != Itr.Key)
 			continue;
