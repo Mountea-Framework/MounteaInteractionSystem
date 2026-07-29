@@ -3,96 +3,78 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "MounteaInteractionGeneralDataTypes.h"
 #include "Engine/DeveloperSettings.h"
+#include "MounteaInteractionGeneralDataTypes.h"
 
 #include "MounteaInteractionSystemSettings.generated.h"
 
-class UMounteaInteractionSettingsConfig;
-class UInputMappingContext;
-class UDataTable;
-class UMaterialInterface;
-class UUserWidget;
+class UMounteaInteractorRuntimeConfig;
+class UMounteaInteractorUIConfig;
+class UMounteaInteractableRuntimeConfig;
+class UMounteaInteractableUIConfig;
 
 /**
- * Mountea Interaction System global settings.
+ * Mountea Interaction System project-wide settings.
+ * Lives under Project Settings > Mountea Framework > Mountea Interaction System.
+ * Each config slot points to a DataAsset for its domain.
  */
-UCLASS(config = MounteaSettings, defaultconfig, meta = (DisplayName = "Mountea Interaction System Settings"))
+UCLASS(config=MounteaSettings, defaultconfig, meta=(DisplayName="Mountea Interaction System Settings"))
 class MOUNTEAINTERACTIONSYSTEM_API UMounteaInteractionSystemSettings : public UDeveloperSettings
 {
-	
-  GENERATED_BODY()
+	GENERATED_BODY()
 
 	UMounteaInteractionSystemSettings();
 
 public:
 
-	UPROPERTY(config, BlueprintReadOnly, EditAnywhere, Category = "Interactor")
-	TSoftObjectPtr<UMounteaInteractionSettingsConfig>		DefaultInteractionSystemConfig;
+	/** Runtime gameplay defaults for all interactor components (state, collision channel, tag, safety trace, candidate settings). */
+	UPROPERTY(config, EditAnywhere, BlueprintReadOnly, Category="Interactor")
+	TSoftObjectPtr<UMounteaInteractorRuntimeConfig> InteractorConfig;
 
-	/** Defines whether in-editor debug is enabled. */
-	UPROPERTY(config, BlueprintReadOnly, EditAnywhere, Category="Editor")
-	uint8															bEditorDebugEnabled : 1;
+	/** UI defaults for interactors — controls the attention widget pool size, widget class, and fade timings. */
+	UPROPERTY(config, EditAnywhere, BlueprintReadOnly, Category="Interactor")
+	TSoftObjectPtr<UMounteaInteractorUIConfig> InteractorUIConfig;
+
+	/** Runtime gameplay defaults for all interactable components (period, state, lifecycle, highlight, weight, max interactors, ranges). */
+	UPROPERTY(config, EditAnywhere, BlueprintReadOnly, Category="Interactable")
+	TSoftObjectPtr<UMounteaInteractableRuntimeConfig> InteractableConfig;
+
+	/** UI defaults for interactables — interaction widget class, DataTable, key-texture mappings, update frequency. */
+	UPROPERTY(config, EditAnywhere, BlueprintReadOnly, Category="Interactable")
+	TSoftObjectPtr<UMounteaInteractableUIConfig> InteractableUIConfig;
+
+	/** Enables editor-only debug notifications when interactable/interactor properties change. */
+	UPROPERTY(config, EditAnywhere, BlueprintReadOnly, Category="Editor")
+	uint8 bEditorDebugEnabled : 1;
 
 	/**
-	 * Defines logging level that is allowed to be shown.
-	 * Affects on-screen messages.
+	 * Logging verbosity bitmask.
+	 * Controls which message levels are emitted to on-screen and log.
 	 */
-	UPROPERTY(config, EditDefaultsOnly, Category = "Logging", meta=(Bitmask, BitmaskEnum="/Script/ActorInteractionSystem.EMounteaInteractionLoggingVerbosity"))
+	UPROPERTY(config, EditDefaultsOnly, Category="Logging", meta=(Bitmask, BitmaskEnum="/Script/MounteaInteractionSystem.EMounteaInteractionLoggingVerbosity"))
 	uint8 LogVerbosity;
 
-	/** Defines how often is the Interaction widget updated per second.*/
-	UPROPERTY(config, BlueprintReadOnly, EditAnywhere, Category = "Widgets", meta=(Units="s", UIMin=0.001, ClampMin=0.001))
-	float																WidgetUpdateFrequency =					0.05f;
+public:
 
-	/** Defines default Interactable Widget class.*/
-	UPROPERTY(config, BlueprintReadOnly, EditAnywhere, Category = "Widgets", meta=(AllowedClasses="/Script/UMG.UserWidget", MustImplement="/Script/ActorInteractionSystem.ActorInteractionWidget"))
-	TSoftClassPtr<UUserWidget>						InteractableDefaultWidgetClass;
-	
-	/** Defines default DataTable which contains Interactable data values.*/
-	UPROPERTY(config, BlueprintReadOnly, EditAnywhere, Category = "Interaction Data", meta=(AllowedClasses = "/Script/Engine.DataTable"))
-	TSoftObjectPtr<UDataTable>						InteractableDefaultDataTable;
-		
-	/** Defines default Interaction Mapping for Mountea Interaction System. */
-	UPROPERTY(config, BlueprintReadOnly, EditAnywhere, Category = "Input")
-	TSoftObjectPtr<UInputMappingContext>		InteractionInputMapping;
+	bool IsEditorDebugEnabled() const { return bEditorDebugEnabled; }
+	EMounteaInteractionLoggingVerbosity GetAllowedLoggVerbosity() const;
 
-	/** Defines default Interaction Commands. Serves purpose of containing default commands. */
-	TSet<FString>												InteractionWidgetCommands;
-	
+	const UMounteaInteractorRuntimeConfig* GetInteractorConfig() const;
+	const UMounteaInteractorUIConfig* GetInteractorUIConfig() const;
+	const UMounteaInteractableRuntimeConfig* GetInteractableConfig() const;
+	const UMounteaInteractableUIConfig* GetInteractableUIConfig() const;
+
 #if WITH_EDITOR
 	virtual FText GetSectionText() const override
 	{
-		return NSLOCTEXT("ActorInteractionSystem", "MounteaSettingsDescription", "Mountea Interaction System");
+		return NSLOCTEXT("MounteaInteractionSystem", "MounteaSettingsSectionText", "Mountea Interaction System");
 	}
 
 	virtual FText GetSectionDescription() const override
 	{
-		return NSLOCTEXT("ActorInteractionSystem", "MounteaSettingsDescription", "Default values for Mountea Plugins.");
+		return NSLOCTEXT("MounteaInteractionSystem", "MounteaSettingsSectionDesc", "Default values for Mountea Interaction System.");
 	}
 
-	virtual FName GetContainerName() const override
-	{
-		return "Project";
-	}
+	virtual FName GetContainerName() const override { return TEXT("Project"); }
 #endif
-	
-public:
-
-	bool IsEditorDebugEnabled() const
-	{ return bEditorDebugEnabled; };
-
-	float GetWidgetUpdateFrequency() const
-	{ return WidgetUpdateFrequency; }
-
-	TSoftObjectPtr<UDataTable> GetInteractableDefaultDataTable() const
-	{ return InteractableDefaultDataTable; };
-
-	TSoftClassPtr<UUserWidget> GetInteractableDefaultWidgetClass() const;
-
-	UMaterialInterface* GetDefaultHighlightMaterial() const;
-
-	UInputMappingContext* GetDefaultInputMappingContext() const;
-
-	EMounteaInteractionLoggingVerbosity GetAllowedLoggVerbosity() const;
 };
