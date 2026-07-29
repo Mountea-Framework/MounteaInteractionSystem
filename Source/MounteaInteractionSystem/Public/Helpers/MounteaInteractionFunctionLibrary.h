@@ -7,8 +7,6 @@
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "MounteaInteractionFunctionLibrary.generated.h"
 
-struct FInteractableBaseSettings;
-struct FInteractorBaseSettings;
 struct FInteractionHighlightSetup;
 class UDataTable;
 class UUserWidget;
@@ -27,12 +25,6 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction", meta=(CompactNodeTitle="Default Interaction Settings"))
 	static UMounteaInteractionSystemSettings* GetInteractionSettings();
 
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction", meta=(CompactNodeTitle="Default Interaction Settings"))
-	static FInteractorBaseSettings GetDefaultInteractorSettings();
-
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction", meta=(CompactNodeTitle="Default Interaction Settings"))
-	static FInteractableBaseSettings GetDefaultInteractableSettings();
-	
 	/**
 	 * Returns Default Widget Update frequency.
 	 * Default value is 0.05.

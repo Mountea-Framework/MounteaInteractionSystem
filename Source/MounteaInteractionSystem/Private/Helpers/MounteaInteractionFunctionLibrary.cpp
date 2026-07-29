@@ -1,81 +1,32 @@
 // All rights reserved Dominik Morse (Pavlicek) 2024.
 
-
 #include "Helpers/MounteaInteractionFunctionLibrary.h"
 
 #include "Helpers/MounteaInteractionSystemLog.h"
 #include "Helpers/MounteaInteractionSystemSettings.h"
+#include "Settings/MounteaInteractableUIConfig.h"
 
 #include "Engine/DataTable.h"
 #include "Blueprint/UserWidget.h"
-#include "Helpers/MounteaInteractionSettingsConfig.h"
 
+#define LOCTEXT_NAMESPACE "MounteaInteractionFunctionLibrary"
 
 UMounteaInteractionSystemSettings* UMounteaInteractionFunctionLibrary::GetInteractionSettings()
 {
 	return GetMutableDefault<UMounteaInteractionSystemSettings>();
 }
 
-FInteractorBaseSettings UMounteaInteractionFunctionLibrary::GetDefaultInteractorSettings()
-{
-	const UMounteaInteractionSystemSettings* Settings = GetMutableDefault<UMounteaInteractionSystemSettings>();
-	if (!Settings)
-	{
-		LOG_ERROR(TEXT("Failed to get interaction settings: Settings returned nullptr."));
-		return FInteractorBaseSettings();
-	}
-
-	UMounteaInteractionSettingsConfig* DefaultConfig = Settings->DefaultInteractionSystemConfig.LoadSynchronous();
-	if (DefaultConfig == nullptr)
-	{
-		LOG_ERROR(TEXT("Failed to get interaction settings: DefaultInteractionSystemConfig is nullptr."));
-		return FInteractorBaseSettings();
-	}
-	
-	if (!DefaultConfig)
-	{
-		LOG_ERROR(TEXT("Failed to load DefaultInteractionSystemConfig synchronously."));
-		return FInteractorBaseSettings();
-	}
-
-	return DefaultConfig->InteractorDefaultSettings;
-}
-
-
-FInteractableBaseSettings UMounteaInteractionFunctionLibrary::GetDefaultInteractableSettings()
-{
-	const UMounteaInteractionSystemSettings* Settings = GetMutableDefault<UMounteaInteractionSystemSettings>();
-	if (!Settings)
-	{
-		LOG_ERROR(TEXT("Failed to get interaction settings: Settings returned nullptr."));
-		return FInteractableBaseSettings();
-	}
-
-	UMounteaInteractionSettingsConfig* DefaultConfig = Settings->DefaultInteractionSystemConfig.LoadSynchronous();
-	if (DefaultConfig == nullptr)
-	{
-		LOG_ERROR(TEXT("Failed to get interaction settings: DefaultInteractionSystemConfig is nullptr."));
-		return FInteractableBaseSettings();
-	}
-	
-	if (!DefaultConfig)
-	{
-		LOG_ERROR(TEXT("Failed to load DefaultInteractionSystemConfig synchronously."));
-		return FInteractableBaseSettings();
-	}
-
-	return DefaultConfig->InteractableBaseSettings;
-}
-
-
 float UMounteaInteractionFunctionLibrary::GetDefaultWidgetUpdateFrequency()
 {
 	if (const UMounteaInteractionSystemSettings* Settings = GetMutableDefault<UMounteaInteractionSystemSettings>())
 	{
-		return Settings->GetWidgetUpdateFrequency();
+		if (const UMounteaInteractableUIConfig* UIConfig = Settings->GetInteractableUIConfig())
+		{
+			return UIConfig->WidgetUpdateFrequency;
+		}
 	}
 
-	LOG_ERROR(TEXT("[GetDefaultWidgetUpdateFrequency] Cannot load MounteaInteractionSystemSettings! Using hardcoded value."))
+	LOG_ERROR(TEXT("[GetDefaultWidgetUpdateFrequency] Cannot load MounteaInteractionSystemSettings or InteractableUIConfig! Using hardcoded value."))
 	return 0.1f;
 }
 
@@ -83,13 +34,16 @@ UDataTable* UMounteaInteractionFunctionLibrary::GetInteractableDefaultDataTable(
 {
 	if (const UMounteaInteractionSystemSettings* Settings = GetMutableDefault<UMounteaInteractionSystemSettings>())
 	{
-		if (const auto FoundTable = Settings->GetInteractableDefaultDataTable().LoadSynchronous())
+		if (const UMounteaInteractableUIConfig* UIConfig = Settings->GetInteractableUIConfig())
 		{
-			return FoundTable;
+			if (UDataTable* Table = UIConfig->DefaultInteractableDataTable.LoadSynchronous())
+			{
+				return Table;
+			}
 		}
 	}
 
-	LOG_ERROR(TEXT("[GetInteractableDefaultDataTable] Cannot load MounteaInteractionSystemSettings! Using null value."))
+	LOG_ERROR(TEXT("[GetInteractableDefaultDataTable] Cannot load InteractableUIConfig! Using null value."))
 	return nullptr;
 }
 
@@ -97,11 +51,13 @@ TSubclassOf<UUserWidget> UMounteaInteractionFunctionLibrary::GetInteractableDefa
 {
 	if (const UMounteaInteractionSystemSettings* Settings = GetMutableDefault<UMounteaInteractionSystemSettings>())
 	{
-		const TSubclassOf<UUserWidget> WidgetClass = Settings->GetInteractableDefaultWidgetClass().LoadSynchronous();
-		return WidgetClass;
+		if (const UMounteaInteractableUIConfig* UIConfig = Settings->GetInteractableUIConfig())
+		{
+			return UIConfig->DefaultInteractionWidgetClass.LoadSynchronous();
+		}
 	}
-		
-	LOG_ERROR(TEXT("[GetInteractableDefaultWidgetClass] Cannot load MounteaInteractionSystemSettings! Using null value."))
+
+	LOG_ERROR(TEXT("[GetInteractableDefaultWidgetClass] Cannot load InteractableUIConfig! Using null value."))
 	return nullptr;
 }
 
@@ -111,7 +67,9 @@ bool UMounteaInteractionFunctionLibrary::IsEditorDebugEnabled()
 	{
 		return Settings->IsEditorDebugEnabled();
 	}
-		
-	LOG_ERROR(TEXT("[GetInteractableDefaultWidgetClass] Cannot load MounteaInteractionSystemSettings! Using null value."))
+
+	LOG_ERROR(TEXT("[IsEditorDebugEnabled] Cannot load MounteaInteractionSystemSettings! Using default value."))
 	return false;
 }
+
+#undef LOCTEXT_NAMESPACE
