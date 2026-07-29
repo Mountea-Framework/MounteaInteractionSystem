@@ -1,110 +1,48 @@
 ﻿// All rights reserved Dominik Morse (Pavlicek) 2024.
 
-
 #include "Components/Interactable/MounteaInteractableComponentAutomatic.h"
+#include "Interfaces/MounteaInteractorInterface.h"
 #include "TimerManager.h"
-
-#include "Helpers/MounteaInteractionSystemLog.h"
+#include "Engine/World.h"
 
 #define LOCTEXT_NAMESPACE "MounteaInteractableComponentAutomatic"
 
 UMounteaInteractableComponentAutomatic::UMounteaInteractableComponentAutomatic()
 {
-	InteractableName = NSLOCTEXT("MounteaInteractableComponentAutomatic", "Auto", "Auto");
-
-	DefaultInteractableState = EInteractableStateV2::EIS_Awake;
-	InteractionPeriod = 1.f;
-
-	bInteractionHighlight = false;
-}
-
-void UMounteaInteractableComponentAutomatic::BeginPlay()
-{
-	Super::BeginPlay();
-
-	OnInteractionStopped.RemoveAll(this);
-}
-
-void UMounteaInteractableComponentAutomatic::InteractableSelected_Implementation(const TScriptInterface<IMounteaInteractableInterface>& Interactable)
-{
-	if(!GetWorld()) return;
-	Super::InteractableSelected_Implementation(Interactable);
-	
-	if (Interactable == this)
-	{
-		if (GetWorld()->GetTimerManager().IsTimerActive(Timer_Interaction) == false)
-		{
-			OnInteractionStarted.Broadcast(GetWorld()->GetTimeSeconds(), Execute_GetInteractor(this));
-		}
-	}
+	// Automatic is standalone — no cycling, triggers immediately
+	bStandaloneInteraction = true;
 }
 
 void UMounteaInteractableComponentAutomatic::InteractionStarted_Implementation(const float& TimeStarted, const TScriptInterface<IMounteaInteractorInterface>& CausingInteractor)
 {
-	if (!GetWorld()) return;
+	Super::InteractionStarted_Implementation(TimeStarted, CausingInteractor);
 
-	if (Execute_CanInteract(this) && !GetWorld()->GetTimerManager().IsTimerActive(Timer_Interaction))
-	{
-		// Force Interaction Period to be at least 0.01s
-		const float TempInteractionPeriod = FMath::Max(0.01f, InteractionPeriod);
-		
-		FTimerDelegate Delegate;
-		Delegate.BindUObject(this, &UMounteaInteractableComponentAutomatic::OnInteractionCompletedCallback);
+	// Only authority schedules the completion timer
+	if (!GetOwner() || !GetOwner()->HasAuthority())
+				return;
+	if (!GetWorld())
+				return;
 
-		GetWorld()->GetTimerManager().SetTimer
-		(
-			Timer_Interaction,
-			Delegate,
-			TempInteractionPeriod,
-			false
-		);
+	const float period = FMath::Max(0.01f, InteractionPeriod);
 
-		Super::InteractionStarted_Implementation(TimeStarted, CausingInteractor);
-		
-		UpdateInteractionWidget();
-	}
+	GetWorld()->GetTimerManager().SetTimer(Timer_AutoCompletion, this,
+		&UMounteaInteractableComponentAutomatic::OnCompletionTimerExpired, period, false);
 }
 
 void UMounteaInteractableComponentAutomatic::InteractionStopped_Implementation(const float& TimeStarted, const TScriptInterface<IMounteaInteractorInterface>& CausingInteractor)
 {
-#if WITH_EDITOR
-	LOG_WARNING(TEXT("[InteractionStopped] This function does nothing in UMounteaInteractableComponentAutomatic"))
-#endif
-}
-
-FInteractionStarted& UMounteaInteractableComponentAutomatic::GetOnInteractionStartedHandle()
-{
-#if WITH_EDITOR
-	LOG_WARNING(TEXT("[GetOnInteractionStartedHandle] This handle is invalid in UMounteaInteractableComponentAutomatic"))
-#endif
-	
-	return EmptyHandle_Started;
-}
-
-FInteractionStopped& UMounteaInteractableComponentAutomatic::GetOnInteractionStoppedHandle()
-{
-#if WITH_EDITOR
-	LOG_WARNING(TEXT("[GetOnInteractionStoppedHandle] This handle is invalid in UMounteaInteractableComponentAutomatic"))
-#endif
-	
-	return EmptyHandle_Stopped;
-}
-
-void UMounteaInteractableComponentAutomatic::OnInteractionCompletedCallback()
-{
-	if (!GetWorld())
+	if (GetWorld())
 	{
-		OnInteractionCanceled.Broadcast();
-		return;
+		GetWorld()->GetTimerManager().ClearTimer(Timer_AutoCompletion);
 	}
 
-	Execute_ToggleWidgetVisibility(this, false);
-	if (LifecycleMode == EInteractableLifecycle::EIL_Cycled)
-	{
-		if (Execute_TriggerCooldown(this)) return;
-	}
-	
-	OnInteractionCompleted.Broadcast(GetWorld()->GetTimeSeconds(), Execute_GetInteractor(this));
+	Super::InteractionStopped_Implementation(TimeStarted, CausingInteractor);
 }
 
-#undef LOCTEXT_NAMESPAC
+void UMounteaInteractableComponentAutomatic::OnCompletionTimerExpired()
+{
+	FString Err;
+	Execute_CompleteInteractable(this, Err);
+}
+
+#undef LOCTEXT_NAMESPACE
