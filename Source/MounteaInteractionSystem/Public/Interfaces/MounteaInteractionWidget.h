@@ -1,12 +1,12 @@
-﻿// All rights reserved Dominik Morse (Pavlicek) 2024.
+// All rights reserved Dominik Morse (Pavlicek) 2024.
 
 #pragma once
 
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
+#include "Helpers/MounteaInteractionHelpers.h"
 #include "MounteaInteractionWidget.generated.h"
 
-// This class does not need to be modified.
 UINTERFACE(BlueprintType, Blueprintable)
 class UActorInteractionWidget : public UInterface
 {
@@ -16,91 +16,81 @@ class UActorInteractionWidget : public UInterface
 class IMounteaInteractableInterface;
 
 /**
- * Interaction Widget Interface.
- * Implements basic Setters and Getters.
- *
- * This way every single Widget can be used as Interactable Widget.
- * Interface can be further extended in Blueprints.
+ * v5.0 Interaction Widget Interface.
+ * Implements setters/getters for both attention and interaction widget modes.
+ * Every widget used by the Interaction System must implement this interface.
  */
 class MOUNTEAINTERACTIONSYSTEM_API IActorInteractionWidget
 {
 	GENERATED_BODY()
 
 public:
-	
+
 	/**
-	 * This function is called to execute a command on the interaction widget.
-	 * It can be used to send various commands and payloads to the interaction widget.
-	 *
-	 * @param Command The command to be executed on the interaction widget.
-	 * @param Payload The payload associated with the command, which can be any UObject.
+	 * Sets the widget display mode.
+	 * Attention: shown when actor is in attention range but not yet interaction range.
+	 * Interaction: shown when actor is focused and in interaction range.
+	 * None: hidden.
 	 */
-	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category="Mountea|InteractionWidget")
+	UFUNCTION(BlueprintImplementableEvent, Category="Mountea|InteractionWidget")
+	void SetWidgetMode(const EInteractionWidgetMode NewMode);
+
+	/**
+	 * Informs the widget how many actions are available for cycling on the focused actor.
+	 * Useful for displaying "1 / 3" indicators in the UI.
+	 */
+	UFUNCTION(BlueprintImplementableEvent, Category="Mountea|InteractionWidget")
+	void SetActionCount(const int32 TotalActions);
+
+	/**
+	 * Informs the widget which action index is currently highlighted.
+	 * Zero-based index into the action list on the focused actor.
+	 */
+	UFUNCTION(BlueprintImplementableEvent, Category="Mountea|InteractionWidget")
+	void SetSelectedActionIndex(const int32 SelectedIndex);
+
+	/** General command/payload channel for custom widget communication. */
+	UFUNCTION(BlueprintImplementableEvent, Category="Mountea|InteractionWidget")
 	void InteractionWidgetCommand(const FString& Command, UObject* Payload);
 
-	
-	/**
-	 * This event should be called when you want to refresh UI data.
-	 */
-	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category="Mountea|InteractionWidget")
+	/** Called to refresh all displayed data from the given interactable. */
+	UFUNCTION(BlueprintImplementableEvent, Category="Mountea|InteractionWidget")
 	void UpdateWidget(const TScriptInterface<IMounteaInteractableInterface>& InteractableInterface);
 
-	/**
-	 * This event should be called when you want to Hide/Unhide the Widget.
-	 */
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category="Mountea|InteractionWidget")
-	 void ToggleVisibility();
+	/** Shows or hides the widget. */
+	UFUNCTION(BlueprintNativeEvent, Category="Mountea|InteractionWidget")
+	void ToggleVisibility();
 	virtual void ToggleVisibility_Implementation() = 0;
 
-	/**
-	 * Sets new Title Text.
-	 * @param NewTittle Title is usually Interactable Name. For example 'Treasure Chest'.
-	 */
-	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category="Mountea|InteractionWidget")
-	void SetTitleText(const FString& NewTittle);
-	/**
-	 * Returns Title Text.
-	 * Title is usually Interactable Name. For example 'Treasure Chest'.
-	 */
-	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category="Mountea|InteractionWidget")
+	/** Sets the title text (usually the interactable's display name, e.g. "Treasure Chest"). */
+	UFUNCTION(BlueprintImplementableEvent, Category="Mountea|InteractionWidget")
+	void SetTitleText(const FString& NewTitle);
+
+	/** Returns the current title text. */
+	UFUNCTION(BlueprintImplementableEvent, Category="Mountea|InteractionWidget")
 	FString GetTitleText() const;
 
-	/**
-	 * Sets new Action Text.
-	 * @param NewAction Action is usually what Interaction is supposed to happen. For example 'Hold' or 'Press'.
-	 */
-	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category="Mountea|InteractionWidget")
-	void SetBodyText(const FString& NewAction);
-	/**
-	 * Returns Action Text.
-	 * Action is usually what Interaction is supposed to happen. For example 'Hold' or 'Press'.
-	 */
-	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category="Mountea|InteractionWidget")
+	/** Sets the body/action text (e.g. "Hold", "Press"). */
+	UFUNCTION(BlueprintImplementableEvent, Category="Mountea|InteractionWidget")
+	void SetBodyText(const FString& NewBody);
+
+	/** Returns the current body text. */
+	UFUNCTION(BlueprintImplementableEvent, Category="Mountea|InteractionWidget")
 	FString GetBodyText() const;
 
-	/**
-	 * Sets new Interaction Key from Text.
-	 * @param NewKey Platform dependant Key, if any is required.
-	 */
-	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category="Mountea|InteractionWidget")
+	/** Sets the key prompt text displayed on the widget. */
+	UFUNCTION(BlueprintImplementableEvent, Category="Mountea|InteractionWidget")
 	void SetKeyText(const FString& NewKey);
-	/**
-	 * Returns Interaction Key as Text.
-	 * Interaction Key is platform dependant Key, if any is required.
-	 */
-	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category="Mountea|InteractionWidget")
+
+	/** Returns the current key prompt text. */
+	UFUNCTION(BlueprintImplementableEvent, Category="Mountea|InteractionWidget")
 	FString GetKeyText() const;
 
-	/**
-	 * Sets progress to be visually displayed in UI.
-	 * UI should not be responsible for setting that progress itself!
-	 * @param NewProgress Value to be set as displayed Progress.
-	 */
-	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category="Mountea|InteractionWidget")
+	/** Sets the interaction progress value [0..1]. Widget handles visual display — do not compute this in the widget itself. */
+	UFUNCTION(BlueprintImplementableEvent, Category="Mountea|InteractionWidget")
 	void SetProgress(const float NewProgress);
-	/**
-	 * Returns Interaction Progress.
-	 */
-	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category="Mountea|InteractionWidget")
+
+	/** Returns the current progress value. */
+	UFUNCTION(BlueprintImplementableEvent, Category="Mountea|InteractionWidget")
 	float GetProgress() const;
 };
