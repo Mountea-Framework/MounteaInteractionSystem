@@ -1,534 +1,302 @@
-﻿// All rights reserved Dominik Morse (Pavlicek) 2024.
-
+// All rights reserved Dominik Morse (Pavlicek) 2024.
 
 #include "Components/Interactor/MounteaInteractorComponentOverlap.h"
-
-#include "Helpers/MounteaInteractionSystemLog.h"
-#include "Helpers/MounteaInteractionSystemBFL.h"
-#include "Interfaces/MounteaInteractableInterface.h"
 #include "Net/UnrealNetwork.h"
-#include "Net/Core/PushModel/PushModel.h"
+#include "Engine/World.h"
+#include "GameFramework/Actor.h"
+#include "Components/PrimitiveComponent.h"
+#include "Interfaces/MounteaInteractableInterface.h"
+#include "Helpers/MounteaInteractionStatics.h"
+#include "Helpers/MounteaInteractionSystemSettings.h"
+#include "Settings/MounteaInteractorRuntimeConfig.h"
+
+#define LOCTEXT_NAMESPACE "MounteaInteractorComponentOverlap"
 
 UMounteaInteractorComponentOverlap::UMounteaInteractorComponentOverlap()
-		: OverrideCollisionComponents(TArray<FName>()),
-		CollisionShapes(TArray<UPrimitiveComponent*>()),
-		CachedCollisionShapesSettings(TMap<UPrimitiveComponent*, FCollisionShapeCache>())
 {
-	ComponentTags.Add(FName("Overlap"));
 }
 
 void UMounteaInteractorComponentOverlap::BeginPlay()
 {
-	SetupInteractorOverlap();
 	Super::BeginPlay();
+	SetupInteractorOverlap();
+}
+
+void UMounteaInteractorComponentOverlap::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(UMounteaInteractorComponentOverlap, CollisionShapes);
 }
 
 FString UMounteaInteractorComponentOverlap::ToString_Implementation() const
 {
-	return Super::ToString_Implementation();
+	return FString::Printf(TEXT("%s | Shapes: %d"), *Super::ToString_Implementation(), CollisionShapes.Num());
 }
 
-void UMounteaInteractorComponentOverlap::ProcessStateChanged()
-{
-	Super::ProcessStateChanged();
-
-	switch (Execute_GetState(this))
-	{
-		case EInteractorStateV2::EIS_Active:
-			break;
-		case EInteractorStateV2::EIS_Awake:
-			BindCollisions();
-			break;
-		case EInteractorStateV2::EIS_Asleep:
-		case EInteractorStateV2::EIS_Suppressed: 
-		case EInteractorStateV2::EIS_Disabled:
-		case EInteractorStateV2::Default: 
-		default:
-			UnbindCollisions();
-			break;
-	}	
-}
-
-void UMounteaInteractorComponentOverlap::ProcessOverlap_Server_Implementation(UPrimitiveComponent* OverlappedComponent,AActor* OtherActor, UPrimitiveComponent* OtherComp, const FHitResult& SweepResult, const bool bOverlapStarted)
-{
-	ProcessOverlap(OverlappedComponent, OtherActor, OtherComp, SweepResult, bOverlapStarted);
-}
+#pragma region Setup
 
 void UMounteaInteractorComponentOverlap::SetupInteractorOverlap()
 {
-	for (auto Itr : OverrideCollisionComponents)
+	if (!GetOwner())
+				return;
+
+	if (OverrideCollisionComponents.IsEmpty())
 	{
-		if (auto Comp = UMounteaInteractionSystemBFL::FindPrimitiveByName(Itr, GetOwner()))
-			AddCollisionComponent(Comp);
-		else
+		TArray<UPrimitiveComponent*> prims;
+		GetOwner()->GetComponents<UPrimitiveComponent>(prims);
+		AddCollisionComponents_Implementation(prims);
+	}
+	else
+	{
+		TArray<UPrimitiveComponent*> prims;
+		GetOwner()->GetComponents<UPrimitiveComponent>(prims);
+		for (UPrimitiveComponent* prim : prims)
 		{
-			Comp = UMounteaInteractionSystemBFL::FindPrimitiveByTag(Itr, GetOwner());
-			 if (Comp)
-			 	AddCollisionComponent(Comp);
+			if (IsValid(prim) && OverrideCollisionComponents.Contains(prim->GetFName()))
+			{
+				AddCollisionComponent_Implementation(prim);
+			}
 		}
 	}
 }
 
 void UMounteaInteractorComponentOverlap::BindCollisions()
 {
-	for (const auto& Itr : CollisionShapes)
+	for (UPrimitiveComponent* Prim : CollisionShapes)
 	{
-		BindCollision(Itr);
+		BindCollision(Prim);
 	}
 }
 
 void UMounteaInteractorComponentOverlap::BindCollision(UPrimitiveComponent* Component)
 {
-	if (!Component) return;
-
-	FCollisionShapeCache CachedValues;
-	CachedValues.bGenerateOverlapEvents = Component->GetGenerateOverlapEvents();
-	CachedValues.CollisionEnabled = Component->GetCollisionEnabled();
-	CachedValues.CollisionResponse = ECR_Overlap;
-	
-	CachedCollisionShapesSettings.Add(Component, CachedValues);
-	
-	Component->SetGenerateOverlapEvents(true);
-	Component->SetCollisionResponseToChannel(CollisionChannel, ECollisionResponse::ECR_Overlap);
-
-	Component->OnComponentBeginOverlap.		AddUniqueDynamic(this, &UMounteaInteractorComponentOverlap::StartInteractorOverlap);
-	Component->OnComponentEndOverlap.		AddUniqueDynamic(this, &UMounteaInteractorComponentOverlap::StopInteractorOverlap);
-
-	switch (Component->GetCollisionEnabled())
-	{
-		case ECollisionEnabled::NoCollision:
-			Component->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-			break;
-		case ECollisionEnabled::QueryOnly:
-		case ECollisionEnabled::PhysicsOnly:
-		case ECollisionEnabled::QueryAndPhysics:
-		default: break;
-	}
-
-#if WITH_EDITOR || UE_BUILD_DEBUG
-
-	if (DebugSettings.DebugMode)
-	{
-		Component->SetHiddenInGame(false);
-		Component->SetVisibility(true);
-	}
-	
-#endif
+	if (!IsValid(Component))
+				return;
+	Component->OnComponentBeginOverlap.AddUniqueDynamic(this, &UMounteaInteractorComponentOverlap::StartInteractorOverlap);
+	Component->OnComponentEndOverlap.AddUniqueDynamic(this, &UMounteaInteractorComponentOverlap::StopInteractorOverlap);
 }
 
 void UMounteaInteractorComponentOverlap::UnbindCollisions()
 {
-	for (const auto& Itr : CollisionShapes)
+	for (UPrimitiveComponent* Prim : CollisionShapes)
 	{
-		UnbindCollision(Itr);
+		UnbindCollision(Prim);
 	}
 }
 
 void UMounteaInteractorComponentOverlap::UnbindCollision(UPrimitiveComponent* Component)
 {
-	if(!Component) return;
-
-	if (CachedCollisionShapesSettings.Find(Component))
-	{
-		Component->SetGenerateOverlapEvents(CachedCollisionShapesSettings[Component].bGenerateOverlapEvents);
-		Component->SetCollisionEnabled(CachedCollisionShapesSettings[Component].CollisionEnabled);
-		Component->SetCollisionResponseToChannel(CollisionChannel, CachedCollisionShapesSettings[Component].CollisionResponse);
-	}
-	else
-	{
-		Component->SetGenerateOverlapEvents(true);
-		Component->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-		Component->SetCollisionResponseToChannel(CollisionChannel, ECollisionResponse::ECR_Overlap);
-	}
-
-	Component->OnComponentBeginOverlap.		RemoveDynamic(this, &UMounteaInteractorComponentOverlap::StartInteractorOverlap);
-	Component->OnComponentEndOverlap.		RemoveDynamic(this, &UMounteaInteractorComponentOverlap::StopInteractorOverlap);
-}
-
-void UMounteaInteractorComponentOverlap::ProcessOverlap_Implementation(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, const FHitResult& SweepResult, const bool bOverlapStarted)
-{
-	if (!GetOwner())
-	{
-		LOG_ERROR(TEXT("[ProcessOverlap] No owner!"));
-		return;
-	}
-
-	if (GetOwner()->HasAuthority())
-	{
-		if (!Execute_CanInteract(this))
-		{
-			return;
-		}
-		
-		if (!OtherActor)
-		{
-			return;
-		}
-
-		if (!OtherActor->Implements<UMounteaInteractableInterface>())
-		{
-			auto interactableComponents = OtherActor->GetComponentsByInterface(UMounteaInteractableInterface::StaticClass());
-			if (interactableComponents.Num() == 0)
+	if (!IsValid(Component))
 				return;
-		}
-
-		if (bOverlapStarted)
-		{
-			HandleStartOverlap(OverlappedComponent, OtherActor, OtherComp, SweepResult);
-		}
-		else
-		{
-			HandleEndOverlap(OverlappedComponent, OtherActor, OtherComp);
-		}
-	}
-	else
-	{
-		ProcessOverlap_Server(OverlappedComponent, OtherActor, OtherComp, SweepResult, bOverlapStarted);
-	}
+	Component->OnComponentBeginOverlap.RemoveDynamic(this, &UMounteaInteractorComponentOverlap::StartInteractorOverlap);
+	Component->OnComponentEndOverlap.RemoveDynamic(this, &UMounteaInteractorComponentOverlap::StopInteractorOverlap);
 }
 
-void UMounteaInteractorComponentOverlap::StartInteractorOverlap(UPrimitiveComponent* OverlappedComponent,AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
-{
-	if (!GetOwner())
-	{
-		LOG_ERROR(TEXT("[StartInteractorOverlap] No Owner!"))
-		return;
-	}
+#pragma endregion
 
-	if (GetOwner()->HasAuthority())
-	{
-		ProcessOverlap(OverlappedComponent, OtherActor, OtherComp, SweepResult, true);
-	}
-	else
-	{
-		StartInteractorOverlap_Server(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
-	}
-}
-
-void UMounteaInteractorComponentOverlap::StopInteractorOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
-{
-	if (!GetOwner())
-	{
-		LOG_ERROR(TEXT("[StopInteractorOverlap] No Owner!"))
-		return;
-	}
-
-	if (GetOwner()->HasAuthority())
-	{
-		ProcessOverlap(OverlappedComponent, OtherActor, OtherComp, FHitResult(), false);
-	}
-	else
-	{
-		StopInteractorOverlap_Server(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex);
-	}
-}
-
-void UMounteaInteractorComponentOverlap::HandleStartOverlap(UPrimitiveComponent* PrimitiveComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, const FHitResult& HitResult)
-{
-	if (!OtherActor)
-	{
-		LOG_ERROR(TEXT("[HandleStartOverlap] OtherActor is null!"));
-		return;
-	}
-	
-	if (!PrimitiveComponent)
-	{
-		LOG_ERROR(TEXT("[HandleStartOverlap] PrimitiveComponent is null!"));
-		return;
-	}
-
-	if (!OtherComp)
-	{
-		LOG_ERROR(TEXT("[HandleStartOverlap] OtherComp is null!"));
-		return;
-	}
-	
-	TScriptInterface<IMounteaInteractableInterface> currentlyActiveInteractable	= Execute_GetActiveInteractable(this);
-	TScriptInterface<IMounteaInteractableInterface> tempInteractable					= nullptr;
-	
-	TArray<UActorComponent*> interactableComponents = OtherActor->GetComponentsByInterface(UMounteaInteractableInterface::StaticClass());
-	int32 highestWeight = -1;
-
-	for (const auto& Component : interactableComponents)
-	{
-		TScriptInterface<IMounteaInteractableInterface> InteractableComponent = TScriptInterface<IMounteaInteractableInterface>(Component);
-
-		if (!InteractableComponent->Execute_CanBeTriggered(Component))
-			continue;
-
-		ECollisionChannel componentCollisionChannel = InteractableComponent->Execute_GetCollisionChannel(Component);
-		if (componentCollisionChannel != Execute_GetResponseChannel(this))
-			continue;
-
-		if (PrimitiveComponent->GetCollisionResponseToChannel(componentCollisionChannel) == ECR_Ignore)
-			continue;
-
-		if (!InteractableComponent->Execute_CanBeTriggered(InteractableComponent.GetObject()))
-			continue;
-
-		int32 ComponentWeight = InteractableComponent->Execute_GetInteractableWeight(Component);
-		if (ComponentWeight > highestWeight)
-		{
-			highestWeight = ComponentWeight;
-			tempInteractable = InteractableComponent;
-		}
-	}
-	
-	if (!tempInteractable.GetObject())
-	{
-		return;
-	}
-
-	if (currentlyActiveInteractable.GetObject())
-	{
-		if (currentlyActiveInteractable == tempInteractable)
-		{
-			return;
-		}
-		
-		int32 localWeight		= tempInteractable->					Execute_GetInteractableWeight(tempInteractable.GetObject());
-		int32 activeWeight	= currentlyActiveInteractable->	Execute_GetInteractableWeight(currentlyActiveInteractable.GetObject());
-
-		if (localWeight < activeWeight)
-		{
-			return;
-		}
-	}
-
-	if (!Execute_PerformSafetyTrace(this, OtherActor))
-		return;
-	
-	OnInteractableLost.Broadcast(currentlyActiveInteractable);
-	OnInteractableFound.Broadcast(tempInteractable);
-
-	tempInteractable->GetOnInteractorOverlappedHandle().Broadcast(PrimitiveComponent, OtherActor, OtherComp, 0, false, HitResult);
-	tempInteractable->GetOnInteractorFoundHandle().Broadcast(this);
-}
-
-void UMounteaInteractorComponentOverlap::HandleEndOverlap(UPrimitiveComponent* PrimitiveComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp)
-{
-	if (!OtherActor)
-	{
-		LOG_ERROR(TEXT("[HandleEndOverlap] OtherActor is null!"));
-		return;
-	}
-
-	if (!PrimitiveComponent)
-	{
-		LOG_ERROR(TEXT("[HandleEndOverlap] PrimitiveComponent is null!"));
-		return;
-	}
-
-	if (!OtherComp)
-	{
-		LOG_ERROR(TEXT("[HandleEndOverlap] OtherComp is null!"));
-		return;
-	}
-
-	TScriptInterface<IMounteaInteractableInterface> currentlyActiveInteractable = Execute_GetActiveInteractable(this);
-	if (!currentlyActiveInteractable.GetObject())
-	{
-		return;
-	}
-	
-	// Check if OtherActor has the active interactable component
-	TArray<UActorComponent*> interactableComponents = OtherActor->GetComponentsByInterface(UMounteaInteractableInterface::StaticClass());
-	bool bHasActiveInteractable = false;
-	for (const auto& Component : interactableComponents)
-	{
-		if (currentlyActiveInteractable.GetObject() == Component)
-		{
-			bHasActiveInteractable = true;
-			break;
-		}
-	}
-
-	if (!bHasActiveInteractable)
-	{
-		return;
-	}
-
-	// Check if we still overlap at least one of the collision components from the active interactable
-	bool bStillOverlapping = false;
-	const TArray<UPrimitiveComponent*> interactableCollisionComponents = currentlyActiveInteractable->Execute_GetCollisionComponents(currentlyActiveInteractable.GetObject());
-	for (UPrimitiveComponent* InteractableComp : interactableCollisionComponents)
-	{
-		if (!InteractableComp->IsOverlappingActor(GetOwner()))
-			continue;
-		
-		for (UPrimitiveComponent* InteractorComp : CollisionShapes)
-		{
-			if (InteractableComp && InteractorComp && InteractableComp->IsOverlappingComponent(InteractorComp))
-			{
-				bStillOverlapping = true;
-				break;
-			}
-		}
-		if (bStillOverlapping)
-		{
-			break;
-		}
-	}
-
-	if (bStillOverlapping)
-	{
-		return;
-	}
-	
-	OnInteractableLost.Broadcast(currentlyActiveInteractable);
-	
-	currentlyActiveInteractable->GetOnInteractorStopOverlapHandle().Broadcast(PrimitiveComponent, OtherActor, OtherComp, 0);
-	currentlyActiveInteractable->GetOnInteractorLostHandle().Broadcast(this);
-}
-
-void UMounteaInteractorComponentOverlap::StartInteractorOverlap_Server_Implementation(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
-{
-	StartInteractorOverlap(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
-}
-
-void UMounteaInteractorComponentOverlap::StopInteractorOverlap_Server_Implementation(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
-{
-	StopInteractorOverlap(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex);
-}
+#pragma region CollisionManagement
 
 void UMounteaInteractorComponentOverlap::AddCollisionComponent_Implementation(UPrimitiveComponent* CollisionComponent)
 {
-	if (!GetOwner())
+	if (!IsValid(CollisionComponent) || CollisionShapes.Contains(CollisionComponent))
+				return;
+
+	if (GetOwner() && !GetOwner()->HasAuthority())
 	{
-		LOG_ERROR(TEXT("[AddCollisionComponent] No owner!"));
+		AddCollisionComponent_Server(CollisionComponent);
 		return;
 	}
 
-	if (GetOwner()->HasAuthority())
+	FCollisionShapeCache cache;
+	cache.bGenerateOverlapEvents = CollisionComponent->GetGenerateOverlapEvents();
+	cache.CollisionEnabled       = CollisionComponent->GetCollisionEnabled();
+	cache.ResponseContainer      = CollisionComponent->GetCollisionResponseToChannels();
+	CachedCollisionShapesSettings.Add(CollisionComponent, cache);
+
+	// Resolve the overlap channel from the interactor runtime config
+	FName overlapChannelName = TEXT("InteractionOverlap");
+	if (const UMounteaInteractionSystemSettings* settings = GetDefault<UMounteaInteractionSystemSettings>())
 	{
-		if (!CollisionComponent) return;
-
-		if (CollisionShapes.Contains(CollisionComponent)) return;
-
-		CollisionShapes.Add(CollisionComponent);
-
-		OnCollisionShapeAdded.Broadcast(CollisionComponent);
-
-		MARK_PROPERTY_DIRTY_FROM_NAME(UMounteaInteractorComponentOverlap, CollisionShapes, this);
+		if (const UMounteaInteractorRuntimeConfig* cfg = settings->GetInteractorConfig())
+			overlapChannelName = cfg->OverlapCollisionChannelName;
 	}
-	else
-	{
-		AddCollisionComponent_Server(CollisionComponent);
-	}
+
+	bool bFound = false;
+	const ECollisionChannel overlapChannel = UMounteaInteractionStatics::ResolveInteractionChannel(overlapChannelName, bFound);
+
+	CollisionComponent->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	CollisionComponent->SetCollisionResponseToAllChannels(ECR_Ignore);
+	if (bFound) CollisionComponent->SetCollisionResponseToChannel(overlapChannel, ECR_Overlap);
+	CollisionComponent->SetGenerateOverlapEvents(true);
+
+	CollisionShapes.Add(CollisionComponent);
+	BindCollision(CollisionComponent);
+
+	OnCollisionShapeAdded.Broadcast(CollisionComponent);
 }
 
 void UMounteaInteractorComponentOverlap::AddCollisionComponents_Implementation(const TArray<UPrimitiveComponent*>& CollisionComponents)
 {
-	if (!GetOwner())
+	for (UPrimitiveComponent* comp : CollisionComponents)
 	{
-		LOG_ERROR(TEXT("[AddCollisionComponents] No owner!"));
-		return;
-	}
-
-	if (GetOwner()->HasAuthority())
-	{
-		for (const auto& Itr : CollisionComponents)
-		{
-			if (!Itr) return;
-
-			if (CollisionShapes.Contains(Itr)) return;
-
-			CollisionShapes.Add(Itr);
-
-			OnCollisionShapeAdded.Broadcast(Itr);
-		}
-
-		MARK_PROPERTY_DIRTY_FROM_NAME(UMounteaInteractorComponentOverlap, CollisionShapes, this);
-	}
-	else
-	{
-		AddCollisionComponents_Server(CollisionComponents);
+		AddCollisionComponent_Implementation(comp);
 	}
 }
 
 void UMounteaInteractorComponentOverlap::RemoveCollisionComponent_Implementation(UPrimitiveComponent* CollisionComponent)
 {
-	if (!GetOwner())
+	if (!IsValid(CollisionComponent) || !CollisionShapes.Contains(CollisionComponent))
+				return;
+
+	if (GetOwner() && !GetOwner()->HasAuthority())
 	{
-		LOG_ERROR(TEXT("[RemoveCollisionComponent] No owner!"));
+		RemoveCollisionComponent_Server(CollisionComponent);
 		return;
 	}
 
-	if (GetOwner()->HasAuthority())
+	UnbindCollision(CollisionComponent);
+
+	if (const FCollisionShapeCache* cache = CachedCollisionShapesSettings.Find(CollisionComponent))
 	{
-		if (!CollisionComponent) return;
-
-		if (!CollisionShapes.Contains(CollisionComponent)) return;
-
-		CollisionShapes.Remove(CollisionComponent);
-
-		OnCollisionShapeRemoved.Broadcast(CollisionComponent);
-
-		MARK_PROPERTY_DIRTY_FROM_NAME(UMounteaInteractorComponentOverlap, CollisionShapes, this);
+		CollisionComponent->SetCollisionEnabled(cache->CollisionEnabled.GetValue());
+		CollisionComponent->SetGenerateOverlapEvents(cache->bGenerateOverlapEvents);
+		CollisionComponent->SetCollisionResponseToChannels(cache->ResponseContainer);
+		CachedCollisionShapesSettings.Remove(CollisionComponent);
 	}
-	else
-	{
-		RemoveCollisionComponent_Server(CollisionComponent);
-	}
+
+	CollisionShapes.Remove(CollisionComponent);
+	OnCollisionShapeRemoved.Broadcast(CollisionComponent);
 }
 
 void UMounteaInteractorComponentOverlap::RemoveCollisionComponents_Implementation(const TArray<UPrimitiveComponent*>& CollisionComponents)
 {
-	if (!GetOwner())
+	for (UPrimitiveComponent* comp : CollisionComponents)
 	{
-		LOG_ERROR(TEXT("[RemoveCollisionComponents] No owner!"));
-		return;
+		RemoveCollisionComponent_Implementation(comp);
 	}
-
-	if (GetOwner()->HasAuthority())
-	{
-		for (const auto& Itr : CollisionComponents)
-		{
-			if (!Itr) return;
-
-			if (!CollisionShapes.Contains(Itr)) return;
-
-			CollisionShapes.Remove(Itr);
-
-			OnCollisionShapeRemoved.Broadcast(Itr);
-		}
-
-		MARK_PROPERTY_DIRTY_FROM_NAME(UMounteaInteractorComponentOverlap, CollisionShapes, this);
-	}
-	else
-	{
-		RemoveCollisionComponents_Server(CollisionComponents);
-	}
-}
-
-void UMounteaInteractorComponentOverlap::AddCollisionComponent_Server_Implementation(UPrimitiveComponent* CollisionComponent)
-{
-	AddCollisionComponent(CollisionComponent);
-}
-
-void UMounteaInteractorComponentOverlap::AddCollisionComponents_Server_Implementation(const TArray<UPrimitiveComponent*>& CollisionComponents)
-{
-	AddCollisionComponents(CollisionComponents);
-}
-
-void UMounteaInteractorComponentOverlap::RemoveCollisionComponent_Server_Implementation(UPrimitiveComponent* CollisionComponent)
-{
-	RemoveCollisionComponent(CollisionComponent);
-}
-
-void UMounteaInteractorComponentOverlap::RemoveCollisionComponents_Server_Implementation(const TArray<UPrimitiveComponent*>& CollisionComponents)
-{
-	RemoveCollisionComponents(CollisionComponents);
 }
 
 TArray<UPrimitiveComponent*> UMounteaInteractorComponentOverlap::GetCollisionComponents() const
 {
-	return CollisionShapes;
+	TArray<UPrimitiveComponent*> out;
+	for (auto p : CollisionShapes) { if (IsValid(p)) out.Add(p); }
+	return out;
 }
 
-void UMounteaInteractorComponentOverlap::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+#pragma endregion
+
+#pragma region OverlapCallbacks
+
+void UMounteaInteractorComponentOverlap::StartInteractorOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	
-	DOREPLIFETIME_CONDITION(UMounteaInteractorComponentOverlap, CollisionShapes, COND_Custom);
+	if (!Execute_CanInteract(this))
+				return;
+
+	if (GetOwner() && !GetOwner()->HasAuthority())
+	{
+		StartInteractorOverlap_Server(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
+		return;
+	}
+
+	HandleStartOverlap(OtherActor);
 }
+
+void UMounteaInteractorComponentOverlap::StopInteractorOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	if (GetOwner() && !GetOwner()->HasAuthority())
+	{
+		StopInteractorOverlap_Server(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex);
+		return;
+	}
+
+	HandleEndOverlap(OtherActor);
+}
+
+void UMounteaInteractorComponentOverlap::HandleStartOverlap(AActor* OtherActor)
+{
+	if (!IsValid(OtherActor))
+				return;
+
+	TArray<UActorComponent*> interactableComps;
+	OtherActor->GetComponents(interactableComps);
+
+	for (UActorComponent* comp : interactableComps)
+	{
+		if (!IsValid(comp) || !comp->GetClass()->ImplementsInterface(UMounteaInteractableInterface::StaticClass()))
+				continue;
+
+		TScriptInterface<IMounteaInteractableInterface> interactable;
+		interactable.SetObject(comp);
+		interactable.SetInterface(Cast<IMounteaInteractableInterface>(comp));
+
+		AddDetected(interactable);
+	}
+}
+
+void UMounteaInteractorComponentOverlap::HandleEndOverlap(AActor* OtherActor)
+{
+	if (!IsValid(OtherActor))
+				return;
+
+	TArray<UActorComponent*> interactableComps;
+	OtherActor->GetComponents(interactableComps);
+
+	for (UActorComponent* comp : interactableComps)
+	{
+		if (!IsValid(comp) || !comp->GetClass()->ImplementsInterface(UMounteaInteractableInterface::StaticClass()))
+				continue;
+
+		TScriptInterface<IMounteaInteractableInterface> interactable;
+		interactable.SetObject(comp);
+		interactable.SetInterface(Cast<IMounteaInteractableInterface>(comp));
+
+		RemoveDetected(interactable);
+	}
+}
+
+#pragma endregion
+
+#pragma region Networking
+
+void UMounteaInteractorComponentOverlap::AddCollisionComponent_Server_Implementation(UPrimitiveComponent* CollisionComponent)
+{
+	AddCollisionComponent_Implementation(CollisionComponent);
+}
+
+void UMounteaInteractorComponentOverlap::RemoveCollisionComponent_Server_Implementation(UPrimitiveComponent* CollisionComponent)
+{
+	RemoveCollisionComponent_Implementation(CollisionComponent);
+}
+
+void UMounteaInteractorComponentOverlap::StartInteractorOverlap_Server_Implementation(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	HandleStartOverlap(OtherActor);
+}
+
+void UMounteaInteractorComponentOverlap::StopInteractorOverlap_Server_Implementation(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	HandleEndOverlap(OtherActor);
+}
+
+#pragma endregion
+
+void UMounteaInteractorComponentOverlap::ProcessStateChanged()
+{
+	Super::ProcessStateChanged();
+
+	const bool bShouldBeActive =
+		InteractorState == EInteractorStateV3::EIS_Scanning ||
+		InteractorState == EInteractorStateV3::EIS_Active;
+
+	if (!bShouldBeActive)
+	{
+		ClearDetected();
+		UnbindCollisions();
+	}
+	else
+	{
+		BindCollisions();
+	}
+}
+
+#undef LOCTEXT_NAMESPACE
