@@ -1,16 +1,25 @@
-﻿// All rights reserved Dominik Morse (Pavlicek) 2024.
+// All rights reserved Dominik Morse (Pavlicek) 2024.
 
 #pragma once
 
 #include "CoreMinimal.h"
 #include "MounteaInteractableComponentHold.h"
-#include "Components/ActorComponent.h"
 #include "MounteaInteractableComponentHover.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCursorBeginsOverlap, UPrimitiveComponent*, PrimitiveComponent);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCursorStopsOverlap, UPrimitiveComponent*, PrimitiveComponent);
 
-UCLASS(ClassGroup=(Mountea), meta=(BlueprintSpawnableComponent, DisplayName = "Interactable Component Hover"))
+/**
+ * v5.0 Actor Interactable Hover Component
+ *
+ * Triggered by cursor hover instead of key presses.
+ * Holds for InteractionPeriod seconds while cursor remains over collision shape.
+ * Moving cursor away cancels the interaction.
+ * Binds cursor events (OnBeginCursorOver / OnEndCursorOver) instead of overlap/hit events.
+ *
+ * @see https://github.com/Mountea-Framework/MounteaInteractionSystem/wiki/Actor-Interactable-Component-Hover
+ */
+UCLASS(ClassGroup=(Mountea), meta=(BlueprintSpawnableComponent, DisplayName="Interactable Component Hover"))
 class MOUNTEAINTERACTIONSYSTEM_API UMounteaInteractableComponentHover : public UMounteaInteractableComponentHold
 {
 	GENERATED_BODY()
@@ -20,34 +29,26 @@ public:
 	UMounteaInteractableComponentHover();
 
 protected:
-	virtual void BeginPlay() override;
 
 	virtual void BindCollisionShape_Implementation(UPrimitiveComponent* PrimitiveComponent) const override;
 	virtual void UnbindCollisionShape_Implementation(UPrimitiveComponent* PrimitiveComponent) const override;
 
 	virtual bool CanInteract_Implementation() const override;
 
-	
 	UFUNCTION()
-	void OnHoverBeginsEvent(UPrimitiveComponent* PrimitiveComponent);
+	void OnCursorBeginOverlapEvent(UPrimitiveComponent* PrimitiveComponent);
+
 	UFUNCTION()
-	void OnHoverStopsEvent(UPrimitiveComponent* PrimitiveComponent);
+	void OnCursorEndOverlapEvent(UPrimitiveComponent* PrimitiveComponent);
 
 protected:
-	
-	/**
-	 * Event called once collision is overlapped by Cursor.
-	 */
+
 	UPROPERTY(BlueprintAssignable, Category="Mountea|Interaction|Interactable")
 	FOnCursorBeginsOverlap OnCursorBeginsOverlap;
-	/**
-	 * Event called once collision is no longer overlapped by Cursor.
-	 */
+
 	UPROPERTY(BlueprintAssignable, Category="Mountea|Interaction|Interactable")
 	FOnCursorStopsOverlap OnCursorStopsOverlap;
 
-protected:
-
 	UPROPERTY(SaveGame, VisibleAnywhere, Category="MounteaInteraction|Read Only")
-	UPrimitiveComponent* OverlappingComponent = nullptr;
+	TObjectPtr<UPrimitiveComponent> OverlappingComponent = nullptr;
 };

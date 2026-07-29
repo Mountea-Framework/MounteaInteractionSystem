@@ -1,65 +1,80 @@
 ﻿// All rights reserved Dominik Morse (Pavlicek) 2024.
 
-
 #include "Components/Interactable/MounteaInteractableComponentHover.h"
-#include "Helpers/MounteaInteractionHelpers.h"
+#include "Interfaces/MounteaInteractorInterface.h"
+#include "Components/PrimitiveComponent.h"
+#include "Engine/World.h"
 
 #define LOCTEXT_NAMESPACE "MounteaInteractableComponentHover"
 
 UMounteaInteractableComponentHover::UMounteaInteractableComponentHover()
 {
-	bInteractionHighlight = true;
-	DefaultInteractableState = EInteractableStateV2::EIS_Awake;
-	InteractionPeriod = 3.f;
-	InteractableName = NSLOCTEXT("MounteaInteractableComponentHover", "Hover", "Hover");
-}
-
-void UMounteaInteractableComponentHover::BeginPlay()
-{
-	Super::BeginPlay();
-
-	OnInteractorOverlapped.										RemoveDynamic(this, &UMounteaInteractableComponentHover::OnInteractableBeginOverlapEvent);
-	OnInteractorStopOverlap.										RemoveDynamic(this, &UMounteaInteractableComponentHover::OnInteractableStopOverlapEvent);
-	OnInteractorTraced.												RemoveDynamic(this, &UMounteaInteractableComponentHover::OnInteractableTracedEvent);
+	OverlappingComponent = nullptr;
 }
 
 void UMounteaInteractableComponentHover::BindCollisionShape_Implementation(UPrimitiveComponent* PrimitiveComponent) const
 {
-	Super::BindCollisionShape_Implementation(PrimitiveComponent);
+	if (!IsValid(PrimitiveComponent))
+				return;
 
-	if (PrimitiveComponent)
-	{
-		PrimitiveComponent->OnBeginCursorOver.		AddUniqueDynamic(this, &UMounteaInteractableComponentHover::OnHoverBeginsEvent);
-		PrimitiveComponent->OnEndCursorOver.			AddUniqueDynamic(this, &UMounteaInteractableComponentHover::OnHoverStopsEvent);
-	}
+	// Hover uses cursor events — do NOT bind overlap/hit callbacks from base
+	PrimitiveComponent->OnBeginCursorOver.AddUniqueDynamic(
+		const_cast<UMounteaInteractableComponentHover*>(this),
+		&UMounteaInteractableComponentHover::OnCursorBeginOverlapEvent);
+
+	PrimitiveComponent->OnEndCursorOver.AddUniqueDynamic(
+		const_cast<UMounteaInteractableComponentHover*>(this),
+		&UMounteaInteractableComponentHover::OnCursorEndOverlapEvent);
 }
 
 void UMounteaInteractableComponentHover::UnbindCollisionShape_Implementation(UPrimitiveComponent* PrimitiveComponent) const
 {
-	Super::UnbindCollisionShape_Implementation(PrimitiveComponent);
+	if (!IsValid(PrimitiveComponent))
+				return;
 
-	if (PrimitiveComponent)
-	{
-		PrimitiveComponent->OnBeginCursorOver.		RemoveDynamic(this, &UMounteaInteractableComponentHover::OnHoverBeginsEvent);
-		PrimitiveComponent->OnEndCursorOver.			RemoveDynamic(this, &UMounteaInteractableComponentHover::OnHoverStopsEvent);
-	}
+	PrimitiveComponent->OnBeginCursorOver.RemoveDynamic(
+		const_cast<UMounteaInteractableComponentHover*>(this),
+		&UMounteaInteractableComponentHover::OnCursorBeginOverlapEvent);
+
+	PrimitiveComponent->OnEndCursorOver.RemoveDynamic(
+		const_cast<UMounteaInteractableComponentHover*>(this),
+		&UMounteaInteractableComponentHover::OnCursorEndOverlapEvent);
 }
 
 bool UMounteaInteractableComponentHover::CanInteract_Implementation() const
 {
-	return Super::CanInteract_Implementation() && OverlappingComponent != nullptr;
+	return IsValid(OverlappingComponent) && Super::CanInteract_Implementation();
 }
 
-void UMounteaInteractableComponentHover::OnHoverBeginsEvent(UPrimitiveComponent* PrimitiveComponent)
+void UMounteaInteractableComponentHover::OnCursorBeginOverlapEvent(UPrimitiveComponent* PrimitiveComponent)
 {
+	if (!IsValid(PrimitiveComponent))
+				return;
+
 	OverlappingComponent = PrimitiveComponent;
 	OnCursorBeginsOverlap.Broadcast(PrimitiveComponent);
+
+	// Cursor entering = interactor "found" — no actual interactor object for hover, drive interaction directly
+	if (Execute_CanInteract(this))
+	{
+		FString err;
+		Execute_ActivateInteractable(this, err);
+
+		// Simulate interaction start with server time
+		const float now = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.f;
+		TScriptInterface<IMounteaInteractorInterface> emptyInteractor;
+		Execute_InteractionStarted(this, now, emptyInteractor);
+	}
 }
 
-void UMounteaInteractableComponentHover::OnHoverStopsEvent(UPrimitiveComponent* PrimitiveComponent)
+void UMounteaInteractableComponentHover::OnCursorEndOverlapEvent(UPrimitiveComponent* PrimitiveComponent)
 {
-	OverlappingComponent = nullptr;
 	OnCursorStopsOverlap.Broadcast(PrimitiveComponent);
+	OverlappingComponent = nullptr;
+
+	const float now = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.f;
+	TScriptInterface<IMounteaInteractorInterface> emptyInteractor;
+	Execute_InteractionStopped(this, now, emptyInteractor);
 }
 
 #undef LOCTEXT_NAMESPACE
