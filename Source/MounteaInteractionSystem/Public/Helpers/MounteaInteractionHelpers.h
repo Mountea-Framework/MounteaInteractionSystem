@@ -93,21 +93,20 @@ struct FCollisionShapeCache
  {
   bGenerateOverlapEvents = false;
   CollisionEnabled = ECollisionEnabled::QueryOnly;
-  CollisionResponse = ECR_Overlap;
  };
-	
- FCollisionShapeCache(bool GeneratesOverlaps, TEnumAsByte<ECollisionEnabled::Type> collisionEnabled, TEnumAsByte<ECollisionResponse> collisionResponse) :
+
+ FCollisionShapeCache(bool GeneratesOverlaps, TEnumAsByte<ECollisionEnabled::Type> collisionEnabled, const FCollisionResponseContainer& InResponseContainer) :
  bGenerateOverlapEvents(GeneratesOverlaps),
   CollisionEnabled(collisionEnabled),
-  CollisionResponse(collisionResponse)
+  ResponseContainer(InResponseContainer)
  {};
-	
+
  UPROPERTY(Category="MounteaInteraction|Collision Cache", VisibleAnywhere)
  uint8 bGenerateOverlapEvents : 1;
  UPROPERTY(Category="MounteaInteraction|Collision Cache", VisibleAnywhere)
  TEnumAsByte<ECollisionEnabled::Type> CollisionEnabled;
  UPROPERTY(Category="MounteaInteraction|Collision Cache", VisibleAnywhere)
- TEnumAsByte<ECollisionResponse> CollisionResponse;
+ FCollisionResponseContainer ResponseContainer;
 	
 };
 
@@ -176,7 +175,8 @@ template<typename TEnum>
 static FString GetEnumValueAsString(const FString& Name, TEnum Value)
 {
  const UEnum* enumPtr = FindFirstObject<UEnum>(*Name, EFindFirstObjectOptions::None);
- if (!enumPtr) return FString("invalid");
+ if (!enumPtr)
+				return FString("invalid");
  return enumPtr->GetDisplayNameTextByValue((int64)Value).ToString();
 }
 
@@ -280,8 +280,12 @@ struct FSafetyTracingSetup
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Setup")
 	ESafetyTracingMode SafetyTracingMode;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Setup", meta=(EditCondition="SafetyTracingMode != ESafetyTracingMode::ESTM_None"))
-	TEnumAsByte<ECollisionChannel> ValidationCollisionChannel;
+	/** Overrides the global TraceCollisionChannelName from the interactor runtime config.
+	 *  NAME_None = use the global default. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Setup",
+		meta=(NoResetToDefault),
+		meta=(EditCondition="SafetyTracingMode != ESafetyTracingMode::ESTM_None"))
+	FName OverrideTraceChannelName;
 
 	/** Starting location for safety tracing, used when SafetyTracingMode is set to Location. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Setup", meta=(EditCondition="SafetyTracingMode == ESafetyTracingMode::ESTM_Location"))
@@ -290,22 +294,22 @@ struct FSafetyTracingSetup
 	/** Starting socket name for safety tracing, used when SafetyTracingMode is set to Socket. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Setup",  meta=(EditCondition="SafetyTracingMode == ESafetyTracingMode::ESTM_Socket"))
 	FName ActorMeshName;
-	
+
 	/** Starting socket name for safety tracing, used when SafetyTracingMode is set to Socket. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Setup",  meta=(EditCondition="SafetyTracingMode == ESafetyTracingMode::ESTM_Socket"))
 	FName StartSocketName;
-	
+
 	FSafetyTracingSetup()
 		: SafetyTracingMode(ESafetyTracingMode::ESTM_None)
-		, ValidationCollisionChannel(ECC_Camera)
+		, OverrideTraceChannelName(NAME_None)
 		, StartLocation(FVector::ZeroVector)
 		, ActorMeshName(NAME_None)
 		, StartSocketName(FName("head"))
 	{}
-	
-	FSafetyTracingSetup(ESafetyTracingMode InSafetyTracingMode, const TEnumAsByte<ECollisionChannel>& InValidationCollisionChannel = ECC_Camera, const FVector& InStartLocation = FVector(), const FName InActorMeshName = FName(), const FName InStartSocketName = FName())
+
+	FSafetyTracingSetup(ESafetyTracingMode InSafetyTracingMode, const FVector& InStartLocation = FVector(), const FName InActorMeshName = FName(), const FName InStartSocketName = FName())
 		: SafetyTracingMode(InSafetyTracingMode)
-		, ValidationCollisionChannel(InValidationCollisionChannel)
+		, OverrideTraceChannelName(NAME_None)
 		, StartLocation(InStartLocation)
 		, ActorMeshName(InActorMeshName)
 		, StartSocketName(InStartSocketName)
@@ -313,7 +317,7 @@ struct FSafetyTracingSetup
 
 	bool operator==(const FSafetyTracingSetup& Other) const
 	{
-		if (SafetyTracingMode != Other.SafetyTracingMode || ValidationCollisionChannel != Other.ValidationCollisionChannel)
+		if (SafetyTracingMode != Other.SafetyTracingMode || OverrideTraceChannelName != Other.OverrideTraceChannelName)
 		{
 			return false;
 		}
@@ -338,18 +342,159 @@ struct FSafetyTracingSetup
 
 	FString ToString() const
 	{
+		const FString channelStr = OverrideTraceChannelName.IsNone() ? TEXT("(global)") : OverrideTraceChannelName.ToString();
 		switch (SafetyTracingMode)
 		{
 			case ESafetyTracingMode::ESTM_Location:
-				return FString::Printf(TEXT("SafetyTracingMode: Location, ValidationCollisionChannel: %d, StartLocation: %s"), ValidationCollisionChannel.GetValue(), *StartLocation.ToString());
+				return FString::Printf(TEXT("SafetyTracingMode: Location, TraceChannel: %s, StartLocation: %s"), *channelStr, *StartLocation.ToString());
 			case ESafetyTracingMode::ESTM_Socket:
-				return FString::Printf(TEXT("SafetyTracingMode: Socket, ValidationCollisionChannel: %d, ActorMeshName: %s, StartSocketName: %s"), ValidationCollisionChannel.GetValue(), *ActorMeshName.ToString(), *StartSocketName.ToString());
+				return FString::Printf(TEXT("SafetyTracingMode: Socket, TraceChannel: %s, ActorMeshName: %s, StartSocketName: %s"), *channelStr, *ActorMeshName.ToString(), *StartSocketName.ToString());
 			case ESafetyTracingMode::ESTM_None:
 			default:
-				return FString::Printf(TEXT("SafetyTracingMode: None, ValidationCollisionChannel: %d"), ValidationCollisionChannel.GetValue());
+				return FString::Printf(TEXT("SafetyTracingMode: None, TraceChannel: %s"), *channelStr);
 		}
 	}
 
+};
+
+#pragma endregion
+
+#pragma region V3_StateMachines
+
+/**
+ * Interactable state machine — v5.0.
+ * Adds EIS_Attention for the distance-based widget system (in attention range but not interaction range).
+ */
+UENUM(BlueprintType, meta=(ScriptName="InteractableStateV3"))
+enum class EInteractableStateV3 : uint8
+{
+	EIS_Active		UMETA(DisplayName = "Active",		Tooltip = "Interactable is being interacted with."),
+	EIS_Awake		UMETA(DisplayName = "Awake",		Tooltip = "Interactable can be interacted with. Reacts to Interactors."),
+	EIS_Attention	UMETA(DisplayName = "Attention",	Tooltip = "Interactor is in attention range but not yet in interaction range. Shows attention widget."),
+	EIS_Cooldown	UMETA(DisplayName = "Cooldown",		Tooltip = "Interactable is recovering. Will awake after cooldown."),
+	EIS_Paused		UMETA(DisplayName = "Paused",		Tooltip = "Interactable is paused. Retains progress."),
+	EIS_Completed	UMETA(DisplayName = "Finished",		Tooltip = "Interaction completed. Cannot be re-activated."),
+	EIS_Disabled	UMETA(DisplayName = "Disabled",		Tooltip = "Interactable is disabled. Can be awakened manually."),
+	EIS_Suppressed	UMETA(DisplayName = "Suppressed",	Tooltip = "Interactable is suppressed by a dependency. Cannot be interacted with."),
+};
+
+/**
+ * Interactor state machine — v5.0.
+ * EIS_Scanning replaces EIS_Awake for clarity.
+ */
+UENUM(BlueprintType, meta=(ScriptName="InteractorStateV3"))
+enum class EInteractorStateV3 : uint8
+{
+	EIS_Scanning	UMETA(DisplayName = "Scanning",		Tooltip = "Interactor is actively scanning for interactables."),
+	EIS_Active		UMETA(DisplayName = "Interacting",	Tooltip = "Interactor is performing an interaction."),
+	EIS_Asleep		UMETA(DisplayName = "Asleep",		Tooltip = "Interactor is asleep. Useful for cutscenes."),
+	EIS_Suppressed	UMETA(DisplayName = "Suppressed",	Tooltip = "Interactor is suppressed. Cannot interact."),
+	EIS_Disabled	UMETA(DisplayName = "Disabled",		Tooltip = "Interactor is disabled."),
+};
+
+#pragma endregion
+
+#pragma region V5_WidgetMode
+
+UENUM(BlueprintType)
+enum class EInteractionWidgetMode : uint8
+{
+	EWM_None		UMETA(DisplayName = "None",			Tooltip = "No widget shown."),
+	EWM_Attention	UMETA(DisplayName = "Attention",	Tooltip = "Subtle attention widget shown (interactor in attention range)."),
+	EWM_Interaction	UMETA(DisplayName = "Interaction",	Tooltip = "Full interaction widget shown (interactor in interaction range)."),
+};
+
+#pragma endregion
+
+#pragma region V5_WidgetRanges
+
+/**
+ * Widget display ranges for a single interactable component.
+ * AttentionRange >= InteractionRange must hold; enforced by IsDataValid().
+ */
+USTRUCT(BlueprintType)
+struct FInteractableWidgetRanges
+{
+	GENERATED_BODY()
+
+	/** Distance at which the attention widget appears. Must be >= InteractionRange. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Widget Ranges", meta=(Units="cm", UIMin=0.f, ClampMin=0.f))
+	float AttentionRange = 500.f;
+
+	/** Distance at which the full interaction widget appears. Must be <= AttentionRange. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Widget Ranges", meta=(Units="cm", UIMin=0.f, ClampMin=0.f))
+	float InteractionRange = 200.f;
+
+	bool IsValid() const { return InteractionRange <= AttentionRange; }
+};
+
+#pragma endregion
+
+#pragma region V5_InteractionActionCandidate
+
+class IMounteaInteractableInterface;
+
+/**
+ * Represents a single interactable component discovered by an interactor.
+ * The candidate list is sorted by weight (desc) then distance squared (asc).
+ */
+USTRUCT(BlueprintType)
+struct FInteractionActionCandidate
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadOnly, Category="Candidate")
+	TScriptInterface<IMounteaInteractableInterface> Interactable;
+
+	UPROPERTY(BlueprintReadOnly, Category="Candidate")
+	float CachedWeight = 0.f;
+
+	/** Squared distance at detection time — avoids sqrt for sort comparisons. */
+	UPROPERTY(BlueprintReadOnly, Category="Candidate")
+	float CachedDistanceSq = 0.f;
+
+	bool operator==(const FInteractionActionCandidate& Other) const
+	{
+		return Interactable.GetObject() == Other.Interactable.GetObject();
+	}
+
+	bool operator<(const FInteractionActionCandidate& Other) const
+	{
+		if (CachedWeight != Other.CachedWeight)
+				return CachedWeight > Other.CachedWeight;
+		return CachedDistanceSq < Other.CachedDistanceSq;
+	}
+
+	bool IsValid() const { return Interactable.GetInterface() != nullptr; }
+};
+
+#pragma endregion
+
+#pragma region V5_InteractorSlot
+
+class IMounteaInteractorInterface;
+
+/**
+ * Tracks a single interactor occupying a slot on an interactable.
+ * Stored in the interactable's replicated ActiveInteractorSlots array.
+ */
+USTRUCT(BlueprintType)
+struct FInteractorSlot
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadOnly, Category="Slot")
+	TScriptInterface<IMounteaInteractorInterface> Interactor;
+
+	/** Tags the interactor satisfied when joining (subset of RequiredInteractorTags). */
+	UPROPERTY(BlueprintReadOnly, Category="Slot")
+	FGameplayTagContainer MatchedTags;
+
+	/** Server world time at the moment this interactor joined. Used for Hold/Mash progress. */
+	UPROPERTY(BlueprintReadOnly, Category="Slot")
+	float JoinServerTime = 0.f;
+
+	bool IsValid() const { return Interactor.GetInterface() != nullptr; }
 };
 
 #pragma endregion
@@ -379,7 +524,6 @@ struct FInteractorBaseSettings
 	{
 		SafetyTracingSetup.StartSocketName = FName("head");
 		SafetyTracingSetup.ActorMeshName = FName("CharacterMesh0");
-		SafetyTracingSetup.ValidationCollisionChannel = ECC_Camera;
 		SafetyTracingSetup.SafetyTracingMode = ESafetyTracingMode::ESTM_Location;
 	}
 };
