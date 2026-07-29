@@ -1,11 +1,4 @@
-﻿// All rights reserved Dominik Morse (Pavlicek) 2024.
-
+// All rights reserved Dominik Morse (Pavlicek) 2024.
+// DEPRECATED — see MounteaInteractableUIConfig.cpp
 
 #include "Helpers/MounteaInteractionSettingsConfig.h"
-
-#include "CommonInputTypeEnum.h"
-
-FKeyOnDevicePair::FKeyOnDevicePair() 
-		: SupportedDeviceType(ECommonInputType::MouseAndKeyboard)
-{
-}
