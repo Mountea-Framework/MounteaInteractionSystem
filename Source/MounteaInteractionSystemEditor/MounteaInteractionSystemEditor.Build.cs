@@ -48,6 +48,7 @@ public class MounteaInteractionSystemEditor : ModuleRules
 				"Kismet", 
 				
 				"WebBrowser",
+				"WebBrowserWidget",
 				"HTTP", 
 				"Json", 
 				"JsonUtilities",
