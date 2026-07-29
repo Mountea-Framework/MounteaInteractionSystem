@@ -36,7 +36,6 @@ private:
 
 	TSharedPtr<class FInteractorComponentAssetActions> InteractorComponentAssetActions;
 	TSharedPtr<class FInteractableComponentAssetActions> InteractableComponentAssetActions;
-	TSharedPtr<class FInteractionSettingsConfigAssetActions> InteractionConfigSettingsAssetAction;
 	
 public:
 	
@@ -53,6 +52,8 @@ private:
 
 	void RegisterMenus();
 
+	static void EnsureInteractionChannels();
+
 	void OnGetResponse(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
 	UFUNCTION() void SendHTTPGet();
 	void OnGetResponse_Tags(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
@@ -60,6 +61,7 @@ private:
 
 	void RegisterTabSpawners(const TSharedRef<FTabManager>& TabManager);
 	void TutorialButtonClicked() const;
+	void SetupChannelsButtonClicked() const;
 	
 private:
 	TSharedRef<SDockTab> OnSpawnInteractionSystemTutorialTab(const FSpawnTabArgs& SpawnTabArgs);

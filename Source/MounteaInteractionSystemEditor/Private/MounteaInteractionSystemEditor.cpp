@@ -25,7 +25,6 @@
 #include "Utilities/MounteaInteractionEditorUtilities.h"
 
 #include "ToolMenus.h"
-#include "AssetActions/MounteaInteractionSettingsConfig.h"
 #include "DetailsPanel/MounteaInteractableBase_DetailsPanel.h"
 #include "ISettingsModule.h"
 #include "WorkspaceMenuStructure.h"
@@ -33,11 +32,24 @@
 #include "Consts/MounteaInteractionEditorConsts.h"
 #include "HelpButton/MounteaInteractionSystemTutorialPage.h"
 #include "Helpers/MounteaInteractionSystemEditorLog.h"
+#include "Helpers/MounteaInteractionEditorNotify.h"
 #include "Interfaces/IHttpResponse.h"
+#include "Engine/CollisionProfile.h"
 
+#include "Helpers/MounteaInteractionHtmlHelpers.h"
 #include "Interfaces/IMainFrameModule.h"
 #include "Serialization/JsonReader.h"
 #include "Settings/MounteaInteractionEditorSettings.h"
+
+#include "Containers/Ticker.h"
+#include "Dom/JsonObject.h"
+#include "Dom/JsonValue.h"
+#include "Misc/App.h"
+#include "Misc/FileHelper.h"
+#include "Misc/MessageDialog.h"
+#include "Serialization/JsonSerializer.h"
+#include "Serialization/JsonWriter.h"
+#include "UnrealEdMisc.h"
 
 DEFINE_LOG_CATEGORY(MounteaInteractionSystemEditor);
 
@@ -49,6 +61,71 @@ static const FName MenuName("LevelEditor.LevelEditorToolBar.PlayToolBar");
 
 void FMounteaInteractionSystemEditor::StartupModule()
 {
+	// Ensure WebBrowserWidget plugin is enabled — required for HTML help pages and the changelog popup
+	{
+		const TSharedPtr<IPlugin> webBrowserPlugin = IPluginManager::Get().FindPlugin(TEXT("WebBrowserWidget"));
+		if (!webBrowserPlugin.IsValid() || !webBrowserPlugin->IsEnabled())
+		{
+			const FText errorTitle   = NSLOCTEXT("MounteaInteraction", "WebBrowserPluginMissing_Title",   "Missing Plugin — Mountea Interaction System");
+			const FText errorMessage = NSLOCTEXT("MounteaInteraction", "WebBrowserPluginMissing_Message",
+				"The 'Web Browser Widget' plugin is required for HTML-based help pages and the changelog popup.\n\n"
+				"It will be enabled automatically and the editor will restart.");
+			FMessageDialog::Open(EAppMsgType::Ok, errorMessage, errorTitle);
+
+			const FString projectFile = FPaths::GetProjectFilePath();
+			FString jsonString;
+			if (FFileHelper::LoadFileToString(jsonString, *projectFile))
+			{
+				TSharedPtr<FJsonObject> jsonObject;
+				TSharedRef<TJsonReader<>> reader = TJsonReaderFactory<>::Create(jsonString);
+				if (FJsonSerializer::Deserialize(reader, jsonObject) && jsonObject.IsValid())
+				{
+					TArray<TSharedPtr<FJsonValue>> pluginsArray;
+					if (jsonObject->HasField(TEXT("Plugins")))
+						pluginsArray = jsonObject->GetArrayField(TEXT("Plugins"));
+
+					bool bFound = false;
+					for (const TSharedPtr<FJsonValue>& pluginVal : pluginsArray)
+					{
+						const TSharedPtr<FJsonObject> pluginObj = pluginVal->AsObject();
+						if (pluginObj.IsValid() && pluginObj->GetStringField(TEXT("Name")) == TEXT("WebBrowserWidget"))
+						{
+							pluginObj->SetBoolField(TEXT("Enabled"), true);
+							bFound = true;
+							break;
+						}
+					}
+					if (!bFound)
+					{
+						TSharedPtr<FJsonObject> newPlugin = MakeShareable(new FJsonObject());
+						newPlugin->SetStringField(TEXT("Name"), TEXT("WebBrowserWidget"));
+						newPlugin->SetBoolField(TEXT("Enabled"), true);
+						pluginsArray.Add(MakeShareable(new FJsonValueObject(newPlugin)));
+					}
+
+					jsonObject->SetArrayField(TEXT("Plugins"), pluginsArray);
+
+					FString outString;
+					TSharedRef<TJsonWriter<>> writer = TJsonWriterFactory<>::Create(&outString);
+					if (FJsonSerializer::Serialize(jsonObject.ToSharedRef(), writer))
+						FFileHelper::SaveStringToFile(outString, *projectFile);
+				}
+			}
+
+			FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateLambda([](float) -> bool
+			{
+				FUnrealEdMisc::Get().RestartEditor(false);
+				return false;
+			}));
+			return;
+		}
+	}
+
+	// Auto-register named collision channels in DefaultEngine.ini if missing
+	{
+		EnsureInteractionChannels();
+	}
+
 	// Try to request Changelog from GitHub & GameplayTags
 	{
 		Http = &FHttpModule::Get();
@@ -95,17 +172,6 @@ void FMounteaInteractionSystemEditor::StartupModule()
 				}
 			}
 			
-			// Config
-			{
-				FSlateImageBrush* InteractableComponentClassThumb = new FSlateImageBrush(InteractionSet->RootToContentDir(TEXT("Resources/InteractionConfigIcon"), TEXT(".png")), FVector2D(128.f, 128.f));
-				FSlateImageBrush* InteractableComponentClassIcon = new FSlateImageBrush(InteractionSet->RootToContentDir(TEXT("Resources/InteractionConfigIcon"), TEXT(".png")), FVector2D(16.f, 16.f));
-				if (InteractableComponentClassThumb && InteractableComponentClassIcon)
-				{
-					InteractionSet->Set("ClassThumbnail.MounteaInteractionSettingsConfig", InteractableComponentClassThumb);
-					InteractionSet->Set("ClassIcon.MounteaInteractionSettingsConfig", InteractableComponentClassIcon);
-				}
-			}
-			
 			FSlateStyleRegistry::RegisterSlateStyle(*InteractionSet.Get());
 		}
 	}
@@ -124,11 +190,6 @@ void FMounteaInteractionSystemEditor::StartupModule()
 			FAssetToolsModule::GetModule().Get().RegisterAssetTypeActions(InteractableComponentAssetActions.ToSharedRef());
 		}
 
-		// Register Interaction Config
-		{
-			InteractionConfigSettingsAssetAction = MakeShared<FInteractionSettingsConfigAssetActions>();
-			FAssetToolsModule::GetModule().Get().RegisterAssetTypeActions(InteractionConfigSettingsAssetAction.ToSharedRef());
-		}
 	}
 
 	// Register pre-made Events
@@ -195,6 +256,109 @@ void FMounteaInteractionSystemEditor::StartupModule()
 	}
 }
 
+void FMounteaInteractionSystemEditor::EnsureInteractionChannels()
+{
+	if (!GConfig) return;
+
+	// Fast path: both channels already loaded by the collision profile at runtime
+	auto channelExists = [](const FName& Name) -> bool
+	{
+		UCollisionProfile* profile = UCollisionProfile::Get();
+		if (!profile) return false;
+		for (int32 i = static_cast<int32>(ECC_GameTraceChannel1); i <= static_cast<int32>(ECC_GameTraceChannel18); ++i)
+		{
+			if (profile->ReturnChannelNameFromContainerIndex(i) == Name)
+				return true;
+		}
+		return false;
+	};
+	if (channelExists(FName("InteractionOverlap")) && channelExists(FName("InteractionTrace"))) return;
+
+	static const TCHAR* Section = TEXT("/Script/Engine.CollisionProfile");
+	const FString iniPath = FPaths::ProjectConfigDir() / TEXT("DefaultEngine.ini");
+
+	// Read the project DefaultEngine.ini from disk to detect already-pending additions
+	// (written in a previous session but not yet visible to the collision profile at runtime)
+	FConfigFile projectConfig;
+	if (FPaths::FileExists(iniPath))
+		projectConfig.Read(iniPath);
+
+	TArray<FString> projectEntries;
+	projectConfig.GetArray(Section, TEXT("DefaultChannelResponses"), projectEntries);
+
+	auto hasEntry = [&projectEntries](const TCHAR* Name) -> bool
+	{
+		for (const FString& e : projectEntries)
+			if (e.Contains(Name)) return true;
+		return false;
+	};
+	if (hasEntry(TEXT("InteractionOverlap")) && hasEntry(TEXT("InteractionTrace"))) return;
+
+	// Collect all ECC_GameTraceChannelN slots already in use (merged + project file)
+	TArray<FString> mergedEntries;
+	GConfig->GetArray(Section, TEXT("DefaultChannelResponses"), mergedEntries, GEngineIni);
+
+	TSet<int32> usedSlots;
+	auto markSlots = [&usedSlots](const TArray<FString>& entries)
+	{
+		for (const FString& e : entries)
+			for (int32 i = 1; i <= 18; i++)
+				if (e.Contains(FString::Printf(TEXT("ECC_GameTraceChannel%d"), i)))
+				{
+					usedSlots.Add(i);
+					break;
+				}
+	};
+	markSlots(mergedEntries);
+	markSlots(projectEntries);
+
+	int32 nextFree = 1;
+	auto grabFreeSlot = [&]() -> int32
+	{
+		while (nextFree <= 18 && usedSlots.Contains(nextFree)) ++nextFree;
+		if (nextFree > 18) return -1;
+		usedSlots.Add(nextFree);
+		return nextFree++;
+	};
+
+	bool dirty = false;
+
+	if (!hasEntry(TEXT("InteractionOverlap")))
+	{
+		const int32 slot = grabFreeSlot();
+		if (slot > 0)
+		{
+			projectEntries.Add(FString::Printf(
+				TEXT("(Channel=ECC_GameTraceChannel%d,DefaultResponse=ECR_Ignore,bTraceType=False,bStaticObject=False,Name=\"InteractionOverlap\")"),
+				slot));
+			dirty = true;
+		}
+	}
+
+	if (!hasEntry(TEXT("InteractionTrace")))
+	{
+		const int32 slot = grabFreeSlot();
+		if (slot > 0)
+		{
+			projectEntries.Add(FString::Printf(
+				TEXT("(Channel=ECC_GameTraceChannel%d,DefaultResponse=ECR_Block,bTraceType=True,bStaticObject=False,Name=\"InteractionTrace\")"),
+				slot));
+			dirty = true;
+		}
+	}
+
+	if (!dirty) return;
+
+	projectConfig.SetArray(Section, TEXT("DefaultChannelResponses"), projectEntries);
+	projectConfig.Write(iniPath);
+
+	FMounteaInteractionEditorNotify::DisplayNotification(
+		FText::FromString(TEXT("Mountea Interaction System: collision channels added to DefaultEngine.ini. Restart the editor to fully apply them.")),
+		SNotificationItem::CS_Fail, 10.0f, 3.0f, TEXT("MessageLog.Warning")
+	);
+	EDITOR_LOG_WARNING(TEXT("Mountea Interaction System: InteractionOverlap and/or InteractionTrace collision channels written to DefaultEngine.ini. Please restart the editor."));
+}
+
 void FMounteaInteractionSystemEditor::ShutdownModule()
 {
 	// Thumbnails and Icons
@@ -208,7 +372,6 @@ void FMounteaInteractionSystemEditor::ShutdownModule()
 		{
 			FAssetToolsModule::GetModule().Get().UnregisterAssetTypeActions(InteractorComponentAssetActions.ToSharedRef());
 			FAssetToolsModule::GetModule().Get().UnregisterAssetTypeActions(InteractableComponentAssetActions.ToSharedRef());
-			FAssetToolsModule::GetModule().Get().UnregisterAssetTypeActions(InteractionConfigSettingsAssetAction.ToSharedRef());
 		}
 	}
 
@@ -434,6 +597,29 @@ void FMounteaInteractionSystemEditor::LauncherButtonClicked() const
 	}
 }
 
+void FMounteaInteractionSystemEditor::SetupChannelsButtonClicked() const
+{
+	auto channelExistsInProfile = [](const FName& Name) -> bool
+	{
+		UCollisionProfile* profile = UCollisionProfile::Get();
+		if (!profile) return false;
+		for (int32 i = static_cast<int32>(ECC_GameTraceChannel1); i <= static_cast<int32>(ECC_GameTraceChannel18); ++i)
+			if (profile->ReturnChannelNameFromContainerIndex(i) == Name) return true;
+		return false;
+	};
+
+	if (channelExistsInProfile(FName("InteractionOverlap")) && channelExistsInProfile(FName("InteractionTrace")))
+	{
+		FMounteaInteractionEditorNotify::DisplayNotification(
+			FText::FromString(TEXT("Mountea Interaction: collision channels are already configured.")),
+			SNotificationItem::CS_Success, 5.0f, 2.0f, TEXT("NotificationList.DefaultMessage")
+		);
+		return;
+	}
+
+	EnsureInteractionChannels();
+}
+
 void FMounteaInteractionSystemEditor::RegisterTabSpawners(const TSharedRef<FTabManager>& TabManager)
 {
 	TabManager->RegisterTabSpawner("InteractionSystemTutorial", 
@@ -461,20 +647,20 @@ void FMounteaInteractionSystemEditor::TutorialButtonClicked() const
 
 void FMounteaInteractionSystemEditor::RegisterMenus()
 {
-	if (!UToolMenus::Get()->IsMenuRegistered(MounteaAdvancedDialogueToolbar::MounteaSharedMenuName))
-		UToolMenus::Get()->RegisterMenu(MounteaAdvancedDialogueToolbar::MounteaSharedMenuName, NAME_None, EMultiBoxType::Menu, false);
+	if (!UToolMenus::Get()->IsMenuRegistered(MounteaInteractionToolbar::MounteaSharedMenuName))
+		UToolMenus::Get()->RegisterMenu(MounteaInteractionToolbar::MounteaSharedMenuName, NAME_None, EMultiBoxType::Menu, false);
 
 	{
 		UToolMenu* toolbarMenu = UToolMenus::Get()->ExtendMenu(MenuName);
-		FToolMenuSection& sharedSection = toolbarMenu->FindOrAddSection(MounteaAdvancedDialogueToolbar::MounteaSharedSectionName);
+		FToolMenuSection& sharedSection = toolbarMenu->FindOrAddSection(MounteaInteractionToolbar::MounteaSharedSectionName);
 		sharedSection.Label = LOCTEXT("SharedSection_Label", "Mountea Framework");
 
-		if (sharedSection.FindEntry(MounteaAdvancedDialogueToolbar::MounteaSharedButtonName) == nullptr)
+		if (sharedSection.FindEntry(MounteaInteractionToolbar::MounteaSharedButtonName) == nullptr)
 		{
 			FToolMenuEntry comboButton = FToolMenuEntry::InitComboButton(
-				MounteaAdvancedDialogueToolbar::MounteaSharedButtonName,
+				MounteaInteractionToolbar::MounteaSharedButtonName,
 				FUIAction(),
-				FOnGetContent::CreateLambda([SharedMenuName = MounteaAdvancedDialogueToolbar::MounteaSharedMenuName, CmdList = PluginCommands]() -> TSharedRef<SWidget>
+				FOnGetContent::CreateLambda([SharedMenuName = MounteaInteractionToolbar::MounteaSharedMenuName, CmdList = PluginCommands]() -> TSharedRef<SWidget>
 				{
 					return UToolMenus::Get()->GenerateWidget(SharedMenuName, FToolMenuContext(CmdList));
 				}),
@@ -482,7 +668,7 @@ void FMounteaInteractionSystemEditor::RegisterMenus()
 				LOCTEXT("MounteaMainMenu_Tooltip", "📂 Open Mountea Framework menu..."),
 				FSlateIcon(FAIntPHelpStyle::GetStyleSetName(), "AIntPStyleSet.MounteaLogo"),
 				false,
-				MounteaAdvancedDialogueToolbar::MounteaSharedButtonName
+				MounteaInteractionToolbar::MounteaSharedButtonName
 			);
 			comboButton.StyleNameOverride = "CalloutToolbar";
 			sharedSection.AddEntry(comboButton);
@@ -509,7 +695,7 @@ void FMounteaInteractionSystemEditor::RegisterMenus()
 		}
 
 		// Extend shared submenu with a nested Interaction submenu entry
-		UToolMenu* sharedMenu = UToolMenus::Get()->ExtendMenu(MounteaAdvancedDialogueToolbar::MounteaSharedMenuName);
+		UToolMenu* sharedMenu = UToolMenus::Get()->ExtendMenu(MounteaInteractionToolbar::MounteaSharedMenuName);
 		{
 			FToolMenuSection& interactionSection = sharedMenu->FindOrAddSection("MounteaInteraction");
 			interactionSection.Label = LOCTEXT("InteractionSection_Label", "Mountea Interaction System");
@@ -528,6 +714,13 @@ void FMounteaInteractionSystemEditor::RegisterMenus()
 							LOCTEXT("MounteaSystemEditor_TutorialButton_ToolTip", "📖 Open the Mountea Interaction System Tutorial"),
 							FSlateIcon(FAIntPHelpStyle::GetStyleSetName(), "AIntPStyleSet.Tutorial"),
 							FToolMenuExecuteAction::CreateLambda([this](const FToolMenuContext&) { TutorialButtonClicked(); })
+						));
+						tutorialSection.AddEntry(FToolMenuEntry::InitMenuEntry(
+							"MounteaInteraction_AutoSetup",
+							LOCTEXT("MounteaSystemEditor_AutoSetupButton_Label", "Setup Interaction Channels"),
+							LOCTEXT("MounteaSystemEditor_AutoSetupButton_ToolTip", "⚙ Validate and register InteractionOverlap and InteractionTrace collision channels.\n\n❔ Channels are auto-created on editor startup. Use this if the plugin was added to an existing project or channels are unexpectedly missing. A restart may be required for new channels to take effect."),
+							FSlateIcon(FAIntPHelpStyle::GetStyleSetName(), "AIntPStyleSet.Settings"),
+							FToolMenuExecuteAction::CreateLambda([this](const FToolMenuContext&) { SetupChannelsButtonClicked(); })
 						));
 						tutorialSection.AddEntry(FToolMenuEntry::InitMenuEntry(
 							"MounteaInteraction_ExampleLevel",
@@ -637,19 +830,32 @@ void FMounteaInteractionSystemEditor::RegisterMenus()
 
 void FMounteaInteractionSystemEditor::OnGetResponse(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
 {
-	FString ResponseBody;
-	if (Response.Get() == nullptr) return;
-	
+	FString responseBody;
+	FString changelogHtml;
+
 	if (Response.IsValid() && Response->GetResponseCode() == 200)
 	{
-		ResponseBody = Response->GetContentAsString();
-		TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(ResponseBody);
+		responseBody = Response->GetContentAsString();
+
+		FString markdownBodyHtml;
+		if (FMounteaInteractionHtmlHelpers::ConvertMarkdownToHtml(responseBody, markdownBodyHtml))
+			changelogHtml = FMounteaInteractionHtmlHelpers::BuildChangelogDocument(markdownBodyHtml);
+		else
+			changelogHtml = FMounteaInteractionHtmlHelpers::BuildChangelogDocument(FMounteaInteractionHtmlHelpers::BuildChangelogFallbackMessage());
 	}
 
-	// Register Popup even if we have no response, this way we can show at least something
-	{
-		AIntPPopup::Register(ResponseBody);
-	}
+	if (changelogHtml.IsEmpty())
+		changelogHtml = FMounteaInteractionHtmlHelpers::BuildChangelogDocument(FMounteaInteractionHtmlHelpers::BuildChangelogFallbackMessage());
+
+	FString changelogHtmlPath;
+	const UMounteaInteractionEditorSettings* editorSettings = GetDefault<UMounteaInteractionEditorSettings>();
+	if (editorSettings)
+		changelogHtmlPath = editorSettings->GetGeneratedChangelogPath();
+
+	if (!changelogHtmlPath.IsEmpty())
+		FFileHelper::SaveStringToFile(changelogHtml, *changelogHtmlPath);
+
+	AIntPPopup::Register(responseBody, changelogHtml, changelogHtmlPath);
 }
 
 void FMounteaInteractionSystemEditor::SendHTTPGet()
