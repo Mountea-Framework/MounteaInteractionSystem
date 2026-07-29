@@ -1,10 +1,32 @@
-﻿// All rights reserved Dominik Morse (Pavlicek) 2024
+// All rights reserved Dominik Morse (Pavlicek) 2024
 
 #pragma once
 
 #include "CoreMinimal.h"
 #include "Engine/DeveloperSettings.h"
 #include "MounteaInteractionEditorSettings.generated.h"
+
+USTRUCT(Blueprintable)
+struct FInteractionEditorPageConfig
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	FText PageTitle;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly,
+		meta = (FilePathFilter = "html"))
+	FFilePath PageFile;
+
+	FInteractionEditorPageConfig()
+	{}
+
+	FInteractionEditorPageConfig(FText InTitle, FString InPath)
+		: PageTitle(InTitle)
+	{
+		PageFile.FilePath = InPath;
+	}
+};
 
 /**
  * Mountea Interaction System global settings.
@@ -21,38 +43,55 @@ public:
 private:
 
 #pragma region GameplayTags
-	
-	/**
-	 * Allow automatic gameplay tag checks.
-	 * 
-	 * If set to true, the system will automatically verify and update gameplay tags on engine startup.
-	 * Default is True.
-	 */
+
 	UPROPERTY(config, EditDefaultsOnly, Category = "GameplayTags", meta=(ConfigRestartRequired=true))
 	uint8 bAllowAutoGameplayTagsCheck : 1;
 
-	/**
-	 * URL for the Gameplay Tags configuration file.
-	 * 
-	 * This URL points to a remote file containing base gameplay tag definitions.
-	 * The system will use this URL to download and apply the tags if allowed.
-	 * Default: @link https://raw.githubusercontent.com/Mountea-Framework/MounteaInteractionSystem/master/Config/Tags/MounteaInteractionSystemTags.ini
-	 */
 	UPROPERTY(config, EditDefaultsOnly, Category = "GameplayTags", AdvancedDisplay, meta=(ConfigRestartRequired=true))
 	FString GameplayTagsURL = FString("https://raw.githubusercontent.com/Mountea-Framework/MounteaInteractionSystem/master/Config/Tags/MounteaInteractionSystemTags.ini");
-	
+
+#pragma endregion
+
+#pragma region EditorTemplates
+
+	/** Shared stylesheet injected into every tutorial HTML page. */
+	UPROPERTY(Config, EditAnywhere, Category = "Editor Templates",
+		AdvancedDisplay, meta = (FilePathFilter = "css"))
+	FFilePath SharedStylesheetPath;
+
+	/** Shared script injected into every tutorial HTML page. */
+	UPROPERTY(Config, EditAnywhere, Category = "Editor Templates",
+		AdvancedDisplay, meta = (FilePathFilter = "js"))
+	FFilePath SharedScriptPath;
+
+	/**
+	 * Defines the list of tutorial pages available in the Interaction System Tutorial tab.
+	 * You can extend these for your team as needed.
+	 */
+	UPROPERTY(Config, EditAnywhere, Category = "Editor Templates",
+		AdvancedDisplay)
+	TMap<int32, FInteractionEditorPageConfig> EditorTemplatePages;
+
 #pragma endregion
 
 public:
 
-#pragma region GameplayTags_Getters
+#pragma region Getters
 
 	bool AllowCheckTagUpdate() const
-	{ return bAllowAutoGameplayTagsCheck; };
+	{ return bAllowAutoGameplayTagsCheck; }
 
 	FString GetGameplayTagsURL() const
-	{ return GameplayTagsURL; };
-	
+	{ return GameplayTagsURL; }
+
+	FString GetEditorTemplatePagePath(int32 PageId) const;
+	FString GetSharedStylesheetPath() const;
+	FString GetSharedScriptPath() const;
+	FString GetGeneratedChangelogPath() const;
+
+	const TMap<int32, FInteractionEditorPageConfig>& GetEditorTemplatePages() const
+	{ return EditorTemplatePages; }
+
 #pragma endregion
 
 #if WITH_EDITOR
@@ -71,4 +110,7 @@ public:
 		return "Project";
 	}
 #endif
+
+	// Allow the tutorial page widget to read private page paths
+	friend class SInteractionSystemTutorialPage;
 };
