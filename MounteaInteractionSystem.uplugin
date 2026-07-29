@@ -32,9 +32,9 @@
 			"LoadingPhase": "Default"
 		},
 		{
-			"Name": "MounteaInteractionSystemEditorNotifications",
-			"Type": "Editor",
-			"LoadingPhase": "Default"
+			"Name": "MounteaInteractionSystemDeveloper",
+			"Type": "UncookedOnly",
+			"LoadingPhase": "PreDefault"
 		}
 	],
   "Plugins": [
