@@ -14,7 +14,8 @@ DEFINE_LOG_CATEGORY(LogActorInteraction);
 
 void PrintInteractionLog(const ELogVerbosity::Type Verbosity, const FString& Message, FLinearColor Color, float Duration)
 {
-	if (!GWorld) return;
+	if (!GWorld)
+				return;
 
 	bool isVerbosityAllowed = false;
 	
