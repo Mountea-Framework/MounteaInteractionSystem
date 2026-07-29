@@ -1,29 +1,5 @@
-// All rights reserved Dominik Morse (Pavlicek) 2021
+// All rights reserved Dominik Morse (Pavlicek) 2024.
+// DEPRECATED — UMounteaInteractionSettingsConfig removed in v5.0.
+// New per-domain config DataAsset factories will be added in Phase 8.
 
 #pragma once
-
-#include "CoreMinimal.h"
-#include "Factories/Factory.h"
-#include "MounteaInteractionSettingsConfigAssetFactory.generated.h"
-
-/**
- * 
- */
-UCLASS()
-class MOUNTEAINTERACTIONSYSTEMEDITOR_API UInteractionSettingsConfigAssetFactory : public UFactory
-{
-	GENERATED_BODY()
-	
-public:
-
-	UInteractionSettingsConfigAssetFactory(const FObjectInitializer& ObjectInitializer);
-
-	virtual bool ConfigureProperties() override;
-	
-	virtual UObject* FactoryCreateNew(UClass* Class, UObject* InParent, FName Name, EObjectFlags Flags, UObject* Context, FFeedbackContext* Warn) override;
-
-private:
-	// Holds the template of the class we are building
-	UPROPERTY()
-	TSubclassOf<class UMounteaInteractionSettingsConfig> ParentClass;
-};
