@@ -11,7 +11,7 @@
 
 #pragma once
 
-namespace MounteaAdvancedDialogueToolbar
+namespace MounteaInteractionToolbar
 {
 	static const FName MounteaSharedMenuName("MounteaFramework.SharedMenu");
 	static const FName MounteaSharedSectionName("MounteaFramework");
