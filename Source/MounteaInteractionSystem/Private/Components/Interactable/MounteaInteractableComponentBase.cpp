@@ -15,6 +15,7 @@
 #include "Helpers/MounteaInteractionStatics.h"
 #include "Helpers/MounteaInteractionSystemSettings.h"
 #include "Settings/MounteaInteractorRuntimeConfig.h"
+#include "Settings/MounteaInteractableRuntimeConfig.h"
 
 #if WITH_EDITOR
 #include "Misc/DataValidation.h"
@@ -178,13 +179,22 @@ bool UMounteaInteractableComponentBase::HasInteractor_Implementation() const
 void UMounteaInteractableComponentBase::RequestInteractorJoin_Implementation(const TScriptInterface<IMounteaInteractorInterface>& RequestingInteractor)
 {
 	if (!RequestingInteractor.GetInterface())
-				return;
+		return;
 
 	if (GetOwner() && !GetOwner()->HasAuthority())
 	{
 		RequestInteractorJoin_Server(RequestingInteractor);
 		return;
 	}
+
+	// Re-entrant/duplicate join calls must not consume a second slot for the same interactor.
+	const bool bAlreadyJoined = ActiveInteractorSlots.ContainsByPredicate([&RequestingInteractor](const FInteractorSlot& Slot)
+	{
+		return Slot.Interactor.GetObject() == RequestingInteractor.GetObject();
+	});
+	
+	if (bAlreadyJoined) 
+		return;
 
 	if (!Execute_IsSlotAvailable(this))
 	{
@@ -217,6 +227,11 @@ void UMounteaInteractableComponentBase::RequestInteractorJoin_Implementation(con
 
 	ActiveInteractorSlots.Add(newSlot);
 	OnRep_ActiveInteractorSlots();
+
+	// Reconnects the join path to the per-type interaction logic (Press/Automatic/Hold/Mash all
+	// do their real work inside InteractionStarted_Implementation). Hover bypasses this function
+	// entirely and calls Execute_InteractionStarted directly from cursor events, so it is unaffected.
+	Execute_InteractionStarted(this, newSlot.JoinServerTime, RequestingInteractor);
 }
 
 void UMounteaInteractableComponentBase::RequestInteractorLeave_Implementation(const TScriptInterface<IMounteaInteractorInterface>& LeavingInteractor)
@@ -733,6 +748,28 @@ void UMounteaInteractableComponentBase::FindAndAddHighlightableMeshes_Implementa
 
 void UMounteaInteractableComponentBase::SetDefaults_Implementation()
 {
+	if (const UMounteaInteractionSystemSettings* settings = GetDefault<UMounteaInteractionSystemSettings>())
+	{
+		if (const UMounteaInteractableRuntimeConfig* config = settings->GetInteractableConfig())
+		{
+			InteractionPeriod = config->DefaultInteractionPeriod;
+			DefaultInteractableState = config->DefaultInteractableState;
+			LifecycleMode = config->DefaultLifecycleMode;
+			CooldownPeriod = config->DefaultCooldownPeriod;
+			InteractionWeight = config->DefaultInteractableWeight;
+			MaxInteractors = config->DefaultMaxInteractors;
+			WidgetRanges = config->DefaultWidgetRanges;
+			bInteractionHighlight = config->bDefaultHighlightEnabled;
+			HighlightType = config->DefaultHighlightSetup.HighlightType;
+			HighlightMaterial = config->DefaultHighlightSetup.HighlightMaterial;
+
+			bool bFound = false;
+			const ECollisionChannel resolvedChannel = UMounteaInteractionStatics::ResolveInteractionChannel(config->OverlapCollisionChannelName, bFound);
+			if (bFound)
+				CollisionChannel = resolvedChannel;
+		}
+	}
+
 	CachedInteractionWeight = InteractionWeight;
 
 	if (Execute_DoesAutoSetup(this))
