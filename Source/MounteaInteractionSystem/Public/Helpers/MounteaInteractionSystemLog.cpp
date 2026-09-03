@@ -2,8 +2,6 @@
 
 #include "MounteaInteractionSystemLog.h"
 
-#include "Helpers/MounteaInteractionSystemLog.h"
-
 #include "MounteaInteractionSystemSettings.h"
 #include "MounteaInteractionGeneralDataTypes.h"
 #include "Engine/World.h"
@@ -50,10 +48,9 @@ void PrintInteractionLog(const ELogVerbosity::Type Verbosity, const FString& Mes
 	
 	if (isVerbosityAllowed)
 	{
-#if WITH_EDITOR
+#if !UE_BUILD_SHIPPING
 		FMsg::Logf(__FILE__, __LINE__, LogActorInteraction.GetCategoryName(), Verbosity, TEXT("%s"), *Message);
-#endif
-		
 		UKismetSystemLibrary::PrintString(GWorld, Message, true, true, Color, Duration);
+#endif
 	}
 }
