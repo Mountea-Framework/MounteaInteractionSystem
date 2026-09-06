@@ -60,6 +60,10 @@ void UMounteaInteractorComponentBase::GetLifetimeReplicatedProps(TArray<FLifetim
 	DOREPLIFETIME(UMounteaInteractorComponentBase, SafetyTraceSetup);
 	DOREPLIFETIME(UMounteaInteractorComponentBase, ListOfIgnoredActors);
 	DOREPLIFETIME(UMounteaInteractorComponentBase, InteractionDependencies);
+
+	DOREPLIFETIME_CONDITION(UMounteaInteractorComponentBase, HighlightedActionIndex, COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(UMounteaInteractorComponentBase, bSelectionLocked,       COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(UMounteaInteractorComponentBase, LockedAction,           COND_OwnerOnly);
 }
 
 #pragma region IMounteaInteractorInterface_FocusAPI
@@ -93,9 +97,15 @@ void UMounteaInteractorComponentBase::CycleAction_Implementation(const int32 Dir
 {
 	if (bSelectionLocked || ActionList.IsEmpty()) return;
 
+	// Apply and broadcast locally first for instant UI feedback — waiting on a server round-trip
+	// for "next/previous" would feel laggy. The server mirrors this below and its own replicated
+	// HighlightedActionIndex (COND_OwnerOnly) will correct this client if the two ever disagree.
 	HighlightedActionIndex = (HighlightedActionIndex + Direction + ActionList.Num()) % ActionList.Num();
 	OnHighlightedActionChanged.Broadcast(HighlightedActionIndex);
 	Execute_OnHighlightedActionChangedEvent(this, HighlightedActionIndex);
+
+	if (GetOwner() && !GetOwner()->HasAuthority())
+		CycleAction_Server(Direction);
 }
 
 #pragma endregion
@@ -514,6 +524,7 @@ void UMounteaInteractorComponentBase::RefreshFocus()
 {
 	// ---- Tier 1: find best actor from DetectedSet ----
 	AActor* bestActor = nullptr;
+	TScriptInterface<IMounteaInteractableInterface> bestInteractable;
 	int32 bestWeight = -1;
 	float bestDistanceSq = TNumericLimits<float>::Max();
 
@@ -521,12 +532,15 @@ void UMounteaInteractorComponentBase::RefreshFocus()
 
 	for (const TScriptInterface<IMounteaInteractableInterface>& interactable : DetectedSet)
 	{
-		if (!interactable.GetInterface()) continue;
+		if (!interactable.GetInterface()) 
+			continue;
 
 		AActor* interactableOwner = IMounteaInteractableInterface::Execute_GetInteractableOwner(interactable.GetObject());
-		if (!IsValid(interactableOwner)) continue;
+		if (!IsValid(interactableOwner)) 
+			continue;
 
-		if (!Execute_PerformSafetyTrace(this, interactableOwner)) continue;
+		if (!Execute_PerformSafetyTrace(this, interactableOwner)) 
+			continue;
 
 		const int32 weight = IMounteaInteractableInterface::Execute_GetInteractableWeight(interactable.GetObject());
 		const float distSq = FVector::DistSquared(selfLoc, interactableOwner->GetActorLocation());
@@ -537,6 +551,7 @@ void UMounteaInteractorComponentBase::RefreshFocus()
 			bestWeight = weight;
 			bestDistanceSq = distSq;
 			bestActor = interactableOwner;
+			bestInteractable = interactable;
 		}
 	}
 
@@ -548,13 +563,9 @@ void UMounteaInteractorComponentBase::RefreshFocus()
 		if (UMounteaInteractionWorldSubsystem* subsystem = GetWorld() ? GetWorld()->GetSubsystem<UMounteaInteractionWorldSubsystem>() : nullptr)
 		{
 			if (FocusedActor.IsValid())
-			{
 				subsystem->ReleaseAttentionWidget(FocusedActor.Get());
-			}
 			if (IsValid(bestActor))
-			{
 				subsystem->AssignAttentionWidget(bestActor);
-			}
 		}
 
 		if (bSelectionLocked)
@@ -575,6 +586,44 @@ void UMounteaInteractorComponentBase::RefreshFocus()
 		Execute_OnFocusedActorChangedEvent(this, FocusedActor.Get());
 	}
 
+	// ---- Widget visibility: per-interactable distance gate ----
+	// Runs on RefreshFocus()'s existing call cadence (overlap begin/end, each detection
+	// subclass's own timer) instead of adding a new Tick. Every detected interactable gets its
+	// own hosted widget gated independently by its own WidgetRanges — not just the focused one.
+	for (const TScriptInterface<IMounteaInteractableInterface>& interactable : DetectedSet)
+	{
+		if (!interactable.GetInterface()) 
+			continue;
+
+		AActor* interactableOwner = IMounteaInteractableInterface::Execute_GetInteractableOwner(interactable.GetObject());
+		if (!IsValid(interactableOwner)) 
+			continue;
+
+		const FInteractableWidgetRanges ranges = IMounteaInteractableInterface::Execute_GetWidgetRanges(interactable.GetObject());
+		const float distSq = FVector::DistSquared(selfLoc, interactableOwner->GetActorLocation());
+
+		IMounteaInteractableInterface::Execute_ToggleWidgetVisibility(interactable.GetObject(), distSq <= FMath::Square(ranges.InteractionRange));
+	}
+
+	// ---- Attention widget mode for the focused actor ----
+	// Uses the winning (highest-weight) interactable's own WidgetRanges as the actor-level
+	// threshold — an actor with multiple interactable components could have differently
+	// configured ranges per component, so the one that actually won Tier 1 governs.
+	if (bestInteractable.GetInterface())
+	{
+		if (UMounteaInteractionWorldSubsystem* subsystem = GetWorld() ? GetWorld()->GetSubsystem<UMounteaInteractionWorldSubsystem>() : nullptr)
+		{
+			const FInteractableWidgetRanges ranges = IMounteaInteractableInterface::Execute_GetWidgetRanges(bestInteractable.GetObject());
+			const bool bInInteractionRange = bestDistanceSq <= FMath::Square(ranges.InteractionRange);
+			const bool bInAttentionRange = bestDistanceSq <= FMath::Square(ranges.AttentionRange);
+
+			const EInteractionWidgetMode mode = bInInteractionRange ? EInteractionWidgetMode::EWM_Interaction
+				: bInAttentionRange ? EInteractionWidgetMode::EWM_Attention : EInteractionWidgetMode::EWM_None;
+
+			subsystem->UpdateAttentionWidgetMode(bestActor, mode);
+		}
+	}
+
 	// ---- Tier 2: rebuild action list from FocusedActor ----
 	TArray<FInteractionActionCandidate> newActionList;
 
@@ -587,13 +636,15 @@ void UMounteaInteractorComponentBase::RefreshFocus()
 
 		for (UActorComponent* comp : interactableComps)
 		{
-			if (!comp || !comp->GetClass()->ImplementsInterface(UMounteaInteractableInterface::StaticClass())) continue;
+			if (!comp || !comp->GetClass()->ImplementsInterface(UMounteaInteractableInterface::StaticClass())) 
+				continue;
 
 			TScriptInterface<IMounteaInteractableInterface> interactable;
 			interactable.SetObject(comp);
 			interactable.SetInterface(Cast<IMounteaInteractableInterface>(comp));
 
-			if (!IMounteaInteractableInterface::Execute_CanBeTriggered(comp)) continue;
+			if (!IMounteaInteractableInterface::Execute_CanBeTriggered(comp)) 
+				continue;
 
 			FInteractionActionCandidate candidate;
 			candidate.Interactable = interactable;
@@ -636,13 +687,15 @@ void UMounteaInteractorComponentBase::RefreshFocus()
 
 void UMounteaInteractorComponentBase::AddDetected(const TScriptInterface<IMounteaInteractableInterface>& Interactable)
 {
-	if (!Interactable.GetInterface()) return;
+	if (!Interactable.GetInterface()) 
+		return;
 
 	if (AActor* owner = IMounteaInteractableInterface::Execute_GetInteractableOwner(Interactable.GetObject()))
 	{
 		for (const TObjectPtr<AActor>& ignored : ListOfIgnoredActors)
 		{
-			if (ignored == owner) return;
+			if (ignored == owner) 
+				return;
 		}
 	}
 
@@ -691,14 +744,48 @@ void UMounteaInteractorComponentBase::SetState_Server_Implementation(const EInte
 	Execute_SetState(this, NewState);
 }
 
+bool UMounteaInteractorComponentBase::SetState_Server_Validate(const EInteractorStateV3 NewState)
+{
+	return StaticEnum<EInteractorStateV3>()->IsValidEnumValue(static_cast<int64>(NewState));
+}
+
 void UMounteaInteractorComponentBase::StartInteraction_Server_Implementation(const float StartTime)
 {
 	Execute_StartInteraction(this, StartTime);
 }
 
+bool UMounteaInteractorComponentBase::StartInteraction_Server_Validate(const float StartTime)
+{
+	// StartTime is cosmetic only (actual InteractionStartServerTime is stamped server-side via
+	// GetServerTime()) — the one cheap sanity check worth making is rejecting non-finite garbage
+	// before it propagates into delegate broadcasts / UI.
+	return FMath::IsFinite(StartTime);
+}
+
 void UMounteaInteractorComponentBase::StopInteraction_Server_Implementation(const float StopTime)
 {
 	Execute_StopInteraction(this, StopTime);
+}
+
+bool UMounteaInteractorComponentBase::StopInteraction_Server_Validate(const float StopTime)
+{
+	return FMath::IsFinite(StopTime);
+}
+
+void UMounteaInteractorComponentBase::CycleAction_Server_Implementation(const int32 Direction)
+{
+	if (bSelectionLocked || ActionList.IsEmpty()) return;
+
+	// Recomputed independently from the server's own ActionList/HighlightedActionIndex — never
+	// trusts a client-sent absolute index, only the raw +-1 direction (enforced by _Validate).
+	HighlightedActionIndex = (HighlightedActionIndex + Direction + ActionList.Num()) % ActionList.Num();
+	OnHighlightedActionChanged.Broadcast(HighlightedActionIndex);
+	Execute_OnHighlightedActionChangedEvent(this, HighlightedActionIndex);
+}
+
+bool UMounteaInteractorComponentBase::CycleAction_Server_Validate(const int32 Direction)
+{
+	return Direction == -1 || Direction == 1;
 }
 
 void UMounteaInteractorComponentBase::SetResponseChannel_Server_Implementation(const ECollisionChannel NewResponseCollision)
@@ -741,6 +828,14 @@ void UMounteaInteractorComponentBase::OnRep_InteractorState()
 {
 	// Engine-invoked on remote clients when InteractorState replicates in.
 	ProcessStateChanged();
+}
+
+void UMounteaInteractorComponentBase::OnRep_HighlightedActionIndex()
+{
+	// Engine-invoked on the owning client when the server's authoritative value replicates in —
+	// corrects any local misprediction from CycleAction_Implementation's immediate-feedback path.
+	OnHighlightedActionChanged.Broadcast(HighlightedActionIndex);
+	Execute_OnHighlightedActionChangedEvent(this, HighlightedActionIndex);
 }
 
 void UMounteaInteractorComponentBase::ProcessStateChanged()

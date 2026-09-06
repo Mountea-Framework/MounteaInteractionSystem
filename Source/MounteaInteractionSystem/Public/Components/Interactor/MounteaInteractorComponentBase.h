@@ -153,14 +153,20 @@ protected:
 
 protected:
 
-	UFUNCTION(Server, Reliable)
+	UFUNCTION(Server, Reliable, WithValidation)
 	void SetState_Server(const EInteractorStateV3 NewState);
 
-	UFUNCTION(Server, Reliable)
+	UFUNCTION(Server, Reliable, WithValidation)
 	void StartInteraction_Server(const float StartTime);
 
-	UFUNCTION(Server, Reliable)
+	UFUNCTION(Server, Reliable, WithValidation)
 	void StopInteraction_Server(const float StopTime);
+
+	/** Server-side mirror of a client's local CycleAction prediction. Recomputes the clamped
+	 *  index from Direction + the server's own ActionList — never trusts a client-sent absolute
+	 *  index. Unreliable: a dropped call self-heals via HighlightedActionIndex's own replication. */
+	UFUNCTION(Server, Unreliable, WithValidation)
+	void CycleAction_Server(const int32 Direction);
 
 	UFUNCTION(Server, Unreliable)
 	void SetResponseChannel_Server(const ECollisionChannel NewResponseCollision);
@@ -182,6 +188,11 @@ protected:
 
 	UFUNCTION()
 	void OnRep_InteractorState();
+
+	/** Engine-invoked on the owning client when the server's authoritative HighlightedActionIndex
+	 *  replicates in — corrects any client-side misprediction from CycleAction_Implementation. */
+	UFUNCTION()
+	void OnRep_HighlightedActionIndex();
 
 	/** Broadcasts the state-changed delegates. Called by ProcessStateChanged() — the base
 	 *  implementation of the hook subclasses override to bind/unbind detection on transition. */
@@ -282,16 +293,20 @@ protected:
 	UPROPERTY()
 	TArray<FInteractionActionCandidate> ActionList;
 
-	/** Currently highlighted action index within ActionList. */
-	UPROPERTY()
+	/** Currently highlighted action index within ActionList. Server-authoritative; replicated
+	 *  COND_OwnerOnly (see GetLifetimeReplicatedProps) since no other client needs to see this
+	 *  player's own cursor position in their own action list. */
+	UPROPERTY(ReplicatedUsing=OnRep_HighlightedActionIndex)
 	int32 HighlightedActionIndex = 0;
 
-	/** True while StartInteraction has been called and not yet completed or stopped. */
-	UPROPERTY()
+	/** True while StartInteraction has been called and not yet completed or stopped.
+	 *  COND_OwnerOnly — other clients query occupancy via the interactable's own (already
+	 *  replicated) ActiveInteractorSlots, not by introspecting a remote player's interactor. */
+	UPROPERTY(Replicated)
 	bool bSelectionLocked = false;
 
-	/** The interactable currently being interacted with (null if not interacting). */
-	UPROPERTY()
+	/** The interactable currently being interacted with (null if not interacting). COND_OwnerOnly. */
+	UPROPERTY(Replicated)
 	TScriptInterface<IMounteaInteractableInterface> LockedAction;
 
 #pragma endregion
