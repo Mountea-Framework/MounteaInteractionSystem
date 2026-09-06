@@ -223,7 +223,7 @@ void UMounteaInteractableComponentBase::RequestInteractorJoin_Implementation(con
 
 	FInteractorSlot newSlot;
 	newSlot.Interactor = RequestingInteractor;
-	newSlot.JoinServerTime = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.f;
+	newSlot.JoinServerTime = UMounteaInteractionStatics::GetServerTime(this);
 
 	if (!RequiredInteractorTags.IsEmpty())
 	{
@@ -462,7 +462,7 @@ void UMounteaInteractableComponentBase::InteractionStarted_Implementation(const 
 {
 	if (GetOwner() && GetOwner()->HasAuthority())
 	{
-		InteractionStartServerTime = GetWorld() ? GetWorld()->GetTimeSeconds() : TimeStarted;
+		InteractionStartServerTime = UMounteaInteractionStatics::GetServerTime(this);
 	}
 
 	OnInteractionStarted.Broadcast(TimeStarted, CausingInteractor);
@@ -523,10 +523,8 @@ float UMounteaInteractableComponentBase::GetInteractionProgress_Implementation()
 {
 	if (InteractionStartServerTime < 0.f || InteractionPeriod <= 0.f)
 				return 0.f;
-	if (!GetWorld())
-				return 0.f;
 
-	const float elapsed = GetWorld()->GetTimeSeconds() - InteractionStartServerTime;
+	const float elapsed = UMounteaInteractionStatics::GetServerTime(this) - InteractionStartServerTime;
 	return FMath::Clamp(elapsed / InteractionPeriod, 0.f, 1.f);
 }
 

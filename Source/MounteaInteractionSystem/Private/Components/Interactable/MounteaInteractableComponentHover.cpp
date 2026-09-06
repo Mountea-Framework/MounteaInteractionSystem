@@ -4,6 +4,7 @@
 #include "Interfaces/MounteaInteractorInterface.h"
 #include "Components/PrimitiveComponent.h"
 #include "Engine/World.h"
+#include "Helpers/MounteaInteractionStatics.h"
 
 #define LOCTEXT_NAMESPACE "MounteaInteractableComponentHover"
 
@@ -61,7 +62,7 @@ void UMounteaInteractableComponentHover::OnCursorBeginOverlapEvent(UPrimitiveCom
 		Execute_ActivateInteractable(this, err);
 
 		// Simulate interaction start with server time
-		const float now = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.f;
+		const float now = UMounteaInteractionStatics::GetServerTime(this);
 		TScriptInterface<IMounteaInteractorInterface> emptyInteractor;
 		Execute_InteractionStarted(this, now, emptyInteractor);
 	}
@@ -72,7 +73,7 @@ void UMounteaInteractableComponentHover::OnCursorEndOverlapEvent(UPrimitiveCompo
 	OnCursorStopsOverlap.Broadcast(PrimitiveComponent);
 	OverlappingComponent = nullptr;
 
-	const float now = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.f;
+	const float now = UMounteaInteractionStatics::GetServerTime(this);
 	TScriptInterface<IMounteaInteractorInterface> emptyInteractor;
 	Execute_InteractionStopped(this, now, emptyInteractor);
 }
