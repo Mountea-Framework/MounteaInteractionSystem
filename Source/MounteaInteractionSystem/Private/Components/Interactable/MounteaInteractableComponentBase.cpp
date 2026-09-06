@@ -58,6 +58,13 @@ void UMounteaInteractableComponentBase::BeginPlay()
 
 	InteractableState = DefaultInteractableState;
 	RemainingLifecycleCount = LifecycleCount;
+
+	// OnRep_ functions only fire on remote clients receiving a replication update — never locally
+	// on the authority that just set the value. Without this explicit call, the widget-eligibility
+	// gate below would never initialize on the server/listen-host (or in single-player), leaving
+	// a freshly-placed default-Awake interactable's widget invisible forever until some later
+	// explicit SetState() call happened to touch it.
+	OnRep_InteractableState();
 }
 
 void UMounteaInteractableComponentBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -1138,8 +1145,12 @@ void UMounteaInteractableComponentBase::InteractableDependencyStoppedCallback_Im
 
 void UMounteaInteractableComponentBase::ToggleWidgetVisibility_Implementation(const bool IsVisible)
 {
-	SetVisibility(IsVisible);
-	OnInteractableWidgetVisibilityChanged.Broadcast(IsVisible);
+	// Callers (the viewing interactor's RefreshFocus() distance check, or a direct Blueprint/
+	// static request) are requesting visibility — but the interactable's own current state can
+	// still veto it (e.g. a Disabled/Cooldown object should never show a widget just because a
+	// nearby interactor thinks it's in range). See RefreshWidgetVisibility().
+	bWidgetDistanceEligible = IsVisible;
+	RefreshWidgetVisibility();
 }
 
 #pragma endregion
@@ -1179,14 +1190,29 @@ void UMounteaInteractableComponentBase::RequestInteractorJoin_Server_Implementat
 	Execute_RequestInteractorJoin(this, RequestingInteractor);
 }
 
+bool UMounteaInteractableComponentBase::RequestInteractorJoin_Server_Validate(const TScriptInterface<IMounteaInteractorInterface>& RequestingInteractor)
+{
+	return RequestingInteractor.GetObject() != nullptr && RequestingInteractor.GetInterface() != nullptr;
+}
+
 void UMounteaInteractableComponentBase::RequestInteractorLeave_Server_Implementation(const TScriptInterface<IMounteaInteractorInterface>& LeavingInteractor)
 {
 	Execute_RequestInteractorLeave(this, LeavingInteractor);
 }
 
+bool UMounteaInteractableComponentBase::RequestInteractorLeave_Server_Validate(const TScriptInterface<IMounteaInteractorInterface>& LeavingInteractor)
+{
+	return LeavingInteractor.GetObject() != nullptr && LeavingInteractor.GetInterface() != nullptr;
+}
+
 void UMounteaInteractableComponentBase::SetState_Server_Implementation(const EInteractableStateV3 NewState)
 {
 	Execute_SetState(this, NewState);
+}
+
+bool UMounteaInteractableComponentBase::SetState_Server_Validate(const EInteractableStateV3 NewState)
+{
+	return StaticEnum<EInteractableStateV3>()->IsValidEnumValue(static_cast<int64>(NewState));
 }
 
 void UMounteaInteractableComponentBase::OnRep_ActiveInteractorSlots()
@@ -1211,11 +1237,24 @@ void UMounteaInteractableComponentBase::OnRep_InteractableState()
 {
 	OnInteractableStateChanged.Broadcast(InteractableState);
 
-	const bool bShouldBeVisible =
+	// Coarse gate only — this no longer decides visibility directly. The fine-grained distance
+	// gate (bWidgetDistanceEligible) is owned by whichever interactor(s) currently have this
+	// interactable detected; RefreshWidgetVisibility() ANDs the two together.
+	bWidgetStateEligible =
 		InteractableState == EInteractableStateV3::EIS_Active ||
 		InteractableState == EInteractableStateV3::EIS_Awake;
 
-	Execute_ToggleWidgetVisibility(this, bShouldBeVisible);
+	RefreshWidgetVisibility();
+}
+
+void UMounteaInteractableComponentBase::RefreshWidgetVisibility()
+{
+	const bool bShouldBeVisible = bWidgetStateEligible && bWidgetDistanceEligible;
+	if (IsVisible() == bShouldBeVisible)
+		return;
+
+	SetVisibility(bShouldBeVisible);
+	OnInteractableWidgetVisibilityChanged.Broadcast(bShouldBeVisible);
 }
 
 void UMounteaInteractableComponentBase::StartHighlight_Client_Implementation()
@@ -1226,16 +1265,6 @@ void UMounteaInteractableComponentBase::StartHighlight_Client_Implementation()
 void UMounteaInteractableComponentBase::StopHighlight_Client_Implementation()
 {
 	Execute_StopHighlight(this);
-}
-
-void UMounteaInteractableComponentBase::ShowWidget_Client_Implementation()
-{
-	Execute_ToggleWidgetVisibility(this, true);
-}
-
-void UMounteaInteractableComponentBase::HideWidget_Client_Implementation()
-{
-	Execute_ToggleWidgetVisibility(this, false);
 }
 
 #pragma endregion
@@ -1288,12 +1317,12 @@ void UMounteaInteractableComponentBase::OnInputModeChanged(ECommonInputType Comm
 void UMounteaInteractableComponentBase::OnInteractableBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (!IsValid(OtherActor))
-				return;
+		return;
 
 	for (const TSoftClassPtr<UObject>& ignoredClass : IgnoredClasses)
 	{
 		if (ignoredClass.IsValid() && OtherActor->IsA(ignoredClass.Get()))
-				return;
+			return;
 	}
 
 	TScriptInterface<IMounteaInteractorInterface> interactor;
@@ -1321,7 +1350,7 @@ void UMounteaInteractableComponentBase::OnInteractableBeginOverlap(UPrimitiveCom
 void UMounteaInteractableComponentBase::OnInteractableStopOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	if (!IsValid(OtherActor))
-				return;
+		return;
 
 	TScriptInterface<IMounteaInteractorInterface> interactor;
 	if (OtherActor->GetClass()->ImplementsInterface(UMounteaInteractorInterface::StaticClass()))

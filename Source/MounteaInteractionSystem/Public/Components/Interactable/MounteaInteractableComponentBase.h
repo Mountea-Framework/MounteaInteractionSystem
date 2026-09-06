@@ -202,15 +202,15 @@ public:
 protected:
 
 	/** Server-authoritative slot join. Validates tags and capacity before adding to ActiveInteractorSlots. */
-	UFUNCTION(Server, Reliable)
+	UFUNCTION(Server, Reliable, WithValidation)
 	void RequestInteractorJoin_Server(const TScriptInterface<IMounteaInteractorInterface>& RequestingInteractor);
 
 	/** Server-authoritative slot leave. Removes the interactor from ActiveInteractorSlots. */
-	UFUNCTION(Server, Reliable)
+	UFUNCTION(Server, Reliable, WithValidation)
 	void RequestInteractorLeave_Server(const TScriptInterface<IMounteaInteractorInterface>& LeavingInteractor);
 
 	/** Server-authoritative state change. Authority validates the transition. */
-	UFUNCTION(Server, Reliable)
+	UFUNCTION(Server, Reliable, WithValidation)
 	void SetState_Server(const EInteractableStateV3 NewState);
 
 	/** Called on all clients when ActiveInteractorSlots replicates. Updates UI and fires OnInteractorSlotsChanged. */
@@ -227,8 +227,10 @@ protected:
 
 	UFUNCTION(Client, Unreliable) void StartHighlight_Client();
 	UFUNCTION(Client, Unreliable) void StopHighlight_Client();
-	UFUNCTION(Client, Unreliable) void ShowWidget_Client();
-	UFUNCTION(Client, Unreliable) void HideWidget_Client();
+
+	/** ANDs bWidgetStateEligible with bWidgetDistanceEligible and applies the result via
+	 *  SetVisibility() — the single place actual widget visibility gets decided. */
+	void RefreshWidgetVisibility();
 
 #pragma endregion
 
@@ -529,6 +531,20 @@ protected:
 
 	UPROPERTY(VisibleAnywhere)
 	uint8 bInteractableInitialized : 1;
+
+	/** Coarse widget gate: true when InteractableState alone permits the widget to show
+	 *  (Active/Awake). Set by OnRep_InteractableState(). ANDed with bWidgetDistanceEligible in
+	 *  RefreshWidgetVisibility() — state eligible is necessary but not sufficient; a viewing
+	 *  interactor must also confirm range. */
+	UPROPERTY()
+	bool bWidgetStateEligible = false;
+
+	/** Fine-grained widget gate: true once a viewing interactor's own distance check (see
+	 *  RefreshFocus()) has confirmed this interactable is within WidgetRanges.InteractionRange.
+	 *  Set via ToggleWidgetVisibility(). Local to each client's own component instance — never
+	 *  replicated, since each client decides this independently for its own camera/pawn position. */
+	UPROPERTY()
+	bool bWidgetDistanceEligible = false;
 
 #pragma endregion
 
