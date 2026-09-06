@@ -10,6 +10,8 @@
 #include "Interfaces/MounteaInteractableInterface.h"
 #include "Subsystems/MounteaInteractionWorldSubsystem.h"
 #include "Helpers/MounteaInteractionSystemLog.h"
+#include "Helpers/MounteaInteractionSystemSettings.h"
+#include "Settings/MounteaInteractorRuntimeConfig.h"
 
 #if WITH_EDITOR
 #include "Misc/DataValidation.h"
@@ -69,12 +71,7 @@ int32 UMounteaInteractorComponentBase::GetHighlightedActionIndex_Implementation(
 
 TScriptInterface<IMounteaInteractableInterface> UMounteaInteractorComponentBase::GetLockedAction_Implementation() const
 {
-	if (!LockedAction.IsValid()) return TScriptInterface<IMounteaInteractableInterface>();
-
-	TScriptInterface<IMounteaInteractableInterface> result;
-	result.SetObject(LockedAction.GetObject());
-	result.SetInterface(LockedAction.Get());
-	return result;
+	return LockedAction;
 }
 
 bool UMounteaInteractorComponentBase::IsSelectionLocked_Implementation() const
@@ -103,18 +100,37 @@ void UMounteaInteractorComponentBase::StartInteraction_Implementation(const floa
 		return;
 	}
 
-	if (ActionList.IsEmpty() || bSelectionLocked) return;
+	if (ActionList.IsEmpty()) return;
+
+	TScriptInterface<IMounteaInteractorInterface> self;
+	self.SetObject(this);
+	self.SetInterface(this);
+
+	if (bSelectionLocked)
+	{
+		// Guard exception: repeat presses on the already-locked action forward straight through
+		// to InteractionStarted instead of re-joining. Required for Mash (each physical key press
+		// is a new InteractionStarted call — see MounteaInteractableComponentMash.cpp's own
+		// comment). Safe for the other types because their InteractionStarted_Implementation
+		// overrides are idempotent while already active: Hold guards before calling Super:: (see
+		// MounteaInteractableComponentHold.cpp), and Press/Automatic are naturally idempotent
+		// since CompleteInteractable_Implementation early-outs once InteractableState != Active.
+		if (LockedAction.GetInterface())
+		{
+			IMounteaInteractableInterface::Execute_InteractionStarted(LockedAction.GetObject(), StartTime, self);
+			OnInteractionKeyPressed.Broadcast(StartTime);
+			Execute_OnInteractionKeyPressedEvent(this, StartTime);
+		}
+		return;
+	}
+
 	if (!Execute_CanInteract(this)) return;
 
 	const FInteractionActionCandidate& candidate = ActionList[FMath::Clamp(HighlightedActionIndex, 0, ActionList.Num() - 1)];
 	if (!candidate.Interactable.GetInterface()) return;
 
 	bSelectionLocked = true;
-	LockedAction = TWeakInterfacePtr<IMounteaInteractableInterface>(candidate.Interactable.GetInterface());
-
-	TScriptInterface<IMounteaInteractorInterface> self;
-	self.SetObject(this);
-	self.SetInterface(this);
+	LockedAction = candidate.Interactable;
 
 	IMounteaInteractableInterface::Execute_RequestInteractorJoin(candidate.Interactable.GetObject(), self);
 
@@ -136,13 +152,13 @@ void UMounteaInteractorComponentBase::StopInteraction_Implementation(const float
 	self.SetObject(this);
 	self.SetInterface(this);
 
-	if (LockedAction.IsValid())
+	if (LockedAction.GetInterface())
 	{
 		IMounteaInteractableInterface::Execute_RequestInteractorLeave(LockedAction.GetObject(), self);
 	}
 
 	bSelectionLocked = false;
-	LockedAction.Reset();
+	LockedAction = nullptr;
 
 	OnInteractionKeyReleased.Broadcast(StopTime);
 	Execute_OnInteractionKeyReleasedEvent(this, StopTime);
@@ -301,6 +317,18 @@ FString UMounteaInteractorComponentBase::ToString_Implementation() const
 
 void UMounteaInteractorComponentBase::SetDefaults_Implementation()
 {
+	const UMounteaInteractionSystemSettings* settings = GetDefault<UMounteaInteractionSystemSettings>();
+	const UMounteaInteractorRuntimeConfig* config = settings ? settings->GetInteractorConfig() : nullptr;
+	if (!config) return;
+
+	DefaultInteractorState = config->DefaultInteractorState;
+	InteractorTag = config->InteractorTag;
+	SafetyTraceSetup = config->SafetyTracingSetup;
+
+	bool bFound = false;
+	const ECollisionChannel resolvedChannel = UMounteaInteractionStatics::ResolveInteractionChannel(config->OverlapCollisionChannelName, bFound);
+	if (bFound)
+		CollisionChannel = resolvedChannel;
 }
 
 #pragma endregion
@@ -324,8 +352,10 @@ void UMounteaInteractorComponentBase::SetSafetyTracingSetup_Implementation(const
 
 bool UMounteaInteractorComponentBase::PerformSafetyTrace_Implementation(const AActor* InteractableActor)
 {
-	if (!IsValid(InteractableActor) || SafetyTraceSetup.SafetyTracingMode == ESafetyTracingMode::ESTM_None) return true;
-	if (!GetOwner() || !GetWorld()) return true;
+	if (!IsValid(InteractableActor) || SafetyTraceSetup.SafetyTracingMode == ESafetyTracingMode::ESTM_None) #
+		return true;
+	if (!GetOwner() || !GetWorld()) 
+		return true;
 
 	FHitResult hitResult;
 	const FVector start = GetOwner()->GetActorLocation();
@@ -339,7 +369,8 @@ bool UMounteaInteractorComponentBase::PerformSafetyTrace_Implementation(const AA
 	const ECollisionChannel traceChannel = UMounteaInteractionStatics::ResolveInteractionChannel(traceChannelName, bTraceChannelFound);
 	const ECollisionChannel resolvedTraceChannel = bTraceChannelFound ? traceChannel : ECC_Visibility;
 	const bool bHit = GetWorld()->LineTraceSingleByChannel(hitResult, start, end, resolvedTraceChannel, params);
-	if (!bHit) return true;
+	if (!bHit) 
+		return true;
 
 	return hitResult.GetActor() == InteractableActor;
 }
@@ -379,7 +410,8 @@ void UMounteaInteractorComponentBase::RemoveIgnoredActor_Implementation(AActor* 
 
 void UMounteaInteractorComponentBase::RemoveIgnoredActors_Implementation(const TArray<AActor*>& UnignoredActors)
 {
-	for (AActor* a : UnignoredActors) Execute_RemoveIgnoredActor(this, a);
+	for (AActor* a : UnignoredActors) 
+		Execute_RemoveIgnoredActor(this, a);
 }
 
 TArray<AActor*> UMounteaInteractorComponentBase::GetIgnoredActors_Implementation() const
@@ -504,13 +536,13 @@ void UMounteaInteractorComponentBase::RefreshFocus()
 
 		if (bSelectionLocked)
 		{
-			if (LockedAction.IsValid())
+			if (LockedAction.GetInterface())
 			{
 				AActor* lockedOwner = IMounteaInteractableInterface::Execute_GetInteractableOwner(LockedAction.GetObject());
 				if (lockedOwner != bestActor)
 				{
 					bSelectionLocked = false;
-					LockedAction.Reset();
+					LockedAction = nullptr;
 				}
 			}
 		}
@@ -591,7 +623,7 @@ void UMounteaInteractorComponentBase::AddDetected(const TScriptInterface<IMounte
 		}
 	}
 
-	DetectedSet.Add(Interactable);
+	DetectedSet.AddUnique(Interactable);
 	RefreshFocus();
 }
 
@@ -620,7 +652,7 @@ void UMounteaInteractorComponentBase::ClearDetected()
 	if (bSelectionLocked)
 	{
 		bSelectionLocked = false;
-		LockedAction.Reset();
+		LockedAction = nullptr;
 	}
 
 	OnFocusedActorChanged.Broadcast(nullptr);

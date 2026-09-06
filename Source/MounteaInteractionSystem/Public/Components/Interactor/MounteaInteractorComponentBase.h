@@ -258,23 +258,31 @@ protected:
 	UPROPERTY(Replicated, VisibleAnywhere, Category="MounteaInteraction|Read Only")
 	TArray<TScriptInterface<IMounteaInteractorInterface>> InteractionDependencies;
 
-	/** All currently detected interactable components (populated by subclasses). */
-	TSet<TScriptInterface<IMounteaInteractableInterface>> DetectedSet;
+	/** All currently detected interactable components (populated by subclasses).
+	 *  NOTE: TArray, not TSet — UHT does not support TScriptInterface as a TSet key.
+	 *  AddDetected() uses AddUnique() to preserve set-like (no duplicates) semantics. */
+	UPROPERTY()
+	TArray<TScriptInterface<IMounteaInteractableInterface>> DetectedSet;
 
 	/** The actor selected by Tier 1 focus (highest weight component). */
+	UPROPERTY()
 	TWeakObjectPtr<AActor> FocusedActor;
 
 	/** Interactable components on FocusedActor, sorted by weight descending (Tier 2 action list). */
+	UPROPERTY()
 	TArray<FInteractionActionCandidate> ActionList;
 
 	/** Currently highlighted action index within ActionList. */
+	UPROPERTY()
 	int32 HighlightedActionIndex = 0;
 
 	/** True while StartInteraction has been called and not yet completed or stopped. */
+	UPROPERTY()
 	bool bSelectionLocked = false;
 
 	/** The interactable currently being interacted with (null if not interacting). */
-	TWeakInterfacePtr<IMounteaInteractableInterface> LockedAction;
+	UPROPERTY()
+	TScriptInterface<IMounteaInteractableInterface> LockedAction;
 
 #pragma endregion
 
