@@ -94,4 +94,10 @@ void UMounteaInteractableComponentMash::OnRep_ActualMashAmount()
 	// Clients update progress display — GetInteractionProgress() is overridden to use mash ratio
 }
 
+float UMounteaInteractableComponentMash::GetInteractionProgress_Implementation() const
+{
+	if (MinMashAmountRequired <= 0) return 0.f;
+	return FMath::Clamp(static_cast<float>(ActualMashAmount) / static_cast<float>(MinMashAmountRequired), 0.f, 1.f);
+}
+
 #undef LOCTEXT_NAMESPACE

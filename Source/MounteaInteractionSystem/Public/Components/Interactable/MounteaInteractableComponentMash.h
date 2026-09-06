@@ -49,6 +49,7 @@ protected:
 	virtual void InteractionStarted_Implementation(const float& TimeStarted, const TScriptInterface<IMounteaInteractorInterface>& CausingInteractor) override;
 	virtual void InteractionStopped_Implementation(const float& TimeStarted, const TScriptInterface<IMounteaInteractorInterface>& CausingInteractor) override;
 	virtual void InteractionCanceled_Implementation() override;
+	virtual float GetInteractionProgress_Implementation() const override;
 
 	UFUNCTION(BlueprintImplementableEvent, Category="Mountea|Interaction|Interactable")
 	void OnInteractionFailedEvent();
