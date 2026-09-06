@@ -67,6 +67,12 @@ void UMounteaInteractableComponentBase::EndPlay(const EEndPlayReason::Type EndPl
 		if (slot.Interactor.GetInterface())
 		{
 			Execute_InteractorLost(this, slot.Interactor);
+
+			// This interactable is mid-teardown — tell the interactor to drop its lock without
+			// calling back into us (that's what ForceReleaseInteraction is for; StopInteraction
+			// would re-enter this object). Otherwise the interactor's bSelectionLocked never
+			// clears and it can never start another interaction for the rest of the session.
+			IMounteaInteractorInterface::Execute_ForceReleaseInteraction(slot.Interactor.GetObject());
 		}
 	}
 	ActiveInteractorSlots.Empty();
