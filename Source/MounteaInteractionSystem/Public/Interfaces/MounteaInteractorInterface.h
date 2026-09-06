@@ -125,6 +125,16 @@ public:
 	void StopInteraction(const float StopTime);
 	virtual void StopInteraction_Implementation(const float StopTime) = 0;
 
+	/**
+	 * Forcibly clears the current lock/interaction state without notifying the interactable.
+	 * Called by an interactable's EndPlay when it is destroyed while occupied, so the interactor
+	 * isn't left permanently locked out of starting any other interaction. Unlike StopInteraction,
+	 * this never calls back into the interactable — the caller is typically mid-teardown itself.
+	 */
+	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor")
+	void ForceReleaseInteraction();
+	virtual void ForceReleaseInteraction_Implementation() = 0;
+
 	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor")
 	bool CanInteract() const;
 	virtual bool CanInteract_Implementation() const = 0;

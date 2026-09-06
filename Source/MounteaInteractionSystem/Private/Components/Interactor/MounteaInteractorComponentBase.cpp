@@ -35,6 +35,16 @@ void UMounteaInteractorComponentBase::BeginPlay()
 
 void UMounteaInteractorComponentBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
+	// A destroyed/disconnected interactor must release its slot — otherwise the interactable's
+	// ActiveInteractorSlots keeps a phantom entry forever, soft-locking MaxInteractors=1 objects.
+	if (bSelectionLocked && LockedAction.GetInterface())
+	{
+		TScriptInterface<IMounteaInteractorInterface> self;
+		self.SetObject(this);
+		self.SetInterface(this);
+		IMounteaInteractableInterface::Execute_RequestInteractorLeave(LockedAction.GetObject(), self);
+	}
+
 	ClearDetected();
 	Super::EndPlay(EndPlayReason);
 }
@@ -164,6 +174,19 @@ void UMounteaInteractorComponentBase::StopInteraction_Implementation(const float
 	Execute_OnInteractionKeyReleasedEvent(this, StopTime);
 }
 
+void UMounteaInteractorComponentBase::ForceReleaseInteraction_Implementation()
+{
+	// Called by an interactable's EndPlay when it's destroyed while occupied. Clears local lock
+	// state only — never calls back into the (mid-teardown) interactable, unlike StopInteraction.
+	if (!bSelectionLocked) return;
+
+	bSelectionLocked = false;
+	LockedAction = nullptr;
+
+	OnInteractionKeyReleased.Broadcast(-1.f);
+	Execute_OnInteractionKeyReleasedEvent(this, -1.f);
+}
+
 bool UMounteaInteractorComponentBase::CanInteract_Implementation() const
 {
 	return InteractorState == EInteractorStateV3::EIS_Scanning || InteractorState == EInteractorStateV3::EIS_Active;
@@ -245,7 +268,7 @@ void UMounteaInteractorComponentBase::SetState_Implementation(const EInteractorS
 	}
 
 	InteractorState = NewState;
-	OnRep_InteractorState();
+	ProcessStateChanged();
 }
 
 EInteractorStateV3 UMounteaInteractorComponentBase::GetDefaultState_Implementation() const
@@ -352,7 +375,7 @@ void UMounteaInteractorComponentBase::SetSafetyTracingSetup_Implementation(const
 
 bool UMounteaInteractorComponentBase::PerformSafetyTrace_Implementation(const AActor* InteractableActor)
 {
-	if (!IsValid(InteractableActor) || SafetyTraceSetup.SafetyTracingMode == ESafetyTracingMode::ESTM_None) #
+	if (!IsValid(InteractableActor) || SafetyTraceSetup.SafetyTracingMode == ESafetyTracingMode::ESTM_None)
 		return true;
 	if (!GetOwner() || !GetWorld()) 
 		return true;
@@ -708,15 +731,23 @@ void UMounteaInteractorComponentBase::SetSafetyTracingSetup_Server_Implementatio
 	Execute_SetSafetyTracingSetup(this, NewSafetyTracingSetup);
 }
 
-void UMounteaInteractorComponentBase::OnRep_InteractorState()
+void UMounteaInteractorComponentBase::BroadcastStateChanged()
 {
 	OnStateChanged.Broadcast(InteractorState);
 	Execute_OnInteractorStateChangedEvent(this, InteractorState);
 }
 
+void UMounteaInteractorComponentBase::OnRep_InteractorState()
+{
+	// Engine-invoked on remote clients when InteractorState replicates in.
+	ProcessStateChanged();
+}
+
 void UMounteaInteractorComponentBase::ProcessStateChanged()
 {
-	OnRep_InteractorState();
+	// Base: just the broadcast. Overlap/Trace/Mouse override this (and call Super::) to also
+	// bind/unbind their detection — collision overlap events / trace timers — on the transition.
+	BroadcastStateChanged();
 }
 
 #pragma endregion

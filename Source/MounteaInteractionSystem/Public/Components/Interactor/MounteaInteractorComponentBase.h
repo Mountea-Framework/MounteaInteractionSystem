@@ -32,6 +32,11 @@ class MOUNTEAINTERACTIONSYSTEM_API UMounteaInteractorComponentBase : public UAct
 {
 	GENERATED_BODY()
 
+	// Automation tests exercise the locked-interaction teardown paths (Phase 2) without driving
+	// the full RefreshFocus/ActionList detection pipeline. This grants that one test helper
+	// direct access to bSelectionLocked/LockedAction instead of adding test-only public API.
+	friend struct FMounteaInteractionTestAccess;
+
 public:
 
 	UMounteaInteractorComponentBase();
@@ -55,6 +60,7 @@ public:
 
 	virtual void StartInteraction_Implementation(const float StartTime) override;
 	virtual void StopInteraction_Implementation(const float StopTime) override;
+	virtual void ForceReleaseInteraction_Implementation() override;
 	virtual bool CanInteract_Implementation() const override;
 	virtual bool IsValidInteractor_Implementation() const override;
 	virtual bool HasInteractable_Implementation() const override;
@@ -176,6 +182,10 @@ protected:
 
 	UFUNCTION()
 	void OnRep_InteractorState();
+
+	/** Broadcasts the state-changed delegates. Called by ProcessStateChanged() — the base
+	 *  implementation of the hook subclasses override to bind/unbind detection on transition. */
+	void BroadcastStateChanged();
 
 	virtual void ProcessStateChanged();
 
