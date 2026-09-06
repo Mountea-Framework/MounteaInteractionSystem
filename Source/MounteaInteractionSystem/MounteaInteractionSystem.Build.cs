@@ -35,7 +35,6 @@ public class MounteaInteractionSystem : ModuleRules
 				"GameplayTags",
 				"EnhancedInput",
 				"NetCore",
-				"EnhancedInput",
 				"ApplicationCore",
 				"CommonInput",
 
