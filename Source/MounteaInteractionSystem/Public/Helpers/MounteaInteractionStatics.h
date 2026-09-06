@@ -33,7 +33,7 @@ public:
 	 * Returns true if the given interactable has at least one open slot AND the interactor
 	 * passes tag validation. Use to guard RequestInteractorJoin calls.
 	 */
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Statics",
+	UFUNCTION(BlueprintCallable, Category="Mountea|Interaction|Statics",
 		meta=(MounteaValidate, ExpandBoolAsExecs="ReturnValue"))
 	static bool CanInteractorJoinSlot(
 		const TScriptInterface<IMounteaInteractableInterface>& Interactable,
@@ -73,7 +73,7 @@ public:
 	 * Returns true if the given interactable component's owner actor is within
 	 * the specified squared distance from ViewOrigin.
 	 */
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Statics",
+	UFUNCTION(BlueprintCallable, Category="Mountea|Interaction|Statics",
 		meta=(MounteaValidate, ExpandBoolAsExecs="ReturnValue"))
 	static bool IsInteractableInRange(
 		const TScriptInterface<IMounteaInteractableInterface>& Interactable,
@@ -81,12 +81,12 @@ public:
 		const float RangeCm);
 
 	/** Returns true if the object implements IMounteaInteractableInterface. */
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Statics",
+	UFUNCTION(BlueprintCallable, Category="Mountea|Interaction|Statics",
 		meta=(MounteaValidate, ExpandBoolAsExecs="ReturnValue"))
 	static bool IsValidInteractable(const TScriptInterface<IMounteaInteractableInterface>& Interactable);
 
 	/** Returns true if the object implements IMounteaInteractorInterface. */
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Statics",
+	UFUNCTION(BlueprintCallable, Category="Mountea|Interaction|Statics",
 		meta=(MounteaValidate, ExpandBoolAsExecs="ReturnValue"))
 	static bool IsValidInteractor(const TScriptInterface<IMounteaInteractorInterface>& Interactor);
 

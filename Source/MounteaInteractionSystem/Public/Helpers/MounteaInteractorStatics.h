@@ -55,12 +55,12 @@ public:
 	static TScriptInterface<IMounteaInteractableInterface> GetLockedAction(const TScriptInterface<IMounteaInteractorInterface>& Interactor);
 
 	/** Returns true if an interaction is in progress (action selection is locked). */
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Interactor|Focus",
+	UFUNCTION(BlueprintCallable, Category="Mountea|Interaction|Interactor|Focus",
 		meta=(MounteaValidate, ExpandBoolAsExecs="ReturnValue"))
 	static bool IsSelectionLocked(const TScriptInterface<IMounteaInteractorInterface>& Interactor);
 
 	/** Returns true if the interactor has a focused actor with at least one action. */
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Interactor|Focus",
+	UFUNCTION(BlueprintCallable, Category="Mountea|Interaction|Interactor|Focus",
 		meta=(MounteaValidate, ExpandBoolAsExecs="ReturnValue"))
 	static bool HasInteractable(const TScriptInterface<IMounteaInteractorInterface>& Interactor);
 
@@ -74,7 +74,7 @@ public:
 	static EInteractorStateV3 GetInteractorState(const TScriptInterface<IMounteaInteractorInterface>& Interactor);
 
 	/** Returns true if the interactor can currently begin an interaction. */
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Interactor|State",
+	UFUNCTION(BlueprintCallable, Category="Mountea|Interaction|Interactor|State",
 		meta=(MounteaValidate, ExpandBoolAsExecs="ReturnValue"))
 	static bool CanInteract(const TScriptInterface<IMounteaInteractorInterface>& Interactor);
 

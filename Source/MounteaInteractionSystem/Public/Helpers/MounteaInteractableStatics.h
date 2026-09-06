@@ -37,7 +37,7 @@ public:
 	static int32 GetMaxInteractors(const TScriptInterface<IMounteaInteractableInterface>& Interactable);
 
 	/** Returns true if at least one slot is open for a new interactor. */
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Interactable|Slots",
+	UFUNCTION(BlueprintCallable, Category="Mountea|Interaction|Interactable|Slots",
 		meta=(MounteaValidate, ExpandBoolAsExecs="ReturnValue"))
 	static bool IsSlotAvailable(const TScriptInterface<IMounteaInteractableInterface>& Interactable);
 
@@ -47,7 +47,7 @@ public:
 	static TArray<FInteractorSlot> GetActiveInteractorSlots(const TScriptInterface<IMounteaInteractableInterface>& Interactable);
 
 	/** Returns true if the given interactor is already occupying a slot. */
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Interactable|Slots",
+	UFUNCTION(BlueprintCallable, Category="Mountea|Interaction|Interactable|Slots",
 		meta=(MounteaValidate, ExpandBoolAsExecs="ReturnValue"))
 	static bool IsInteractorInSlot(
 		const TScriptInterface<IMounteaInteractableInterface>& Interactable,
@@ -87,12 +87,12 @@ public:
 	static EInteractableStateV3 GetInteractableState(const TScriptInterface<IMounteaInteractableInterface>& Interactable);
 
 	/** Returns true if the interactable is in a state that permits interaction. */
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Interactable|State",
+	UFUNCTION(BlueprintCallable, Category="Mountea|Interaction|Interactable|State",
 		meta=(MounteaValidate, ExpandBoolAsExecs="ReturnValue"))
 	static bool CanInteractableBeTriggered(const TScriptInterface<IMounteaInteractableInterface>& Interactable);
 
 	/** Returns true if the interactable currently has at least one active interactor. */
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Interactable|State",
+	UFUNCTION(BlueprintCallable, Category="Mountea|Interaction|Interactable|State",
 		meta=(MounteaValidate, ExpandBoolAsExecs="ReturnValue"))
 	static bool IsInteractableInteracting(const TScriptInterface<IMounteaInteractableInterface>& Interactable);
 
