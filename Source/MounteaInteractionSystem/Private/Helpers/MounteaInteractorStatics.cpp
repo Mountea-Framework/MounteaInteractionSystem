@@ -6,6 +6,7 @@
 #include "InputAction.h"
 #include "Interfaces/MounteaInteractorInterface.h"
 #include "Interfaces/MounteaInteractableInterface.h"
+#include "Helpers/MounteaInteractionStatics.h"
 
 #define LOCTEXT_NAMESPACE "MounteaInteractorStatics"
 
@@ -115,15 +116,7 @@ void UMounteaInteractorStatics::StartInteractorInteraction(
 	if (!Interactor.GetObject())
 		return;
 
-	float serverTime = 0.f;
-	if (WorldContext)
-	{
-		const UWorld* world = GEngine->GetWorldFromContextObject(WorldContext, EGetWorldErrorMode::ReturnNull);
-		if (world) 
-			serverTime = world->GetTimeSeconds();
-	}
-
-	Interactor->Execute_StartInteraction(Interactor.GetObject(), serverTime);
+	Interactor->Execute_StartInteraction(Interactor.GetObject(), UMounteaInteractionStatics::GetServerTime(WorldContext));
 }
 
 void UMounteaInteractorStatics::StopInteractorInteraction(
@@ -133,15 +126,7 @@ void UMounteaInteractorStatics::StopInteractorInteraction(
 	if (!Interactor.GetObject())
 		return;
 
-	float serverTime = 0.f;
-	if (WorldContext)
-	{
-		const UWorld* world = GEngine->GetWorldFromContextObject(WorldContext, EGetWorldErrorMode::ReturnNull);
-		if (world)
-			serverTime = world->GetTimeSeconds();
-	}
-
-	Interactor->Execute_StopInteraction(Interactor.GetObject(), serverTime);
+	Interactor->Execute_StopInteraction(Interactor.GetObject(), UMounteaInteractionStatics::GetServerTime(WorldContext));
 }
 
 bool UMounteaInteractorStatics::ActivateInteractor(

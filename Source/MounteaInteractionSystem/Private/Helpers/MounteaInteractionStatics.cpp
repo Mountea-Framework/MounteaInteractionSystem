@@ -4,6 +4,7 @@
 #include "Engine/World.h"
 #include "Engine/CollisionProfile.h"
 #include "GameFramework/Actor.h"
+#include "GameFramework/GameStateBase.h"
 #include "Interfaces/MounteaInteractableInterface.h"
 #include "Interfaces/MounteaInteractorInterface.h"
 #include "Helpers/MounteaInteractionSystemLog.h"
@@ -14,8 +15,18 @@ float UMounteaInteractionStatics::GetServerTime(const UObject* WorldContext)
 {
 	if (!WorldContext)
 				return 0.f;
+
 	const UWorld* world = GEngine->GetWorldFromContextObject(WorldContext, EGetWorldErrorMode::ReturnNull);
-	return world ? world->GetTimeSeconds() : 0.f;
+	if (!world)
+				return 0.f;
+
+	if (const AGameStateBase* gameState = world->GetGameState())
+	{
+		return gameState->GetServerWorldTimeSeconds();
+	}
+
+	LOG_WARNING(TEXT("[MounteaInteractionStatics] GetServerTime: no GameState yet, falling back to local time"));
+	return world->GetTimeSeconds();
 }
 
 bool UMounteaInteractionStatics::CanInteractorJoinSlot(
