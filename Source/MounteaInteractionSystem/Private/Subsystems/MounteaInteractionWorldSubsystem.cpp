@@ -12,6 +12,11 @@
 
 #define LOCTEXT_NAMESPACE "MounteaInteractionWorldSubsystem"
 
+// Constant "float above origin" height for the pooled attention widget — origin-to-head-height
+// varies too much across possible interactable actors (props vs. characters) to derive
+// automatically; a fixed offset is the simplest correct default for a first pass.
+static constexpr float AttentionWidgetZOffset = 100.f;
+
 bool UMounteaInteractionWorldSubsystem::ShouldCreateSubsystem(UObject* Outer) const
 {
 	if (!Super::ShouldCreateSubsystem(Outer))
@@ -78,8 +83,11 @@ bool UMounteaInteractionWorldSubsystem::AssignAttentionWidget(AActor* FocusedAct
 
 		if (IsValid(Entry.WidgetActor))
 		{
-			// Position near the actor's origin (widgets typically use world space offset on the WidgetComponent)
-			Entry.WidgetActor->SetActorLocation(FocusedActor->GetActorLocation());
+			// Attach (not a one-shot SetActorLocation, and not a Tick) so the widget keeps
+			// following FocusedActor — including under root motion/physics movement — at zero
+			// ongoing cost. This is per-client local work: each client's own local Subsystem
+			// instance attaches its own pool actor in its own world, nothing here replicates.
+			Entry.WidgetActor->AttachToActor(FocusedActor, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
 			Entry.WidgetActor->SetActorHiddenInGame(false);
 		}
 
@@ -113,6 +121,7 @@ void UMounteaInteractionWorldSubsystem::ReleaseAttentionWidget(AActor* Actor)
 
 		if (IsValid(Entry->WidgetActor))
 		{
+			Entry->WidgetActor->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 			Entry->WidgetActor->SetActorHiddenInGame(true);
 		}
 	}
@@ -189,11 +198,21 @@ void UMounteaInteractionWorldSubsystem::SpawnPoolEntries(int32 Count, TSubclassO
 		WidgetComp->SetWidgetSpace(EWidgetSpace::World);
 		WidgetComp->SetDrawAtDesiredSize(true);
 
+		// "Float above head" offset lives here (once, at spawn) rather than being re-applied on
+		// every AssignAttentionWidget call — the pool actor itself snaps exactly to the focused
+		// actor's origin; this component's own relative transform is what lifts it above that.
+		WidgetComp->SetRelativeLocation(FVector(0.f, 0.f, AttentionWidgetZOffset));
+
 		if (WidgetClass)
 		{
 			WidgetComp->SetWidgetClass(WidgetClass);
 		}
 
+		// SetRootComponent() before RegisterComponent(): PoolActor is a bare AActor with no
+		// existing root, and SetActorLocation()/AttachToActor() on the actor are no-ops without
+		// one. Must happen before the component registers so it's recognized as the root from
+		// the start rather than floating unattached at the world origin.
+		PoolActor->SetRootComponent(WidgetComp);
 		WidgetComp->RegisterComponent();
 		PoolActor->AddInstanceComponent(WidgetComp);
 
