@@ -6,7 +6,6 @@
 #include "Utilities/MounteaInteractionEditorUtilities.h"
 
 #include "Components/Interactable/MounteaInteractableComponentBase.h"
-#include "Helpers/MounteaInteractionFunctionLibrary.h"
 #include "Kismet2/KismetEditorUtilities.h"
 #include "Engine/DataTable.h"
 
