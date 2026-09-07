@@ -10,29 +10,14 @@
 #include "Helpers/MounteaInteractableStatics.h"
 #include "Interfaces/MounteaInteractableInterface.h"
 #include "Interfaces/MounteaInteractorInterface.h"
+#include "Tests/MounteaInteractionTestAccess.h"
 
-// Grants tests direct access to UMounteaInteractorComponentBase::bSelectionLocked/LockedAction
-// (see the friend declaration on that class) so the two tests below can set up a "mid-interaction"
-// precondition without driving the full RefreshFocus/ActionList detection pipeline (which needs a
-// real physics world and is out of scope for these pure-logic tests).
-//
 // NOTE on scope: these tests exercise the exact release calls MounteaInteractorComponentBase's
 // and MounteaInteractableComponentBase's EndPlay() overrides invoke (RequestInteractorLeave /
-// ForceReleaseInteraction) — not EndPlay() itself. UActorComponent::EndPlay() asserts
-// check(bHasBegunPlay), which requires the component to have gone through real registration +
-// BeginPlay in an actual UWorld; a bare NewObject() component can't satisfy that (confirmed by an
-// actual crash during initial authoring — this comment exists so nobody "fixes" that by just
-// adding a BeginPlay() call and hits the same check(bRegistered) wall one step earlier). Testing
-// the real EndPlay-triggers-release wiring needs a registered-actor/minimal-world test harness,
-// which is a larger, separate investment.
-struct FMounteaInteractionTestAccess
-{
-	static void ForceLock(UMounteaInteractorComponentBase* Interactor, const TScriptInterface<IMounteaInteractableInterface>& Interactable)
-	{
-		Interactor->bSelectionLocked = true;
-		Interactor->LockedAction = Interactable;
-	}
-};
+// ForceReleaseInteraction) directly — bare NewObject() components never go through real
+// registration/BeginPlay, so UActorComponent::EndPlay() itself (which asserts check(bHasBegunPlay))
+// can't be called on them. The real EndPlay()-triggers-release wiring, on actual registered actors
+// in a minimal UWorld, is covered separately by MounteaInteractionWorldTest.cpp.
 
 namespace MounteaInteractionTeardownTest
 {
