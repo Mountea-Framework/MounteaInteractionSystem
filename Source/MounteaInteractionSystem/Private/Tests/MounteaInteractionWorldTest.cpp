@@ -46,6 +46,14 @@ namespace MounteaInteractionWorldTest
 	static TComponent* AddInteractableComponent(AActor* Owner)
 	{
 		TComponent* Comp = NewObject<TComponent>(Owner, TComponent::StaticClass());
+		// See MounteaInteractionAccessControlTest.cpp's copy of this helper for why the attach is
+		// required: an unattached USceneComponent registers at the world origin, not the owner's
+		// actual SetActorLocation(). Guarded since interactor components (UActorComponent) have no
+		// attachment concept at all.
+		if constexpr (TIsDerivedFrom<TComponent, USceneComponent>::IsDerived)
+		{
+			Comp->SetupAttachment(Owner->GetRootComponent());
+		}
 		Owner->AddInstanceComponent(Comp);
 		Comp->RegisterComponent();
 		return Comp;
@@ -208,8 +216,14 @@ bool FMounteaInteractionFocusPicksClosestTest::RunTest(const FString& Parameters
 	}
 	WorldWrapper.BeginPlayInTestWorld();
 
+	// Deliberately NOT collinear with the interactor (e.g. both on +X) — since Overlap interactors
+	// now run a real safety-trace line check by default (see UMounteaInteractorComponentOverlap's
+	// constructor), a Near actor sitting directly between the interactor and a Far actor would
+	// legitimately obstruct the trace to Far with its own widget collision. That's correct
+	// behavior for the safety trace, but it's not what THIS test is about — this test is purely
+	// about the distance tie-break, so Near and Far sit on separate axes with a clear line to each.
 	AActor* NearActor = SpawnActorWithRoot(World, FVector(100.f, 0.f, 0.f));
-	AActor* FarActor = SpawnActorWithRoot(World, FVector(1000.f, 0.f, 0.f));
+	AActor* FarActor = SpawnActorWithRoot(World, FVector(0.f, 1000.f, 0.f));
 	AActor* InteractorOwner = SpawnActorWithRoot(World, FVector::ZeroVector);
 	if (!NearActor || !FarActor || !InteractorOwner)
 	{
@@ -465,6 +479,196 @@ bool FMounteaInteractionCooldownAndPauseStateTest::RunTest(const FString& Parame
 	IMounteaInteractableInterface::Execute_PauseInteraction(Interactable, 5.f, NoInteractor);
 	TestEqual(TEXT("PauseInteraction should transition state to Paused"),
 		IMounteaInteractableInterface::Execute_GetState(Interactable), EInteractableStateV3::EIS_Paused);
+
+	WorldWrapper.ForwardErrorMessages(this);
+	WorldWrapper.DestroyTestWorld(true);
+	return true;
+}
+
+// Regression test for a late-join replication bug: BeginPlay() used to unconditionally reset
+// InteractableState/RemainingLifecycleCount to their design-time defaults, with no authority check.
+// On a real remote client (a late joiner is the clearest case), the true current value has usually
+// already arrived over the wire by the time BeginPlay() runs locally — so that reset silently
+// discarded it, showing e.g. a mid-Hold door as fresh/Awake instead of its real in-progress state.
+// A real second network connection is out of reach for this harness (FTestWorldWrapper has no
+// NetDriver), so this simulates the essential shape of the bug directly: force the actor's Role to
+// a non-authority role, pre-seed InteractableState/RemainingLifecycleCount as "already replicated"
+// (bypassing BeginPlay entirely), then trigger a real BeginPlay() and confirm those values survive
+// instead of being reset.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMounteaInteractionNonAuthorityBeginPlayPreservesReplicatedStateTest,
+	"Mountea.InteractionSystem.World.Replication.NonAuthorityBeginPlayPreservesInteractableState",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMounteaInteractionNonAuthorityBeginPlayPreservesReplicatedStateTest::RunTest(const FString& Parameters)
+{
+	using namespace MounteaInteractionWorldTest;
+
+	FTestWorldWrapper WorldWrapper;
+	if (!WorldWrapper.CreateTestWorld(EWorldType::Game))
+	{
+		AddError(TEXT("Failed to create test world"));
+		return false;
+	}
+	UWorld* World = WorldWrapper.GetTestWorld();
+	if (!World)
+	{
+		AddError(TEXT("Test world is null"));
+		return false;
+	}
+	WorldWrapper.BeginPlayInTestWorld();
+
+	AActor* InteractableOwner = SpawnActorWithRoot(World, FVector::ZeroVector);
+	if (!InteractableOwner)
+	{
+		AddError(TEXT("Failed to spawn test actor"));
+		WorldWrapper.DestroyTestWorld(true);
+		return false;
+	}
+
+	// Simulate "this is a remote client's view of an actor owned/driven elsewhere" — the same
+	// condition a late-joining client's copy of an in-progress interactable would be in.
+	InteractableOwner->SetRole(ROLE_SimulatedProxy);
+
+	UMounteaInteractableComponentPress* Interactable = NewObject<UMounteaInteractableComponentPress>(InteractableOwner, UMounteaInteractableComponentPress::StaticClass());
+	Interactable->SetupAttachment(InteractableOwner->GetRootComponent());
+
+	// Pre-seed as "already replicated" BEFORE registration triggers BeginPlay — DefaultInteractableState
+	// is EIS_Awake and LifecycleCount defaults away from 2, so EIS_Active/2 are both unambiguously
+	// NOT what a fresh BeginPlay() would produce if it (incorrectly) reset them.
+	FMounteaInteractionTestAccess::SetReplicatedStateForTest(Interactable, EInteractableStateV3::EIS_Active, 2);
+
+	// The world already began play, so registering now drives a real BeginPlay() for this component
+	// (HandleRegisterComponentWithWorld), exactly like a component added to an already-running world.
+	InteractableOwner->AddInstanceComponent(Interactable);
+	Interactable->RegisterComponent();
+
+	TestEqual(TEXT("A non-authority BeginPlay() must not reset an already-replicated InteractableState back to its default"),
+		IMounteaInteractableInterface::Execute_GetState(Interactable), EInteractableStateV3::EIS_Active);
+	TestEqual(TEXT("A non-authority BeginPlay() must not reset an already-replicated RemainingLifecycleCount back to LifecycleCount"),
+		IMounteaInteractableInterface::Execute_GetRemainingLifecycleCount(Interactable), 2);
+
+	WorldWrapper.ForwardErrorMessages(this);
+	WorldWrapper.DestroyTestWorld(true);
+	return true;
+}
+
+// Same fix, interactor side: a non-authority BeginPlay() must not reset an already-replicated
+// InteractorState back to DefaultInteractorState (e.g. a late joiner seeing another player's
+// interactor as freshly Scanning when the server has it Suppressed/Disabled for some gameplay
+// reason).
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMounteaInteractionNonAuthorityBeginPlayPreservesInteractorStateTest,
+	"Mountea.InteractionSystem.World.Replication.NonAuthorityBeginPlayPreservesInteractorState",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMounteaInteractionNonAuthorityBeginPlayPreservesInteractorStateTest::RunTest(const FString& Parameters)
+{
+	using namespace MounteaInteractionWorldTest;
+
+	FTestWorldWrapper WorldWrapper;
+	if (!WorldWrapper.CreateTestWorld(EWorldType::Game))
+	{
+		AddError(TEXT("Failed to create test world"));
+		return false;
+	}
+	UWorld* World = WorldWrapper.GetTestWorld();
+	if (!World)
+	{
+		AddError(TEXT("Test world is null"));
+		return false;
+	}
+	WorldWrapper.BeginPlayInTestWorld();
+
+	AActor* InteractorOwner = SpawnActorWithRoot(World, FVector::ZeroVector);
+	if (!InteractorOwner)
+	{
+		AddError(TEXT("Failed to spawn test actor"));
+		WorldWrapper.DestroyTestWorld(true);
+		return false;
+	}
+
+	InteractorOwner->SetRole(ROLE_SimulatedProxy);
+
+	UMounteaInteractorComponentOverlap* Interactor = NewObject<UMounteaInteractorComponentOverlap>(InteractorOwner, UMounteaInteractorComponentOverlap::StaticClass());
+
+	// DefaultInteractorState is EIS_Scanning — EIS_Suppressed is unambiguously not what a fresh
+	// BeginPlay() would produce if it (incorrectly) reset InteractorState.
+	FMounteaInteractionTestAccess::SetReplicatedStateForTest(Interactor, EInteractorStateV3::EIS_Suppressed);
+
+	InteractorOwner->AddInstanceComponent(Interactor);
+	Interactor->RegisterComponent();
+
+	TestEqual(TEXT("A non-authority BeginPlay() must not reset an already-replicated InteractorState back to its default"),
+		IMounteaInteractorInterface::Execute_GetState(Interactor), EInteractorStateV3::EIS_Suppressed);
+
+	WorldWrapper.ForwardErrorMessages(this);
+	WorldWrapper.DestroyTestWorld(true);
+	return true;
+}
+
+// The two tests above prove a non-authority BeginPlay() doesn't stomp replicated state. This one
+// proves the other half: the authority-side init those tests deliberately bypass (SetReplicatedStateForTest
+// sets raw members before BeginPlay() ever runs) actually fires correctly with ZERO PlayerController,
+// Pawn, or possession anywhere in the world — i.e. it works identically for an NPC as for a player
+// pawn. HasAuthority() is a property of the actor's own ENetRole, not of player possession, and
+// BeginPlay() runs automatically for every actor the moment it begins play — this is not something
+// that needs a GameMode/GameState/Subsystem to broker.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMounteaInteractionAuthorityBeginPlayInitializesWithoutPlayerControllerTest,
+	"Mountea.InteractionSystem.World.Replication.AuthorityBeginPlayInitializesWithoutPlayerController",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMounteaInteractionAuthorityBeginPlayInitializesWithoutPlayerControllerTest::RunTest(const FString& Parameters)
+{
+	using namespace MounteaInteractionWorldTest;
+
+	FTestWorldWrapper WorldWrapper;
+	if (!WorldWrapper.CreateTestWorld(EWorldType::Game))
+	{
+		AddError(TEXT("Failed to create test world"));
+		return false;
+	}
+	UWorld* World = WorldWrapper.GetTestWorld();
+	if (!World)
+	{
+		AddError(TEXT("Test world is null"));
+		return false;
+	}
+	WorldWrapper.BeginPlayInTestWorld();
+
+	TestNull(TEXT("No PlayerController should exist in this world — this simulates an NPC actor never possessed by any player"),
+		World->GetFirstPlayerController());
+
+	AActor* NpcActor = SpawnActorWithRoot(World, FVector::ZeroVector);
+	if (!NpcActor)
+	{
+		AddError(TEXT("Failed to spawn test actor"));
+		WorldWrapper.DestroyTestWorld(true);
+		return false;
+	}
+	// No SetRole() call — a locally spawned actor with no owning connection defaults to
+	// ROLE_Authority, exactly like a level-placed or server-spawned NPC.
+
+	UMounteaInteractableComponentPress* Interactable = NewObject<UMounteaInteractableComponentPress>(NpcActor, UMounteaInteractableComponentPress::StaticClass());
+	Interactable->SetupAttachment(NpcActor->GetRootComponent());
+	// Distinctive, non-default value: proves BeginPlay()'s RemainingLifecycleCount = LifecycleCount
+	// assignment actually ran, rather than coincidentally matching a default.
+	FMounteaInteractionTestAccess::SetLifecycleCount(Interactable, 7);
+
+	UMounteaInteractorComponentOverlap* Interactor = NewObject<UMounteaInteractorComponentOverlap>(NpcActor, UMounteaInteractorComponentOverlap::StaticClass());
+	// EIS_Disabled is not UMounteaInteractorComponentBase's own hardcoded default (EIS_Scanning) —
+	// same "distinctive value" reasoning.
+	FMounteaInteractionTestAccess::SetDefaultInteractorState(Interactor, EInteractorStateV3::EIS_Disabled);
+
+	// Registering now (world already began play) drives a real BeginPlay() for both components —
+	// no PlayerController, Pawn, or possession involved anywhere in this call chain.
+	NpcActor->AddInstanceComponent(Interactable);
+	Interactable->RegisterComponent();
+	NpcActor->AddInstanceComponent(Interactor);
+	Interactor->RegisterComponent();
+
+	TestEqual(TEXT("Authority BeginPlay() must initialize RemainingLifecycleCount from LifecycleCount with no PlayerController involved"),
+		IMounteaInteractableInterface::Execute_GetRemainingLifecycleCount(Interactable), 7);
+	TestEqual(TEXT("Authority BeginPlay() must initialize InteractorState from DefaultInteractorState with no PlayerController involved"),
+		IMounteaInteractorInterface::Execute_GetState(Interactor), EInteractorStateV3::EIS_Disabled);
 
 	WorldWrapper.ForwardErrorMessages(this);
 	WorldWrapper.DestroyTestWorld(true);
