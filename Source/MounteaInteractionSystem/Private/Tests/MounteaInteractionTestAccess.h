@@ -6,6 +6,8 @@
 
 #include "Components/Interactor/MounteaInteractorComponentBase.h"
 #include "Components/Interactable/MounteaInteractableComponentBase.h"
+#include "Components/Interactable/MounteaInteractableComponentHover.h"
+#include "Components/PrimitiveComponent.h"
 #include "Interfaces/MounteaInteractableInterface.h"
 
 // Shared across the Tests/ folder — grants direct access to state/methods that have no public
@@ -89,6 +91,28 @@ struct FMounteaInteractionTestAccess
 	static void SetDefaultInteractorState(UMounteaInteractorComponentBase* Interactor, const EInteractorStateV3 State)
 	{
 		Interactor->DefaultInteractorState = State;
+	}
+
+	// No public setter exists (MaxInteractors is only exposed read-only via GetMaxInteractors) — lets
+	// a test exercise the MaxInteractors > 1 concurrent-slot path without editor/Blueprint setup.
+	static void SetMaxInteractors(UMounteaInteractableComponentBase* Interactable, const int32 Max)
+	{
+		Interactable->MaxInteractors = Max;
+	}
+
+	// Hover has no physical interactor object — it drives InteractionStarted/Stopped straight from
+	// cursor-hover events (OnBeginCursorOver/OnEndCursorOver), which need a real Slate cursor to fire
+	// naturally. Calling the handlers directly simulates "cursor entered/left the collision shape"
+	// without needing PIE/mouse input, matching how AddDetected simulates physical detection for the
+	// other interactor types.
+	static void SimulateHoverCursorBegin(UMounteaInteractableComponentHover* Interactable, UPrimitiveComponent* PrimitiveComponent)
+	{
+		Interactable->OnCursorBeginOverlapEvent(PrimitiveComponent);
+	}
+
+	static void SimulateHoverCursorEnd(UMounteaInteractableComponentHover* Interactable, UPrimitiveComponent* PrimitiveComponent)
+	{
+		Interactable->OnCursorEndOverlapEvent(PrimitiveComponent);
 	}
 };
 

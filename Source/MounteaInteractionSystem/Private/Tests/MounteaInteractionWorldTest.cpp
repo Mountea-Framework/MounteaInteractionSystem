@@ -12,6 +12,7 @@
 #include "NativeGameplayTags.h"
 #include "Components/Interactable/MounteaInteractableComponentPress.h"
 #include "Components/Interactable/MounteaInteractableComponentMash.h"
+#include "Components/Interactable/MounteaInteractableComponentHold.h"
 #include "Components/Interactor/MounteaInteractorComponentOverlap.h"
 #include "Helpers/MounteaInteractableStatics.h"
 #include "Helpers/MounteaInteractionHelpers.h"
@@ -112,7 +113,12 @@ bool FMounteaInteractionRealEndPlayReleasesSlotTest::RunTest(const FString& Para
 		return false;
 	}
 
-	UMounteaInteractableComponentPress* Interactable = AddInteractableComponent<UMounteaInteractableComponentPress>(InteractableOwner);
+	// Hold (not Press) — Press completes instantly on join, and since completion now releases every
+	// occupant's slot immediately (see CompleteInteractable_Implementation), Press would already
+	// have zero slots by the time this test checks its precondition. Hold with a long period stays
+	// genuinely mid-interaction, which is what "destroyed while occupied" is meant to exercise.
+	UMounteaInteractableComponentHold* Interactable = AddInteractableComponent<UMounteaInteractableComponentHold>(InteractableOwner);
+	IMounteaInteractableInterface::Execute_SetInteractionPeriod(Interactable, 10.f);
 	UMounteaInteractorComponentOverlap* Interactor = AddInteractableComponent<UMounteaInteractorComponentOverlap>(InteractorOwner);
 
 	const TScriptInterface<IMounteaInteractableInterface> InteractableScript = ToInteractableScript(Interactable);
@@ -169,7 +175,11 @@ bool FMounteaInteractionRealEndPlayClearsLockTest::RunTest(const FString& Parame
 		return false;
 	}
 
-	UMounteaInteractableComponentPress* Interactable = AddInteractableComponent<UMounteaInteractableComponentPress>(InteractableOwner);
+	// Hold (not Press) — see the identical comment in FMounteaInteractionRealEndPlayReleasesSlotTest:
+	// Press completes instantly on join, and completion now releases the occupant immediately, so
+	// ForceLock's artificial "still locked" state below would no longer correspond to a real slot.
+	UMounteaInteractableComponentHold* Interactable = AddInteractableComponent<UMounteaInteractableComponentHold>(InteractableOwner);
+	IMounteaInteractableInterface::Execute_SetInteractionPeriod(Interactable, 10.f);
 	UMounteaInteractorComponentOverlap* Interactor = AddInteractableComponent<UMounteaInteractorComponentOverlap>(InteractorOwner);
 
 	const TScriptInterface<IMounteaInteractableInterface> InteractableScript = ToInteractableScript(Interactable);
