@@ -9,8 +9,6 @@
 #include "Helpers/MounteaInteractionHelpers.h"
 #include "MounteaInteractorRuntimeConfig.generated.h"
 
-class UInputAction;
-
 /**
  * Runtime configuration for Interactor components.
  * Referenced as a soft pointer from UMounteaInteractionSystemSettings.
@@ -55,8 +53,4 @@ public:
 	/** How often (in seconds) the interactor refreshes its candidate list. Lower = more responsive, higher = better performance. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Interactor|Detection", meta=(Units="s", UIMin=0.016, ClampMin=0.016))
 	float CandidateRefreshRate = 0.05f;
-
-	/** Input action used to cycle through the action list (next/previous). Bound by the interactor on BeginPlay. */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Interactor|Input")
-	TSoftObjectPtr<UInputAction> CandidateCycleInputAction;
 };
