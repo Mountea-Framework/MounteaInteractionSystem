@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<title>UMG Widget Setup</title>
+	</head>
+	<body>
+		<div class="doc-page">
+			<header>
+				<div class="version">Version · 5.0</div>
+				<h1>UMG Widget Setup</h1>
+				<p>
+					Two kinds of widget exist: the <strong>attention widget</strong> (pooled by the World
+					Subsystem, shown above whichever actor is currently focused at a distance) and the
+					<strong>interaction widget</strong> (shown once the player is in interaction range,
+					carries progress/key-prompt/action-count). Both are plain UMG Widget Blueprints that
+					implement the same interface — you can reuse one widget class for both, or use two.
+				</p>
+			</header>
+
+			<section>
+				<h2>1. Create the widget</h2>
+				<p>
+					Content Browser → <strong>Add → User Interface → Widget Blueprint</strong>. Fastest
+					start: duplicate one of the shipped examples instead of starting blank.
+				</p>
+				<div class="ui-action-row">
+					<a class="ui-action" href="#" data-miais-type="folder" data-miais-target="/MounteaInteractionSystem/UMG/Generic">Open Blank Template (WBP_InteractableWidget_Empty)</a>
+					<a class="ui-action" href="#" data-miais-type="folder" data-miais-target="/MounteaInteractionSystem/UMG/Base">Open Base Widget (WBP_InteractableBase)</a>
+					<a class="ui-action" href="#" data-miais-type="folder" data-miais-target="/MounteaInteractionSystem/UMG/Examples">Open 10 Example Widgets</a>
+				</div>
+			</section>
+
+			<section>
+				<h2>2. Implement the interface</h2>
+				<p>
+					In the widget's <strong>Class Settings</strong>, add
+					<code>Actor Interaction Widget</code> under <em>Implemented Interfaces</em>. Every
+					method below then appears under that interface in the Blueprint's function list — no
+					C++ required (there is no C++ base class to inherit from; the interface is the whole
+					contract).
+				</p>
+				<table class="setup-table">
+					<thead><tr><th>Event / Function</th><th>Called when…</th></tr></thead>
+					<tbody>
+						<tr><td class="cell-class">SetWidgetMode(NewMode)</td><td>Widget should switch between None / Attention / Interaction display — drive your visibility/layout branch off this.</td></tr>
+						<tr><td class="cell-class">SetActionCount(TotalActions)</td><td>Tier 2 action list size changed — e.g. show "1 of 3".</td></tr>
+						<tr><td class="cell-class">SetSelectedActionIndex(SelectedIndex)</td><td>Player cycled to a different action.</td></tr>
+						<tr><td class="cell-class">UpdateWidget(InteractableInterface)</td><td>General refresh hook — pull whatever you need straight off the interactable interface.</td></tr>
+						<tr><td class="cell-class">SetTitleText / GetTitleText</td><td>Interactable's display name.</td></tr>
+						<tr><td class="cell-class">SetBodyText / GetBodyText</td><td>Descriptive/flavour text.</td></tr>
+						<tr><td class="cell-class">SetKeyText / GetKeyText</td><td>The "press [X]" prompt.</td></tr>
+						<tr><td class="cell-class">SetProgress / GetProgress</td><td>0–1 progress — bind directly to a progress bar for Hold/Mash/Automatic/Hover types.</td></tr>
+						<tr><td class="cell-class">ToggleVisibility()</td><td>Show/hide — this is the one <em>native</em> event (BlueprintNativeEvent); override it normally in the graph like any other event.</td></tr>
+						<tr><td class="cell-class">InteractionWidgetCommand(Command, Payload)</td><td>Free-form escape hatch for anything project-specific.</td></tr>
+					</tbody>
+				</table>
+				<figure>
+					<img src="images/widget-01-class-settings.png" alt="Widget Blueprint Class Settings panel showing Actor Interaction Widget added under Implemented Interfaces" style="max-width:100%;border:1px solid var(--page-border);border-radius:var(--radius-card);margin:var(--space-3) 0;" />
+					<figcaption class="muted">Class Settings → Interfaces → Actor Interaction Widget.</figcaption>
+				</figure>
+				<figure>
+					<img src="images/widget-02-event-graph.png" alt="Widget Blueprint event graph showing Set Progress driving a Progress Bar percent" style="max-width:100%;border:1px solid var(--page-border);border-radius:var(--radius-card);margin:var(--space-3) 0;" />
+					<figcaption class="muted">Set Progress → Progress Bar's Percent, the simplest possible wiring.</figcaption>
+				</figure>
+			</section>
+
+			<section>
+				<h2>Widget Mode reference</h2>
+				<table class="setup-table">
+					<thead><tr><th>Mode</th><th>Meaning</th></tr></thead>
+					<tbody>
+						<tr><td class="cell-class">None</td><td>Not currently relevant — hide everything.</td></tr>
+						<tr><td class="cell-class">Attention</td><td>Focused but out of interaction range — the pooled "something's over there" prompt.</td></tr>
+						<tr><td class="cell-class">Interaction</td><td>In range — full interaction widget: title, key prompt, progress, action count.</td></tr>
+					</tbody>
+				</table>
+			</section>
+
+			<section>
+				<h2>3. Assign the widget classes</h2>
+				<p>
+					Back in your config assets (page 1): set
+					<code>DefaultAttentionWidgetClass</code> on the <strong>Interactor UI Config</strong>,
+					and <code>DefaultInteractionWidgetClass</code> on the <strong>Interactable UI Config</strong>.
+					That's it — no manual spawning anywhere:
+				</p>
+				<ul>
+					<li>The attention widget is spawned, pooled (<code>AttentionWidgetPoolSize</code> instances), and positioned by <code>UMounteaInteractionWorldSubsystem</code> automatically.</li>
+					<li>The interaction widget is hosted directly on the interactable component (it's a <code>UWidgetComponent</code> under the hood) and shown/hidden automatically based on distance and state.</li>
+				</ul>
+				<div class="ui-action-row">
+					<a class="ui-action" href="#" data-miais-type="settings" data-miais-target="Mountea">Open Mountea Interaction Settings</a>
+				</div>
+				<figure>
+					<img src="images/widget-03-assign-classes.png" alt="Interactor UI Config and Interactable UI Config assets with their widget class fields set to the new Widget Blueprint" style="max-width:100%;border:1px solid var(--page-border);border-radius:var(--radius-card);margin:var(--space-3) 0;" />
+					<figcaption class="muted">Both UI configs pointing at your new widget class.</figcaption>
+				</figure>
+			</section>
+
+			<div class="ui-action-row">
+				<a class="ui-action" href="#" data-miais-type="page" data-miais-target="3">← Interactable Setup</a>
+				<a class="ui-action ui-action--close" href="#" data-miais-type="page" data-miais-target="5">Next: Testing &amp; Troubleshooting →</a>
+			</div>
+		</div>
+	</body>
+</html>

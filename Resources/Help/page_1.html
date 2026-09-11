@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<title>Config Assets Setup</title>
+	</head>
+	<body>
+		<div class="doc-page">
+			<header>
+				<div class="version">Version · 5.0</div>
+				<h1>Config Assets Setup</h1>
+				<p>
+					Four small DataAssets drive every project-wide default — two for the Interactor side,
+					two for the Interactable side, each split into a <strong>Runtime</strong> config
+					(gameplay behaviour) and a <strong>UI</strong> config (widgets/visuals). None of this
+					is required for the plugin to run — every field below also exists as a hardcoded
+					fallback on the component itself — but without it you have no single place to tune
+					defaults for the whole project.
+				</p>
+			</header>
+
+			<section>
+				<h2>1. Create the four DataAssets</h2>
+				<p>
+					In the Content Browser: <strong>Add → Miscellaneous → Data Asset</strong>, then pick
+					the class from the list. Repeat four times. A suggested naming convention:
+				</p>
+				<pre><code>DA_InteractorRuntimeConfig      (class: MounteaInteractorRuntimeConfig)
+DA_InteractorUIConfig           (class: MounteaInteractorUIConfig)
+DA_InteractableRuntimeConfig    (class: MounteaInteractableRuntimeConfig)
+DA_InteractableUIConfig         (class: MounteaInteractableUIConfig)</code></pre>
+				<figure>
+					<img src="images/config-01-create-dataasset.png" alt="Content Browser Add menu showing Data Asset creation and the four Mountea config classes" style="max-width:100%;border:1px solid var(--page-border);border-radius:var(--radius-card);margin:var(--space-3) 0;" />
+					<figcaption class="muted">Content Browser → Add → Miscellaneous → Data Asset → search "Mountea".</figcaption>
+				</figure>
+				<blockquote>
+					There is no shipped default instance of any of these four classes — the plugin's old
+					single-asset config (<code>DA_DefaultInteactionConfig</code>) is pre-v5.0 and orphaned;
+					ignore it. Create your own four assets as above.
+				</blockquote>
+			</section>
+
+			<section>
+				<h2>2. Assign them in Project Settings</h2>
+				<p>
+					Open <strong>Project Settings → Mountea Framework → Mountea Interaction System</strong>
+					and drop each asset into its matching soft-reference slot.
+				</p>
+				<div class="ui-action-row">
+					<a class="ui-action" href="#" data-miais-type="settings" data-miais-target="Mountea">Open Mountea Interaction Settings</a>
+				</div>
+				<figure>
+					<img src="images/config-02-project-settings.png" alt="Project Settings page showing the four config asset reference slots assigned" style="max-width:100%;border:1px solid var(--page-border);border-radius:var(--radius-card);margin:var(--space-3) 0;" />
+					<figcaption class="muted">All four slots assigned, plus Log Verbosity and Editor Debug toggles.</figcaption>
+				</figure>
+			</section>
+
+			<section>
+				<h2>Interactor Runtime Config</h2>
+				<p>Gameplay-facing defaults for every interactor component in the project.</p>
+				<table class="setup-table">
+					<thead><tr><th>Field</th><th>Type</th><th>Default</th><th>What it does</th></tr></thead>
+					<tbody>
+						<tr><td class="cell-class">DefaultInteractorState</td><td>EInteractorStateV3</td><td>Scanning</td><td>State the interactor boots into on BeginPlay.</td></tr>
+						<tr><td class="cell-class">OverlapCollisionChannelName</td><td>FName</td><td>InteractionOverlap</td><td>Named channel the Overlap interactor listens on. Must match the interactable's own overlap channel.</td></tr>
+						<tr><td class="cell-class">TraceCollisionChannelName</td><td>FName</td><td>InteractionTrace</td><td>Named channel used by the Trace interactor's detection sweep and by the safety line-of-sight trace (below).</td></tr>
+						<tr><td class="cell-class">InteractorTag</td><td>FGameplayTag</td><td>(empty)</td><td>Single tag identifying this interactor (e.g. Player vs NPC) — matched against interactables' whitelist/blacklist tags. See page 3.</td></tr>
+						<tr><td class="cell-class">SafetyTracingSetup</td><td>FSafetyTracingSetup</td><td>Mode: None</td><td>Secondary line-of-sight validation so overlap volumes can't detect through walls. See page 2.</td></tr>
+						<tr><td class="cell-class">MaxCandidatesPerActor</td><td>int32</td><td>8</td><td>Caps how many interactable components on one focused actor can appear in the Tier 2 action list.</td></tr>
+						<tr><td class="cell-class">CandidateRefreshRate</td><td>float</td><td>0.05s</td><td>How often the focus/candidate list re-evaluates.</td></tr>
+					</tbody>
+				</table>
+			</section>
+
+			<section>
+				<h2>Interactor UI Config</h2>
+				<p>Drives the pooled <strong>attention widget</strong> — the "look, something is interactable over there" prompt shown on whichever actor is currently focused, before the player is close enough for the full interaction widget.</p>
+				<table class="setup-table">
+					<thead><tr><th>Field</th><th>Type</th><th>Default</th><th>What it does</th></tr></thead>
+					<tbody>
+						<tr><td class="cell-class">AttentionWidgetPoolSize</td><td>int32</td><td>5</td><td>How many attention-widget actors the World Subsystem pre-spawns and recycles. No manual spawning needed — see page 4.</td></tr>
+						<tr><td class="cell-class">DefaultAttentionWidgetClass</td><td>TSoftClassPtr&lt;UUserWidget&gt;</td><td>(unset)</td><td>Widget class used for the pooled attention prompt. Must implement <code>Actor Interaction Widget</code>.</td></tr>
+						<tr><td class="cell-class">AttentionWidgetFadeInTime</td><td>float</td><td>0.2s</td><td>Fade-in when a new actor becomes focused.</td></tr>
+						<tr><td class="cell-class">AttentionWidgetFadeOutTime</td><td>float</td><td>0.15s</td><td>Fade-out when focus moves away.</td></tr>
+					</tbody>
+				</table>
+			</section>
+
+			<section>
+				<h2>Interactable Runtime Config</h2>
+				<p>Gameplay-facing defaults for every interactable component in the project.</p>
+				<table class="setup-table">
+					<thead><tr><th>Field</th><th>Type</th><th>Default</th><th>What it does</th></tr></thead>
+					<tbody>
+						<tr><td class="cell-class">DefaultInteractionPeriod</td><td>float</td><td>3.0s</td><td>Duration used by Hold/Automatic/Hover types. -1 = instant (Press-style).</td></tr>
+						<tr><td class="cell-class">DefaultInteractableState</td><td>EInteractableStateV3</td><td>Awake</td><td>State the interactable boots into.</td></tr>
+						<tr><td class="cell-class">DefaultSetupType</td><td>ESetupType</td><td>Quick</td><td>Auto-setup mode for collision/highlight components.</td></tr>
+						<tr><td class="cell-class">OverlapCollisionChannelName</td><td>FName</td><td>InteractionOverlap</td><td>Must match the interactor's overlap channel above.</td></tr>
+						<tr><td class="cell-class">bDefaultHighlightEnabled</td><td>bool</td><td>true</td><td>Whether the actor highlights (outline/overlay) when focused.</td></tr>
+						<tr><td class="cell-class">DefaultHighlightSetup</td><td>FInteractionHighlightSetup</td><td>Overlay Material, Stencil 133</td><td>Highlight rendering method.</td></tr>
+						<tr><td class="cell-class">DefaultLifecycleMode</td><td>EInteractableLifecycle</td><td>Cycled</td><td>Cycled = reusable with cooldown; Once = single-use, terminal on completion.</td></tr>
+						<tr><td class="cell-class">DefaultCooldownPeriod</td><td>float</td><td>3.0s</td><td>Only relevant when LifecycleMode = Cycled.</td></tr>
+						<tr><td class="cell-class">DefaultInteractableWeight</td><td>int32</td><td>1</td><td>Tier 1 focus priority — higher wins when two interactables' weighted score ties, closer wins the remaining tie.</td></tr>
+						<tr><td class="cell-class">DefaultMaxInteractors</td><td>int32</td><td>1</td><td>How many interactors may hold a slot concurrently. See page 3 for co-op behaviour.</td></tr>
+						<tr><td class="cell-class">DefaultWidgetRanges</td><td>FInteractableWidgetRanges</td><td>Attention 500 / Interaction 200</td><td>Distance thresholds (cm) for attention vs full interaction widget visibility.</td></tr>
+					</tbody>
+				</table>
+			</section>
+
+			<section>
+				<h2>Interactable UI Config</h2>
+				<p>Drives the per-interactable <strong>interaction widget</strong> shown once the player is in range and has this interactable selected/highlighted in Tier 2.</p>
+				<table class="setup-table">
+					<thead><tr><th>Field</th><th>Type</th><th>Default</th><th>What it does</th></tr></thead>
+					<tbody>
+						<tr><td class="cell-class">DefaultInteractionWidgetClass</td><td>TSoftClassPtr&lt;UUserWidget&gt;</td><td>(unset)</td><td>Widget class shown in interaction range. Must implement <code>Actor Interaction Widget</code>.</td></tr>
+						<tr><td class="cell-class">DefaultInteractableDataTable</td><td>TSoftObjectPtr&lt;UDataTable&gt;</td><td>(unset)</td><td>Optional row-based content (titles/body text) keyed per interactable.</td></tr>
+						<tr><td class="cell-class">MappingKeys</td><td>TMap&lt;FKey, FKeyOnDevice&gt;</td><td>(empty)</td><td>Per-key device/platform icon textures for the "press [X]" prompt.</td></tr>
+						<tr><td class="cell-class">WidgetUpdateFrequency</td><td>float</td><td>0.05s</td><td>How often the interaction widget refreshes (progress bars, etc.).</td></tr>
+					</tbody>
+				</table>
+			</section>
+
+			<div class="ui-action-row">
+				<a class="ui-action" href="#" data-miais-type="page" data-miais-target="0">← Overview</a>
+				<a class="ui-action ui-action--close" href="#" data-miais-type="page" data-miais-target="2">Next: Interactor Setup →</a>
+			</div>
+		</div>
+	</body>
+</html>

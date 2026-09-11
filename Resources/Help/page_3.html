@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<title>Interactable Setup</title>
+	</head>
+	<body>
+		<div class="doc-page">
+			<header>
+				<div class="version">Version · 5.0</div>
+				<h1>Interactable Setup</h1>
+				<p>
+					Add an interactable component to whatever should be interacted with — a door, an
+					NPC, a lever, a pickup. All five types share the same base (weight, cooldown,
+					lifecycle, tags) and differ only in <em>how they complete</em>.
+				</p>
+			</header>
+
+			<section>
+				<h2>Which interactable type?</h2>
+				<table class="setup-table">
+					<thead><tr><th>Component</th><th>Completes when…</th><th>Standalone by default</th><th>Key property</th></tr></thead>
+					<tbody>
+						<tr><td class="cell-class">Press</td><td>Immediately, on join (one key press)</td><td>Yes</td><td>—</td></tr>
+						<tr><td class="cell-class">Automatic</td><td>Interaction Period elapses after joining — no input needed</td><td>Yes</td><td>Interaction Period</td></tr>
+						<tr><td class="cell-class">Hold</td><td>Key held for Interaction Period; releasing early cancels</td><td>No</td><td>Interaction Period</td></tr>
+						<tr><td class="cell-class">Mash</td><td>Key pressed N times within a rolling window</td><td>No</td><td>Min Mash Amount Required, Keystroke Time Threshold</td></tr>
+						<tr><td class="cell-class">Hover</td><td>Cursor dwells over the collision shape for Interaction Period (extends Hold, but driven by cursor-enter/leave, not key press)</td><td>No</td><td>Interaction Period (inherited)</td></tr>
+					</tbody>
+				</table>
+				<p>
+					<strong>Press</strong> and <strong>Automatic</strong> default
+					<code>bStandaloneInteraction = true</code> — see below.
+				</p>
+			</section>
+
+			<section>
+				<h2>Standalone vs. action-cycling</h2>
+				<p>
+					<code>bStandaloneInteraction</code> decides whether this component forces itself as
+					the always-selected action, or takes its place in a cyclable list.
+				</p>
+				<table class="setup-table">
+					<thead><tr><th>Setting</th><th>Effect</th><th>Use for</th></tr></thead>
+					<tbody>
+						<tr><td class="cell-class">true</td><td>This component is always the highlighted action, index 0, no cycling UI needed.</td><td>A single-purpose actor: a lever, a door, a pickup.</td></tr>
+						<tr><td class="cell-class">false</td><td>Takes its place among sibling interactable components on the same actor; the player cycles between them with Execute_CycleAction.</td><td>An actor offering several interactions: an NPC with Talk / Trade / Inspect.</td></tr>
+					</tbody>
+				</table>
+				<blockquote>
+					Multiple interactable components on one actor are automatically independent — no extra
+					wiring needed to have e.g. Hold (enter as driver) and Mash (honk horn) coexist on the
+					same car actor.
+				</blockquote>
+			</section>
+
+			<section>
+				<h2>Base properties (all five types)</h2>
+				<table class="setup-table">
+					<thead><tr><th>Field</th><th>Default</th><th>What it does</th></tr></thead>
+					<tbody>
+						<tr><td class="cell-class">InteractionPeriod</td><td>3.0s</td><td>-1 = instant, 0 = 0.1s. Unused by Press.</td></tr>
+						<tr><td class="cell-class">LifecycleMode</td><td>Cycled</td><td>Cycled = reusable (goes to Cooldown then back to Awake); Once = single-use, terminal Completed state.</td></tr>
+						<tr><td class="cell-class">LifecycleCount</td><td>-1 (infinite)</td><td>How many times a Cycled interactable can complete before it also goes terminal.</td></tr>
+						<tr><td class="cell-class">CooldownPeriod</td><td>3.0s</td><td>Only relevant when LifecycleMode = Cycled.</td></tr>
+						<tr><td class="cell-class">InteractionWeight</td><td>1</td><td>Tier 1 focus priority — higher weight wins; ties broken by distance.</td></tr>
+						<tr><td class="cell-class">MaxInteractors</td><td>1</td><td>Concurrent occupants allowed. See co-op notes below.</td></tr>
+						<tr><td class="cell-class">CollisionChannel</td><td>Camera</td><td>Channel used for highlight/interaction collision on this component.</td></tr>
+						<tr><td class="cell-class">bInteractionHighlight</td><td>true</td><td>Whether the actor gets an outline/overlay highlight while focused.</td></tr>
+						<tr><td class="cell-class">InteractableName</td><td>"Default"</td><td>Display name, e.g. for widget title text.</td></tr>
+					</tbody>
+				</table>
+			</section>
+
+			<section>
+				<h2>Multiple interactors (co-op)</h2>
+				<p>
+					Set <code>MaxInteractors</code> above 1 to let several interactors occupy the same
+					interactable at once (e.g. two players lifting a heavy door together).
+				</p>
+				<ul>
+					<li><strong>Hold / Automatic</strong> — one shared timer; whoever's join arrives while it's not already running starts it, everyone else just occupies a slot alongside them.</li>
+					<li><strong>Mash</strong> — one shared press counter; presses from <em>any</em> occupant count toward the same threshold — genuine co-operative contribution.</li>
+				</ul>
+				<p>
+					Either way, when the interactable completes, <strong>every</strong> current occupant is
+					released automatically — nobody is left silently locked on afterward, and the slot is
+					immediately free for the next group.
+				</p>
+			</section>
+
+			<section>
+				<h2>Tag whitelist / blacklist</h2>
+				<p>
+					Gate who can join without disabling the interactable outright — compare against the
+					joining interactor's single <code>Interactor Tag</code> (set on page 2).
+				</p>
+				<table class="setup-table">
+					<thead><tr><th>Field</th><th>Behaviour when non-empty</th></tr></thead>
+					<tbody>
+						<tr><td class="cell-class">RequiredInteractorTags</td><td>Interactor must match at least one of these tags (whitelist) — hierarchical "any" match.</td></tr>
+						<tr><td class="cell-class">ExcludedInteractorTags</td><td>Interactor must match <em>none</em> of these tags (blacklist), checked independently and in addition to the whitelist.</td></tr>
+					</tbody>
+				</table>
+				<p>
+					Example: an NPC vendor with <code>RequiredInteractorTags = Mountea_Interaction.Interactor.Player</code>
+					never appears interactable to other NPCs; a Team A vehicle with
+					<code>ExcludedInteractorTags = Team.B</code> rejects Team B players while staying open
+					to everyone else. Both containers empty (the default) means no filtering at all.
+				</p>
+			</section>
+
+			<div class="ui-action-row">
+				<a class="ui-action" href="#" data-miais-type="page" data-miais-target="2">← Interactor Setup</a>
+				<a class="ui-action ui-action--close" href="#" data-miais-type="page" data-miais-target="4">Next: UMG Widget Setup →</a>
+			</div>
+		</div>
+	</body>
+</html>

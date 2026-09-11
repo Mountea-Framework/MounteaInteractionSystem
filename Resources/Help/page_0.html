@@ -8,76 +8,95 @@
 		<div class="doc-page">
 			<header>
 				<div class="version">Version · 5.0</div>
-				<h1>Before You Start</h1>
+				<h1>Overview &amp; Auto-Setup</h1>
 				<p>
-					A quick checklist before you create your first interaction.
-					Complete these steps once per project and you are good to go.
+					Mountea Interaction System is a component-based interaction framework built on a
+					<strong>two-tier focus model</strong>: your interactor picks one <strong>focused actor</strong>
+					(Tier 1 — by weight, then distance), then cycles between that actor's individual
+					interactable components (Tier 2 — Talk / Trade / Inspect, etc.). This guide walks
+					through the six things every project needs, in the order you'll actually do them.
 				</p>
 			</header>
 
 			<section>
-				<h2>Collision Channels</h2>
+				<h2>What the plugin sets up for you automatically</h2>
 				<p>
-					Two channels — <code>InteractionOverlap</code> and
-					<code>InteractionTrace</code> — are
-					<strong>automatically registered</strong> when the plugin loads.
-					No manual setup is required in most cases.
+					A few pieces of infrastructure are handled the moment the plugin loads — you do not
+					need to configure these by hand in a normal project.
 				</p>
-				<p>
-					If the channels are missing after a fresh install, use
-					<strong>Setup Interaction Channels</strong> from the
-					<strong>Mountea Framework</strong> toolbar menu, then restart
-					the editor.
-				</p>
+				<div class="ui-chip-row">
+					<span class="ui-chip ui-chip--success">Collision Channels — Auto-created</span>
+					<span class="ui-chip ui-chip--success">Gameplay Tags — Auto-registered</span>
+					<span class="ui-chip ui-chip--success">Component Defaults — Safe fallback</span>
+				</div>
+
+				<blockquote>
+					<strong>Collision channels.</strong> Two custom channels — <code>InteractionOverlap</code>
+					(Object channel, default response <em>Ignore</em>) and <code>InteractionTrace</code>
+					(Trace channel, default response <em>Block</em>) — are written into your project's
+					<code>DefaultEngine.ini</code> the first time the editor loads with this plugin enabled.
+					<strong>Restart the editor once</strong> after the first load (or after using
+					<em>Setup Interaction Channels</em> below) so the new channels fully apply.
+				</blockquote>
+
+				<blockquote>
+					<strong>Gameplay tags.</strong> A starter tag hierarchy
+					(<code>Mountea_Interaction.Interactor.Player</code>,
+					<code>Mountea_Interaction.Interactable.NPC</code>, etc.) ships in the plugin's own
+					<code>Config/Tags/MounteaInteractionSystemTags.ini</code> and is picked up by UE's
+					standard plugin gameplay-tag auto-scan — nothing to add to your project's own
+					<code>DefaultGameplayTags.ini</code> unless you want project-specific tags alongside
+					them. The plugin also checks GitHub for newer tag definitions on editor startup
+					(toggle in <em>Project Settings → Mountea Interaction System (Editor)</em>).
+				</blockquote>
+
+				<blockquote>
+					<strong>Component defaults.</strong> Every interactor/interactable component has
+					sensible hardcoded C++ defaults (<code>ECC_Camera</code> collision, sane periods and
+					weights). The four config assets on the next page let you override these project-wide,
+					but the plugin will not fail to initialise if you skip that page — it just falls back
+					to those defaults per-component.
+				</blockquote>
+
 				<div class="ui-action-row">
-					<a
-						class="ui-action"
-						href="#"
-						data-miais-type="settings"
-						data-miais-target="Collision"
-					>Open Collision Settings</a>
+					<a class="ui-action" href="#" data-miais-type="settings" data-miais-target="Collision">Open Collision Settings</a>
+					<a class="ui-action" href="#" data-miais-type="external" data-miais-target="https://github.com/Mountea-Framework/MounteaInteractionSystem/wiki">Wiki</a>
 				</div>
 			</section>
 
 			<section>
-				<h2>Interaction Defaults</h2>
-				<p>
-					Open the Mountea Interaction System settings and confirm the
-					<strong>Default Interaction System Config</strong> asset is
-					assigned. Without it the system cannot initialise properly.
-				</p>
-				<div class="ui-action-row">
-					<a
-						class="ui-action"
-						href="#"
-						data-miais-type="settings"
-						data-miais-target="Mountea"
-					>Open Mountea Interaction Settings</a>
-				</div>
+				<h2>The six setup steps</h2>
+				<p>Each step below is its own page in this tutorial — use the list on the left to jump around, or follow along in order.</p>
+				<table class="setup-table">
+					<thead>
+						<tr><th>#</th><th>Page</th><th>What you'll do</th></tr>
+					</thead>
+					<tbody>
+						<tr><td>1</td><td>Config Assets</td><td>Create the 4 config DataAssets and assign them in Project Settings.</td></tr>
+						<tr><td>2</td><td>Interactor Setup</td><td>Add an Overlap / Trace / Mouse interactor component to your Pawn and wire Enhanced Input.</td></tr>
+						<tr><td>3</td><td>Interactable Setup</td><td>Add one of the 5 interactable components to whatever should be interacted with.</td></tr>
+						<tr><td>4</td><td>UMG Widget Setup</td><td>Build a Widget Blueprint that implements <code>Actor Interaction Widget</code> and assign it.</td></tr>
+						<tr><td>5</td><td>Testing &amp; Troubleshooting</td><td>Press Play and confirm it all works — plus fixes for the usual first-run snags.</td></tr>
+					</tbody>
+				</table>
 			</section>
 
 			<section>
 				<h2>Example Content</h2>
 				<p>
-					The plugin ships with example assets to help you get started.
-					Browse them in the Content Browser to see a working interaction
-					setup you can copy or learn from.
+					The plugin ships a working example level, character, NPC and Enhanced Input assets
+					under <code>Content/Example</code> and <code>Content/Input</code> — open
+					<code>M_Example.umap</code> and Play to see a fully wired setup before building your own.
 				</p>
 				<div class="ui-action-row">
-					<a
-						class="ui-action"
-						href="#"
-						data-miais-type="folder"
-						data-miais-target="/MounteaInteractionSystem/Example"
-					>Open Example Folder</a>
-					<a
-						class="ui-action"
-						href="#"
-						data-miais-type="external"
-						data-miais-target="https://github.com/Mountea-Framework/MounteaInteractionSystem/wiki"
-					>Wiki</a>
+					<a class="ui-action" href="#" data-miais-type="folder" data-miais-target="/MounteaInteractionSystem/Example">Open Example Folder</a>
+					<a class="ui-action" href="#" data-miais-type="folder" data-miais-target="/MounteaInteractionSystem/UMG">Open UMG Widget Folder</a>
 				</div>
 			</section>
+
+			<div class="ui-action-row">
+				<a class="ui-action ui-action--close" href="#" data-miais-type="page" data-miais-target="1">Next: Config Assets Setup →</a>
+			</div>
 		</div>
 	</body>
 </html>

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<title>Testing &amp; Troubleshooting</title>
+	</head>
+	<body>
+		<div class="doc-page">
+			<header>
+				<div class="version">Version · 5.0</div>
+				<h1>Testing &amp; Troubleshooting</h1>
+				<p>
+					A minimal checklist to get one real interaction working in PIE, followed by the fixes
+					for the snags that come up most often on a first setup.
+				</p>
+			</header>
+
+			<section>
+				<h2>End-to-end checklist</h2>
+				<table class="setup-table">
+					<thead><tr><th>#</th><th>Step</th><th>Page</th></tr></thead>
+					<tbody>
+						<tr><td>1</td><td>Restart the editor once, so the auto-created collision channels are active.</td><td>0</td></tr>
+						<tr><td>2</td><td>Create the 4 config assets and assign them in Project Settings.</td><td>1</td></tr>
+						<tr><td>3</td><td>Add an Interactor Component (Overlap needs a sibling shape) to your player Pawn, set its Interactor Tag.</td><td>2</td></tr>
+						<tr><td>4</td><td>Bind Enhanced Input: Start/Stop/Cycle Interaction.</td><td>2</td></tr>
+						<tr><td>5</td><td>Add one Interactable Component (start with Press — simplest to verify) to a level actor.</td><td>3</td></tr>
+						<tr><td>6</td><td>Build a widget implementing Actor Interaction Widget, assign it to both UI configs.</td><td>4</td></tr>
+						<tr><td>7</td><td>Play. Walk up to the actor — attention widget, then interaction widget, then press your bound key.</td><td>—</td></tr>
+					</tbody>
+				</table>
+				<figure>
+					<img src="images/testing-01-pie-success.png" alt="PIE viewport showing the interaction widget above a highlighted interactable actor with a visible progress bar" style="max-width:100%;border:1px solid var(--page-border);border-radius:var(--radius-card);margin:var(--space-3) 0;" />
+					<figcaption class="muted">What a working setup looks like in PIE — highlight, widget, progress.</figcaption>
+				</figure>
+			</section>
+
+			<section>
+				<h2>Common pitfalls</h2>
+				<table class="setup-table">
+					<thead><tr><th>Symptom</th><th>Likely cause</th><th>Fix</th></tr></thead>
+					<tbody>
+						<tr>
+							<td>Nothing is ever detected</td>
+							<td>Overlap interactor with no sibling collision shape on the actor</td>
+							<td>Add a Sphere Collision (or similar) component alongside the interactor.</td>
+						</tr>
+						<tr>
+							<td>Traces/overlaps silently never hit</td>
+							<td>Collision channels not yet active</td>
+							<td>Restart the editor after the first load, or run <em>Setup Interaction Channels</em> from the Mountea Framework toolbar menu.</td>
+						</tr>
+						<tr>
+							<td>An interactor is rejected with no visible error</td>
+							<td>RequiredInteractorTags / ExcludedInteractorTags mismatch</td>
+							<td>Check the interactor's Interactor Tag against the interactable's tag containers; listen to <code>OnInteractorRejected</code> while debugging.</td>
+						</tr>
+						<tr>
+							<td>Player stays "stuck" after a Press/Automatic interaction</td>
+							<td>These complete instantly on join, then immediately release — a widget/animation assuming a longer "held" window won't see one</td>
+							<td>Use Hold instead if you need a sustained interaction window.</td>
+						</tr>
+						<tr>
+							<td>Second player can't join a shared interaction</td>
+							<td>MaxInteractors is still 1</td>
+							<td>Raise MaxInteractors on the interactable (page 3) for co-op interactions.</td>
+						</tr>
+						<tr>
+							<td>Widget never appears, no errors</td>
+							<td>Widget class doesn't implement Actor Interaction Widget</td>
+							<td>Class Settings → Implemented Interfaces → add it, then re-implement the events.</td>
+						</tr>
+						<tr>
+							<td>Nothing seems configured at all</td>
+							<td>One or more of the 4 config assets isn't assigned in Project Settings</td>
+							<td>Not fatal — components silently fall back to hardcoded C++ defaults. Assign the assets (page 1) to actually control behaviour.</td>
+						</tr>
+					</tbody>
+				</table>
+			</section>
+
+			<section>
+				<h2>Where to look</h2>
+				<p>
+					All plugin logging goes through <code>LogMounteaInteractionSystem</code> — filter the
+					Output Log for it. Verbosity (Info/Warning/Error, bitmask) is controlled by
+					<code>Log Verbosity</code> in the same Project Settings page as the config assets.
+				</p>
+				<div class="ui-action-row">
+					<a class="ui-action" href="#" data-miais-type="settings" data-miais-target="Mountea">Open Mountea Interaction Settings</a>
+					<a class="ui-action" href="#" data-miais-type="external" data-miais-target="https://github.com/Mountea-Framework/MounteaInteractionSystem/wiki">Wiki</a>
+					<a class="ui-action" href="#" data-miais-type="external" data-miais-target="https://discord.gg/waYT2cn37z">Discord Support</a>
+				</div>
+			</section>
+
+			<div class="ui-action-row">
+				<a class="ui-action" href="#" data-miais-type="page" data-miais-target="4">← UMG Widget Setup</a>
+				<a class="ui-action ui-action--close" href="#" data-miais-type="page" data-miais-target="0">Back to Overview</a>
+			</div>
+		</div>
+	</body>
+</html>

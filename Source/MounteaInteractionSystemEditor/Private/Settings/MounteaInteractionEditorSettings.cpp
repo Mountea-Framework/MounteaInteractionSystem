@@ -24,8 +24,28 @@ UMounteaInteractionEditorSettings::UMounteaInteractionEditorSettings() : bAllowA
 	SharedScriptPath.FilePath     = ResolvePluginPath(TEXT("Resources/Help/MounteaInteractionHelp.js"));
 
 	EditorTemplatePages.Add(0, FInteractionEditorPageConfig(
-		NSLOCTEXT("MounteaInteractionEditorSettings", "Page0_Title", "Setup Guide"),
+		NSLOCTEXT("MounteaInteractionEditorSettings", "Page0_Title", "Overview"),
 		ResolvePluginPath(TEXT("Resources/Help/page_0.html"))
+	));
+	EditorTemplatePages.Add(1, FInteractionEditorPageConfig(
+		NSLOCTEXT("MounteaInteractionEditorSettings", "Page1_Title", "Config Assets"),
+		ResolvePluginPath(TEXT("Resources/Help/page_1.html"))
+	));
+	EditorTemplatePages.Add(2, FInteractionEditorPageConfig(
+		NSLOCTEXT("MounteaInteractionEditorSettings", "Page2_Title", "Interactor Setup"),
+		ResolvePluginPath(TEXT("Resources/Help/page_2.html"))
+	));
+	EditorTemplatePages.Add(3, FInteractionEditorPageConfig(
+		NSLOCTEXT("MounteaInteractionEditorSettings", "Page3_Title", "Interactable Setup"),
+		ResolvePluginPath(TEXT("Resources/Help/page_3.html"))
+	));
+	EditorTemplatePages.Add(4, FInteractionEditorPageConfig(
+		NSLOCTEXT("MounteaInteractionEditorSettings", "Page4_Title", "UMG Widget Setup"),
+		ResolvePluginPath(TEXT("Resources/Help/page_4.html"))
+	));
+	EditorTemplatePages.Add(5, FInteractionEditorPageConfig(
+		NSLOCTEXT("MounteaInteractionEditorSettings", "Page5_Title", "Testing & Troubleshooting"),
+		ResolvePluginPath(TEXT("Resources/Help/page_5.html"))
 	));
 }
 

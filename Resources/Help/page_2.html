@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<title>Interactor Setup</title>
+	</head>
+	<body>
+		<div class="doc-page">
+			<header>
+				<div class="version">Version · 5.0</div>
+				<h1>Interactor Setup</h1>
+				<p>
+					The <strong>interactor</strong> lives on whatever should be able to interact — almost
+					always your player Pawn, but also fine on an NPC or AI-controlled actor. It detects
+					nearby interactables, picks one as focused (Tier 1), and lets you cycle/select its
+					actions (Tier 2). Pick exactly one of the three component types below per actor.
+				</p>
+			</header>
+
+			<section>
+				<h2>Which interactor type?</h2>
+				<table class="setup-table">
+					<thead><tr><th>Component</th><th>Detection method</th><th>Needs</th><th>Best for</th></tr></thead>
+					<tbody>
+						<tr>
+							<td class="cell-class">Interactor Component Overlap</td>
+							<td>Physics overlap events on a sibling collision shape</td>
+							<td>A collision primitive on the same actor (e.g. a Sphere Collision)</td>
+							<td>First/third-person games — "walk into range"</td>
+						</tr>
+						<tr>
+							<td class="cell-class">Interactor Component Trace</td>
+							<td>Periodic line or box trace from the owner</td>
+							<td>Nothing extra — traces from the actor itself</td>
+							<td>Camera-aim / crosshair interaction</td>
+						</tr>
+						<tr>
+							<td class="cell-class">Interactor Component Mouse</td>
+							<td>Trace under the mouse cursor via the owning PlayerController</td>
+							<td>Owner must be, or be possessed by, a Pawn with a PlayerController</td>
+							<td>Top-down / strategy / point-and-click</td>
+						</tr>
+					</tbody>
+				</table>
+			</section>
+
+			<section>
+				<h2>Overlap — the one extra step</h2>
+				<p>
+					Add <strong>Interactor Component Overlap</strong> to your actor, then add a collision
+					shape (e.g. <strong>Sphere Collision</strong>) as a sibling component — this is the
+					volume that defines interaction range. On <code>BeginPlay</code> the component
+					auto-discovers <em>every</em> primitive component on the owner and configures its
+					collision responses for you (sets <code>InteractionOverlap</code> to Overlap, everything
+					else to Ignore) — you do not need to touch collision presets by hand.
+				</p>
+				<blockquote>
+					Only want specific components picked up instead of everything on the actor? Fill in
+					<code>Override Collision Components</code> with the exact component names to use as
+					the detection volume(s).
+				</blockquote>
+				<figure>
+					<img src="images/interactor-01-overlap-setup.png" alt="Pawn Blueprint components panel showing Interactor Component Overlap next to a Sphere Collision component" style="max-width:100%;border:1px solid var(--page-border);border-radius:var(--radius-card);margin:var(--space-3) 0;" />
+					<figcaption class="muted">Interactor Component Overlap + a Sphere Collision sibling = ready to detect.</figcaption>
+				</figure>
+			</section>
+
+			<section>
+				<h2>Trace — key properties</h2>
+				<table class="setup-table">
+					<thead><tr><th>Field</th><th>Default</th><th>Notes</th></tr></thead>
+					<tbody>
+						<tr><td class="cell-class">TraceType</td><td>Loose (box)</td><td>Precise = thin line trace; Loose = forgiving box sweep.</td></tr>
+						<tr><td class="cell-class">TraceRange</td><td>250 cm</td><td>Maximum interaction distance.</td></tr>
+						<tr><td class="cell-class">TraceShapeHalfSize</td><td>5 cm</td><td>Box half-extent, only used when TraceType = Loose.</td></tr>
+						<tr><td class="cell-class">TraceInterval</td><td>0.05s</td><td>How often the trace re-fires.</td></tr>
+						<tr><td class="cell-class">bUseCustomStartTransform</td><td>false</td><td>Enable + set Custom Trace Transform to trace from somewhere other than the owner's eye location (e.g. a weapon muzzle).</td></tr>
+					</tbody>
+				</table>
+			</section>
+
+			<section>
+				<h2>Safety trace — blocking detection through walls</h2>
+				<p>
+					<strong>Overlap</strong> volumes can poke into an adjacent room, so
+					<code>SafetyTracingSetup.SafetyTracingMode</code> defaults to
+					<strong>Location</strong> for Overlap interactors automatically — every candidate
+					gets a secondary line trace validated before it's allowed into the focus list. Trace
+					and Mouse interactors already trace to detect in the first place, so this defaults to
+					<strong>None</strong> for them (turn it on if you still want an extra check).
+				</p>
+				<table class="setup-table">
+					<thead><tr><th>Mode</th><th>Behaviour</th></tr></thead>
+					<tbody>
+						<tr><td class="cell-class">None</td><td>No secondary trace — whatever the primary detection found is trusted.</td></tr>
+						<tr><td class="cell-class">Location</td><td>Traces from a fixed <code>StartLocation</code>, or the owner's location if unset.</td></tr>
+						<tr><td class="cell-class">Socket</td><td>Traces from a named socket (default <code>"head"</code>) on the owner's mesh, falling back to owner location if the socket doesn't exist.</td></tr>
+					</tbody>
+				</table>
+				<p>
+					The trace channel resolves as: <code>OverrideTraceChannelName</code> (per-component,
+					blank by default) → the project's <code>InteractionTrace</code> channel → hard fallback
+					to <code>Visibility</code> if that channel somehow isn't registered. In practice this
+					just works once collision channels auto-set-up on page 0.
+				</p>
+			</section>
+
+			<section>
+				<h2>Interactor Tag</h2>
+				<p>
+					Set <code>Interactor Tag</code> to identify this interactor (e.g.
+					<code>Mountea_Interaction.Interactor.Player</code> or
+					<code>...Interactor.NPC</code>) — interactables can then whitelist/blacklist by this
+					tag. See page 3 for the interactable side of this.
+				</p>
+			</section>
+
+			<section>
+				<h2>Wiring Enhanced Input</h2>
+				<p>
+					The plugin deliberately does <strong>not</strong> bind any input itself — it exposes
+					plain interface calls and your project's own Input Component/Blueprint calls them,
+					exactly like calling any other Blueprint function.
+				</p>
+				<table class="setup-table">
+					<thead><tr><th>Call</th><th>Bind to</th></tr></thead>
+					<tbody>
+						<tr><td class="cell-class">Execute_StartInteraction(Interactor, StartTime)</td><td>Input Action <em>Triggered</em> or <em>Started</em> — key/button pressed</td></tr>
+						<tr><td class="cell-class">Execute_StopInteraction(Interactor, StopTime)</td><td>Input Action <em>Completed</em> — key/button released</td></tr>
+						<tr><td class="cell-class">Execute_CycleAction(Interactor, Direction)</td><td>An axis or two digital actions, Direction = +1 / -1</td></tr>
+					</tbody>
+				</table>
+				<pre><code>// Blueprint: Enhanced Input Action event → straight to the interactor component
+IA_Interact (Started)   → Start Interaction  (Interactor, GetGameTimeInSeconds)
+IA_Interact (Completed) → Stop Interaction   (Interactor, GetGameTimeInSeconds)
+IA_CycleAction (Triggered, Axis1D Value) → Cycle Action (Interactor, Sign(Value))</code></pre>
+				<p>
+					The plugin ships example Input Actions and an Input Mapping Context you can duplicate
+					instead of starting from scratch:
+				</p>
+				<div class="ui-action-row">
+					<a class="ui-action" href="#" data-miais-type="folder" data-miais-target="/MounteaInteractionSystem/Input">Open Example Input Folder</a>
+				</div>
+				<figure>
+					<img src="images/interactor-02-input-binding.png" alt="Blueprint graph showing IA_Interact Enhanced Input events wired to Start Interaction and Stop Interaction" style="max-width:100%;border:1px solid var(--page-border);border-radius:var(--radius-card);margin:var(--space-3) 0;" />
+					<figcaption class="muted">IA_Interact's Started/Completed pins wired directly to the interactor component.</figcaption>
+				</figure>
+			</section>
+
+			<div class="ui-action-row">
+				<a class="ui-action" href="#" data-miais-type="page" data-miais-target="1">← Config Assets</a>
+				<a class="ui-action ui-action--close" href="#" data-miais-type="page" data-miais-target="3">Next: Interactable Setup →</a>
+			</div>
+		</div>
+	</body>
+</html>
