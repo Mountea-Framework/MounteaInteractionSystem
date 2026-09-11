@@ -13,7 +13,9 @@
 #include "Components/Interactable/MounteaInteractableComponentAutomatic.h"
 #include "Components/Interactable/MounteaInteractableComponentHold.h"
 #include "Components/Interactable/MounteaInteractableComponentMash.h"
+#include "Components/Interactable/MounteaInteractableComponentHover.h"
 #include "Components/Interactor/MounteaInteractorComponentOverlap.h"
+#include "Components/BoxComponent.h"
 #include "Helpers/MounteaInteractableStatics.h"
 #include "Helpers/MounteaInteractionHelpers.h"
 #include "Interfaces/MounteaInteractableInterface.h"
@@ -569,6 +571,455 @@ bool FMounteaInteractionSecondInteractorJoinsSiblingWhileFirstActiveTest::RunTes
 		IMounteaInteractorInterface::Execute_IsSelectionLocked(SecondInteractor));
 	TestEqual(TEXT("The previously-blocked sibling should now hold one slot"),
 		UMounteaInteractableStatics::GetInteractorSlotCount(ToInteractableScript(Mash)), 1);
+
+	WorldWrapper.ForwardErrorMessages(this);
+	WorldWrapper.DestroyTestWorld(true);
+	return true;
+}
+
+// Regression-shaped coverage for the N-interactor multiplayer support CLAUDE.md documents as a
+// headline feature: a MaxInteractors > 1 interactable must let multiple DIFFERENT interactors hold
+// a slot simultaneously, rejecting only once truly full. The join-capacity check
+// (IsSlotAvailable_Implementation: ActiveInteractorSlots.Num() < MaxInteractors) was already
+// implemented, but every existing test only ever exercised MaxInteractors=1 (single-slot-full
+// rejection), never the actual multi-occupant case.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMounteaInteractionMultiSlotAllowsConcurrentInteractorsTest,
+	"Mountea.InteractionSystem.World.Pipeline.MultiSlotAllowsConcurrentInteractorsUpToLimit",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMounteaInteractionMultiSlotAllowsConcurrentInteractorsTest::RunTest(const FString& Parameters)
+{
+	using namespace MounteaInteractionGameplayScenarioTest;
+
+	FTestWorldWrapper WorldWrapper;
+	if (!WorldWrapper.CreateTestWorld(EWorldType::Game))
+	{
+		AddError(TEXT("Failed to create test world"));
+		return false;
+	}
+	UWorld* World = WorldWrapper.GetTestWorld();
+	if (!World)
+	{
+		AddError(TEXT("Test world is null"));
+		return false;
+	}
+	WorldWrapper.BeginPlayInTestWorld();
+
+	AActor* InteractableOwner = SpawnActorWithRoot(World, FVector::ZeroVector);
+	AActor* FirstInteractorOwner = SpawnActorWithRoot(World, FVector::ZeroVector);
+	AActor* SecondInteractorOwner = SpawnActorWithRoot(World, FVector::ZeroVector);
+	AActor* ThirdInteractorOwner = SpawnActorWithRoot(World, FVector::ZeroVector);
+	if (!InteractableOwner || !FirstInteractorOwner || !SecondInteractorOwner || !ThirdInteractorOwner)
+	{
+		AddError(TEXT("Failed to spawn test actors"));
+		WorldWrapper.DestroyTestWorld(true);
+		return false;
+	}
+
+	UMounteaInteractableComponentHold* Interactable = AddInteractableComponent<UMounteaInteractableComponentHold>(InteractableOwner);
+	IMounteaInteractableInterface::Execute_SetInteractionPeriod(Interactable, 10.f);
+	FMounteaInteractionTestAccess::SetMaxInteractors(Interactable, 2);
+
+	UMounteaInteractorComponentOverlap* First = AddInteractableComponent<UMounteaInteractorComponentOverlap>(FirstInteractorOwner);
+	UMounteaInteractorComponentOverlap* Second = AddInteractableComponent<UMounteaInteractorComponentOverlap>(SecondInteractorOwner);
+	UMounteaInteractorComponentOverlap* Third = AddInteractableComponent<UMounteaInteractorComponentOverlap>(ThirdInteractorOwner);
+
+	FMounteaInteractionTestAccess::AddDetected(First, ToInteractableScript(Interactable));
+	FMounteaInteractionTestAccess::AddDetected(Second, ToInteractableScript(Interactable));
+	FMounteaInteractionTestAccess::AddDetected(Third, ToInteractableScript(Interactable));
+
+	IMounteaInteractorInterface::Execute_StartInteraction(First, 0.f);
+	TestEqual(TEXT("First interactor should hold slot 1 of 2"),
+		UMounteaInteractableStatics::GetInteractorSlotCount(ToInteractableScript(Interactable)), 1);
+
+	IMounteaInteractorInterface::Execute_StartInteraction(Second, 0.f);
+	TestEqual(TEXT("A MaxInteractors=2 interactable must accept a second, different interactor concurrently"),
+		UMounteaInteractableStatics::GetInteractorSlotCount(ToInteractableScript(Interactable)), 2);
+	TestTrue(TEXT("Second interactor must actually be locked onto the interactable it joined"),
+		IMounteaInteractorInterface::Execute_IsSelectionLocked(Second));
+
+	// Both slots are now taken — a third interactor must be rejected exactly like the MaxInteractors=1 case.
+	IMounteaInteractorInterface::Execute_StartInteraction(Third, 0.f);
+	TestEqual(TEXT("A third interactor must be rejected once both slots are occupied"),
+		UMounteaInteractableStatics::GetInteractorSlotCount(ToInteractableScript(Interactable)), 2);
+	TestFalse(TEXT("The rejected third interactor must not stay locked onto the full interactable"),
+		IMounteaInteractorInterface::Execute_IsSelectionLocked(Third));
+
+	WorldWrapper.ForwardErrorMessages(this);
+	WorldWrapper.DestroyTestWorld(true);
+	return true;
+}
+
+// Direct coverage of CycleAction_Implementation's own index math — every other test that needed a
+// specific highlighted entry set HighlightedActionIndex via test access instead of actually calling
+// CycleAction. Also covers the empty-list guard (would otherwise divide by zero via
+// ActionList.Num()) and confirms cycling is inert once selection is locked.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMounteaInteractionCycleActionWrapsAndRespectsLockTest,
+	"Mountea.InteractionSystem.World.Pipeline.CycleActionWrapsAroundAndNoOpsWhileLocked",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMounteaInteractionCycleActionWrapsAndRespectsLockTest::RunTest(const FString& Parameters)
+{
+	using namespace MounteaInteractionGameplayScenarioTest;
+
+	FTestWorldWrapper WorldWrapper;
+	if (!WorldWrapper.CreateTestWorld(EWorldType::Game))
+	{
+		AddError(TEXT("Failed to create test world"));
+		return false;
+	}
+	UWorld* World = WorldWrapper.GetTestWorld();
+	if (!World)
+	{
+		AddError(TEXT("Test world is null"));
+		return false;
+	}
+	WorldWrapper.BeginPlayInTestWorld();
+
+	AActor* InteractableOwner = SpawnActorWithRoot(World, FVector::ZeroVector);
+	AActor* InteractorOwner = SpawnActorWithRoot(World, FVector::ZeroVector);
+	if (!InteractableOwner || !InteractorOwner)
+	{
+		AddError(TEXT("Failed to spawn test actors"));
+		WorldWrapper.DestroyTestWorld(true);
+		return false;
+	}
+
+	UMounteaInteractableComponentAutomatic* Automatic = AddInteractableComponent<UMounteaInteractableComponentAutomatic>(InteractableOwner);
+	IMounteaInteractableInterface::Execute_SetInteractionPeriod(Automatic, 10.f);
+	UMounteaInteractableComponentHold* Hold = AddInteractableComponent<UMounteaInteractableComponentHold>(InteractableOwner);
+	IMounteaInteractableInterface::Execute_SetInteractionPeriod(Hold, 10.f);
+	UMounteaInteractableComponentMash* Mash = AddInteractableComponent<UMounteaInteractableComponentMash>(InteractableOwner);
+	Mash->SetMinMashAmountRequired(10);
+
+	UMounteaInteractorComponentOverlap* Interactor = AddInteractableComponent<UMounteaInteractorComponentOverlap>(InteractorOwner);
+
+	// Empty action list: cycling must not crash (a missing guard would divide by ActionList.Num()==0).
+	IMounteaInteractorInterface::Execute_CycleAction(Interactor, 1);
+	TestEqual(TEXT("Cycling with an empty action list must not move the index"),
+		IMounteaInteractorInterface::Execute_GetHighlightedActionIndex(Interactor), 0);
+
+	FMounteaInteractionTestAccess::AddDetected(Interactor, ToInteractableScript(Automatic));
+	FMounteaInteractionTestAccess::AddDetected(Interactor, ToInteractableScript(Hold));
+	FMounteaInteractionTestAccess::AddDetected(Interactor, ToInteractableScript(Mash));
+
+	const TArray<FInteractionActionCandidate> ActionList = IMounteaInteractorInterface::Execute_GetActionList(Interactor);
+	TestEqual(TEXT("Precondition: three interactables on the same actor should produce a 3-entry action list"),
+		ActionList.Num(), 3);
+	TestEqual(TEXT("Highlighted index should start at 0"),
+		IMounteaInteractorInterface::Execute_GetHighlightedActionIndex(Interactor), 0);
+
+	// Cycling backward from 0 must wrap to the last entry, not go negative.
+	IMounteaInteractorInterface::Execute_CycleAction(Interactor, -1);
+	TestEqual(TEXT("Cycling backward from index 0 must wrap to the last entry"),
+		IMounteaInteractorInterface::Execute_GetHighlightedActionIndex(Interactor), 2);
+
+	// Cycling forward twice should return to 0, then advance to 1.
+	IMounteaInteractorInterface::Execute_CycleAction(Interactor, 1);
+	TestEqual(TEXT("Cycling forward from the last entry must wrap back to 0"),
+		IMounteaInteractorInterface::Execute_GetHighlightedActionIndex(Interactor), 0);
+	IMounteaInteractorInterface::Execute_CycleAction(Interactor, 1);
+	TestEqual(TEXT("Cycling forward from 0 must advance to 1"),
+		IMounteaInteractorInterface::Execute_GetHighlightedActionIndex(Interactor), 1);
+
+	// Locking selection must freeze the index against further cycling.
+	IMounteaInteractorInterface::Execute_StartInteraction(Interactor, 0.f);
+	TestTrue(TEXT("Precondition: starting interaction should lock selection"),
+		IMounteaInteractorInterface::Execute_IsSelectionLocked(Interactor));
+
+	IMounteaInteractorInterface::Execute_CycleAction(Interactor, 1);
+	TestEqual(TEXT("Cycling while selection is locked must not change the highlighted index"),
+		IMounteaInteractorInterface::Execute_GetHighlightedActionIndex(Interactor), 1);
+
+	WorldWrapper.ForwardErrorMessages(this);
+	WorldWrapper.DestroyTestWorld(true);
+	return true;
+}
+
+// Hover has never been directly exercised — it's architecturally distinct from the other four types:
+// it bypasses RequestInteractorJoin/slots entirely and drives InteractionStarted/Stopped straight
+// from cursor-hover events (MounteaInteractableComponentHover.cpp's OnCursorBeginOverlapEvent /
+// OnCursorEndOverlapEvent), since it inherits Hold's timer-based completion under the hood. These two
+// tests mirror FMounteaInteractionHoldProgressAndCompletionTest / HoldReleaseBeforeCompletionResetsProgress's
+// shape, substituting simulated cursor events for AddDetected + StartInteraction/StopInteraction.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMounteaInteractionHoverCompletesAfterCursorDwellTest,
+	"Mountea.InteractionSystem.World.Pipeline.HoverCompletesAfterCursorDwellTime",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMounteaInteractionHoverCompletesAfterCursorDwellTest::RunTest(const FString& Parameters)
+{
+	using namespace MounteaInteractionGameplayScenarioTest;
+
+	FTestWorldWrapper WorldWrapper;
+	if (!WorldWrapper.CreateTestWorld(EWorldType::Game))
+	{
+		AddError(TEXT("Failed to create test world"));
+		return false;
+	}
+	UWorld* World = WorldWrapper.GetTestWorld();
+	if (!World)
+	{
+		AddError(TEXT("Test world is null"));
+		return false;
+	}
+	WorldWrapper.BeginPlayInTestWorld();
+
+	AActor* InteractableOwner = SpawnActorWithRoot(World, FVector::ZeroVector);
+	if (!InteractableOwner)
+	{
+		AddError(TEXT("Failed to spawn test actor"));
+		WorldWrapper.DestroyTestWorld(true);
+		return false;
+	}
+
+	UMounteaInteractableComponentHover* Hover = AddInteractableComponent<UMounteaInteractableComponentHover>(InteractableOwner);
+	IMounteaInteractableInterface::Execute_SetLifecycleMode(Hover, EInteractableLifecycle::EIL_OnlyOnce);
+	IMounteaInteractableInterface::Execute_SetInteractionPeriod(Hover, 1.f);
+
+	UBoxComponent* CursorTarget = NewObject<UBoxComponent>(InteractableOwner);
+	CursorTarget->SetupAttachment(InteractableOwner->GetRootComponent());
+	CursorTarget->RegisterComponent();
+
+	TestEqual(TEXT("Precondition: Hover should boot Awake, same as every other interactable type"),
+		IMounteaInteractableInterface::Execute_GetState(Hover), EInteractableStateV3::EIS_Awake);
+
+	// Simulates the cursor entering the collision shape — Hover has no physical interactor object,
+	// it drives InteractionStarted directly instead of going through RequestInteractorJoin.
+	FMounteaInteractionTestAccess::SimulateHoverCursorBegin(Hover, CursorTarget);
+
+	TestEqual(TEXT("Cursor entering should activate the interactable, same as a real join would"),
+		IMounteaInteractableInterface::Execute_GetState(Hover), EInteractableStateV3::EIS_Active);
+
+	// Incremental ticks — see the comment in AutomaticCompletesAfterTimer for why a single large
+	// tick isn't reliable for firing a due FTimerManager timer in this harness.
+	for (int32 i = 0; i < 5; ++i)
+	{
+		WorldWrapper.TickTestWorld(0.1f);
+	}
+
+	const float MidProgress = IMounteaInteractableInterface::Execute_GetInteractionProgress(Hover);
+	TestTrue(TEXT("Progress halfway through a 1s Hover dwell should be roughly 0.5"),
+		MidProgress > 0.3f && MidProgress < 0.7f);
+
+	for (int32 i = 0; i < 6; ++i)
+	{
+		WorldWrapper.TickTestWorld(0.1f);
+	}
+
+	TestEqual(TEXT("A completed once-only Hover interaction must end in EIS_Completed once its dwell timer fires"),
+		IMounteaInteractableInterface::Execute_GetState(Hover), EInteractableStateV3::EIS_Completed);
+
+	WorldWrapper.ForwardErrorMessages(this);
+	WorldWrapper.DestroyTestWorld(true);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMounteaInteractionHoverCursorLeavingResetsProgressTest,
+	"Mountea.InteractionSystem.World.Pipeline.HoverCursorLeavingBeforeCompletionResetsProgress",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMounteaInteractionHoverCursorLeavingResetsProgressTest::RunTest(const FString& Parameters)
+{
+	using namespace MounteaInteractionGameplayScenarioTest;
+
+	FTestWorldWrapper WorldWrapper;
+	if (!WorldWrapper.CreateTestWorld(EWorldType::Game))
+	{
+		AddError(TEXT("Failed to create test world"));
+		return false;
+	}
+	UWorld* World = WorldWrapper.GetTestWorld();
+	if (!World)
+	{
+		AddError(TEXT("Test world is null"));
+		return false;
+	}
+	WorldWrapper.BeginPlayInTestWorld();
+
+	AActor* InteractableOwner = SpawnActorWithRoot(World, FVector::ZeroVector);
+	if (!InteractableOwner)
+	{
+		AddError(TEXT("Failed to spawn test actor"));
+		WorldWrapper.DestroyTestWorld(true);
+		return false;
+	}
+
+	UMounteaInteractableComponentHover* Hover = AddInteractableComponent<UMounteaInteractableComponentHover>(InteractableOwner);
+	IMounteaInteractableInterface::Execute_SetInteractionPeriod(Hover, 10.f);
+
+	UBoxComponent* CursorTarget = NewObject<UBoxComponent>(InteractableOwner);
+	CursorTarget->SetupAttachment(InteractableOwner->GetRootComponent());
+	CursorTarget->RegisterComponent();
+
+	FMounteaInteractionTestAccess::SimulateHoverCursorBegin(Hover, CursorTarget);
+	WorldWrapper.TickTestWorld(2.f);
+
+	TestTrue(TEXT("Precondition: progress should be nonzero partway through a hover dwell"),
+		IMounteaInteractableInterface::Execute_GetInteractionProgress(Hover) > 0.f);
+
+	// Cursor leaves before the dwell time completes.
+	FMounteaInteractionTestAccess::SimulateHoverCursorEnd(Hover, CursorTarget);
+
+	TestEqual(TEXT("Cursor leaving before completion must reset progress back to zero"),
+		IMounteaInteractableInterface::Execute_GetInteractionProgress(Hover), 0.f);
+
+	WorldWrapper.ForwardErrorMessages(this);
+	WorldWrapper.DestroyTestWorld(true);
+	return true;
+}
+
+// Regression test for the "N interactor completion" design fix: when a multi-occupant interactable
+// completes, EVERY currently joined interactor must be released via ReleaseAllInteractorSlots() —
+// not just have the interactable's own state change. Before this, an occupant who wasn't the one
+// whose action tripped completion stayed locked/joined forever, silently eating into MaxInteractors
+// capacity for the interactable's next use (see CompleteInteractable_Implementation).
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMounteaInteractionCompletionReleasesAllOccupantsTest,
+	"Mountea.InteractionSystem.World.Pipeline.CompletionReleasesAllOccupantsNotJustTheTrigger",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMounteaInteractionCompletionReleasesAllOccupantsTest::RunTest(const FString& Parameters)
+{
+	using namespace MounteaInteractionGameplayScenarioTest;
+
+	FTestWorldWrapper WorldWrapper;
+	if (!WorldWrapper.CreateTestWorld(EWorldType::Game))
+	{
+		AddError(TEXT("Failed to create test world"));
+		return false;
+	}
+	UWorld* World = WorldWrapper.GetTestWorld();
+	if (!World)
+	{
+		AddError(TEXT("Test world is null"));
+		return false;
+	}
+	WorldWrapper.BeginPlayInTestWorld();
+
+	AActor* InteractableOwner = SpawnActorWithRoot(World, FVector::ZeroVector);
+	AActor* FirstInteractorOwner = SpawnActorWithRoot(World, FVector::ZeroVector);
+	AActor* SecondInteractorOwner = SpawnActorWithRoot(World, FVector::ZeroVector);
+	if (!InteractableOwner || !FirstInteractorOwner || !SecondInteractorOwner)
+	{
+		AddError(TEXT("Failed to spawn test actors"));
+		WorldWrapper.DestroyTestWorld(true);
+		return false;
+	}
+
+	UMounteaInteractableComponentHold* Interactable = AddInteractableComponent<UMounteaInteractableComponentHold>(InteractableOwner);
+	IMounteaInteractableInterface::Execute_SetLifecycleMode(Interactable, EInteractableLifecycle::EIL_OnlyOnce);
+	IMounteaInteractableInterface::Execute_SetInteractionPeriod(Interactable, 1.f);
+	FMounteaInteractionTestAccess::SetMaxInteractors(Interactable, 2);
+
+	UMounteaInteractorComponentOverlap* First = AddInteractableComponent<UMounteaInteractorComponentOverlap>(FirstInteractorOwner);
+	UMounteaInteractorComponentOverlap* Second = AddInteractableComponent<UMounteaInteractorComponentOverlap>(SecondInteractorOwner);
+
+	FMounteaInteractionTestAccess::AddDetected(First, ToInteractableScript(Interactable));
+	FMounteaInteractionTestAccess::AddDetected(Second, ToInteractableScript(Interactable));
+
+	// First interactor starts the shared hold timer; second joins the same interactable while it's
+	// already running (its own join is a no-op for the timer itself, per Hold's idempotency guard —
+	// but it still occupies a slot).
+	IMounteaInteractorInterface::Execute_StartInteraction(First, 0.f);
+	IMounteaInteractorInterface::Execute_StartInteraction(Second, 0.f);
+
+	TestEqual(TEXT("Precondition: both interactors should hold a slot before completion"),
+		UMounteaInteractableStatics::GetInteractorSlotCount(ToInteractableScript(Interactable)), 2);
+
+	for (int32 i = 0; i < 11; ++i)
+	{
+		WorldWrapper.TickTestWorld(0.1f);
+	}
+
+	TestEqual(TEXT("Interactable must be Completed once its shared hold timer fires"),
+		IMounteaInteractableInterface::Execute_GetState(Interactable), EInteractableStateV3::EIS_Completed);
+	TestEqual(TEXT("Completion must release ALL occupants' slots, not just the one whose action triggered it"),
+		UMounteaInteractableStatics::GetInteractorSlotCount(ToInteractableScript(Interactable)), 0);
+	TestFalse(TEXT("First interactor must be unlocked after completion"),
+		IMounteaInteractorInterface::Execute_IsSelectionLocked(First));
+	TestFalse(TEXT("Second interactor (who never triggered anything itself) must also be unlocked after completion"),
+		IMounteaInteractorInterface::Execute_IsSelectionLocked(Second));
+
+	WorldWrapper.ForwardErrorMessages(this);
+	WorldWrapper.DestroyTestWorld(true);
+	return true;
+}
+
+// Confirms the "co-op pooled progress" behavior directly: for Mash, ActualMashAmount is a single
+// SHARED counter — presses from multiple different interactors combine toward the same threshold,
+// rather than each interactor needing to independently reach it. Also exercises the completion-
+// releases-everyone fix above for the genuinely-multi-contributor case.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMounteaInteractionMashPoolsContributionsFromMultipleInteractorsTest,
+	"Mountea.InteractionSystem.World.Pipeline.MashPoolsContributionsFromMultipleInteractorsThenReleasesBoth",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMounteaInteractionMashPoolsContributionsFromMultipleInteractorsTest::RunTest(const FString& Parameters)
+{
+	using namespace MounteaInteractionGameplayScenarioTest;
+
+	FTestWorldWrapper WorldWrapper;
+	if (!WorldWrapper.CreateTestWorld(EWorldType::Game))
+	{
+		AddError(TEXT("Failed to create test world"));
+		return false;
+	}
+	UWorld* World = WorldWrapper.GetTestWorld();
+	if (!World)
+	{
+		AddError(TEXT("Test world is null"));
+		return false;
+	}
+	WorldWrapper.BeginPlayInTestWorld();
+
+	AActor* InteractableOwner = SpawnActorWithRoot(World, FVector::ZeroVector);
+	AActor* FirstInteractorOwner = SpawnActorWithRoot(World, FVector::ZeroVector);
+	AActor* SecondInteractorOwner = SpawnActorWithRoot(World, FVector::ZeroVector);
+	if (!InteractableOwner || !FirstInteractorOwner || !SecondInteractorOwner)
+	{
+		AddError(TEXT("Failed to spawn test actors"));
+		WorldWrapper.DestroyTestWorld(true);
+		return false;
+	}
+
+	UMounteaInteractableComponentMash* Interactable = AddInteractableComponent<UMounteaInteractableComponentMash>(InteractableOwner);
+	// Default LifecycleMode is Cycled with infinite LifecycleCount (-1), which routes completion to
+	// Cooldown rather than Completed (see CompleteInteractable_Implementation) — force OnlyOnce so
+	// completion lands on the terminal EIS_Completed state this test asserts against.
+	IMounteaInteractableInterface::Execute_SetLifecycleMode(Interactable, EInteractableLifecycle::EIL_OnlyOnce);
+	Interactable->SetMinMashAmountRequired(4);
+	Interactable->SetKeystrokeTimeThreshold(10.f); // long enough that no press ever times out mid-test
+	FMounteaInteractionTestAccess::SetMaxInteractors(Interactable, 2);
+
+	UMounteaInteractorComponentOverlap* First = AddInteractableComponent<UMounteaInteractorComponentOverlap>(FirstInteractorOwner);
+	UMounteaInteractorComponentOverlap* Second = AddInteractableComponent<UMounteaInteractorComponentOverlap>(SecondInteractorOwner);
+
+	FMounteaInteractionTestAccess::AddDetected(First, ToInteractableScript(Interactable));
+	FMounteaInteractionTestAccess::AddDetected(Second, ToInteractableScript(Interactable));
+
+	// Each interactor's first StartInteraction is its join (also counts as its first mash); further
+	// calls while locked forward straight through as repeat presses (see StartInteraction_Implementation's
+	// "guard exception" comment).
+	IMounteaInteractorInterface::Execute_StartInteraction(First, 0.f);
+	IMounteaInteractorInterface::Execute_StartInteraction(Second, 0.f);
+
+	TestEqual(TEXT("Precondition: two joins from two different interactors should register two presses toward the shared threshold"),
+		IMounteaInteractableInterface::Execute_GetInteractionProgress(Interactable), 0.5f);
+
+	// One more press each — neither interactor alone reaches MinMashAmountRequired=4, only their
+	// combined total does.
+	IMounteaInteractorInterface::Execute_StartInteraction(First, 0.1f);
+	TestNotEqual(TEXT("Precondition: still short of the shared threshold after only 3 of 4 combined presses"),
+		IMounteaInteractableInterface::Execute_GetState(Interactable), EInteractableStateV3::EIS_Completed);
+
+	IMounteaInteractorInterface::Execute_StartInteraction(Second, 0.2f);
+
+	TestEqual(TEXT("The shared mash counter must complete once combined presses from BOTH interactors reach the threshold"),
+		IMounteaInteractableInterface::Execute_GetState(Interactable), EInteractableStateV3::EIS_Completed);
+	TestEqual(TEXT("Completion must release both interactors' slots"),
+		UMounteaInteractableStatics::GetInteractorSlotCount(ToInteractableScript(Interactable)), 0);
+	TestFalse(TEXT("First interactor must be unlocked after completion"),
+		IMounteaInteractorInterface::Execute_IsSelectionLocked(First));
+	TestFalse(TEXT("Second interactor must be unlocked after completion"),
+		IMounteaInteractorInterface::Execute_IsSelectionLocked(Second));
 
 	WorldWrapper.ForwardErrorMessages(this);
 	WorldWrapper.DestroyTestWorld(true);
