@@ -1026,4 +1026,200 @@ bool FMounteaInteractionMashPoolsContributionsFromMultipleInteractorsTest::RunTe
 	return true;
 }
 
+// "Player dies mid-interaction" — the actual scenario, not the shorthand version. Every prior EndPlay
+// test injected a locked/joined state artificially (RequestInteractorJoin + ForceLock) rather than
+// driving a real StartInteraction -> ticking timer -> genuine mid-progress state, so this is the
+// first test where the interactor is really destroyed partway through a real Hold.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMounteaInteractionInteractorDestroyedMidRealHoldProgressTest,
+	"Mountea.InteractionSystem.World.EndPlay.InteractorDestroyedMidRealHoldProgressReleasesAndStopsTimer",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMounteaInteractionInteractorDestroyedMidRealHoldProgressTest::RunTest(const FString& Parameters)
+{
+	using namespace MounteaInteractionGameplayScenarioTest;
+
+	FTestWorldWrapper WorldWrapper;
+	if (!WorldWrapper.CreateTestWorld(EWorldType::Game))
+	{
+		AddError(TEXT("Failed to create test world"));
+		return false;
+	}
+	UWorld* World = WorldWrapper.GetTestWorld();
+	if (!World)
+	{
+		AddError(TEXT("Test world is null"));
+		return false;
+	}
+	WorldWrapper.BeginPlayInTestWorld();
+
+	AActor* InteractableOwner = SpawnActorWithRoot(World, FVector::ZeroVector);
+	AActor* InteractorOwner = SpawnActorWithRoot(World, FVector::ZeroVector);
+	if (!InteractableOwner || !InteractorOwner)
+	{
+		AddError(TEXT("Failed to spawn test actors"));
+		WorldWrapper.DestroyTestWorld(true);
+		return false;
+	}
+
+	UMounteaInteractableComponentHold* Interactable = AddInteractableComponent<UMounteaInteractableComponentHold>(InteractableOwner);
+	IMounteaInteractableInterface::Execute_SetInteractionPeriod(Interactable, 2.f);
+
+	UMounteaInteractorComponentOverlap* Interactor = AddInteractableComponent<UMounteaInteractorComponentOverlap>(InteractorOwner);
+	FMounteaInteractionTestAccess::AddDetected(Interactor, ToInteractableScript(Interactable));
+
+	IMounteaInteractorInterface::Execute_StartInteraction(Interactor, 0.f);
+	WorldWrapper.TickTestWorld(1.f); // halfway through a 2s hold — genuinely mid-progress, not just "joined"
+
+	TestTrue(TEXT("Precondition: progress should be nonzero partway through a real hold"),
+		IMounteaInteractableInterface::Execute_GetInteractionProgress(Interactable) > 0.f);
+
+	// The player dies — real destruction, routes through AActor::EndPlay(), not a direct method call.
+	InteractorOwner->Destroy();
+
+	TestEqual(TEXT("Interactor destruction mid-hold must release the interactable's slot"),
+		UMounteaInteractableStatics::GetInteractorSlotCount(ToInteractableScript(Interactable)), 0);
+	TestEqual(TEXT("Interactable must revert to Awake once its last real occupant is gone"),
+		IMounteaInteractableInterface::Execute_GetState(Interactable), EInteractableStateV3::EIS_Awake);
+	TestEqual(TEXT("Progress must reset to zero, not stay stuck mid-way"),
+		IMounteaInteractableInterface::Execute_GetInteractionProgress(Interactable), 0.f);
+
+	// Tick well past the original 2s period — if Timer_Hold were somehow still running, this would
+	// spuriously complete the interactable despite nobody being present anymore.
+	WorldWrapper.TickTestWorld(3.f);
+	TestEqual(TEXT("Interactable must NOT spuriously complete later — its hold timer must have actually stopped, not just been abandoned"),
+		IMounteaInteractableInterface::Execute_GetState(Interactable), EInteractableStateV3::EIS_Awake);
+
+	WorldWrapper.ForwardErrorMessages(this);
+	WorldWrapper.DestroyTestWorld(true);
+	return true;
+}
+
+// The other direction of the same headline scenario: the interactABLE is destroyed (a door blown up,
+// an NPC killed) while TWO real interactors are mid-way through a co-op Hold on it. Every prior
+// multi-slot test only checked join concurrency or natural completion — never "the whole thing gets
+// destroyed out from under a real, multi-occupant interaction."
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMounteaInteractionInteractableDestroyedWithMultipleOccupantsTest,
+	"Mountea.InteractionSystem.World.EndPlay.InteractableDestroyedWithMultipleOccupantsReleasesBoth",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMounteaInteractionInteractableDestroyedWithMultipleOccupantsTest::RunTest(const FString& Parameters)
+{
+	using namespace MounteaInteractionGameplayScenarioTest;
+
+	FTestWorldWrapper WorldWrapper;
+	if (!WorldWrapper.CreateTestWorld(EWorldType::Game))
+	{
+		AddError(TEXT("Failed to create test world"));
+		return false;
+	}
+	UWorld* World = WorldWrapper.GetTestWorld();
+	if (!World)
+	{
+		AddError(TEXT("Test world is null"));
+		return false;
+	}
+	WorldWrapper.BeginPlayInTestWorld();
+
+	AActor* InteractableOwner = SpawnActorWithRoot(World, FVector::ZeroVector);
+	AActor* FirstInteractorOwner = SpawnActorWithRoot(World, FVector::ZeroVector);
+	AActor* SecondInteractorOwner = SpawnActorWithRoot(World, FVector::ZeroVector);
+	if (!InteractableOwner || !FirstInteractorOwner || !SecondInteractorOwner)
+	{
+		AddError(TEXT("Failed to spawn test actors"));
+		WorldWrapper.DestroyTestWorld(true);
+		return false;
+	}
+
+	UMounteaInteractableComponentHold* Interactable = AddInteractableComponent<UMounteaInteractableComponentHold>(InteractableOwner);
+	IMounteaInteractableInterface::Execute_SetInteractionPeriod(Interactable, 10.f);
+	FMounteaInteractionTestAccess::SetMaxInteractors(Interactable, 2);
+
+	UMounteaInteractorComponentOverlap* First = AddInteractableComponent<UMounteaInteractorComponentOverlap>(FirstInteractorOwner);
+	UMounteaInteractorComponentOverlap* Second = AddInteractableComponent<UMounteaInteractorComponentOverlap>(SecondInteractorOwner);
+	FMounteaInteractionTestAccess::AddDetected(First, ToInteractableScript(Interactable));
+	FMounteaInteractionTestAccess::AddDetected(Second, ToInteractableScript(Interactable));
+
+	IMounteaInteractorInterface::Execute_StartInteraction(First, 0.f);
+	IMounteaInteractorInterface::Execute_StartInteraction(Second, 0.f);
+	TestEqual(TEXT("Precondition: both interactors should hold a slot"),
+		UMounteaInteractableStatics::GetInteractorSlotCount(ToInteractableScript(Interactable)), 2);
+
+	// The interactable itself is destroyed with two real occupants still mid-interaction.
+	InteractableOwner->Destroy();
+
+	TestFalse(TEXT("First interactor must be released, not just the one whose join happened to start the timer"),
+		IMounteaInteractorInterface::Execute_IsSelectionLocked(First));
+	TestFalse(TEXT("Second interactor must also be released — every occupant, not only one"),
+		IMounteaInteractorInterface::Execute_IsSelectionLocked(Second));
+
+	WorldWrapper.ForwardErrorMessages(this);
+	WorldWrapper.DestroyTestWorld(true);
+	return true;
+}
+
+// Regression test for two things at once: (1) UActorComponent::DestroyComponent() is a genuinely
+// different call path from AActor::Destroy() (confirmed directly in Engine/Source: DestroyComponent
+// calls EndPlay(Destroyed) itself, independent of whether the owning actor survives) and no existing
+// test ever exercised it — e.g. a game system removing just one interactable component from a still-
+// living actor. (2) EndPlay's teardown now fires the same InteractionStopped cascade a normal
+// stop/leave would when destroyed genuinely mid-interaction, so Hold's own Timer_Hold is explicitly
+// cleared and progress resets — instead of silently relying on the engine's safe-but-unobservable
+// no-op-on-destroyed-target timer behavior.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMounteaInteractionComponentDestroyMidHoldCancelsAndReleasesTest,
+	"Mountea.InteractionSystem.World.EndPlay.ComponentDestroyMidHoldCancelsInteractionAndReleasesInteractor",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMounteaInteractionComponentDestroyMidHoldCancelsAndReleasesTest::RunTest(const FString& Parameters)
+{
+	using namespace MounteaInteractionGameplayScenarioTest;
+
+	FTestWorldWrapper WorldWrapper;
+	if (!WorldWrapper.CreateTestWorld(EWorldType::Game))
+	{
+		AddError(TEXT("Failed to create test world"));
+		return false;
+	}
+	UWorld* World = WorldWrapper.GetTestWorld();
+	if (!World)
+	{
+		AddError(TEXT("Test world is null"));
+		return false;
+	}
+	WorldWrapper.BeginPlayInTestWorld();
+
+	AActor* InteractableOwner = SpawnActorWithRoot(World, FVector::ZeroVector);
+	AActor* InteractorOwner = SpawnActorWithRoot(World, FVector::ZeroVector);
+	if (!InteractableOwner || !InteractorOwner)
+	{
+		AddError(TEXT("Failed to spawn test actors"));
+		WorldWrapper.DestroyTestWorld(true);
+		return false;
+	}
+
+	UMounteaInteractableComponentHold* Interactable = AddInteractableComponent<UMounteaInteractableComponentHold>(InteractableOwner);
+	IMounteaInteractableInterface::Execute_SetInteractionPeriod(Interactable, 10.f);
+
+	UMounteaInteractorComponentOverlap* Interactor = AddInteractableComponent<UMounteaInteractorComponentOverlap>(InteractorOwner);
+	FMounteaInteractionTestAccess::AddDetected(Interactor, ToInteractableScript(Interactable));
+
+	IMounteaInteractorInterface::Execute_StartInteraction(Interactor, 0.f);
+	WorldWrapper.TickTestWorld(2.f);
+
+	TestTrue(TEXT("Precondition: progress should be nonzero partway through a real hold"),
+		IMounteaInteractableInterface::Execute_GetInteractionProgress(Interactable) > 0.f);
+
+	// The actor survives — only this one interactable component is removed, e.g. by a game system
+	// welding the door shut. This goes through UActorComponent::DestroyComponent(), not AActor::Destroy().
+	Interactable->DestroyComponent();
+
+	TestFalse(TEXT("DestroyComponent() must release the interactor's lock exactly like a whole-actor destroy would"),
+		IMounteaInteractorInterface::Execute_IsSelectionLocked(Interactor));
+	TestEqual(TEXT("EndPlay's teardown must fire InteractionStopped and reset progress, not silently abandon a running Timer_Hold"),
+		IMounteaInteractableInterface::Execute_GetInteractionProgress(Interactable), 0.f);
+
+	WorldWrapper.ForwardErrorMessages(this);
+	WorldWrapper.DestroyTestWorld(true);
+	return true;
+}
+
 #endif // WITH_DEV_AUTOMATION_TESTS

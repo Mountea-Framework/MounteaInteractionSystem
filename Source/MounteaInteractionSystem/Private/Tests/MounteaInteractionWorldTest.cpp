@@ -495,6 +495,112 @@ bool FMounteaInteractionCooldownAndPauseStateTest::RunTest(const FString& Parame
 	return true;
 }
 
+// Companion to the test above: that one only checks the immediate TriggerCooldown/PauseInteraction
+// transition, never lets the timers they schedule (Timer_Cooldown -> OnCooldownTimerExpired,
+// Timer_Pause -> OnPauseExpired) actually fire. This one does — the timer-driven auto-return path was
+// never exercised by any test until now.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMounteaInteractionCooldownAutoExpiresToAwakeTest,
+	"Mountea.InteractionSystem.World.State.CooldownAutoExpiresBackToAwake",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMounteaInteractionCooldownAutoExpiresToAwakeTest::RunTest(const FString& Parameters)
+{
+	using namespace MounteaInteractionWorldTest;
+
+	FTestWorldWrapper WorldWrapper;
+	if (!WorldWrapper.CreateTestWorld(EWorldType::Game))
+	{
+		AddError(TEXT("Failed to create test world"));
+		return false;
+	}
+	UWorld* World = WorldWrapper.GetTestWorld();
+	if (!World)
+	{
+		AddError(TEXT("Test world is null"));
+		return false;
+	}
+	WorldWrapper.BeginPlayInTestWorld();
+
+	AActor* InteractableOwner = SpawnActorWithRoot(World, FVector::ZeroVector);
+	if (!InteractableOwner)
+	{
+		AddError(TEXT("Failed to spawn test actor"));
+		WorldWrapper.DestroyTestWorld(true);
+		return false;
+	}
+
+	UMounteaInteractableComponentPress* Interactable = AddInteractableComponent<UMounteaInteractableComponentPress>(InteractableOwner);
+	IMounteaInteractableInterface::Execute_SetCooldownPeriod(Interactable, 0.5f);
+
+	IMounteaInteractableInterface::Execute_TriggerCooldown(Interactable);
+	TestEqual(TEXT("Precondition: TriggerCooldown should transition to Cooldown"),
+		IMounteaInteractableInterface::Execute_GetState(Interactable), EInteractableStateV3::EIS_Cooldown);
+
+	for (int32 i = 0; i < 7; ++i)
+	{
+		WorldWrapper.TickTestWorld(0.1f);
+	}
+
+	TestEqual(TEXT("Cooldown must automatically expire back to Awake once CooldownPeriod elapses, with no manual WakeUpInteractable call"),
+		IMounteaInteractableInterface::Execute_GetState(Interactable), EInteractableStateV3::EIS_Awake);
+
+	WorldWrapper.ForwardErrorMessages(this);
+	WorldWrapper.DestroyTestWorld(true);
+	return true;
+}
+
+// Same idea for Pause: OnPauseExpired() calls ActivateInteractable(), so a timed pause resumes
+// straight to EIS_Active (not Awake) once ExpirationTime elapses.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMounteaInteractionPauseAutoExpiresToActiveTest,
+	"Mountea.InteractionSystem.World.State.PauseAutoExpiresBackToActive",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMounteaInteractionPauseAutoExpiresToActiveTest::RunTest(const FString& Parameters)
+{
+	using namespace MounteaInteractionWorldTest;
+
+	FTestWorldWrapper WorldWrapper;
+	if (!WorldWrapper.CreateTestWorld(EWorldType::Game))
+	{
+		AddError(TEXT("Failed to create test world"));
+		return false;
+	}
+	UWorld* World = WorldWrapper.GetTestWorld();
+	if (!World)
+	{
+		AddError(TEXT("Test world is null"));
+		return false;
+	}
+	WorldWrapper.BeginPlayInTestWorld();
+
+	AActor* InteractableOwner = SpawnActorWithRoot(World, FVector::ZeroVector);
+	if (!InteractableOwner)
+	{
+		AddError(TEXT("Failed to spawn test actor"));
+		WorldWrapper.DestroyTestWorld(true);
+		return false;
+	}
+
+	UMounteaInteractableComponentPress* Interactable = AddInteractableComponent<UMounteaInteractableComponentPress>(InteractableOwner);
+
+	const TScriptInterface<IMounteaInteractorInterface> NoInteractor;
+	IMounteaInteractableInterface::Execute_PauseInteraction(Interactable, 0.5f, NoInteractor);
+	TestEqual(TEXT("Precondition: PauseInteraction should transition to Paused"),
+		IMounteaInteractableInterface::Execute_GetState(Interactable), EInteractableStateV3::EIS_Paused);
+
+	for (int32 i = 0; i < 7; ++i)
+	{
+		WorldWrapper.TickTestWorld(0.1f);
+	}
+
+	TestEqual(TEXT("Pause must automatically expire back to Active once its ExpirationTime elapses, with no manual ActivateInteractable call"),
+		IMounteaInteractableInterface::Execute_GetState(Interactable), EInteractableStateV3::EIS_Active);
+
+	WorldWrapper.ForwardErrorMessages(this);
+	WorldWrapper.DestroyTestWorld(true);
+	return true;
+}
+
 // Regression test for a late-join replication bug: BeginPlay() used to unconditionally reset
 // InteractableState/RemainingLifecycleCount to their design-time defaults, with no authority check.
 // On a real remote client (a late joiner is the clearest case), the true current value has usually
