@@ -83,7 +83,7 @@ public:
 	AActor* GetFocusedActor() const;
 	virtual AActor* GetFocusedActor_Implementation() const = 0;
 
-	/** Returns the Tier 2 action list — all interactable components on the focused actor, sorted by weight descending. */
+	/** Returns the Tier 2 action list - all interactable components on the focused actor, sorted by weight descending. */
 	UFUNCTION(BlueprintNativeEvent, Category="Mountea Interaction|Interactor|Focus")
 	TArray<FInteractionActionCandidate> GetActionList() const;
 	virtual TArray<FInteractionActionCandidate> GetActionList_Implementation() const = 0;
@@ -129,7 +129,7 @@ public:
 	 * Forcibly clears the current lock/interaction state without notifying the interactable.
 	 * Called by an interactable's EndPlay when it is destroyed while occupied, so the interactor
 	 * isn't left permanently locked out of starting any other interaction. Unlike StopInteraction,
-	 * this never calls back into the interactable — the caller is typically mid-teardown itself.
+	 * this never calls back into the interactable - the caller is typically mid-teardown itself.
 	 */
 	UFUNCTION(BlueprintNativeEvent, Category="Mountea Interaction|Interactor")
 	void ForceReleaseInteraction();
