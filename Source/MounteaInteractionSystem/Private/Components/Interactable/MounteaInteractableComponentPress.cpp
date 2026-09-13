@@ -11,7 +11,7 @@
 
 UMounteaInteractableComponentPress::UMounteaInteractableComponentPress()
 {
-	// Press is always standalone — no cycling UI, single immediate action
+	// Press is always standalone - no cycling UI, single immediate action
 	bStandaloneInteraction = true;
 }
 

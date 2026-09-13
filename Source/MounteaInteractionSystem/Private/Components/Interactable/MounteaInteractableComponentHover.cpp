@@ -18,7 +18,7 @@ void UMounteaInteractableComponentHover::BindCollisionShape_Implementation(UPrim
 	if (!IsValid(PrimitiveComponent))
 				return;
 
-	// Hover uses cursor events — do NOT bind overlap/hit callbacks from base
+	// Hover uses cursor events - do NOT bind overlap/hit callbacks from base
 	PrimitiveComponent->OnBeginCursorOver.AddUniqueDynamic(
 		const_cast<UMounteaInteractableComponentHover*>(this),
 		&UMounteaInteractableComponentHover::OnCursorBeginOverlapEvent);
@@ -55,7 +55,7 @@ void UMounteaInteractableComponentHover::OnCursorBeginOverlapEvent(UPrimitiveCom
 	OverlappingComponent = PrimitiveComponent;
 	OnCursorBeginsOverlap.Broadcast(PrimitiveComponent);
 
-	// Cursor entering = interactor "found" — no actual interactor object for hover, drive interaction directly
+	// Cursor entering = interactor "found" - no actual interactor object for hover, drive interaction directly
 	if (Execute_CanInteract(this))
 	{
 		FString err;

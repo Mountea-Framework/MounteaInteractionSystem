@@ -9,7 +9,7 @@
 
 UMounteaInteractableComponentAutomatic::UMounteaInteractableComponentAutomatic()
 {
-	// Automatic is standalone — no cycling, triggers immediately
+	// Automatic is standalone - no cycling, triggers immediately
 	bStandaloneInteraction = true;
 }
 

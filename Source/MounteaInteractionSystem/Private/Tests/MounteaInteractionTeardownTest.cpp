@@ -14,7 +14,7 @@
 
 // NOTE on scope: these tests exercise the exact release calls MounteaInteractorComponentBase's
 // and MounteaInteractableComponentBase's EndPlay() overrides invoke (RequestInteractorLeave /
-// ForceReleaseInteraction) directly — bare NewObject() components never go through real
+// ForceReleaseInteraction) directly - bare NewObject() components never go through real
 // registration/BeginPlay, so UActorComponent::EndPlay() itself (which asserts check(bHasBegunPlay))
 // can't be called on them. The real EndPlay()-triggers-release wiring, on actual registered actors
 // in a minimal UWorld, is covered separately by MounteaInteractionWorldTest.cpp.

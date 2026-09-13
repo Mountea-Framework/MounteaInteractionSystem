@@ -86,7 +86,7 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, Category="Mountea|InteractionWidget")
 	FString GetKeyText() const;
 
-	/** Sets the interaction progress value [0..1]. Widget handles visual display — do not compute this in the widget itself. */
+	/** Sets the interaction progress value [0..1]. Widget handles visual display - do not compute this in the widget itself. */
 	UFUNCTION(BlueprintImplementableEvent, Category="Mountea|InteractionWidget")
 	void SetProgress(const float NewProgress);
 

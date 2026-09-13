@@ -13,7 +13,7 @@ UMounteaInteractableComponentHold::UMounteaInteractableComponentHold()
 
 void UMounteaInteractableComponentHold::InteractionStarted_Implementation(const float& TimeStarted, const TScriptInterface<IMounteaInteractorInterface>& CausingInteractor)
 {
-	// Idempotency guard: must run BEFORE Super:: — the base InteractionStarted_Implementation
+	// Idempotency guard: must run BEFORE Super:: - the base InteractionStarted_Implementation
 	// unconditionally re-stamps InteractionStartServerTime on every call, which would corrupt the
 	// client-visible hold progress percentage if a repeat StartInteraction call (e.g. a held key
 	// re-triggering input) slipped through while already holding.

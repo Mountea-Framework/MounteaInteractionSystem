@@ -10,14 +10,14 @@
 #include "Components/PrimitiveComponent.h"
 #include "Interfaces/MounteaInteractableInterface.h"
 
-// Shared across the Tests/ folder — grants direct access to state/methods that have no public
+// Shared across the Tests/ folder - grants direct access to state/methods that have no public
 // interface equivalent (see the friend declarations on both component base classes), so tests can
 // set up preconditions (a locked interactor, a populated DetectedSet, a tag requirement) without
 // driving the full physical detection pipeline (overlap volumes / traces), which needs a real
 // physics world and is out of scope for these tests.
 //
 // NOTE on scope: AddDetected/RefreshFocus exercise the real focus-selection logic once a
-// precondition is injected directly — they are not a substitute for testing the detection
+// precondition is injected directly - they are not a substitute for testing the detection
 // subclasses (Overlap/Trace/Mouse) themselves, which still need PIE/physics to verify.
 struct FMounteaInteractionTestAccess
 {
@@ -62,7 +62,7 @@ struct FMounteaInteractionTestAccess
 		Interactable->ExcludedInteractorTags = Tags;
 	}
 
-	// Simulates "replication already delivered this value" — sets the raw member directly, bypassing
+	// Simulates "replication already delivered this value" - sets the raw member directly, bypassing
 	// SetState/etc., so a test can pre-seed state BEFORE BeginPlay() runs and confirm a non-authority
 	// BeginPlay() does not stomp it back to DefaultInteractableState/LifecycleCount.
 	static void SetReplicatedStateForTest(UMounteaInteractableComponentBase* Interactable, EInteractableStateV3 State, int32 RemainingLifecycle)
@@ -93,14 +93,14 @@ struct FMounteaInteractionTestAccess
 		Interactor->DefaultInteractorState = State;
 	}
 
-	// No public setter exists (MaxInteractors is only exposed read-only via GetMaxInteractors) — lets
+	// No public setter exists (MaxInteractors is only exposed read-only via GetMaxInteractors) - lets
 	// a test exercise the MaxInteractors > 1 concurrent-slot path without editor/Blueprint setup.
 	static void SetMaxInteractors(UMounteaInteractableComponentBase* Interactable, const int32 Max)
 	{
 		Interactable->MaxInteractors = Max;
 	}
 
-	// Hover has no physical interactor object — it drives InteractionStarted/Stopped straight from
+	// Hover has no physical interactor object - it drives InteractionStarted/Stopped straight from
 	// cursor-hover events (OnBeginCursorOver/OnEndCursorOver), which need a real Slate cursor to fire
 	// naturally. Calling the handlers directly simulates "cursor entered/left the collision shape"
 	// without needing PIE/mouse input, matching how AddDetected simulates physical detection for the

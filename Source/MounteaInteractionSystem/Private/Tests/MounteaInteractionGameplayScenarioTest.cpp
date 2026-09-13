@@ -25,7 +25,7 @@
 // (RefreshFocus -> StartInteraction -> RequestInteractorJoin -> InteractionStarted ->
 // CompleteInteractable) rather than calling individual hooks directly, plus the mirror-image
 // "actor destroyed mid-interaction" scenarios. These caught three previously-undetected production
-// bugs in the core pipeline (not just gaps in test coverage) — see the comment on each failing test
+// bugs in the core pipeline (not just gaps in test coverage) - see the comment on each failing test
 // below for specifics. Helpers reused from MounteaInteractionWorldTest.cpp's own namespace pattern.
 
 namespace MounteaInteractionGameplayScenarioTest
@@ -77,12 +77,12 @@ namespace MounteaInteractionGameplayScenarioTest
 	}
 }
 
-// Regression test — exposed a production bug: nothing in the real join/InteractionStarted pipeline
+// Regression test - exposed a production bug: nothing in the real join/InteractionStarted pipeline
 // ever transitions InteractableState to EIS_Active (only Hover's cursor-driven path calls
 // ActivateInteractable). CompleteInteractable_Implementation early-outs with "Not active" whenever
 // InteractableState != EIS_Active, so a Press interactable driven through the real
 // StartInteraction -> RequestInteractorJoin -> InteractionStarted -> CompleteInteractable chain
-// never actually completes — state stays stuck at Awake forever, even though
+// never actually completes - state stays stuck at Awake forever, even though
 // MounteaInteractableComponentPress.cpp's own InteractionStarted_Implementation does call
 // CompleteInteractable immediately. Affects Press/Automatic/Hold/Mash identically; only Hover is
 // unaffected (it calls Execute_ActivateInteractable itself before completing).
@@ -140,7 +140,7 @@ bool FMounteaInteractionPressCompletesLifecycleTest::RunTest(const FString& Para
 }
 
 // Same underlying bug as above, exercised through Automatic's timer-driven completion path instead
-// of Press's immediate one — confirms the bug isn't Press-specific.
+// of Press's immediate one - confirms the bug isn't Press-specific.
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMounteaInteractionAutomaticCompletesAfterTimerTest,
 	"Mountea.InteractionSystem.World.Pipeline.AutomaticCompletesAfterTimer",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
@@ -181,14 +181,14 @@ bool FMounteaInteractionAutomaticCompletesAfterTimerTest::RunTest(const FString&
 
 	IMounteaInteractorInterface::Execute_StartInteraction(Interactor, 0.f);
 
-	// Join happened, but the completion timer hasn't fired yet — should not be Completed yet.
+	// Join happened, but the completion timer hasn't fired yet - should not be Completed yet.
 	TestNotEqual(TEXT("Precondition: Automatic must not complete before its timer fires"),
 		IMounteaInteractableInterface::Execute_GetState(Interactable), EInteractableStateV3::EIS_Completed);
 
-	// Several smaller ticks rather than one large one — FTimerManager::Tick() in this harness
+	// Several smaller ticks rather than one large one - FTimerManager::Tick() in this harness
 	// reliably fires a due timer across incremental ticks; a single tick whose DeltaTime alone
 	// exceeds the timer's remaining time was observed to not fire it (test-harness ordering
-	// quirk, not a gameplay issue — real gameplay never single-steps a 0.3s frame).
+	// quirk, not a gameplay issue - real gameplay never single-steps a 0.3s frame).
 	for (int32 i = 0; i < 4; ++i)
 	{
 		WorldWrapper.TickTestWorld(0.1f);
@@ -203,7 +203,7 @@ bool FMounteaInteractionAutomaticCompletesAfterTimerTest::RunTest(const FString&
 }
 
 // GetInteractionProgress() itself (server-time delta / InteractionPeriod) is independent of the
-// EIS_Active bug above, so this half is expected to pass — isolates that the timing math is sound
+// EIS_Active bug above, so this half is expected to pass - isolates that the timing math is sound
 // even while completion itself is broken. The completion assertion at the end shares the same bug.
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMounteaInteractionHoldProgressAndCompletionTest,
 	"Mountea.InteractionSystem.World.Pipeline.HoldProgressTracksElapsedThenCompletes",
@@ -245,7 +245,7 @@ bool FMounteaInteractionHoldProgressAndCompletionTest::RunTest(const FString& Pa
 
 	IMounteaInteractorInterface::Execute_StartInteraction(Interactor, 0.f);
 
-	// Incremental ticks — see the comment in AutomaticCompletesAfterTimer for why a single large
+	// Incremental ticks - see the comment in AutomaticCompletesAfterTimer for why a single large
 	// tick isn't reliable for firing a due FTimerManager timer in this harness.
 	for (int32 i = 0; i < 5; ++i)
 	{
@@ -269,15 +269,15 @@ bool FMounteaInteractionHoldProgressAndCompletionTest::RunTest(const FString& Pa
 	return true;
 }
 
-// Regression test — exposed a second production bug, independent of the EIS_Active one above:
+// Regression test - exposed a second production bug, independent of the EIS_Active one above:
 // StopInteraction_Implementation (MounteaInteractorComponentBase.cpp) only ever calls
-// RequestInteractorLeave on the interactable — it never calls Execute_InteractionStopped. Grepping
+// RequestInteractorLeave on the interactable - it never calls Execute_InteractionStopped. Grepping
 // the whole module confirms Execute_InteractionStopped has exactly one call site anywhere
-// (MounteaInteractableComponentHover.cpp's cursor-exit handler) — the join/leave/EndPlay pipeline
+// (MounteaInteractableComponentHover.cpp's cursor-exit handler) - the join/leave/EndPlay pipeline
 // used by Press/Automatic/Hold/Mash never reaches it. Concretely: releasing the interaction key
 // mid-Hold never clears InteractionStartServerTime (that reset lives in the base
 // InteractionStopped_Implementation) and never clears Timer_Hold (that lives in Hold's own
-// InteractionStopped_Implementation override) — so a released Hold silently keeps ticking toward
+// InteractionStopped_Implementation override) - so a released Hold silently keeps ticking toward
 // completion in the background. This test only checks the InteractionStartServerTime half, since
 // it's observable through the public interface (GetInteractionProgress) without needing new
 // friend-access into Hold's protected Timer_Hold.
@@ -338,9 +338,9 @@ bool FMounteaInteractionHoldReleaseResetsProgressTest::RunTest(const FString& Pa
 	return true;
 }
 
-// Regression test — exposed a fourth production issue: StartInteraction_Implementation sets
+// Regression test - exposed a fourth production issue: StartInteraction_Implementation sets
 // bSelectionLocked = true optimistically, client-side, BEFORE the join is confirmed. When a second
-// interactor's join is rejected (slot full — MaxInteractors=1, first interactor already joined),
+// interactor's join is rejected (slot full - MaxInteractors=1, first interactor already joined),
 // nothing listens to OnInteractorRejected to undo that local lock. The rejected interactor is left
 // permanently "locked" onto an interactable it was never actually granted a slot on.
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMounteaInteractionRejectedJoinDoesNotLockInteractorTest,
@@ -389,7 +389,7 @@ bool FMounteaInteractionRejectedJoinDoesNotLockInteractorTest::RunTest(const FSt
 	TestEqual(TEXT("Precondition: first interactor should hold the only available slot"),
 		UMounteaInteractableStatics::GetInteractorSlotCount(ToInteractableScript(Interactable)), 1);
 
-	// Second interactor's join must be rejected — the slot is already taken.
+	// Second interactor's join must be rejected - the slot is already taken.
 	IMounteaInteractorInterface::Execute_StartInteraction(SecondInteractor, 0.f);
 
 	TestEqual(TEXT("A rejected second join must not add a slot"),
@@ -406,7 +406,7 @@ bool FMounteaInteractionRejectedJoinDoesNotLockInteractorTest::RunTest(const FSt
 // Confirms the current, undocumented-but-expected behavior for an actor hosting several different
 // interactable types at once (e.g. a car: Hold to enter as driver, Mash to honk the horn,
 // Automatic to auto-unlock on approach): all of them appear as separate Tier-2 action-list entries,
-// and starting one has zero effect on its siblings' state or slots — each component is fully
+// and starting one has zero effect on its siblings' state or slots - each component is fully
 // independent. There is currently NO actor-level "one interaction blocks the others" rule; that is
 // a separate, not-yet-implemented feature (see MounteaInteractionSecondInteractorJoinsSiblingWhileFirstActiveTest
 // below, which documents that gap explicitly).
@@ -473,15 +473,15 @@ bool FMounteaInteractionMixedInteractableTypesIndependentTest::RunTest(const FSt
 	FMounteaInteractionTestAccess::SetHighlightedActionIndex(Interactor, HoldIndex);
 	IMounteaInteractorInterface::Execute_StartInteraction(Interactor, 0.f);
 
-	TestEqual(TEXT("Starting Hold must make it — and only it — EIS_Active"),
+	TestEqual(TEXT("Starting Hold must make it - and only it - EIS_Active"),
 		IMounteaInteractableInterface::Execute_GetState(Hold), EInteractableStateV3::EIS_Active);
 	TestEqual(TEXT("Sibling Automatic on the same actor must be untouched by Hold starting"),
 		IMounteaInteractableInterface::Execute_GetState(Automatic), EInteractableStateV3::EIS_Awake);
 	TestEqual(TEXT("Sibling Mash on the same actor must be untouched by Hold starting"),
 		IMounteaInteractableInterface::Execute_GetState(Mash), EInteractableStateV3::EIS_Awake);
-	TestEqual(TEXT("Sibling Automatic must have zero interactor slots — no cross-component join happened"),
+	TestEqual(TEXT("Sibling Automatic must have zero interactor slots - no cross-component join happened"),
 		UMounteaInteractableStatics::GetInteractorSlotCount(ToInteractableScript(Automatic)), 0);
-	TestEqual(TEXT("Sibling Mash must have zero interactor slots — no cross-component join happened"),
+	TestEqual(TEXT("Sibling Mash must have zero interactor slots - no cross-component join happened"),
 		UMounteaInteractableStatics::GetInteractorSlotCount(ToInteractableScript(Mash)), 0);
 
 	WorldWrapper.ForwardErrorMessages(this);
@@ -494,7 +494,7 @@ bool FMounteaInteractionMixedInteractableTypesIndependentTest::RunTest(const FSt
 // start a sibling interactable on the same actor while a FIRST interactor is already mid-
 // interaction (EIS_Active) with a different component there. The hard rule: any Active sibling
 // blocks joins to every other interactable on that actor until it finishes/cancels. Siblings stay
-// selectable in Tier 2 the whole time — only the actual join is rejected, same as a full slot.
+// selectable in Tier 2 the whole time - only the actual join is rejected, same as a full slot.
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMounteaInteractionSecondInteractorJoinsSiblingWhileFirstActiveTest,
 	"Mountea.InteractionSystem.World.Pipeline.ActiveSiblingBlocksJoinOnOtherInteractable",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
@@ -537,7 +537,7 @@ bool FMounteaInteractionSecondInteractorJoinsSiblingWhileFirstActiveTest::RunTes
 
 	// Detecting ONE sibling still focuses the whole actor, and Tier 2's RefreshFocus() rebuilds the
 	// action list from EVERY IMounteaInteractableInterface component on the focused actor (not just
-	// what was AddDetected) — so both interactors see [Hold, Mash] regardless of which one they were
+	// what was AddDetected) - so both interactors see [Hold, Mash] regardless of which one they were
 	// told about. Explicitly select the intended entry by index rather than assuming index 0.
 	FMounteaInteractionTestAccess::AddDetected(FirstInteractor, ToInteractableScript(Hold));
 	int32 firstHoldIndex = IMounteaInteractorInterface::Execute_GetActionList(FirstInteractor).IndexOfByPredicate(
@@ -548,7 +548,7 @@ bool FMounteaInteractionSecondInteractorJoinsSiblingWhileFirstActiveTest::RunTes
 	TestEqual(TEXT("Precondition: Hold should be Active after the first interactor starts it"),
 		IMounteaInteractableInterface::Execute_GetState(Hold), EInteractableStateV3::EIS_Active);
 
-	// Second interactor targets the sibling Mash component on the SAME actor — must be rejected
+	// Second interactor targets the sibling Mash component on the SAME actor - must be rejected
 	// because Hold is currently EIS_Active on a sibling.
 	FMounteaInteractionTestAccess::AddDetected(SecondInteractor, ToInteractableScript(Mash));
 	const int32 secondMashIndex = IMounteaInteractorInterface::Execute_GetActionList(SecondInteractor).IndexOfByPredicate(
@@ -558,7 +558,7 @@ bool FMounteaInteractionSecondInteractorJoinsSiblingWhileFirstActiveTest::RunTes
 
 	TestFalse(TEXT("A second interactor must NOT stay locked onto a sibling interactable rejected due to actor-level blocking"),
 		IMounteaInteractorInterface::Execute_IsSelectionLocked(SecondInteractor));
-	TestEqual(TEXT("The blocked sibling's slot count must remain zero — the join must never have gone through"),
+	TestEqual(TEXT("The blocked sibling's slot count must remain zero - the join must never have gone through"),
 		UMounteaInteractableStatics::GetInteractorSlotCount(ToInteractableScript(Mash)), 0);
 
 	// Once Hold finishes (stopped/canceled), the sibling should be joinable again.
@@ -638,7 +638,7 @@ bool FMounteaInteractionMultiSlotAllowsConcurrentInteractorsTest::RunTest(const 
 	TestTrue(TEXT("Second interactor must actually be locked onto the interactable it joined"),
 		IMounteaInteractorInterface::Execute_IsSelectionLocked(Second));
 
-	// Both slots are now taken — a third interactor must be rejected exactly like the MaxInteractors=1 case.
+	// Both slots are now taken - a third interactor must be rejected exactly like the MaxInteractors=1 case.
 	IMounteaInteractorInterface::Execute_StartInteraction(Third, 0.f);
 	TestEqual(TEXT("A third interactor must be rejected once both slots are occupied"),
 		UMounteaInteractableStatics::GetInteractorSlotCount(ToInteractableScript(Interactable)), 2);
@@ -650,7 +650,7 @@ bool FMounteaInteractionMultiSlotAllowsConcurrentInteractorsTest::RunTest(const 
 	return true;
 }
 
-// Direct coverage of CycleAction_Implementation's own index math — every other test that needed a
+// Direct coverage of CycleAction_Implementation's own index math - every other test that needed a
 // specific highlighted entry set HighlightedActionIndex via test access instead of actually calling
 // CycleAction. Also covers the empty-list guard (would otherwise divide by zero via
 // ActionList.Num()) and confirms cycling is inert once selection is locked.
@@ -736,7 +736,7 @@ bool FMounteaInteractionCycleActionWrapsAndRespectsLockTest::RunTest(const FStri
 	return true;
 }
 
-// Hover has never been directly exercised — it's architecturally distinct from the other four types:
+// Hover has never been directly exercised - it's architecturally distinct from the other four types:
 // it bypasses RequestInteractorJoin/slots entirely and drives InteractionStarted/Stopped straight
 // from cursor-hover events (MounteaInteractableComponentHover.cpp's OnCursorBeginOverlapEvent /
 // OnCursorEndOverlapEvent), since it inherits Hold's timer-based completion under the hood. These two
@@ -783,14 +783,14 @@ bool FMounteaInteractionHoverCompletesAfterCursorDwellTest::RunTest(const FStrin
 	TestEqual(TEXT("Precondition: Hover should boot Awake, same as every other interactable type"),
 		IMounteaInteractableInterface::Execute_GetState(Hover), EInteractableStateV3::EIS_Awake);
 
-	// Simulates the cursor entering the collision shape — Hover has no physical interactor object,
+	// Simulates the cursor entering the collision shape - Hover has no physical interactor object,
 	// it drives InteractionStarted directly instead of going through RequestInteractorJoin.
 	FMounteaInteractionTestAccess::SimulateHoverCursorBegin(Hover, CursorTarget);
 
 	TestEqual(TEXT("Cursor entering should activate the interactable, same as a real join would"),
 		IMounteaInteractableInterface::Execute_GetState(Hover), EInteractableStateV3::EIS_Active);
 
-	// Incremental ticks — see the comment in AutomaticCompletesAfterTimer for why a single large
+	// Incremental ticks - see the comment in AutomaticCompletesAfterTimer for why a single large
 	// tick isn't reliable for firing a due FTimerManager timer in this harness.
 	for (int32 i = 0; i < 5; ++i)
 	{
@@ -869,7 +869,7 @@ bool FMounteaInteractionHoverCursorLeavingResetsProgressTest::RunTest(const FStr
 }
 
 // Regression test for the "N interactor completion" design fix: when a multi-occupant interactable
-// completes, EVERY currently joined interactor must be released via ReleaseAllInteractorSlots() —
+// completes, EVERY currently joined interactor must be released via ReleaseAllInteractorSlots() -
 // not just have the interactable's own state change. Before this, an occupant who wasn't the one
 // whose action tripped completion stayed locked/joined forever, silently eating into MaxInteractors
 // capacity for the interactable's next use (see CompleteInteractable_Implementation).
@@ -917,7 +917,7 @@ bool FMounteaInteractionCompletionReleasesAllOccupantsTest::RunTest(const FStrin
 	FMounteaInteractionTestAccess::AddDetected(Second, ToInteractableScript(Interactable));
 
 	// First interactor starts the shared hold timer; second joins the same interactable while it's
-	// already running (its own join is a no-op for the timer itself, per Hold's idempotency guard —
+	// already running (its own join is a no-op for the timer itself, per Hold's idempotency guard -
 	// but it still occupies a slot).
 	IMounteaInteractorInterface::Execute_StartInteraction(First, 0.f);
 	IMounteaInteractorInterface::Execute_StartInteraction(Second, 0.f);
@@ -945,7 +945,7 @@ bool FMounteaInteractionCompletionReleasesAllOccupantsTest::RunTest(const FStrin
 }
 
 // Confirms the "co-op pooled progress" behavior directly: for Mash, ActualMashAmount is a single
-// SHARED counter — presses from multiple different interactors combine toward the same threshold,
+// SHARED counter - presses from multiple different interactors combine toward the same threshold,
 // rather than each interactor needing to independently reach it. Also exercises the completion-
 // releases-everyone fix above for the genuinely-multi-contributor case.
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMounteaInteractionMashPoolsContributionsFromMultipleInteractorsTest,
@@ -982,7 +982,7 @@ bool FMounteaInteractionMashPoolsContributionsFromMultipleInteractorsTest::RunTe
 
 	UMounteaInteractableComponentMash* Interactable = AddInteractableComponent<UMounteaInteractableComponentMash>(InteractableOwner);
 	// Default LifecycleMode is Cycled with infinite LifecycleCount (-1), which routes completion to
-	// Cooldown rather than Completed (see CompleteInteractable_Implementation) — force OnlyOnce so
+	// Cooldown rather than Completed (see CompleteInteractable_Implementation) - force OnlyOnce so
 	// completion lands on the terminal EIS_Completed state this test asserts against.
 	IMounteaInteractableInterface::Execute_SetLifecycleMode(Interactable, EInteractableLifecycle::EIL_OnlyOnce);
 	Interactable->SetMinMashAmountRequired(4);
@@ -1004,7 +1004,7 @@ bool FMounteaInteractionMashPoolsContributionsFromMultipleInteractorsTest::RunTe
 	TestEqual(TEXT("Precondition: two joins from two different interactors should register two presses toward the shared threshold"),
 		IMounteaInteractableInterface::Execute_GetInteractionProgress(Interactable), 0.5f);
 
-	// One more press each — neither interactor alone reaches MinMashAmountRequired=4, only their
+	// One more press each - neither interactor alone reaches MinMashAmountRequired=4, only their
 	// combined total does.
 	IMounteaInteractorInterface::Execute_StartInteraction(First, 0.1f);
 	TestNotEqual(TEXT("Precondition: still short of the shared threshold after only 3 of 4 combined presses"),
@@ -1026,7 +1026,7 @@ bool FMounteaInteractionMashPoolsContributionsFromMultipleInteractorsTest::RunTe
 	return true;
 }
 
-// "Player dies mid-interaction" — the actual scenario, not the shorthand version. Every prior EndPlay
+// "Player dies mid-interaction" - the actual scenario, not the shorthand version. Every prior EndPlay
 // test injected a locked/joined state artificially (RequestInteractorJoin + ForceLock) rather than
 // driving a real StartInteraction -> ticking timer -> genuine mid-progress state, so this is the
 // first test where the interactor is really destroyed partway through a real Hold.
@@ -1068,12 +1068,12 @@ bool FMounteaInteractionInteractorDestroyedMidRealHoldProgressTest::RunTest(cons
 	FMounteaInteractionTestAccess::AddDetected(Interactor, ToInteractableScript(Interactable));
 
 	IMounteaInteractorInterface::Execute_StartInteraction(Interactor, 0.f);
-	WorldWrapper.TickTestWorld(1.f); // halfway through a 2s hold — genuinely mid-progress, not just "joined"
+	WorldWrapper.TickTestWorld(1.f); // halfway through a 2s hold - genuinely mid-progress, not just "joined"
 
 	TestTrue(TEXT("Precondition: progress should be nonzero partway through a real hold"),
 		IMounteaInteractableInterface::Execute_GetInteractionProgress(Interactable) > 0.f);
 
-	// The player dies — real destruction, routes through AActor::EndPlay(), not a direct method call.
+	// The player dies - real destruction, routes through AActor::EndPlay(), not a direct method call.
 	InteractorOwner->Destroy();
 
 	TestEqual(TEXT("Interactor destruction mid-hold must release the interactable's slot"),
@@ -1083,10 +1083,10 @@ bool FMounteaInteractionInteractorDestroyedMidRealHoldProgressTest::RunTest(cons
 	TestEqual(TEXT("Progress must reset to zero, not stay stuck mid-way"),
 		IMounteaInteractableInterface::Execute_GetInteractionProgress(Interactable), 0.f);
 
-	// Tick well past the original 2s period — if Timer_Hold were somehow still running, this would
+	// Tick well past the original 2s period - if Timer_Hold were somehow still running, this would
 	// spuriously complete the interactable despite nobody being present anymore.
 	WorldWrapper.TickTestWorld(3.f);
-	TestEqual(TEXT("Interactable must NOT spuriously complete later — its hold timer must have actually stopped, not just been abandoned"),
+	TestEqual(TEXT("Interactable must NOT spuriously complete later - its hold timer must have actually stopped, not just been abandoned"),
 		IMounteaInteractableInterface::Execute_GetState(Interactable), EInteractableStateV3::EIS_Awake);
 
 	WorldWrapper.ForwardErrorMessages(this);
@@ -1096,7 +1096,7 @@ bool FMounteaInteractionInteractorDestroyedMidRealHoldProgressTest::RunTest(cons
 
 // The other direction of the same headline scenario: the interactABLE is destroyed (a door blown up,
 // an NPC killed) while TWO real interactors are mid-way through a co-op Hold on it. Every prior
-// multi-slot test only checked join concurrency or natural completion — never "the whole thing gets
+// multi-slot test only checked join concurrency or natural completion - never "the whole thing gets
 // destroyed out from under a real, multi-occupant interaction."
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMounteaInteractionInteractableDestroyedWithMultipleOccupantsTest,
 	"Mountea.InteractionSystem.World.EndPlay.InteractableDestroyedWithMultipleOccupantsReleasesBoth",
@@ -1149,7 +1149,7 @@ bool FMounteaInteractionInteractableDestroyedWithMultipleOccupantsTest::RunTest(
 
 	TestFalse(TEXT("First interactor must be released, not just the one whose join happened to start the timer"),
 		IMounteaInteractorInterface::Execute_IsSelectionLocked(First));
-	TestFalse(TEXT("Second interactor must also be released — every occupant, not only one"),
+	TestFalse(TEXT("Second interactor must also be released - every occupant, not only one"),
 		IMounteaInteractorInterface::Execute_IsSelectionLocked(Second));
 
 	WorldWrapper.ForwardErrorMessages(this);
@@ -1160,10 +1160,10 @@ bool FMounteaInteractionInteractableDestroyedWithMultipleOccupantsTest::RunTest(
 // Regression test for two things at once: (1) UActorComponent::DestroyComponent() is a genuinely
 // different call path from AActor::Destroy() (confirmed directly in Engine/Source: DestroyComponent
 // calls EndPlay(Destroyed) itself, independent of whether the owning actor survives) and no existing
-// test ever exercised it — e.g. a game system removing just one interactable component from a still-
+// test ever exercised it - e.g. a game system removing just one interactable component from a still-
 // living actor. (2) EndPlay's teardown now fires the same InteractionStopped cascade a normal
 // stop/leave would when destroyed genuinely mid-interaction, so Hold's own Timer_Hold is explicitly
-// cleared and progress resets — instead of silently relying on the engine's safe-but-unobservable
+// cleared and progress resets - instead of silently relying on the engine's safe-but-unobservable
 // no-op-on-destroyed-target timer behavior.
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMounteaInteractionComponentDestroyMidHoldCancelsAndReleasesTest,
 	"Mountea.InteractionSystem.World.EndPlay.ComponentDestroyMidHoldCancelsInteractionAndReleasesInteractor",
@@ -1208,7 +1208,7 @@ bool FMounteaInteractionComponentDestroyMidHoldCancelsAndReleasesTest::RunTest(c
 	TestTrue(TEXT("Precondition: progress should be nonzero partway through a real hold"),
 		IMounteaInteractableInterface::Execute_GetInteractionProgress(Interactable) > 0.f);
 
-	// The actor survives — only this one interactable component is removed, e.g. by a game system
+	// The actor survives - only this one interactable component is removed, e.g. by a game system
 	// welding the door shut. This goes through UActorComponent::DestroyComponent(), not AActor::Destroy().
 	Interactable->DestroyComponent();
 

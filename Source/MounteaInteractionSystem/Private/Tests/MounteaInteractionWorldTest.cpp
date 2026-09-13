@@ -19,14 +19,14 @@
 #include "Interfaces/MounteaInteractableInterface.h"
 #include "Interfaces/MounteaInteractorInterface.h"
 
-// Tests in this file spin up a real, minimal UWorld (via the engine's own FTestWorldWrapper —
+// Tests in this file spin up a real, minimal UWorld (via the engine's own FTestWorldWrapper -
 // Engine module, Runtime-safe) so spawned actors go through actual registration/BeginPlay/EndPlay,
 // unlike the bare NewObject() components used elsewhere in this Tests/ folder. This closes the
 // coverage gap those other tests explicitly call out: EndPlay() itself, and anything that depends
 // on a real actor transform (distance-based focus selection), was previously untested.
 //
 // Detection (Overlap/Trace/Mouse discovering an interactable via physics) still isn't exercised
-// here — these tests inject DetectedSet entries directly via FMounteaInteractionTestAccess and
+// here - these tests inject DetectedSet entries directly via FMounteaInteractionTestAccess and
 // focus on what happens once something is detected, not on detection itself.
 
 namespace MounteaInteractionWorldTest
@@ -113,7 +113,7 @@ bool FMounteaInteractionRealEndPlayReleasesSlotTest::RunTest(const FString& Para
 		return false;
 	}
 
-	// Hold (not Press) — Press completes instantly on join, and since completion now releases every
+	// Hold (not Press) - Press completes instantly on join, and since completion now releases every
 	// occupant's slot immediately (see CompleteInteractable_Implementation), Press would already
 	// have zero slots by the time this test checks its precondition. Hold with a long period stays
 	// genuinely mid-interaction, which is what "destroyed while occupied" is meant to exercise.
@@ -130,7 +130,7 @@ bool FMounteaInteractionRealEndPlayReleasesSlotTest::RunTest(const FString& Para
 	TestEqual(TEXT("Precondition: interactable should have one occupied slot"),
 		UMounteaInteractableStatics::GetInteractorSlotCount(InteractableScript), 1);
 
-	// Real destruction — routes through AActor::EndPlay(), not a direct method call.
+	// Real destruction - routes through AActor::EndPlay(), not a direct method call.
 	InteractorOwner->Destroy();
 
 	TestEqual(TEXT("Destroying the interactor's owner must release its slot via real EndPlay()"),
@@ -175,7 +175,7 @@ bool FMounteaInteractionRealEndPlayClearsLockTest::RunTest(const FString& Parame
 		return false;
 	}
 
-	// Hold (not Press) — see the identical comment in FMounteaInteractionRealEndPlayReleasesSlotTest:
+	// Hold (not Press) - see the identical comment in FMounteaInteractionRealEndPlayReleasesSlotTest:
 	// Press completes instantly on join, and completion now releases the occupant immediately, so
 	// ForceLock's artificial "still locked" state below would no longer correspond to a real slot.
 	UMounteaInteractableComponentHold* Interactable = AddInteractableComponent<UMounteaInteractableComponentHold>(InteractableOwner);
@@ -226,11 +226,11 @@ bool FMounteaInteractionFocusPicksClosestTest::RunTest(const FString& Parameters
 	}
 	WorldWrapper.BeginPlayInTestWorld();
 
-	// Deliberately NOT collinear with the interactor (e.g. both on +X) — since Overlap interactors
+	// Deliberately NOT collinear with the interactor (e.g. both on +X) - since Overlap interactors
 	// now run a real safety-trace line check by default (see UMounteaInteractorComponentOverlap's
 	// constructor), a Near actor sitting directly between the interactor and a Far actor would
 	// legitimately obstruct the trace to Far with its own widget collision. That's correct
-	// behavior for the safety trace, but it's not what THIS test is about — this test is purely
+	// behavior for the safety trace, but it's not what THIS test is about - this test is purely
 	// about the distance tie-break, so Near and Far sit on separate axes with a clear line to each.
 	AActor* NearActor = SpawnActorWithRoot(World, FVector(100.f, 0.f, 0.f));
 	AActor* FarActor = SpawnActorWithRoot(World, FVector(0.f, 1000.f, 0.f));
@@ -295,7 +295,7 @@ bool FMounteaInteractionMaxCandidatesCapTest::RunTest(const FString& Parameters)
 	UMounteaInteractorComponentOverlap* Interactor = AddInteractableComponent<UMounteaInteractorComponentOverlap>(InteractorOwner);
 	FMounteaInteractionTestAccess::SetMaxCandidatesPerActor(Interactor, 2);
 
-	// Three interactable components on the same actor — one more than the cap.
+	// Three interactable components on the same actor - one more than the cap.
 	for (int32 i = 0; i < 3; ++i)
 	{
 		UMounteaInteractableComponentPress* Comp = AddInteractableComponent<UMounteaInteractableComponentPress>(InteractableOwner);
@@ -314,7 +314,7 @@ UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_MounteaTest_InteractorA, "Mountea.Test.Interac
 UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_MounteaTest_InteractorB, "Mountea.Test.InteractorB");
 
 // Regression test for Phase 6: the join-time RequiredInteractorTags gate is promoted to focus
-// time — a tag-incompatible interactable must never win focus, not just get rejected on join.
+// time - a tag-incompatible interactable must never win focus, not just get rejected on join.
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMounteaInteractionTagGateFocusTest,
 	"Mountea.InteractionSystem.World.Focus.TagMismatchExcludesFromFocus",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
@@ -440,7 +440,7 @@ bool FMounteaInteractionMashProgressEndToEndTest::RunTest(const FString& Paramet
 
 // Regression test for Phase 6: TriggerCooldown/PauseInteraction both early-out without a real,
 // authoritative owner (GetOwner()->HasAuthority()), so bare NewObject() components can never
-// exercise them — needs the world harness. Verifies the state transitions themselves; the timers
+// exercise them - needs the world harness. Verifies the state transitions themselves; the timers
 // they schedule (auto-resume/auto-wake) aren't ticked here, that's a separate concern.
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMounteaInteractionCooldownAndPauseStateTest,
 	"Mountea.InteractionSystem.World.State.TriggerCooldownAndPauseTransitionState",
@@ -497,7 +497,7 @@ bool FMounteaInteractionCooldownAndPauseStateTest::RunTest(const FString& Parame
 
 // Companion to the test above: that one only checks the immediate TriggerCooldown/PauseInteraction
 // transition, never lets the timers they schedule (Timer_Cooldown -> OnCooldownTimerExpired,
-// Timer_Pause -> OnPauseExpired) actually fire. This one does — the timer-driven auto-return path was
+// Timer_Pause -> OnPauseExpired) actually fire. This one does - the timer-driven auto-return path was
 // never exercised by any test until now.
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMounteaInteractionCooldownAutoExpiresToAwakeTest,
 	"Mountea.InteractionSystem.World.State.CooldownAutoExpiresBackToAwake",
@@ -604,7 +604,7 @@ bool FMounteaInteractionPauseAutoExpiresToActiveTest::RunTest(const FString& Par
 // Regression test for a late-join replication bug: BeginPlay() used to unconditionally reset
 // InteractableState/RemainingLifecycleCount to their design-time defaults, with no authority check.
 // On a real remote client (a late joiner is the clearest case), the true current value has usually
-// already arrived over the wire by the time BeginPlay() runs locally — so that reset silently
+// already arrived over the wire by the time BeginPlay() runs locally - so that reset silently
 // discarded it, showing e.g. a mid-Hold door as fresh/Awake instead of its real in-progress state.
 // A real second network connection is out of reach for this harness (FTestWorldWrapper has no
 // NetDriver), so this simulates the essential shape of the bug directly: force the actor's Role to
@@ -641,14 +641,14 @@ bool FMounteaInteractionNonAuthorityBeginPlayPreservesReplicatedStateTest::RunTe
 		return false;
 	}
 
-	// Simulate "this is a remote client's view of an actor owned/driven elsewhere" — the same
+	// Simulate "this is a remote client's view of an actor owned/driven elsewhere" - the same
 	// condition a late-joining client's copy of an in-progress interactable would be in.
 	InteractableOwner->SetRole(ROLE_SimulatedProxy);
 
 	UMounteaInteractableComponentPress* Interactable = NewObject<UMounteaInteractableComponentPress>(InteractableOwner, UMounteaInteractableComponentPress::StaticClass());
 	Interactable->SetupAttachment(InteractableOwner->GetRootComponent());
 
-	// Pre-seed as "already replicated" BEFORE registration triggers BeginPlay — DefaultInteractableState
+	// Pre-seed as "already replicated" BEFORE registration triggers BeginPlay - DefaultInteractableState
 	// is EIS_Awake and LifecycleCount defaults away from 2, so EIS_Active/2 are both unambiguously
 	// NOT what a fresh BeginPlay() would produce if it (incorrectly) reset them.
 	FMounteaInteractionTestAccess::SetReplicatedStateForTest(Interactable, EInteractableStateV3::EIS_Active, 2);
@@ -706,7 +706,7 @@ bool FMounteaInteractionNonAuthorityBeginPlayPreservesInteractorStateTest::RunTe
 
 	UMounteaInteractorComponentOverlap* Interactor = NewObject<UMounteaInteractorComponentOverlap>(InteractorOwner, UMounteaInteractorComponentOverlap::StaticClass());
 
-	// DefaultInteractorState is EIS_Scanning — EIS_Suppressed is unambiguously not what a fresh
+	// DefaultInteractorState is EIS_Scanning - EIS_Suppressed is unambiguously not what a fresh
 	// BeginPlay() would produce if it (incorrectly) reset InteractorState.
 	FMounteaInteractionTestAccess::SetReplicatedStateForTest(Interactor, EInteractorStateV3::EIS_Suppressed);
 
@@ -724,9 +724,9 @@ bool FMounteaInteractionNonAuthorityBeginPlayPreservesInteractorStateTest::RunTe
 // The two tests above prove a non-authority BeginPlay() doesn't stomp replicated state. This one
 // proves the other half: the authority-side init those tests deliberately bypass (SetReplicatedStateForTest
 // sets raw members before BeginPlay() ever runs) actually fires correctly with ZERO PlayerController,
-// Pawn, or possession anywhere in the world — i.e. it works identically for an NPC as for a player
+// Pawn, or possession anywhere in the world - i.e. it works identically for an NPC as for a player
 // pawn. HasAuthority() is a property of the actor's own ENetRole, not of player possession, and
-// BeginPlay() runs automatically for every actor the moment it begins play — this is not something
+// BeginPlay() runs automatically for every actor the moment it begins play - this is not something
 // that needs a GameMode/GameState/Subsystem to broker.
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMounteaInteractionAuthorityBeginPlayInitializesWithoutPlayerControllerTest,
 	"Mountea.InteractionSystem.World.Replication.AuthorityBeginPlayInitializesWithoutPlayerController",
@@ -750,7 +750,7 @@ bool FMounteaInteractionAuthorityBeginPlayInitializesWithoutPlayerControllerTest
 	}
 	WorldWrapper.BeginPlayInTestWorld();
 
-	TestNull(TEXT("No PlayerController should exist in this world — this simulates an NPC actor never possessed by any player"),
+	TestNull(TEXT("No PlayerController should exist in this world - this simulates an NPC actor never possessed by any player"),
 		World->GetFirstPlayerController());
 
 	AActor* NpcActor = SpawnActorWithRoot(World, FVector::ZeroVector);
@@ -760,7 +760,7 @@ bool FMounteaInteractionAuthorityBeginPlayInitializesWithoutPlayerControllerTest
 		WorldWrapper.DestroyTestWorld(true);
 		return false;
 	}
-	// No SetRole() call — a locally spawned actor with no owning connection defaults to
+	// No SetRole() call - a locally spawned actor with no owning connection defaults to
 	// ROLE_Authority, exactly like a level-placed or server-spawned NPC.
 
 	UMounteaInteractableComponentPress* Interactable = NewObject<UMounteaInteractableComponentPress>(NpcActor, UMounteaInteractableComponentPress::StaticClass());
@@ -770,11 +770,11 @@ bool FMounteaInteractionAuthorityBeginPlayInitializesWithoutPlayerControllerTest
 	FMounteaInteractionTestAccess::SetLifecycleCount(Interactable, 7);
 
 	UMounteaInteractorComponentOverlap* Interactor = NewObject<UMounteaInteractorComponentOverlap>(NpcActor, UMounteaInteractorComponentOverlap::StaticClass());
-	// EIS_Disabled is not UMounteaInteractorComponentBase's own hardcoded default (EIS_Scanning) —
+	// EIS_Disabled is not UMounteaInteractorComponentBase's own hardcoded default (EIS_Scanning) -
 	// same "distinctive value" reasoning.
 	FMounteaInteractionTestAccess::SetDefaultInteractorState(Interactor, EInteractorStateV3::EIS_Disabled);
 
-	// Registering now (world already began play) drives a real BeginPlay() for both components —
+	// Registering now (world already began play) drives a real BeginPlay() for both components -
 	// no PlayerController, Pawn, or possession involved anywhere in this call chain.
 	NpcActor->AddInstanceComponent(Interactable);
 	Interactable->RegisterComponent();

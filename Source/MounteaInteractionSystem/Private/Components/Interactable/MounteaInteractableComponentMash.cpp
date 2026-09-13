@@ -62,7 +62,7 @@ void UMounteaInteractableComponentMash::InteractionStarted_Implementation(const 
 
 void UMounteaInteractableComponentMash::InteractionStopped_Implementation(const float& TimeStarted, const TScriptInterface<IMounteaInteractorInterface>& CausingInteractor)
 {
-	// Key release doesn't cancel mash — only threshold timeout or stopping interaction does
+	// Key release doesn't cancel mash - only threshold timeout or stopping interaction does
 	Super::InteractionStopped_Implementation(TimeStarted, CausingInteractor);
 }
 
@@ -74,7 +74,7 @@ void UMounteaInteractableComponentMash::InteractionCanceled_Implementation()
 
 void UMounteaInteractableComponentMash::OnKeystrokeThresholdExpired()
 {
-	// Too slow between presses — interaction failed
+	// Too slow between presses - interaction failed
 	OnInteractionFailed.Broadcast();
 	OnInteractionFailedEvent();
 	Execute_InteractionCanceled(this);
@@ -91,7 +91,7 @@ void UMounteaInteractableComponentMash::ResetMashState()
 
 void UMounteaInteractableComponentMash::OnRep_ActualMashAmount()
 {
-	// Clients update progress display — GetInteractionProgress() is overridden to use mash ratio
+	// Clients update progress display - GetInteractionProgress() is overridden to use mash ratio
 }
 
 float UMounteaInteractableComponentMash::GetInteractionProgress_Implementation() const

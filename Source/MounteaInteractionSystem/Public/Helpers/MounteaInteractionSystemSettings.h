@@ -31,7 +31,7 @@ public:
 	UPROPERTY(config, EditAnywhere, BlueprintReadOnly, Category="Interactor")
 	TSoftObjectPtr<UMounteaInteractorRuntimeConfig> InteractorConfig;
 
-	/** UI defaults for interactors — controls the attention widget pool size, widget class, and fade timings. */
+	/** UI defaults for interactors - controls the attention widget pool size, widget class, and fade timings. */
 	UPROPERTY(config, EditAnywhere, BlueprintReadOnly, Category="Interactor")
 	TSoftObjectPtr<UMounteaInteractorUIConfig> InteractorUIConfig;
 
@@ -39,7 +39,7 @@ public:
 	UPROPERTY(config, EditAnywhere, BlueprintReadOnly, Category="Interactable")
 	TSoftObjectPtr<UMounteaInteractableRuntimeConfig> InteractableConfig;
 
-	/** UI defaults for interactables — interaction widget class, DataTable, key-texture mappings, update frequency. */
+	/** UI defaults for interactables - interaction widget class, DataTable, key-texture mappings, update frequency. */
 	UPROPERTY(config, EditAnywhere, BlueprintReadOnly, Category="Interactable")
 	TSoftObjectPtr<UMounteaInteractableUIConfig> InteractableUIConfig;
 

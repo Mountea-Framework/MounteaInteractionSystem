@@ -16,10 +16,10 @@
 #include "Interfaces/MounteaInteractableInterface.h"
 #include "Interfaces/MounteaInteractorInterface.h"
 
-// Tests in this file cover "who is allowed to interact with what" — gameplay tag whitelist/
+// Tests in this file cover "who is allowed to interact with what" - gameplay tag whitelist/
 // blacklist gating, and the physical line-of-sight validation (PerformSafetyTrace) that an Overlap
 // interactor now runs by default. Both mechanisms are checked at focus time (RefreshFocus), which
-// is where they're actually wired — a rejected candidate never earns focus/an attention widget in
+// is where they're actually wired - a rejected candidate never earns focus/an attention widget in
 // the first place, rather than being focusable-but-rejected-on-join.
 
 namespace MounteaInteractionAccessControlTest
@@ -42,7 +42,7 @@ namespace MounteaInteractionAccessControlTest
 		TComponent* Comp = NewObject<TComponent>(Owner, TComponent::StaticClass());
 		// Without an explicit attachment, a newly registered USceneComponent (UWidgetComponent
 		// included) has no parent to inherit a transform from, so it registers at the world origin
-		// regardless of where SetActorLocation() put the owning actor — invisible for tests that
+		// regardless of where SetActorLocation() put the owning actor - invisible for tests that
 		// only check actor identity, but fatal for anything (like a real physics trace) that cares
 		// where the component's own collision actually sits. Interactor components (UActorComponent,
 		// not scene components) have no attachment concept at all, hence the constexpr guard.
@@ -72,7 +72,7 @@ namespace MounteaInteractionAccessControlTest
 		return Script;
 	}
 
-	// Spawns an actor with a solid UBoxComponent blocking every channel — PerformSafetyTrace
+	// Spawns an actor with a solid UBoxComponent blocking every channel - PerformSafetyTrace
 	// resolves its channel from the project's own collision-channel config (a custom
 	// "InteractionTrace" channel if configured, ECC_Visibility as a hardcoded fallback otherwise),
 	// so blocking everything keeps this deterministic regardless of that project-specific setup.
@@ -157,7 +157,7 @@ bool FMounteaInteractionExcludedTagBlocksFocusTest::RunTest(const FString& Param
 }
 
 // Regression test: RequiredInteractorTags (whitelist) and ExcludedInteractorTags (blacklist) are
-// independent gates checked together — an interactor must pass BOTH. Matches the "Team A can use
+// independent gates checked together - an interactor must pass BOTH. Matches the "Team A can use
 // this, but only if not additionally flagged Disabled/Hacked" style of layered access rule.
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMounteaInteractionWhitelistAndBlacklistBothApplyTest,
 	"Mountea.InteractionSystem.World.AccessControl.WhitelistAndBlacklistBothApply",
@@ -193,7 +193,7 @@ bool FMounteaInteractionWhitelistAndBlacklistBothApplyTest::RunTest(const FStrin
 	UMounteaInteractableComponentPress* Interactable = AddInteractableComponent<UMounteaInteractableComponentPress>(InteractableOwner);
 
 	// Whitelist: requires Player. Blacklist: excludes Player too (a "Player, but not right now"
-	// override — e.g. a console flagged both PlayerOnly and Compromised/Hacked).
+	// override - e.g. a console flagged both PlayerOnly and Compromised/Hacked).
 	FGameplayTagContainer RequiredTags;
 	RequiredTags.AddTag(TAG_AccessTest_Player.GetTag());
 	FMounteaInteractionTestAccess::SetRequiredInteractorTags(Interactable, RequiredTags);
@@ -215,7 +215,7 @@ bool FMounteaInteractionWhitelistAndBlacklistBothApplyTest::RunTest(const FStrin
 }
 
 // Regression test for PerformSafetyTrace, now enabled by default on UMounteaInteractorComponentOverlap
-// (previously ESTM_None — an Overlap interactor had zero line-of-sight validation of its own):
+// (previously ESTM_None - an Overlap interactor had zero line-of-sight validation of its own):
 // an interactable detected through a wall (overlap volumes don't respect occlusion) must never win
 // focus, because the line trace from the interactor to the candidate hits the wall first instead of
 // the candidate itself.
@@ -265,7 +265,7 @@ bool FMounteaInteractionSafetyTraceBlocksThroughWallTest::RunTest(const FString&
 	return true;
 }
 
-// Companion test: the exact same setup but with a clear line (no wall) must focus normally — proves
+// Companion test: the exact same setup but with a clear line (no wall) must focus normally - proves
 // the safety trace isn't just always rejecting, and that PerformSafetyTrace correctly recognizes a
 // hit on the candidate itself as "not blocked" once nothing else is in the way.
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMounteaInteractionSafetyTraceAllowsClearLineTest,
@@ -292,7 +292,7 @@ bool FMounteaInteractionSafetyTraceAllowsClearLineTest::RunTest(const FString& P
 
 	AActor* InteractorOwner = SpawnActorWithRoot(World, FVector::ZeroVector);
 	AActor* InteractableOwner = SpawnActorWithRoot(World, FVector(500.f, 0.f, 0.f));
-	// Same "wall", but off to the side — well clear of the line between interactor and interactable.
+	// Same "wall", but off to the side - well clear of the line between interactor and interactable.
 	AActor* Wall = SpawnBlockingWall(World, FVector(250.f, 2000.f, 0.f), FVector(10.f, 200.f, 200.f));
 	if (!InteractorOwner || !InteractableOwner || !Wall)
 	{
