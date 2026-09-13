@@ -11,6 +11,14 @@
 
 #pragma once
 
+#include "CoreMinimal.h"
+
+namespace MounteaInteractionBaseTypes
+{
+	inline const FText InteractorBaseClassesMenuEntry =	FText::FromString(TEXT("1. Base Classes (Interactor)"));
+	inline const FText InteractableBaseClassesMenuEntry =	FText::FromString(TEXT("2. Base Classes (Interactable)"));
+}
+
 namespace MounteaInteractionToolbar
 {
 	static const FName MounteaSharedMenuName("MounteaFramework.SharedMenu");

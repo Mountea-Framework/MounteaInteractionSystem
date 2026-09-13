@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "AssetTypeActions_Base.h"
 #include "Components/Interactable/MounteaInteractableComponentBase.h"
+#include "Consts/MounteaInteractionEditorConsts.h"
 
 class FInteractableComponentAssetActions : public FAssetTypeActions_Base
 {
@@ -18,7 +19,15 @@ public:
 		{
 			return FAssetToolsModule::GetModule().Get().FindAdvancedAssetCategory(FName("MounteaInteraction"));
 		}
-	
+
 		return  EAssetTypeCategories::Misc;
+	};
+	virtual const TArray<FText>& GetSubMenus() const override
+	{
+		static const TArray<FText> AssetTypeActionSubMenu
+		{
+			MounteaInteractionBaseTypes::InteractableBaseClassesMenuEntry
+		};
+		return AssetTypeActionSubMenu;
 	};
 };

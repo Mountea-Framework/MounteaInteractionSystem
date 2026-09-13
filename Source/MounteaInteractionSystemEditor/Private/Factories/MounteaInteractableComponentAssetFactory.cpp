@@ -3,9 +3,11 @@
 
 #include "MounteaInteractableComponentAssetFactory.h"
 
+#include "AssetToolsModule.h"
 #include "Utilities/MounteaInteractionEditorUtilities.h"
 
 #include "Components/Interactable/MounteaInteractableComponentBase.h"
+#include "Consts/MounteaInteractionEditorConsts.h"
 #include "Kismet2/KismetEditorUtilities.h"
 #include "Engine/DataTable.h"
 
@@ -60,6 +62,25 @@ UObject* UMounteaInteractableComponentAssetFactory::FactoryCreateNew(UClass* Cla
 		UBlueprintGeneratedClass::StaticClass(),
 		NAME_None
 	);
+}
+
+uint32 UMounteaInteractableComponentAssetFactory::GetMenuCategories() const
+{
+	if (FModuleManager::Get().IsModuleLoaded("AssetTools"))
+	{
+		return FAssetToolsModule::GetModule().Get().FindAdvancedAssetCategory(FName("MounteaInteraction"));
+	}
+
+	return EAssetTypeCategories::Misc;
+}
+
+const TArray<FText>& UMounteaInteractableComponentAssetFactory::GetMenuCategorySubMenus() const
+{
+	static const TArray<FText> AssetTypeActionSubMenu
+	{
+		MounteaInteractionBaseTypes::InteractableBaseClassesMenuEntry
+	};
+	return AssetTypeActionSubMenu;
 }
 
 #undef LOCTEXT_NAMESPACE
