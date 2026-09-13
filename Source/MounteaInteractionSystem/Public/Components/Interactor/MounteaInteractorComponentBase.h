@@ -331,6 +331,7 @@ protected:
 
 public:
 
+	/** Editor-only: repopulates this component's editable properties from the project's Interactor Runtime config defaults. */
 	UFUNCTION(BlueprintCallable, CallInEditor, Category="Mountea|Interaction|Interactor|Setup")
 	void SetDefaultValues();
 

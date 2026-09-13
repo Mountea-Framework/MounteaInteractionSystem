@@ -27,18 +27,23 @@ public:
 
 	UMounteaInteractableComponentMash();
 
+	/** Returns the number of key presses required to complete the mash interaction. */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Interactable")
 	int32 GetMinMashAmountRequired() const { return MinMashAmountRequired; }
 
+	/** Sets the number of key presses required to complete the mash interaction. */
 	UFUNCTION(BlueprintCallable, Category="Mountea|Interaction|Interactable")
 	void SetMinMashAmountRequired(const int32 Value);
 
+	/** Returns the maximum allowed time, in seconds, between consecutive key presses. */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Interactable")
 	float GetKeystrokeTimeThreshold() const { return KeystrokeTimeThreshold; }
 
+	/** Sets the maximum allowed time, in seconds, between consecutive key presses. */
 	UFUNCTION(BlueprintCallable, Category="Mountea|Interaction|Interactable")
 	void SetKeystrokeTimeThreshold(const float Value);
 
+	/** Returns the current number of key presses registered towards completing the mash interaction. */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Interactable")
 	int32 GetActualMashAmount() const { return ActualMashAmount; }
 

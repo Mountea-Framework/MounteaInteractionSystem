@@ -51,24 +51,31 @@ protected:
 
 #pragma region BlueprintImplementableEvents
 
+	/** Called when this interactor's state machine transitions to a new state. */
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
 	void OnInteractorStateChangedEvent(const EInteractorStateV3& NewState);
 
+	/** Called when the Tier 1 focused actor changes. */
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
 	void OnFocusedActorChangedEvent(const AActor* NewFocusedActor);
 
+	/** Called when the Tier 2 action list is rebuilt for the focused actor. */
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
 	void OnActionListChangedEvent(const TArray<FInteractionActionCandidate>& NewActionList);
 
+	/** Called when the highlighted (currently selected) action index changes. */
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
 	void OnHighlightedActionChangedEvent(const int32 NewIndex);
 
+	/** Called when the interaction input key is pressed. */
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
 	void OnInteractionKeyPressedEvent(const float& TimeKeyPressed);
 
+	/** Called when the interaction input key is released. */
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
 	void OnInteractionKeyReleasedEvent(const float& TimeKeyReleased);
 
+	/** Called when this interactor's response collision channel changes. */
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
 	void OnInteractorCollisionChangedEvent(const TEnumAsByte<ECollisionChannel>& NewCollisionChannel);
 

@@ -24,6 +24,7 @@ class MOUNTEAINTERACTIONSYSTEM_API UMounteaInteractionFunctionLibrary : public U
 
 public:
 
+	/** Returns the project's Mountea Interaction System settings object. */
 	UE_DEPRECATED(5.0, "Use UMounteaInteractableStatics::GetInteractionSystemSettings instead.")
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Interactable", meta=(CompactNodeTitle="Default Interaction Settings",
 		DeprecatedFunction, DeprecationMessage="Use UMounteaInteractableStatics::GetInteractionSystemSettings instead."))
@@ -40,16 +41,19 @@ public:
 		DeprecatedFunction, DeprecationMessage="Use UMounteaInteractableStatics::GetDefaultWidgetUpdateFrequency instead."))
 	static float GetDefaultWidgetUpdateFrequency();
 
+	/** Returns the default interactable DataTable configured in Project Settings. */
 	UE_DEPRECATED(5.0, "Use UMounteaInteractableStatics::GetInteractableDefaultDataTable instead.")
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Interactable", meta=(CompactNodeTitle="Default Interactable Data",
 		DeprecatedFunction, DeprecationMessage="Use UMounteaInteractableStatics::GetInteractableDefaultDataTable instead."))
 	static UDataTable* GetInteractableDefaultDataTable();
 
+	/** Returns the default interaction widget class configured in Project Settings. */
 	UE_DEPRECATED(5.0, "Use UMounteaInteractableStatics::GetInteractableDefaultWidgetClass instead.")
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Interactable", meta=(CompactNodeTitle="Default Interactable Widget",
 		DeprecatedFunction, DeprecationMessage="Use UMounteaInteractableStatics::GetInteractableDefaultWidgetClass instead."))
 	static TSubclassOf<UUserWidget> GetInteractableDefaultWidgetClass();
 
+	/** Returns whether editor debug logging/visualization is enabled in Project Settings. */
 	UE_DEPRECATED(5.0, "Use UMounteaInteractableStatics::IsEditorDebugEnabled instead.")
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Interactable", meta=(CompactNodeTitle="Is Debug Enabled",
 		DeprecatedFunction, DeprecationMessage="Use UMounteaInteractableStatics::IsEditorDebugEnabled instead."))

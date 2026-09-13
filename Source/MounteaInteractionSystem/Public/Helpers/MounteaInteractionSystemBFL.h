@@ -94,18 +94,23 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Helpers")
 	static bool CanExecuteCosmeticEvents(const UWorld* WorldContext);
 
+	/** Returns a copy of SourceText with each occurrence of a Replacements key substituted by its matching value. */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Helpers")
 	static FText ReplaceRegexInText(const FText& SourceText, const TMap<FString, FText>& Replacements);
 
+	/** Returns the local player associated with the given actor, if any. */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Helpers")
 	static ULocalPlayer* FindLocalPlayer(AActor* ForActor);
-	
+
+	/** Returns true if a gamepad is currently connected. */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Helpers")
 	static bool IsGamePadConnected();
 
+	/** Returns the active input device type (keyboard/mouse, gamepad, touch, etc.) for the given player controller. */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Helpers")
 	static ECommonInputType GetActiveInputType(class APlayerController* PlayerController);
-	
+
+	/** Returns true if the given input key is supported on the specified hardware device, and outputs its associated icon texture. */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Helpers")
 	static bool IsInputKeyPairSupported(class APlayerController* PlayerController, const FKey& InputKey, const FString& HardwareDeviceID, TSoftObjectPtr<class UTexture2D>& FoundInputTexture);
 };

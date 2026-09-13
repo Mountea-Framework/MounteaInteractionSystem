@@ -104,68 +104,86 @@ protected:
 
 public:
 
+	/** Stops the periodic trace timer, releases all detected interactables, and clears trace hits. */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor|Tracing")
 	void DisableTracing();
 	virtual void DisableTracing_Implementation();
 
+	/** Starts the periodic trace timer, ticking at TraceInterval while active. */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor|Tracing")
 	void EnableTracing();
 	virtual void EnableTracing_Implementation();
 
+	/** Pauses the periodic trace timer without clearing any currently detected interactables. */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor|Tracing")
 	void PauseTracing();
 	virtual void PauseTracing_Implementation();
 
+	/** Resumes a previously paused trace timer. */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor|Tracing")
 	void ResumeTracing();
 	virtual void ResumeTracing_Implementation();
 
+	/** Returns true if this interactor is currently allowed to trace. */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor|Tracing")
 	bool CanTrace() const;
 	virtual bool CanTrace_Implementation() const;
 
+	/** Returns whether this interactor uses a precise line trace or a loose box trace. */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Interactor")
 	EMounteaTraceType GetTraceType() const;
 
+	/** Sets whether this interactor uses a precise line trace or a loose box trace. */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor|Tracing")
 	void SetTraceType(const EMounteaTraceType& NewTraceType);
 	virtual void SetTraceType_Implementation(const EMounteaTraceType& NewTraceType);
 
+	/** Returns how often, in seconds, the trace re-evaluates. */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Interactor")
 	float GetTraceInterval() const;
 
+	/** Sets how often, in seconds, the trace re-evaluates. */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor|Tracing")
 	void SetTraceInterval(const float NewInterval);
 	virtual void SetTraceInterval_Implementation(const float NewInterval);
 
+	/** Returns the maximum distance, in centimeters, the trace will reach. */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Interactor")
 	float GetTraceRange() const;
 
+	/** Sets the maximum distance, in centimeters, the trace will reach. */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor|Tracing")
 	void SetTraceRange(const float NewRange);
 	virtual void SetTraceRange_Implementation(const float NewRange);
 
+	/** Returns the half-size, in centimeters, of the box shape used for loose tracing. */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Interactor")
 	float GetTraceShapeHalfSize() const;
 
+	/** Sets the half-size, in centimeters, of the box shape used for loose tracing. */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor|Tracing")
 	void SetTraceShapeHalfSize(const float NewTraceShapeHalfSize);
 	virtual void SetTraceShapeHalfSize_Implementation(const float NewTraceShapeHalfSize);
 
+	/** Returns whether the trace starts from a custom transform instead of the owner's eyes view point. */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Interactor")
 	bool GetUseCustomStartTransform() const;
 
+	/** Sets whether the trace starts from a custom transform instead of the owner's eyes view point. */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor|Tracing")
 	void SetUseCustomStartTransform(const bool bUse);
 	virtual void SetUseCustomStartTransform_Implementation(const bool bUse);
 
+	/** Returns a snapshot of this interactor's current tracing configuration. */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Interactor")
 	FTracingData GetLastTracingData() const;
 
+	/** Sets the custom trace start transform used when GetUseCustomStartTransform is true. */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor|Tracing")
 	void SetCustomTraceStart(const FTransform& TraceStart);
 	virtual void SetCustomTraceStart_Implementation(const FTransform& TraceStart);
 
+	/** Returns the custom trace start transform used when GetUseCustomStartTransform is true. */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Interactor")
 	FTransform GetCustomTraceStart() const;
 
