@@ -3,6 +3,7 @@
 
 #include "Helpers/MounteaInteractionSystemBFL.h"
 #include "Helpers/MounteaInteractionSystemSettings.h"
+#include "Helpers/MounteaInteractableStatics.h"
 #include "Settings/MounteaInteractableUIConfig.h"
 
 #include "CommonInputSubsystem.h"
@@ -21,85 +22,33 @@
 
 #include "Engine/World.h"
 
+// Deprecated - these five redirect to their UMounteaInteractableStatics replacement. Kept only
+// so existing customer Blueprints/C++ keep compiling; see the class doc comment in the header
+// and Config/DefaultMounteaInteractionSystem.ini's CoreRedirects.
+
 UMeshComponent* UMounteaInteractionSystemBFL::FindMeshByTag(const FName Tag, const AActor* Source)
 {
-	if (!Source)
-				return nullptr;
-
-	TArray<UMeshComponent*> MeshComponents;
-	Source->GetComponents(MeshComponents);
-
-	for (const auto& Itr : MeshComponents)
-	{
-		if (Itr && Itr->ComponentHasTag(Tag))
-		{
-			return Itr;
-		}
-	}
-
-	return nullptr;
+	return UMounteaInteractableStatics::FindMeshByTag(Tag, Source);
 }
 
 UMeshComponent* UMounteaInteractionSystemBFL::FindMeshByName(const FName Name, const AActor* Source)
 {
-	if (!Source)
-				return nullptr;
-
-	TArray<UMeshComponent*> MeshComponents;
-	Source->GetComponents(MeshComponents);
-
-	for (const auto& Itr : MeshComponents)
-	{
-		if (Itr && Itr->GetName().Equals(Name.ToString()))
-		{
-			return Itr;
-		}
-	}
-
-	return nullptr;
+	return UMounteaInteractableStatics::FindMeshByName(Name, Source);
 }
 
 UPrimitiveComponent* UMounteaInteractionSystemBFL::FindPrimitiveByTag(const FName Tag, const AActor* Source)
 {
-	if (!Source)
-				return nullptr;
-
-	TArray<UPrimitiveComponent*> MeshComponents;
-	Source->GetComponents(MeshComponents);
-
-	for (const auto& Itr : MeshComponents)
-	{
-		if (Itr && Itr->ComponentHasTag(Tag))
-		{
-			return Itr;
-		}
-	}
-
-	return nullptr;
+	return UMounteaInteractableStatics::FindPrimitiveByTag(Tag, Source);
 }
 
 UPrimitiveComponent* UMounteaInteractionSystemBFL::FindPrimitiveByName(const FName Name, const AActor* Source)
 {
-	if (!Source)
-				return nullptr;
-
-	TArray<UPrimitiveComponent*> MeshComponents;
-	Source->GetComponents(MeshComponents);
-
-	for (const auto& Itr : MeshComponents)
-	{
-		if (Itr && Itr->GetName().Equals(Name.ToString()))
-		{
-			return Itr;
-		}
-	}
-
-	return nullptr;
+	return UMounteaInteractableStatics::FindPrimitiveByName(Name, Source);
 }
 
 UMounteaInteractionSystemSettings* UMounteaInteractionSystemBFL::GetInteractionSystemSettings()
 {
-	return GetMutableDefault<UMounteaInteractionSystemSettings>();
+	return UMounteaInteractableStatics::GetInteractionSystemSettings();
 }
 
 bool UMounteaInteractionSystemBFL::CanExecuteCosmeticEvents(const UWorld* WorldContext)

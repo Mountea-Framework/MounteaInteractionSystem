@@ -13,7 +13,9 @@ class UUserWidget;
 class UMounteaInteractionSystemSettings;
 
 /**
- * 
+ * Deprecated - kept only so existing customer Blueprints keep compiling.
+ * All functions are ported to UMounteaInteractableStatics; use that class for new content.
+ * See Config/DefaultMounteaInteractionSystem.ini for the matching CoreRedirects entries.
  */
 UCLASS()
 class MOUNTEAINTERACTIONSYSTEM_API UMounteaInteractionFunctionLibrary : public UBlueprintFunctionLibrary
@@ -22,7 +24,9 @@ class MOUNTEAINTERACTIONSYSTEM_API UMounteaInteractionFunctionLibrary : public U
 
 public:
 
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction", meta=(CompactNodeTitle="Default Interaction Settings"))
+	UE_DEPRECATED(5.0, "Use UMounteaInteractableStatics::GetInteractionSystemSettings instead.")
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction", meta=(CompactNodeTitle="Default Interaction Settings",
+		DeprecatedFunction, DeprecationMessage="Use UMounteaInteractableStatics::GetInteractionSystemSettings instead."))
 	static UMounteaInteractionSystemSettings* GetInteractionSettings();
 
 	/**
@@ -31,15 +35,23 @@ public:
 	 *
 	 * This value can be updated in Project Settings.
 	 */
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction", meta=(CompactNodeTitle="Default Widget Frequncy"))
+	UE_DEPRECATED(5.0, "Use UMounteaInteractableStatics::GetDefaultWidgetUpdateFrequency instead.")
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction", meta=(CompactNodeTitle="Default Widget Frequncy",
+		DeprecatedFunction, DeprecationMessage="Use UMounteaInteractableStatics::GetDefaultWidgetUpdateFrequency instead."))
 	static float GetDefaultWidgetUpdateFrequency();
 
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction", meta=(CompactNodeTitle="Default Interactable Data"))
+	UE_DEPRECATED(5.0, "Use UMounteaInteractableStatics::GetInteractableDefaultDataTable instead.")
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction", meta=(CompactNodeTitle="Default Interactable Data",
+		DeprecatedFunction, DeprecationMessage="Use UMounteaInteractableStatics::GetInteractableDefaultDataTable instead."))
 	static UDataTable* GetInteractableDefaultDataTable();
 
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction", meta=(CompactNodeTitle="Default Interactable Widget"))
+	UE_DEPRECATED(5.0, "Use UMounteaInteractableStatics::GetInteractableDefaultWidgetClass instead.")
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction", meta=(CompactNodeTitle="Default Interactable Widget",
+		DeprecatedFunction, DeprecationMessage="Use UMounteaInteractableStatics::GetInteractableDefaultWidgetClass instead."))
 	static TSubclassOf<UUserWidget> GetInteractableDefaultWidgetClass();
 
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction", meta=(CompactNodeTitle="Is Debug Enabled"))
+	UE_DEPRECATED(5.0, "Use UMounteaInteractableStatics::IsEditorDebugEnabled instead.")
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction", meta=(CompactNodeTitle="Is Debug Enabled",
+		DeprecatedFunction, DeprecationMessage="Use UMounteaInteractableStatics::IsEditorDebugEnabled instead."))
 	static bool IsEditorDebugEnabled();
 };

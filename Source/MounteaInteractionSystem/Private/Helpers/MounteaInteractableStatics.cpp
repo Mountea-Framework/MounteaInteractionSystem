@@ -8,6 +8,10 @@
 #include "Materials/MaterialInterface.h"
 #include "Interfaces/MounteaInteractableInterface.h"
 #include "Interfaces/MounteaInteractorInterface.h"
+#include "Helpers/MounteaInteractionSystemSettings.h"
+#include "Helpers/MounteaInteractionSystemLog.h"
+#include "Settings/MounteaInteractableUIConfig.h"
+#include "Blueprint/UserWidget.h"
 
 #define LOCTEXT_NAMESPACE "MounteaInteractableStatics"
 
@@ -584,5 +588,130 @@ void UMounteaInteractableStatics::ToggleInteractableDebug(const TScriptInterface
 		return;
 	Interactable->Execute_ToggleDebug(Interactable.GetObject());
 }
+
+#pragma region LegacyPorted
+
+UMounteaInteractionSystemSettings* UMounteaInteractableStatics::GetInteractionSystemSettings()
+{
+	return GetMutableDefault<UMounteaInteractionSystemSettings>();
+}
+
+float UMounteaInteractableStatics::GetDefaultWidgetUpdateFrequency()
+{
+	if (const UMounteaInteractionSystemSettings* settings = GetMutableDefault<UMounteaInteractionSystemSettings>())
+	{
+		if (const UMounteaInteractableUIConfig* uiConfig = settings->GetInteractableUIConfig())
+			return uiConfig->WidgetUpdateFrequency;
+	}
+
+	LOG_ERROR(TEXT("[GetDefaultWidgetUpdateFrequency] Cannot load MounteaInteractionSystemSettings or InteractableUIConfig! Using hardcoded value."))
+	return 0.1f;
+}
+
+UDataTable* UMounteaInteractableStatics::GetInteractableDefaultDataTable()
+{
+	if (const UMounteaInteractionSystemSettings* settings = GetMutableDefault<UMounteaInteractionSystemSettings>())
+	{
+		if (const UMounteaInteractableUIConfig* uiConfig = settings->GetInteractableUIConfig())
+		{
+			if (UDataTable* table = uiConfig->DefaultInteractableDataTable.LoadSynchronous())
+				return table;
+		}
+	}
+
+	LOG_ERROR(TEXT("[GetInteractableDefaultDataTable] Cannot load InteractableUIConfig! Using null value."))
+	return nullptr;
+}
+
+TSubclassOf<UUserWidget> UMounteaInteractableStatics::GetInteractableDefaultWidgetClass()
+{
+	if (const UMounteaInteractionSystemSettings* settings = GetMutableDefault<UMounteaInteractionSystemSettings>())
+	{
+		if (const UMounteaInteractableUIConfig* uiConfig = settings->GetInteractableUIConfig())
+			return uiConfig->DefaultInteractionWidgetClass.LoadSynchronous();
+	}
+
+	LOG_ERROR(TEXT("[GetInteractableDefaultWidgetClass] Cannot load InteractableUIConfig! Using null value."))
+	return nullptr;
+}
+
+bool UMounteaInteractableStatics::IsEditorDebugEnabled()
+{
+	if (const UMounteaInteractionSystemSettings* settings = GetMutableDefault<UMounteaInteractionSystemSettings>())
+		return settings->IsEditorDebugEnabled();
+
+	LOG_ERROR(TEXT("[IsEditorDebugEnabled] Cannot load MounteaInteractionSystemSettings! Using default value."))
+	return false;
+}
+
+UMeshComponent* UMounteaInteractableStatics::FindMeshByTag(const FName Tag, const AActor* Source)
+{
+	if (!Source)
+		return nullptr;
+
+	TArray<UMeshComponent*> meshComponents;
+	Source->GetComponents(meshComponents);
+
+	for (UMeshComponent* comp : meshComponents)
+	{
+		if (comp && comp->ComponentHasTag(Tag))
+			return comp;
+	}
+
+	return nullptr;
+}
+
+UMeshComponent* UMounteaInteractableStatics::FindMeshByName(const FName Name, const AActor* Source)
+{
+	if (!Source)
+		return nullptr;
+
+	TArray<UMeshComponent*> meshComponents;
+	Source->GetComponents(meshComponents);
+
+	for (UMeshComponent* comp : meshComponents)
+	{
+		if (comp && comp->GetName().Equals(Name.ToString()))
+			return comp;
+	}
+
+	return nullptr;
+}
+
+UPrimitiveComponent* UMounteaInteractableStatics::FindPrimitiveByTag(const FName Tag, const AActor* Source)
+{
+	if (!Source)
+		return nullptr;
+
+	TArray<UPrimitiveComponent*> primitiveComponents;
+	Source->GetComponents(primitiveComponents);
+
+	for (UPrimitiveComponent* comp : primitiveComponents)
+	{
+		if (comp && comp->ComponentHasTag(Tag))
+			return comp;
+	}
+
+	return nullptr;
+}
+
+UPrimitiveComponent* UMounteaInteractableStatics::FindPrimitiveByName(const FName Name, const AActor* Source)
+{
+	if (!Source)
+		return nullptr;
+
+	TArray<UPrimitiveComponent*> primitiveComponents;
+	Source->GetComponents(primitiveComponents);
+
+	for (UPrimitiveComponent* comp : primitiveComponents)
+	{
+		if (comp && comp->GetName().Equals(Name.ToString()))
+			return comp;
+	}
+
+	return nullptr;
+}
+
+#pragma endregion
 
 #undef LOCTEXT_NAMESPACE

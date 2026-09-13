@@ -12,6 +12,9 @@ class IMounteaInteractorInterface;
 class UPrimitiveComponent;
 class UMeshComponent;
 class UMaterialInterface;
+class UMounteaInteractionSystemSettings;
+class UDataTable;
+class UUserWidget;
 
 /**
  * Static helpers scoped to interactable components.
@@ -508,6 +511,65 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Mountea Interaction|Interactable|Debug",
 		meta=(MounteaCommand))
 	static void ToggleInteractableDebug(const TScriptInterface<IMounteaInteractableInterface>& Interactable);
+
+#pragma endregion
+
+#pragma region LegacyPorted
+
+	/** Returns the plugin's settings singleton. Ported from the pre-refactor
+	 *  UMounteaInteractionFunctionLibrary::GetInteractionSettings and
+	 *  UMounteaInteractionSystemBFL::GetInteractionSystemSettings, both now deprecated redirects. */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea Interaction|Interactable|Settings",
+		meta=(MounteaGetter))
+	static UMounteaInteractionSystemSettings* GetInteractionSystemSettings();
+
+	/** Returns the configured default interaction-widget refresh frequency (seconds). Ported from
+	 *  the pre-refactor UMounteaInteractionFunctionLibrary::GetDefaultWidgetUpdateFrequency. */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea Interaction|Interactable|Settings",
+		meta=(MounteaGetter))
+	static float GetDefaultWidgetUpdateFrequency();
+
+	/** Returns the configured default interactable data table. Ported from the pre-refactor
+	 *  UMounteaInteractionFunctionLibrary::GetInteractableDefaultDataTable. */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea Interaction|Interactable|Settings",
+		meta=(MounteaGetter))
+	static UDataTable* GetInteractableDefaultDataTable();
+
+	/** Returns the configured default interaction widget class. Ported from the pre-refactor
+	 *  UMounteaInteractionFunctionLibrary::GetInteractableDefaultWidgetClass. */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea Interaction|Interactable|Settings",
+		meta=(MounteaGetter))
+	static TSubclassOf<UUserWidget> GetInteractableDefaultWidgetClass();
+
+	/** Returns whether editor debug output is enabled in plugin settings. Ported from the
+	 *  pre-refactor UMounteaInteractionFunctionLibrary::IsEditorDebugEnabled. */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea Interaction|Interactable|Settings",
+		meta=(MounteaGetter))
+	static bool IsEditorDebugEnabled();
+
+	/** Finds the first mesh component tagged with Tag on Source. Ported from the pre-refactor
+	 *  UMounteaInteractionSystemBFL::FindMeshByTag. */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea Interaction|Interactable|Setup",
+		meta=(MounteaGetter))
+	static UMeshComponent* FindMeshByTag(const FName Tag, const AActor* Source);
+
+	/** Finds the first mesh component named Name on Source. Ported from the pre-refactor
+	 *  UMounteaInteractionSystemBFL::FindMeshByName. */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea Interaction|Interactable|Setup",
+		meta=(MounteaGetter))
+	static UMeshComponent* FindMeshByName(const FName Name, const AActor* Source);
+
+	/** Finds the first primitive component tagged with Tag on Source. Ported from the pre-refactor
+	 *  UMounteaInteractionSystemBFL::FindPrimitiveByTag. */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea Interaction|Interactable|Setup",
+		meta=(MounteaGetter))
+	static UPrimitiveComponent* FindPrimitiveByTag(const FName Tag, const AActor* Source);
+
+	/** Finds the first primitive component named Name on Source. Ported from the pre-refactor
+	 *  UMounteaInteractionSystemBFL::FindPrimitiveByName. */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea Interaction|Interactable|Setup",
+		meta=(MounteaGetter))
+	static UPrimitiveComponent* FindPrimitiveByName(const FName Name, const AActor* Source);
 
 #pragma endregion
 };
