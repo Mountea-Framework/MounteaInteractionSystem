@@ -225,7 +225,7 @@ void AIntPPopup::Open(const FString& ChangelogHtml, const FString& ChangelogHtml
 	if (!htmlView.IsValid())
 		return;
 
-	// Load from file when available — gives Chromium a proper file:// origin URL so content renders
+	// Load from file when available - gives Chromium a proper file:// origin URL so content renders
 	if (!ChangelogHtmlPath.IsEmpty() && FPaths::FileExists(ChangelogHtmlPath))
 	{
 		FString rawHtml;

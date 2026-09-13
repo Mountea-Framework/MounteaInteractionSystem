@@ -14,7 +14,7 @@
 					Subsystem, shown above whichever actor is currently focused at a distance) and the
 					<strong>interaction widget</strong> (shown once the player is in interaction range,
 					carries progress/key-prompt/action-count). Both are plain UMG Widget Blueprints that
-					implement the same interface — you can reuse one widget class for both, or use two.
+					implement the same interface - you can reuse one widget class for both, or use two.
 				</p>
 			</header>
 
@@ -37,22 +37,22 @@
 				<p>
 					In the widget's <strong>Class Settings</strong>, add
 					<code>Actor Interaction Widget</code> under <em>Implemented Interfaces</em>. Every
-					method below then appears under that interface in the Blueprint's function list — no
+					method below then appears under that interface in the Blueprint's function list - no
 					C++ required (there is no C++ base class to inherit from; the interface is the whole
 					contract).
 				</p>
 				<table class="setup-table">
 					<thead><tr><th>Event / Function</th><th>Called when…</th></tr></thead>
 					<tbody>
-						<tr><td class="cell-class">SetWidgetMode(NewMode)</td><td>Widget should switch between None / Attention / Interaction display — drive your visibility/layout branch off this.</td></tr>
-						<tr><td class="cell-class">SetActionCount(TotalActions)</td><td>Tier 2 action list size changed — e.g. show "1 of 3".</td></tr>
+						<tr><td class="cell-class">SetWidgetMode(NewMode)</td><td>Widget should switch between None / Attention / Interaction display - drive your visibility/layout branch off this.</td></tr>
+						<tr><td class="cell-class">SetActionCount(TotalActions)</td><td>Tier 2 action list size changed - e.g. show "1 of 3".</td></tr>
 						<tr><td class="cell-class">SetSelectedActionIndex(SelectedIndex)</td><td>Player cycled to a different action.</td></tr>
-						<tr><td class="cell-class">UpdateWidget(InteractableInterface)</td><td>General refresh hook — pull whatever you need straight off the interactable interface.</td></tr>
+						<tr><td class="cell-class">UpdateWidget(InteractableInterface)</td><td>General refresh hook - pull whatever you need straight off the interactable interface.</td></tr>
 						<tr><td class="cell-class">SetTitleText / GetTitleText</td><td>Interactable's display name.</td></tr>
 						<tr><td class="cell-class">SetBodyText / GetBodyText</td><td>Descriptive/flavour text.</td></tr>
 						<tr><td class="cell-class">SetKeyText / GetKeyText</td><td>The "press [X]" prompt.</td></tr>
-						<tr><td class="cell-class">SetProgress / GetProgress</td><td>0–1 progress — bind directly to a progress bar for Hold/Mash/Automatic/Hover types.</td></tr>
-						<tr><td class="cell-class">ToggleVisibility()</td><td>Show/hide — this is the one <em>native</em> event (BlueprintNativeEvent); override it normally in the graph like any other event.</td></tr>
+						<tr><td class="cell-class">SetProgress / GetProgress</td><td>0–1 progress - bind directly to a progress bar for Hold/Mash/Automatic/Hover types.</td></tr>
+						<tr><td class="cell-class">ToggleVisibility()</td><td>Show/hide - this is the one <em>native</em> event (BlueprintNativeEvent); override it normally in the graph like any other event.</td></tr>
 						<tr><td class="cell-class">InteractionWidgetCommand(Command, Payload)</td><td>Free-form escape hatch for anything project-specific.</td></tr>
 					</tbody>
 				</table>
@@ -71,9 +71,9 @@
 				<table class="setup-table">
 					<thead><tr><th>Mode</th><th>Meaning</th></tr></thead>
 					<tbody>
-						<tr><td class="cell-class">None</td><td>Not currently relevant — hide everything.</td></tr>
-						<tr><td class="cell-class">Attention</td><td>Focused but out of interaction range — the pooled "something's over there" prompt.</td></tr>
-						<tr><td class="cell-class">Interaction</td><td>In range — full interaction widget: title, key prompt, progress, action count.</td></tr>
+						<tr><td class="cell-class">None</td><td>Not currently relevant - hide everything.</td></tr>
+						<tr><td class="cell-class">Attention</td><td>Focused but out of interaction range - the pooled "something's over there" prompt.</td></tr>
+						<tr><td class="cell-class">Interaction</td><td>In range - full interaction widget: title, key prompt, progress, action count.</td></tr>
 					</tbody>
 				</table>
 			</section>
@@ -84,7 +84,7 @@
 					Back in your config assets (page 1): set
 					<code>DefaultAttentionWidgetClass</code> on the <strong>Interactor UI Config</strong>,
 					and <code>DefaultInteractionWidgetClass</code> on the <strong>Interactable UI Config</strong>.
-					That's it — no manual spawning anywhere:
+					That's it - no manual spawning anywhere:
 				</p>
 				<ul>
 					<li>The attention widget is spawned, pooled (<code>AttentionWidgetPoolSize</code> instances), and positioned by <code>UMounteaInteractionWorldSubsystem</code> automatically.</li>

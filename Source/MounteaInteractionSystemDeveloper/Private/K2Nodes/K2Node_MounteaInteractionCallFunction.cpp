@@ -13,7 +13,7 @@
 
 namespace MounteaInteractionK2
 {
-	// Per-meta-key node colors — matching Inventory System color convention
+	// Per-meta-key node colors - matching Inventory System color convention
 	static const FLinearColor ColorGetter    = FLinearColor(0.05f, 0.35f, 0.75f); // blue
 	static const FLinearColor ColorSetter    = FLinearColor(0.85f, 0.45f, 0.05f); // orange
 	static const FLinearColor ColorValidate  = FLinearColor(0.75f, 0.10f, 0.10f); // red
@@ -125,7 +125,7 @@ void UK2Node_MounteaInteractionCallFunction::GetMenuActions(FBlueprintActionData
 		const UClass* targetClass = *classIt;
 		if (!IsValid(targetClass)) continue;
 
-		// Limit to the runtime module — avoids picking up editor/developer functions
+		// Limit to the runtime module - avoids picking up editor/developer functions
 		const UPackage* pkg = targetClass->GetOutermost();
 		if (!IsValid(pkg)) continue;
 

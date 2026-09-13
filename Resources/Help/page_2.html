@@ -10,7 +10,7 @@
 				<div class="version">Version · 5.0</div>
 				<h1>Interactor Setup</h1>
 				<p>
-					The <strong>interactor</strong> lives on whatever should be able to interact — almost
+					The <strong>interactor</strong> lives on whatever should be able to interact - almost
 					always your player Pawn, but also fine on an NPC or AI-controlled actor. It detects
 					nearby interactables, picks one as focused (Tier 1), and lets you cycle/select its
 					actions (Tier 2). Pick exactly one of the three component types below per actor.
@@ -27,12 +27,12 @@
 							<td class="cell-class">Interactor Component Overlap</td>
 							<td>Physics overlap events on a sibling collision shape</td>
 							<td>A collision primitive on the same actor (e.g. a Sphere Collision)</td>
-							<td>First/third-person games — "walk into range"</td>
+							<td>First/third-person games - "walk into range"</td>
 						</tr>
 						<tr>
 							<td class="cell-class">Interactor Component Trace</td>
 							<td>Periodic line or box trace from the owner</td>
-							<td>Nothing extra — traces from the actor itself</td>
+							<td>Nothing extra - traces from the actor itself</td>
 							<td>Camera-aim / crosshair interaction</td>
 						</tr>
 						<tr>
@@ -46,14 +46,14 @@
 			</section>
 
 			<section>
-				<h2>Overlap — the one extra step</h2>
+				<h2>Overlap - the one extra step</h2>
 				<p>
 					Add <strong>Interactor Component Overlap</strong> to your actor, then add a collision
-					shape (e.g. <strong>Sphere Collision</strong>) as a sibling component — this is the
+					shape (e.g. <strong>Sphere Collision</strong>) as a sibling component - this is the
 					volume that defines interaction range. On <code>BeginPlay</code> the component
 					auto-discovers <em>every</em> primitive component on the owner and configures its
 					collision responses for you (sets <code>InteractionOverlap</code> to Overlap, everything
-					else to Ignore) — you do not need to touch collision presets by hand.
+					else to Ignore) - you do not need to touch collision presets by hand.
 				</p>
 				<blockquote>
 					Only want specific components picked up instead of everything on the actor? Fill in
@@ -67,7 +67,7 @@
 			</section>
 
 			<section>
-				<h2>Trace — key properties</h2>
+				<h2>Trace - key properties</h2>
 				<table class="setup-table">
 					<thead><tr><th>Field</th><th>Default</th><th>Notes</th></tr></thead>
 					<tbody>
@@ -81,11 +81,11 @@
 			</section>
 
 			<section>
-				<h2>Safety trace — blocking detection through walls</h2>
+				<h2>Safety trace - blocking detection through walls</h2>
 				<p>
 					<strong>Overlap</strong> volumes can poke into an adjacent room, so
 					<code>SafetyTracingSetup.SafetyTracingMode</code> defaults to
-					<strong>Location</strong> for Overlap interactors automatically — every candidate
+					<strong>Location</strong> for Overlap interactors automatically - every candidate
 					gets a secondary line trace validated before it's allowed into the focus list. Trace
 					and Mouse interactors already trace to detect in the first place, so this defaults to
 					<strong>None</strong> for them (turn it on if you still want an extra check).
@@ -93,7 +93,7 @@
 				<table class="setup-table">
 					<thead><tr><th>Mode</th><th>Behaviour</th></tr></thead>
 					<tbody>
-						<tr><td class="cell-class">None</td><td>No secondary trace — whatever the primary detection found is trusted.</td></tr>
+						<tr><td class="cell-class">None</td><td>No secondary trace - whatever the primary detection found is trusted.</td></tr>
 						<tr><td class="cell-class">Location</td><td>Traces from a fixed <code>StartLocation</code>, or the owner's location if unset.</td></tr>
 						<tr><td class="cell-class">Socket</td><td>Traces from a named socket (default <code>"head"</code>) on the owner's mesh, falling back to owner location if the socket doesn't exist.</td></tr>
 					</tbody>
@@ -111,7 +111,7 @@
 				<p>
 					Set <code>Interactor Tag</code> to identify this interactor (e.g.
 					<code>Mountea_Interaction.Interactor.Player</code> or
-					<code>...Interactor.NPC</code>) — interactables can then whitelist/blacklist by this
+					<code>...Interactor.NPC</code>) - interactables can then whitelist/blacklist by this
 					tag. See page 3 for the interactable side of this.
 				</p>
 			</section>
@@ -119,15 +119,15 @@
 			<section>
 				<h2>Wiring Enhanced Input</h2>
 				<p>
-					The plugin deliberately does <strong>not</strong> bind any input itself — it exposes
+					The plugin deliberately does <strong>not</strong> bind any input itself - it exposes
 					plain interface calls and your project's own Input Component/Blueprint calls them,
 					exactly like calling any other Blueprint function.
 				</p>
 				<table class="setup-table">
 					<thead><tr><th>Call</th><th>Bind to</th></tr></thead>
 					<tbody>
-						<tr><td class="cell-class">Execute_StartInteraction(Interactor, StartTime)</td><td>Input Action <em>Triggered</em> or <em>Started</em> — key/button pressed</td></tr>
-						<tr><td class="cell-class">Execute_StopInteraction(Interactor, StopTime)</td><td>Input Action <em>Completed</em> — key/button released</td></tr>
+						<tr><td class="cell-class">Execute_StartInteraction(Interactor, StartTime)</td><td>Input Action <em>Triggered</em> or <em>Started</em> - key/button pressed</td></tr>
+						<tr><td class="cell-class">Execute_StopInteraction(Interactor, StopTime)</td><td>Input Action <em>Completed</em> - key/button released</td></tr>
 						<tr><td class="cell-class">Execute_CycleAction(Interactor, Direction)</td><td>An axis or two digital actions, Direction = +1 / -1</td></tr>
 					</tbody>
 				</table>

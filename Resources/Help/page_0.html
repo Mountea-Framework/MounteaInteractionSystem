@@ -12,8 +12,8 @@
 				<p>
 					Mountea Interaction System is a component-based interaction framework built on a
 					<strong>two-tier focus model</strong>: your interactor picks one <strong>focused actor</strong>
-					(Tier 1 — by weight, then distance), then cycles between that actor's individual
-					interactable components (Tier 2 — Talk / Trade / Inspect, etc.). This guide walks
+					(Tier 1 - by weight, then distance), then cycles between that actor's individual
+					interactable components (Tier 2 - Talk / Trade / Inspect, etc.). This guide walks
 					through the six things every project needs, in the order you'll actually do them.
 				</p>
 			</header>
@@ -22,19 +22,19 @@
 			<section>
 				<h2>What the plugin sets up for you automatically</h2>
 				<p>
-					A few pieces of infrastructure are handled the moment the plugin loads — you do not
+					A few pieces of infrastructure are handled the moment the plugin loads - you do not
 					need to configure these by hand in a normal project.
 				</p>
 				<div class="ui-chip-row">
-					<span class="ui-chip ui-chip--success">Collision Channels — Auto-created</span>
-					<span class="ui-chip ui-chip--success">Gameplay Tags — Auto-registered</span>
-					<span class="ui-chip ui-chip--success">Component Defaults — Safe fallback</span>
+					<span class="ui-chip ui-chip--success">Collision Channels - Auto-created</span>
+					<span class="ui-chip ui-chip--success">Gameplay Tags - Auto-registered</span>
+					<span class="ui-chip ui-chip--success">Component Defaults - Safe fallback</span>
 				</div>
 
 				<blockquote>
-					<strong>Collision channels.</strong> Two custom channels — <code>InteractionOverlap</code>
+					<strong>Collision channels.</strong> Two custom channels - <code>InteractionOverlap</code>
 					(Object channel, default response <em>Ignore</em>) and <code>InteractionTrace</code>
-					(Trace channel, default response <em>Block</em>) — are written into your project's
+					(Trace channel, default response <em>Block</em>) - are written into your project's
 					<code>DefaultEngine.ini</code> the first time the editor loads with this plugin enabled.
 					<strong>Restart the editor once</strong> after the first load (or after using
 					<em>Setup Interaction Channels</em> below) so the new channels fully apply.
@@ -45,7 +45,7 @@
 					(<code>Mountea_Interaction.Interactor.Player</code>,
 					<code>Mountea_Interaction.Interactable.NPC</code>, etc.) ships in the plugin's own
 					<code>Config/Tags/MounteaInteractionSystemTags.ini</code> and is picked up by UE's
-					standard plugin gameplay-tag auto-scan — nothing to add to your project's own
+					standard plugin gameplay-tag auto-scan - nothing to add to your project's own
 					<code>DefaultGameplayTags.ini</code> unless you want project-specific tags alongside
 					them. The plugin also checks GitHub for newer tag definitions on editor startup
 					(toggle in <em>Project Settings → Mountea Interaction System (Editor)</em>).
@@ -55,7 +55,7 @@
 					<strong>Component defaults.</strong> Every interactor/interactable component has
 					sensible hardcoded C++ defaults (<code>ECC_Camera</code> collision, sane periods and
 					weights). The four config assets on the next page let you override these project-wide,
-					but the plugin will not fail to initialise if you skip that page — it just falls back
+					but the plugin will not fail to initialise if you skip that page - it just falls back
 					to those defaults per-component.
 				</blockquote>
 
@@ -67,7 +67,7 @@
 
 			<section>
 				<h2>The six setup steps</h2>
-				<p>Each step below is its own page in this tutorial — use the list on the left to jump around, or follow along in order.</p>
+				<p>Each step below is its own page in this tutorial - use the list on the left to jump around, or follow along in order.</p>
 				<table class="setup-table">
 					<thead>
 						<tr><th>#</th><th>Page</th><th>What you'll do</th></tr>
@@ -77,7 +77,7 @@
 						<tr><td>2</td><td>Interactor Setup</td><td>Add an Overlap / Trace / Mouse interactor component to your Pawn and wire Enhanced Input.</td></tr>
 						<tr><td>3</td><td>Interactable Setup</td><td>Add one of the 5 interactable components to whatever should be interacted with.</td></tr>
 						<tr><td>4</td><td>UMG Widget Setup</td><td>Build a Widget Blueprint that implements <code>Actor Interaction Widget</code> and assign it.</td></tr>
-						<tr><td>5</td><td>Testing &amp; Troubleshooting</td><td>Press Play and confirm it all works — plus fixes for the usual first-run snags.</td></tr>
+						<tr><td>5</td><td>Testing &amp; Troubleshooting</td><td>Press Play and confirm it all works - plus fixes for the usual first-run snags.</td></tr>
 					</tbody>
 				</table>
 			</section>
@@ -86,7 +86,7 @@
 				<h2>Example Content</h2>
 				<p>
 					The plugin ships a working example level, character, NPC and Enhanced Input assets
-					under <code>Content/Example</code> and <code>Content/Input</code> — open
+					under <code>Content/Example</code> and <code>Content/Input</code> - open
 					<code>M_Example.umap</code> and Play to see a fully wired setup before building your own.
 				</p>
 				<div class="ui-action-row">

@@ -25,14 +25,14 @@
 						<tr><td>2</td><td>Create the 4 config assets and assign them in Project Settings.</td><td>1</td></tr>
 						<tr><td>3</td><td>Add an Interactor Component (Overlap needs a sibling shape) to your player Pawn, set its Interactor Tag.</td><td>2</td></tr>
 						<tr><td>4</td><td>Bind Enhanced Input: Start/Stop/Cycle Interaction.</td><td>2</td></tr>
-						<tr><td>5</td><td>Add one Interactable Component (start with Press — simplest to verify) to a level actor.</td><td>3</td></tr>
+						<tr><td>5</td><td>Add one Interactable Component (start with Press - simplest to verify) to a level actor.</td><td>3</td></tr>
 						<tr><td>6</td><td>Build a widget implementing Actor Interaction Widget, assign it to both UI configs.</td><td>4</td></tr>
-						<tr><td>7</td><td>Play. Walk up to the actor — attention widget, then interaction widget, then press your bound key.</td><td>—</td></tr>
+						<tr><td>7</td><td>Play. Walk up to the actor - attention widget, then interaction widget, then press your bound key.</td><td>-</td></tr>
 					</tbody>
 				</table>
 				<figure>
 					<img src="images/testing-01-pie-success.png" alt="PIE viewport showing the interaction widget above a highlighted interactable actor with a visible progress bar" style="max-width:100%;border:1px solid var(--page-border);border-radius:var(--radius-card);margin:var(--space-3) 0;" />
-					<figcaption class="muted">What a working setup looks like in PIE — highlight, widget, progress.</figcaption>
+					<figcaption class="muted">What a working setup looks like in PIE - highlight, widget, progress.</figcaption>
 				</figure>
 			</section>
 
@@ -58,7 +58,7 @@
 						</tr>
 						<tr>
 							<td>Player stays "stuck" after a Press/Automatic interaction</td>
-							<td>These complete instantly on join, then immediately release — a widget/animation assuming a longer "held" window won't see one</td>
+							<td>These complete instantly on join, then immediately release - a widget/animation assuming a longer "held" window won't see one</td>
 							<td>Use Hold instead if you need a sustained interaction window.</td>
 						</tr>
 						<tr>
@@ -74,7 +74,7 @@
 						<tr>
 							<td>Nothing seems configured at all</td>
 							<td>One or more of the 4 config assets isn't assigned in Project Settings</td>
-							<td>Not fatal — components silently fall back to hardcoded C++ defaults. Assign the assets (page 1) to actually control behaviour.</td>
+							<td>Not fatal - components silently fall back to hardcoded C++ defaults. Assign the assets (page 1) to actually control behaviour.</td>
 						</tr>
 					</tbody>
 				</table>
@@ -83,7 +83,7 @@
 			<section>
 				<h2>Where to look</h2>
 				<p>
-					All plugin logging goes through <code>LogMounteaInteractionSystem</code> — filter the
+					All plugin logging goes through <code>LogMounteaInteractionSystem</code> - filter the
 					Output Log for it. Verbosity (Info/Warning/Error, bitmask) is controlled by
 					<code>Log Verbosity</code> in the same Project Settings page as the config assets.
 				</p>

@@ -65,12 +65,12 @@ static const FName MenuName("LevelEditor.LevelEditorToolBar.PlayToolBar");
 
 void FMounteaInteractionSystemEditor::StartupModule()
 {
-	// Ensure WebBrowserWidget plugin is enabled — required for HTML help pages and the changelog popup
+	// Ensure WebBrowserWidget plugin is enabled - required for HTML help pages and the changelog popup
 	{
 		const TSharedPtr<IPlugin> webBrowserPlugin = IPluginManager::Get().FindPlugin(TEXT("WebBrowserWidget"));
 		if (!webBrowserPlugin.IsValid() || !webBrowserPlugin->IsEnabled())
 		{
-			const FText errorTitle   = NSLOCTEXT("MounteaInteraction", "WebBrowserPluginMissing_Title",   "Missing Plugin — Mountea Interaction System");
+			const FText errorTitle   = NSLOCTEXT("MounteaInteraction", "WebBrowserPluginMissing_Title",   "Missing Plugin - Mountea Interaction System");
 			const FText errorMessage = NSLOCTEXT("MounteaInteraction", "WebBrowserPluginMissing_Message",
 				"The 'Web Browser Widget' plugin is required for HTML-based help pages and the changelog popup.\n\n"
 				"It will be enabled automatically and the editor will restart.");
@@ -145,7 +145,7 @@ void FMounteaInteractionSystemEditor::StartupModule()
 		else if (result == EMounteaInteractionChannelSetupResult::NoFreeSlots)
 		{
 			FMounteaInteractionEditorNotify::DisplayNotification(
-				FText::FromString(TEXT("Mountea Interaction System: could not register interaction collision channels — no free collision channel slot is available.")),
+				FText::FromString(TEXT("Mountea Interaction System: could not register interaction collision channels - no free collision channel slot is available.")),
 				SNotificationItem::CS_Fail, 10.0f, 3.0f, TEXT("MessageLog.Error")
 			);
 		}
@@ -304,7 +304,7 @@ namespace
 	// This MUST use "+Key=Value" and not FConfigFile::SetArray()+Write(), which emits plain
 	// "Key=Value" lines. When such a plain line is later re-parsed as part of the ini hierarchy
 	// merge (FConfigFile::ProcessCommand, EValueType::Set), it REPLACES the first existing value
-	// found for that key instead of appending — silently discarding any other custom collision
+	// found for that key instead of appending - silently discarding any other custom collision
 	// channel already registered under DefaultChannelResponses (including ones added by this same
 	// function in a prior, buggy version). Only "+" (ArrayAdd) is guaranteed to append.
 	bool WriteInteractionCollisionChannelLines(const TArray<FString>& NewPlusPrefixedLines)
@@ -316,7 +316,7 @@ namespace
 		TArray<FString> lines;
 		FFileHelper::LoadFileToStringArray(lines, *IniPath);
 
-		// Migration: strip any legacy plain (non "+") InteractionOverlap/InteractionTrace lines —
+		// Migration: strip any legacy plain (non "+") InteractionOverlap/InteractionTrace lines -
 		// these are the corrupt leftovers of the bug described above and must not be left in place.
 		lines.RemoveAll([](const FString& line)
 		{
@@ -372,7 +372,7 @@ EMounteaInteractionChannelSetupResult FMounteaInteractionSystemEditor::EnsureInt
 	if (channelExists(FName("InteractionOverlap")) && channelExists(FName("InteractionTrace")))
 		return EMounteaInteractionChannelSetupResult::AlreadyActive;
 
-	// Work from the live, already-merged in-memory config — this is exactly what UCollisionProfile reads.
+	// Work from the live, already-merged in-memory config - this is exactly what UCollisionProfile reads.
 	TArray<FString> mergedEntries;
 	GConfig->GetArray(Section, ArrayKey, mergedEntries, GEngineIni);
 
@@ -457,7 +457,7 @@ EMounteaInteractionChannelSetupResult FMounteaInteractionSystemEditor::EnsureInt
 	UCollisionProfile::Get()->ReloadConfig();
 
 	if (anySlotFailed)
-		EDITOR_LOG_ERROR(TEXT("Mountea Interaction System: at least one interaction collision channel could not be registered — no free ECC_GameTraceChannel slot was available."));
+		EDITOR_LOG_ERROR(TEXT("Mountea Interaction System: at least one interaction collision channel could not be registered - no free ECC_GameTraceChannel slot was available."));
 
 	if (channelExists(FName("InteractionOverlap")) && channelExists(FName("InteractionTrace")))
 	{
@@ -716,7 +716,7 @@ void FMounteaInteractionSystemEditor::SetupChannelsButtonClicked() const
 {
 	const EMounteaInteractionChannelSetupResult result = EnsureInteractionChannels();
 
-	FText title = LOCTEXT("SetupChannels_Title", "Mountea Interaction — Setup Interaction Channels");
+	FText title = LOCTEXT("SetupChannels_Title", "Mountea Interaction - Setup Interaction Channels");
 	FText message;
 
 	switch (result)
@@ -793,7 +793,7 @@ void FMounteaInteractionSystemEditor::RegisterMenus()
 		}
 	}
 
-	// Phase C: Owner-scoped — cleaned up automatically on ShutdownModule
+	// Phase C: Owner-scoped - cleaned up automatically on ShutdownModule
 	FToolMenuOwnerScoped OwnerScoped(this);
 	{
 		// Help menu entry
@@ -919,7 +919,7 @@ void FMounteaInteractionSystemEditor::RegisterMenus()
 			));
 		}
 
-		// Shared Tools section — always last; FindEntry guards prevent duplicates when multiple plugins are loaded
+		// Shared Tools section - always last; FindEntry guards prevent duplicates when multiple plugins are loaded
 		{
 			FToolMenuSection& toolsSection = sharedMenu->FindOrAddSection("MounteaFramework_Tools");
 			toolsSection.InsertPosition = FToolMenuInsert(NAME_None, EToolMenuInsertType::Last);

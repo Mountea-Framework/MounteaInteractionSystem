@@ -10,11 +10,11 @@
  * Custom K2Node subclass for all Mountea Interaction static helper functions.
  *
  * Discovers functions in the MounteaInteractionSystem module that carry one of:
- *   meta=(MounteaGetter)   — pure read-only query      → blue header
- *   meta=(MounteaSetter)   — state mutation             → orange header
- *   meta=(MounteaValidate) — bool validation            → red header
- *   meta=(MounteaCommand)  — action trigger             → green header
- *   meta=(MounteaBinding)  — delegate bind/unbind       → purple header
+ *   meta=(MounteaGetter)   - pure read-only query      → blue header
+ *   meta=(MounteaSetter)   - state mutation             → orange header
+ *   meta=(MounteaValidate) - bool validation            → red header
+ *   meta=(MounteaCommand)  - action trigger             → green header
+ *   meta=(MounteaBinding)  - delegate bind/unbind       → purple header
  *
  * Node colors and icons are sourced from FMounteaInteractionDeveloperStyle.
  */

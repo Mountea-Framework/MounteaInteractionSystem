@@ -200,7 +200,7 @@ bool FMounteaInteractionHtmlHelpers::ConvertMarkdownToHtml(const FString& Markdo
 			continue;
 		}
 
-		// List items — detect depth by counting leading "  " pairs or leading dashes
+		// List items - detect depth by counting leading "  " pairs or leading dashes
 		if (line.StartsWith(TEXT("- ")) || line.StartsWith(TEXT("  - ")) || line.StartsWith(TEXT("    - ")))
 		{
 			int32 depth = 1;
@@ -255,7 +255,7 @@ FString FMounteaInteractionHtmlHelpers::BuildChangelogFallbackMessage()
 {
 	return TEXT(
 		"<p>Unable to download the latest changelog right now. "
-		"You can continue working normally — the changelog updates automatically when online.</p>"
+		"You can continue working normally - the changelog updates automatically when online.</p>"
 		"<p><a href=\"https://github.com/Mountea-Framework/MounteaInteractionSystem/blob/master/CHANGELOG.md\">Open changelog on GitHub</a></p>"
 	);
 }

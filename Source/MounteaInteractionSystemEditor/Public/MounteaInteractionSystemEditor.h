@@ -14,7 +14,7 @@ DECLARE_LOG_CATEGORY_EXTERN(MounteaInteractionSystemEditor, All, All);
 enum class EMounteaInteractionChannelSetupResult : uint8
 {
 	AlreadyActive,		// Both channels were already loaded by the collision profile
-	ActivatedNow,		// Missing channels were written to DefaultEngine.ini AND hot-reloaded into the live collision profile — no restart needed
+	ActivatedNow,		// Missing channels were written to DefaultEngine.ini AND hot-reloaded into the live collision profile - no restart needed
 	PendingRestart,		// Channels were written/patched but the live collision profile still doesn't report them active; a restart is needed
 	NoFreeSlots			// No free ECC_GameTraceChannel slot was available to write a missing channel
 };
