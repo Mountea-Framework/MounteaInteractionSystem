@@ -27,19 +27,19 @@ public:
 
 	UMounteaInteractableComponentMash();
 
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Interactable")
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea Interaction|Interactable")
 	int32 GetMinMashAmountRequired() const { return MinMashAmountRequired; }
 
-	UFUNCTION(BlueprintCallable, Category="Mountea|Interaction|Interactable")
+	UFUNCTION(BlueprintCallable, Category="Mountea Interaction|Interactable")
 	void SetMinMashAmountRequired(const int32 Value);
 
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Interactable")
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea Interaction|Interactable")
 	float GetKeystrokeTimeThreshold() const { return KeystrokeTimeThreshold; }
 
-	UFUNCTION(BlueprintCallable, Category="Mountea|Interaction|Interactable")
+	UFUNCTION(BlueprintCallable, Category="Mountea Interaction|Interactable")
 	void SetKeystrokeTimeThreshold(const float Value);
 
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Interactable")
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea Interaction|Interactable")
 	int32 GetActualMashAmount() const { return ActualMashAmount; }
 
 protected:
@@ -51,10 +51,10 @@ protected:
 	virtual void InteractionCanceled_Implementation() override;
 	virtual float GetInteractionProgress_Implementation() const override;
 
-	UFUNCTION(BlueprintImplementableEvent, Category="Mountea|Interaction|Interactable")
+	UFUNCTION(BlueprintImplementableEvent, Category="Mountea Interaction|Interactable")
 	void OnInteractionFailedEvent();
 
-	UFUNCTION(BlueprintImplementableEvent, Category="Mountea|Interaction|Interactable")
+	UFUNCTION(BlueprintImplementableEvent, Category="Mountea Interaction|Interactable")
 	void OnKeyMashedEvent();
 
 private:
@@ -69,23 +69,23 @@ private:
 protected:
 
 	/** How many key presses are required to complete the interaction. */
-	UPROPERTY(SaveGame, EditAnywhere, BlueprintReadOnly, Category="MounteaInteraction|Required",
+	UPROPERTY(SaveGame, EditAnywhere, BlueprintReadOnly, Category="Mountea Interaction|Required",
 		meta=(Units="times", UIMin=2, ClampMin=2))
 	int32 MinMashAmountRequired = 5;
 
 	/** Max time allowed between consecutive key presses before interaction fails. */
-	UPROPERTY(SaveGame, EditAnywhere, BlueprintReadOnly, Category="MounteaInteraction|Required",
+	UPROPERTY(SaveGame, EditAnywhere, BlueprintReadOnly, Category="Mountea Interaction|Required",
 		meta=(Units="s", UIMin=0.01, ClampMin=0.01))
 	float KeystrokeTimeThreshold = 1.f;
 
 	/** Current mash count (replicated for consistent progress display). */
-	UPROPERTY(ReplicatedUsing=OnRep_ActualMashAmount, VisibleAnywhere, Category="MounteaInteraction|Read Only")
+	UPROPERTY(ReplicatedUsing=OnRep_ActualMashAmount, VisibleAnywhere, Category="Mountea Interaction|Read Only")
 	int32 ActualMashAmount = 0;
 
-	UPROPERTY(BlueprintAssignable, Category="Mountea|Interaction|Interactable")
+	UPROPERTY(BlueprintAssignable, Category="Mountea Interaction|Interactable")
 	FOnInteractionFailed OnInteractionFailed;
 
-	UPROPERTY(BlueprintAssignable, Category="Mountea|Interaction|Interactable")
+	UPROPERTY(BlueprintAssignable, Category="Mountea Interaction|Interactable")
 	FOnKeyMashed OnKeyMashed;
 
 private:

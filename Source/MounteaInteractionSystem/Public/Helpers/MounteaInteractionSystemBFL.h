@@ -72,21 +72,21 @@ public:
 	 * @param WorldContext	The world context to check.
 	 * @return							True if cosmetic events can be executed, false otherwise.
 	 */
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Helpers")
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea Interaction|Helpers")
 	static bool CanExecuteCosmeticEvents(const UWorld* WorldContext);
 
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Helpers")
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea Interaction|Helpers")
 	static FText ReplaceRegexInText(const FText& SourceText, const TMap<FString, FText>& Replacements);
 
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Helpers")
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea Interaction|Helpers")
 	static ULocalPlayer* FindLocalPlayer(AActor* ForActor);
 	
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Helpers")
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea Interaction|Helpers")
 	static bool IsGamePadConnected();
 
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Helpers")
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea Interaction|Helpers")
 	static ECommonInputType GetActiveInputType(class APlayerController* PlayerController);
 	
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Helpers")
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea Interaction|Helpers")
 	static bool IsInputKeyPairSupported(class APlayerController* PlayerController, const FKey& InputKey, const FString& HardwareDeviceID, TSoftObjectPtr<class UTexture2D>& FoundInputTexture);
 };

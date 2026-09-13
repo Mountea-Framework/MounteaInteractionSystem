@@ -25,7 +25,7 @@ class MOUNTEAINTERACTIONSYSTEM_API UMounteaInteractionStatics : public UBlueprin
 public:
 
 	/** Returns the current server world time in seconds. Safe to call from clients. */
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Statics",
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea Interaction|Statics",
 		meta=(MounteaGetter, DefaultToSelf="WorldContext", HidePin="WorldContext"))
 	static float GetServerTime(const UObject* WorldContext);
 
@@ -33,7 +33,7 @@ public:
 	 * Returns true if the given interactable has at least one open slot AND the interactor
 	 * passes tag validation. Use to guard RequestInteractorJoin calls.
 	 */
-	UFUNCTION(BlueprintCallable, Category="Mountea|Interaction|Statics",
+	UFUNCTION(BlueprintCallable, Category="Mountea Interaction|Statics",
 		meta=(MounteaValidate, ExpandBoolAsExecs="ReturnValue"))
 	static bool CanInteractorJoinSlot(
 		const TScriptInterface<IMounteaInteractableInterface>& Interactable,
@@ -43,7 +43,7 @@ public:
 	 * Sorts the action candidate list by weight descending (highest weight first).
 	 * Tie-break: closer distance (smaller DistanceSq) wins.
 	 */
-	UFUNCTION(BlueprintCallable, Category="Mountea|Interaction|Statics",
+	UFUNCTION(BlueprintCallable, Category="Mountea Interaction|Statics",
 		meta=(MounteaCommand))
 	static void SortActionCandidates(UPARAM(ref) TArray<FInteractionActionCandidate>& Candidates);
 
@@ -52,7 +52,7 @@ public:
 	 * FInteractionActionCandidate entries, computing distance from ViewOrigin.
 	 * Candidates are sorted by weight descending before returning.
 	 */
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Statics",
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea Interaction|Statics",
 		meta=(MounteaGetter))
 	static TArray<FInteractionActionCandidate> BuildActionCandidatesForActor(
 		const AActor* Actor,
@@ -63,7 +63,7 @@ public:
 	 * "Best" = the actor whose highest-weight component wins; ties broken by squared distance
 	 * from ViewOrigin. Returns nullptr if DetectedInteractables is empty.
 	 */
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Statics",
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea Interaction|Statics",
 		meta=(MounteaGetter))
 	static AActor* SelectBestFocusActor(
 		const TArray<TScriptInterface<IMounteaInteractableInterface>>& DetectedInteractables,
@@ -73,7 +73,7 @@ public:
 	 * Returns true if the given interactable component's owner actor is within
 	 * the specified squared distance from ViewOrigin.
 	 */
-	UFUNCTION(BlueprintCallable, Category="Mountea|Interaction|Statics",
+	UFUNCTION(BlueprintCallable, Category="Mountea Interaction|Statics",
 		meta=(MounteaValidate, ExpandBoolAsExecs="ReturnValue"))
 	static bool IsInteractableInRange(
 		const TScriptInterface<IMounteaInteractableInterface>& Interactable,
@@ -81,12 +81,12 @@ public:
 		const float RangeCm);
 
 	/** Returns true if the object implements IMounteaInteractableInterface. */
-	UFUNCTION(BlueprintCallable, Category="Mountea|Interaction|Statics",
+	UFUNCTION(BlueprintCallable, Category="Mountea Interaction|Statics",
 		meta=(MounteaValidate, ExpandBoolAsExecs="ReturnValue"))
 	static bool IsValidInteractable(const TScriptInterface<IMounteaInteractableInterface>& Interactable);
 
 	/** Returns true if the object implements IMounteaInteractorInterface. */
-	UFUNCTION(BlueprintCallable, Category="Mountea|Interaction|Statics",
+	UFUNCTION(BlueprintCallable, Category="Mountea Interaction|Statics",
 		meta=(MounteaValidate, ExpandBoolAsExecs="ReturnValue"))
 	static bool IsValidInteractor(const TScriptInterface<IMounteaInteractorInterface>& Interactor);
 
@@ -94,7 +94,7 @@ public:
 	 * Finds the first IMounteaInteractableInterface component on the actor.
 	 * Returns null if none found.
 	 */
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Statics",
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea Interaction|Statics",
 		meta=(MounteaGetter))
 	static TScriptInterface<IMounteaInteractableInterface> GetFirstInteractableFromActor(const AActor* Actor);
 
@@ -102,7 +102,7 @@ public:
 	 * Finds the first IMounteaInteractorInterface component on the actor.
 	 * Returns null if none found.
 	 */
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Statics",
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea Interaction|Statics",
 		meta=(MounteaGetter))
 	static TScriptInterface<IMounteaInteractorInterface> GetFirstInteractorFromActor(const AActor* Actor);
 
@@ -110,7 +110,7 @@ public:
 	 * Resolves a collision channel by display name using the project's collision profile.
 	 * Returns ECC_MAX if the channel name is not registered.
 	 */
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Statics",
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea Interaction|Statics",
 		meta=(MounteaGetter))
 	static ECollisionChannel ResolveInteractionChannel(const FName& ChannelName, bool& bFound);
 

@@ -206,45 +206,45 @@ protected:
 
 public:
 
-	UPROPERTY(BlueprintAssignable, Category="Mountea|Interaction|Interactor")
+	UPROPERTY(BlueprintAssignable, Category="Mountea Interaction|Interactor")
 	FStateChanged OnStateChanged;
 
-	UPROPERTY(BlueprintAssignable, Category="Mountea|Interaction|Interactor")
+	UPROPERTY(BlueprintAssignable, Category="Mountea Interaction|Interactor")
 	FCollisionChanged OnCollisionChanged;
 
-	UPROPERTY(BlueprintAssignable, Category="Mountea|Interaction|Interactor")
+	UPROPERTY(BlueprintAssignable, Category="Mountea Interaction|Interactor")
 	FAutoActivateChanged OnAutoActivateChanged;
 
-	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category="Mountea|Interaction|Interactor",
+	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category="Mountea Interaction|Interactor",
 		meta=(IsBindableEvent=true),
 		meta=(NoResetToDefault))
 	FInteractionKeyPressed OnInteractionKeyPressed;
 
-	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category="Mountea|Interaction|Interactor",
+	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category="Mountea Interaction|Interactor",
 		meta=(IsBindableEvent=true),
 		meta=(NoResetToDefault))
 	FInteractionKeyReleased OnInteractionKeyReleased;
 
-	UPROPERTY(BlueprintAssignable, Category="Mountea|Interaction|Interactor")
+	UPROPERTY(BlueprintAssignable, Category="Mountea Interaction|Interactor")
 	FIgnoredActorAdded OnIgnoredActorAdded;
 
-	UPROPERTY(BlueprintAssignable, Category="Mountea|Interaction|Interactor")
+	UPROPERTY(BlueprintAssignable, Category="Mountea Interaction|Interactor")
 	FIgnoredActorRemoved OnIgnoredActorRemoved;
 
-	UPROPERTY(BlueprintAssignable, Category="Mountea|Interaction|Interactor")
+	UPROPERTY(BlueprintAssignable, Category="Mountea Interaction|Interactor")
 	FInteractorTagChanged OnInteractorTagChanged;
 
-	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category="Mountea|Interaction|Interactor",
+	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category="Mountea Interaction|Interactor",
 		meta=(IsBindableEvent=true),
 		meta=(NoResetToDefault))
 	FFocusedActorChanged OnFocusedActorChanged;
 
-	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category="Mountea|Interaction|Interactor",
+	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category="Mountea Interaction|Interactor",
 		meta=(IsBindableEvent=true),
 		meta=(NoResetToDefault))
 	FActionListChanged OnActionListChanged;
 
-	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category="Mountea|Interaction|Interactor",
+	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category="Mountea Interaction|Interactor",
 		meta=(IsBindableEvent=true),
 		meta=(NoResetToDefault))
 	FHighlightedActionChanged OnHighlightedActionChanged;
@@ -255,28 +255,28 @@ public:
 
 protected:
 
-	UPROPERTY(Replicated, EditAnywhere, Category="MounteaInteraction|Required")
+	UPROPERTY(Replicated, EditAnywhere, Category="Mountea Interaction|Required")
 	TEnumAsByte<ECollisionChannel> CollisionChannel = ECC_Camera;
 
-	UPROPERTY(Replicated, EditAnywhere, Category="MounteaInteraction|Required")
+	UPROPERTY(Replicated, EditAnywhere, Category="Mountea Interaction|Required")
 	EInteractorStateV3 DefaultInteractorState = EInteractorStateV3::EIS_Scanning;
 
-	UPROPERTY(Replicated, EditAnywhere, Category="MounteaInteraction|Optional")
+	UPROPERTY(Replicated, EditAnywhere, Category="Mountea Interaction|Optional")
 	FGameplayTag InteractorTag;
 
-	UPROPERTY(Replicated, EditAnywhere, Category="MounteaInteraction|Required")
+	UPROPERTY(Replicated, EditAnywhere, Category="Mountea Interaction|Required")
 	FSafetyTracingSetup SafetyTraceSetup;
 
-	UPROPERTY(Replicated, EditAnywhere, Category="MounteaInteraction|Optional")
+	UPROPERTY(Replicated, EditAnywhere, Category="Mountea Interaction|Optional")
 	TArray<TObjectPtr<AActor>> ListOfIgnoredActors;
 
 	UPROPERTY(EditAnywhere, Category="MounteaInteraction|Debug")
 	FDebugSettings DebugSettings;
 
-	UPROPERTY(ReplicatedUsing=OnRep_InteractorState, VisibleAnywhere, Category="MounteaInteraction|Read Only")
+	UPROPERTY(ReplicatedUsing=OnRep_InteractorState, VisibleAnywhere, Category="Mountea Interaction|Read Only")
 	EInteractorStateV3 InteractorState = EInteractorStateV3::EIS_Disabled;
 
-	UPROPERTY(Replicated, VisibleAnywhere, Category="MounteaInteraction|Read Only")
+	UPROPERTY(Replicated, VisibleAnywhere, Category="Mountea Interaction|Read Only")
 	TArray<TScriptInterface<IMounteaInteractorInterface>> InteractionDependencies;
 
 	/** All currently detected interactable components (populated by subclasses).

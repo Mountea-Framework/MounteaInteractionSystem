@@ -276,91 +276,91 @@ protected:
 
 public:
 
-	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category="Mountea|Interaction|Interactable",
+	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category="Mountea Interaction|Interactable",
 		meta=(IsBindableEvent=true),
 		meta=(NoResetToDefault))
 	FInteractionStarted OnInteractionStarted;
 
-	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category="Mountea|Interaction|Interactable",
+	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category="Mountea Interaction|Interactable",
 		meta=(IsBindableEvent=true),
 		meta=(NoResetToDefault))
 	FInteractionStopped OnInteractionStopped;
 
-	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category="Mountea|Interaction|Interactable",
+	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category="Mountea Interaction|Interactable",
 		meta=(IsBindableEvent=true),
 		meta=(NoResetToDefault))
 	FInteractionCompleted OnInteractionCompleted;
 
-	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category="Mountea|Interaction|Interactable",
+	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category="Mountea Interaction|Interactable",
 		meta=(IsBindableEvent=true),
 		meta=(NoResetToDefault))
 	FInteractionCycleCompleted OnInteractionCycleCompleted;
 
-	UPROPERTY(BlueprintAssignable, Category="Mountea|Interaction|Interactable")
+	UPROPERTY(BlueprintAssignable, Category="Mountea Interaction|Interactable")
 	FInteractionCanceled OnInteractionCanceled;
 
-	UPROPERTY(BlueprintAssignable, Category="Mountea|Interaction|Interactable")
+	UPROPERTY(BlueprintAssignable, Category="Mountea Interaction|Interactable")
 	FLifecycleCompleted OnLifecycleCompleted;
 
-	UPROPERTY(BlueprintAssignable, Category="Mountea|Interaction|Interactable")
+	UPROPERTY(BlueprintAssignable, Category="Mountea Interaction|Interactable")
 	FCooldownCompleted OnCooldownCompleted;
 
-	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category="Mountea|Interaction|Interactable",
+	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category="Mountea Interaction|Interactable",
 		meta=(IsBindableEvent=true),
 		meta=(NoResetToDefault))
 	FInteractorFound OnInteractorFound;
 
-	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category="Mountea|Interaction|Interactable",
+	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category="Mountea Interaction|Interactable",
 		meta=(IsBindableEvent=true),
 		meta=(NoResetToDefault))
 	FInteractorLost OnInteractorLost;
 
-	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category="Mountea|Interaction|Interactable",
+	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category="Mountea Interaction|Interactable",
 		meta=(IsBindableEvent=true),
 		meta=(NoResetToDefault))
 	FOnInteractorSlotsChanged OnInteractorSlotsChanged;
 
-	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category="Mountea|Interaction|Interactable",
+	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category="Mountea Interaction|Interactable",
 		meta=(IsBindableEvent=true),
 		meta=(NoResetToDefault))
 	FOnInteractorRejected OnInteractorRejected;
 
-	UPROPERTY(BlueprintAssignable, Category="Mountea|Interaction|Interactable")
+	UPROPERTY(BlueprintAssignable, Category="Mountea Interaction|Interactable")
 	FInteractableStateChanged OnInteractableStateChanged;
 
-	UPROPERTY(BlueprintAssignable, Category="Mountea|Interaction|Interactable")
+	UPROPERTY(BlueprintAssignable, Category="Mountea Interaction|Interactable")
 	FInteractableWeightChanged OnInteractableWeightChanged;
 
-	UPROPERTY(BlueprintAssignable, Category="Mountea|Interaction|Interactable")
+	UPROPERTY(BlueprintAssignable, Category="Mountea Interaction|Interactable")
 	FInteractableCollisionChannelChanged OnInteractableCollisionChannelChanged;
 
-	UPROPERTY(BlueprintAssignable, Category="Mountea|Interaction|Interactable")
+	UPROPERTY(BlueprintAssignable, Category="Mountea Interaction|Interactable")
 	FLifecycleModeChanged OnLifecycleModeChanged;
 
-	UPROPERTY(BlueprintAssignable, Category="Mountea|Interaction|Interactable")
+	UPROPERTY(BlueprintAssignable, Category="Mountea Interaction|Interactable")
 	FLifecycleCountChanged OnLifecycleCountChanged;
 
-	UPROPERTY(BlueprintAssignable, Category="Mountea|Interaction|Interactable")
+	UPROPERTY(BlueprintAssignable, Category="Mountea Interaction|Interactable")
 	FCooldownPeriodChanged OnCooldownPeriodChanged;
 
-	UPROPERTY(BlueprintAssignable, Category="Mountea|Interaction|Interactable")
+	UPROPERTY(BlueprintAssignable, Category="Mountea Interaction|Interactable")
 	FHighlightTypeChanged OnHighlightTypeChanged;
 
-	UPROPERTY(BlueprintAssignable, Category="Mountea|Interaction|Interactable")
+	UPROPERTY(BlueprintAssignable, Category="Mountea Interaction|Interactable")
 	FHighlightMaterialChanged OnHighlightMaterialChanged;
 
-	UPROPERTY(BlueprintAssignable, Category="Mountea|Interaction|Interactable")
+	UPROPERTY(BlueprintAssignable, Category="Mountea Interaction|Interactable")
 	FInteractableWidgetVisibilityChanged OnInteractableWidgetVisibilityChanged;
 
-	UPROPERTY(BlueprintAssignable, Category="Mountea|Interaction|Interactable")
+	UPROPERTY(BlueprintAssignable, Category="Mountea Interaction|Interactable")
 	FInteractionDeviceChanged OnInteractionDeviceChanged;
 
-	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category="Mountea|Interaction|Interactable",
+	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category="Mountea Interaction|Interactable",
 		meta=(IsBindableEvent=true),
 		meta=(NoResetToDefault))
 	FOnWidgetUpdated OnWidgetUpdated;
 
-	UPROPERTY(BlueprintAssignable, Category="Mountea|Interaction|Interactable")
+	UPROPERTY(BlueprintAssignable, Category="Mountea Interaction|Interactable")
 	FInteractableDependencyChanged OnInteractableDependencyChanged;
 
 	FInteractableDependencyStarted OnInteractableDependencyStarted;
@@ -372,7 +372,7 @@ public:
 
 protected:
 
-	UPROPERTY(EditAnywhere, Category="MounteaInteraction|Debug", meta=(ShowOnlyInnerProperties))
+	UPROPERTY(EditAnywhere, Category="Mountea Interaction|Debug", meta=(ShowOnlyInnerProperties))
 	FDebugSettings DebugSettings;
 
 #if WITH_EDITORONLY_DATA
@@ -386,49 +386,49 @@ protected:
 protected:
 
 	/** Interaction duration (-1 = instant, 0 = 0.1s). */
-	UPROPERTY(Replicated, SaveGame, EditAnywhere, Category="MounteaInteraction|Required", meta=(UIMin=-1, ClampMin=-1, Units="seconds", NoResetToDefault))
+	UPROPERTY(Replicated, SaveGame, EditAnywhere, Category="Mountea Interaction|Required", meta=(UIMin=-1, ClampMin=-1, Units="seconds", NoResetToDefault))
 	float InteractionPeriod = 3.f;
 
 	/** State on BeginPlay. Cannot be Active, Cooldown, or Finished. */
-	UPROPERTY(Replicated, SaveGame, EditAnywhere, Category="MounteaInteraction|Required", meta=(NoResetToDefault))
+	UPROPERTY(Replicated, SaveGame, EditAnywhere, Category="Mountea Interaction|Required", meta=(NoResetToDefault))
 	EInteractableStateV3 DefaultInteractableState = EInteractableStateV3::EIS_Awake;
 
 	/** Auto-setup mode for collision/highlight components. */
-	UPROPERTY(Replicated, SaveGame, EditAnywhere, Category="MounteaInteraction|Required", meta=(NoResetToDefault))
+	UPROPERTY(Replicated, SaveGame, EditAnywhere, Category="Mountea Interaction|Required", meta=(NoResetToDefault))
 	ESetupType SetupType = ESetupType::EST_Quick;
 
 	/** Collision channel for overlap/trace detection. */
-	UPROPERTY(Replicated, SaveGame, EditAnywhere, Category="MounteaInteraction|Required", meta=(NoResetToDefault))
+	UPROPERTY(Replicated, SaveGame, EditAnywhere, Category="Mountea Interaction|Required", meta=(NoResetToDefault))
 	TEnumAsByte<ECollisionChannel> CollisionChannel = ECC_Camera;
 
 	/** Cooldown duration (seconds) after Cycled lifecycle completes. */
-	UPROPERTY(Replicated, SaveGame, EditAnywhere, Category="MounteaInteraction|Required",
+	UPROPERTY(Replicated, SaveGame, EditAnywhere, Category="Mountea Interaction|Required",
 		meta=(NoResetToDefault, EditCondition="LifecycleMode==EInteractableLifecycle::EIL_Cycled", UIMin=0.1, ClampMin=0.1, Units="Seconds"))
 	float CooldownPeriod = 3.f;
 
 	/** Lifecycle mode: Cycled (repeatable) or Once (single use). */
-	UPROPERTY(Replicated, SaveGame, EditAnywhere, Category="MounteaInteraction|Required", meta=(NoResetToDefault))
+	UPROPERTY(Replicated, SaveGame, EditAnywhere, Category="Mountea Interaction|Required", meta=(NoResetToDefault))
 	EInteractableLifecycle LifecycleMode = EInteractableLifecycle::EIL_Cycled;
 
 	/** How many times this can be triggered (-1 = infinite, min 2 when Cycled). */
-	UPROPERTY(Replicated, SaveGame, EditAnywhere, Category="MounteaInteraction|Required",
+	UPROPERTY(Replicated, SaveGame, EditAnywhere, Category="Mountea Interaction|Required",
 		meta=(NoResetToDefault, EditCondition="LifecycleMode==EInteractableLifecycle::EIL_Cycled", UIMin=-1, ClampMin=-1, Units="times"))
 	int32 LifecycleCount = -1;
 
 	/** Priority weight for Tier 1 focus selection. Higher = preferred. */
-	UPROPERTY(Replicated, SaveGame, EditAnywhere, Category="MounteaInteraction|Required", meta=(UIMin=0, ClampMin=0, NoResetToDefault))
+	UPROPERTY(Replicated, SaveGame, EditAnywhere, Category="Mountea Interaction|Required", meta=(UIMin=0, ClampMin=0, NoResetToDefault))
 	int32 InteractionWeight = 1;
 
 	/** Maximum concurrent interactors. Slot count is validated server-side. */
-	UPROPERTY(Replicated, SaveGame, EditAnywhere, Category="MounteaInteraction|Required", meta=(UIMin=1, ClampMin=1))
+	UPROPERTY(Replicated, SaveGame, EditAnywhere, Category="Mountea Interaction|Required", meta=(UIMin=1, ClampMin=1))
 	int32 MaxInteractors = 1;
 
 	/** If true, this component forces immediate selection — no action cycling UI. */
-	UPROPERTY(Replicated, SaveGame, EditAnywhere, Category="MounteaInteraction|Required")
+	UPROPERTY(Replicated, SaveGame, EditAnywhere, Category="Mountea Interaction|Required")
 	bool bStandaloneInteraction = false;
 
 	/** Attention and Interaction range thresholds. */
-	UPROPERTY(Replicated, EditAnywhere, Category="MounteaInteraction|Required")
+	UPROPERTY(Replicated, EditAnywhere, Category="Mountea Interaction|Required")
 	FInteractableWidgetRanges WidgetRanges;
 
 #pragma endregion
@@ -438,50 +438,50 @@ protected:
 protected:
 
 	/** Tags an interactor must match (any) to join. Empty = no filter. */
-	UPROPERTY(Replicated, EditAnywhere, Category="MounteaInteraction|Optional")
+	UPROPERTY(Replicated, EditAnywhere, Category="Mountea Interaction|Optional")
 	FGameplayTagContainer RequiredInteractorTags;
 
 	/** Tags this interactable exposes to interactors for filtering and slot matching. */
-	UPROPERTY(Replicated, EditAnywhere, Category="MounteaInteraction|Optional")
+	UPROPERTY(Replicated, EditAnywhere, Category="Mountea Interaction|Optional")
 	FGameplayTagContainer InteractableCompatibleTags;
 
 	/** Classes whose interactors are silently ignored for overlap/trace events. */
-	UPROPERTY(SaveGame, EditAnywhere, Category="MounteaInteraction|Optional",
+	UPROPERTY(SaveGame, EditAnywhere, Category="Mountea Interaction|Optional",
 		meta=(NoResetToDefault, AllowAbstract=false, MustImplement="/Script/MounteaInteractionSystem.MounteaInteractorInterface", BlueprintBaseOnly))
 	TArray<TSoftClassPtr<UObject>> IgnoredClasses;
 
 	/** Component tag filter for auto-setup collision shapes. */
-	UPROPERTY(EditAnywhere, Category="MounteaInteraction|Optional")
+	UPROPERTY(EditAnywhere, Category="Mountea Interaction|Optional")
 	TArray<FName> CollisionOverrides;
 
 	/** Component tag filter for auto-setup highlightable meshes. */
-	UPROPERTY(EditAnywhere, Category="MounteaInteraction|Optional")
+	UPROPERTY(EditAnywhere, Category="Mountea Interaction|Optional")
 	TArray<FName> HighlightableOverrides;
 
-	UPROPERTY(Replicated, SaveGame, EditAnywhere, BlueprintReadOnly, Category="MounteaInteraction|Optional")
+	UPROPERTY(Replicated, SaveGame, EditAnywhere, BlueprintReadOnly, Category="Mountea Interaction|Optional")
 	EHighlightType HighlightType = EHighlightType::EHT_OverlayMaterial;
 
-	UPROPERTY(SaveGame, EditAnywhere, BlueprintReadOnly, Category="MounteaInteraction|Optional")
+	UPROPERTY(SaveGame, EditAnywhere, BlueprintReadOnly, Category="Mountea Interaction|Optional")
 	uint8 bInteractionHighlight : 1;
 
-	UPROPERTY(SaveGame, EditAnywhere, BlueprintReadOnly, Category="MounteaInteraction|Optional",
+	UPROPERTY(SaveGame, EditAnywhere, BlueprintReadOnly, Category="Mountea Interaction|Optional",
 		meta=(EditCondition="bInteractionHighlight==true", UIMin=0, ClampMin=0, UIMax=255, ClampMax=255))
 	int32 StencilID = 133;
 
-	UPROPERTY(Replicated, SaveGame, EditAnywhere, BlueprintReadOnly, Category="MounteaInteraction|Optional",
+	UPROPERTY(Replicated, SaveGame, EditAnywhere, BlueprintReadOnly, Category="Mountea Interaction|Optional",
 		meta=(EditCondition="bInteractionHighlight==true"))
 	TObjectPtr<UMaterialInterface> HighlightMaterial = nullptr;
 
-	UPROPERTY(Replicated, SaveGame, EditAnywhere, Category="MounteaInteraction|Optional")
+	UPROPERTY(Replicated, SaveGame, EditAnywhere, Category="Mountea Interaction|Optional")
 	FDataTableRowHandle InteractableData;
 
-	UPROPERTY(Replicated, SaveGame, EditAnywhere, Category="MounteaInteraction|Optional")
+	UPROPERTY(Replicated, SaveGame, EditAnywhere, Category="Mountea Interaction|Optional")
 	FText InteractableName = NSLOCTEXT("InteractableComponentBase", "DefaultInteractable", "Default");
 
-	UPROPERTY(SaveGame, EditAnywhere, Category="MounteaInteraction|Optional")
+	UPROPERTY(SaveGame, EditAnywhere, Category="Mountea Interaction|Optional")
 	ETimingComparison ComparisonMethod = ETimingComparison::ECM_None;
 
-	UPROPERTY(SaveGame, EditAnywhere, Category="MounteaInteraction|Optional",
+	UPROPERTY(SaveGame, EditAnywhere, Category="Mountea Interaction|Optional",
 		meta=(UIMin=0.001, ClampMin=0.001, Units="seconds", EditCondition="ComparisonMethod!=ETimingComparison::ECM_None"))
 	float TimeToStart = 0.5f;
 
@@ -492,11 +492,11 @@ protected:
 protected:
 
 	/** Current state — drives the state machine. */
-	UPROPERTY(ReplicatedUsing=OnRep_InteractableState, SaveGame, VisibleAnywhere, Category="MounteaInteraction|Read Only")
+	UPROPERTY(ReplicatedUsing=OnRep_InteractableState, SaveGame, VisibleAnywhere, Category="Mountea Interaction|Read Only")
 	EInteractableStateV3 InteractableState = EInteractableStateV3::EIS_Disabled;
 
 	/** Remaining lifecycle count. -1 = infinite. */
-	UPROPERTY(Replicated, SaveGame, VisibleAnywhere, Category="MounteaInteraction|Read Only")
+	UPROPERTY(Replicated, SaveGame, VisibleAnywhere, Category="Mountea Interaction|Read Only")
 	int32 RemainingLifecycleCount = -1;
 
 	/**
@@ -504,26 +504,26 @@ protected:
 	 * Clients derive progress as: (ServerNow - InteractionStartServerTime) / InteractionPeriod.
 	 * Replaces FTimerHandle replication for multiplayer accuracy.
 	 */
-	UPROPERTY(ReplicatedUsing=OnRep_InteractionStartServerTime, VisibleAnywhere, Category="MounteaInteraction|Read Only")
+	UPROPERTY(ReplicatedUsing=OnRep_InteractionStartServerTime, VisibleAnywhere, Category="Mountea Interaction|Read Only")
 	float InteractionStartServerTime = -1.f;
 
 	/** Active interactor slots (N-interactor support). */
-	UPROPERTY(ReplicatedUsing=OnRep_ActiveInteractorSlots, SaveGame, VisibleAnywhere, Category="MounteaInteraction|Read Only")
+	UPROPERTY(ReplicatedUsing=OnRep_ActiveInteractorSlots, SaveGame, VisibleAnywhere, Category="Mountea Interaction|Read Only")
 	TArray<FInteractorSlot> ActiveInteractorSlots;
 
-	UPROPERTY(SaveGame, VisibleAnywhere, Category="MounteaInteraction|Read Only")
+	UPROPERTY(SaveGame, VisibleAnywhere, Category="Mountea Interaction|Read Only")
 	TArray<TScriptInterface<IMounteaInteractableInterface>> InteractionDependencies;
 
-	UPROPERTY(SaveGame, VisibleAnywhere, Category="MounteaInteraction|Read Only")
+	UPROPERTY(SaveGame, VisibleAnywhere, Category="Mountea Interaction|Read Only")
 	mutable TMap<TObjectPtr<UPrimitiveComponent>, FCollisionShapeCache> CachedCollisionShapesSettings;
 
-	UPROPERTY(SaveGame, VisibleAnywhere, Category="MounteaInteraction|Read Only")
+	UPROPERTY(SaveGame, VisibleAnywhere, Category="Mountea Interaction|Read Only")
 	TArray<TObjectPtr<UMeshComponent>> HighlightableComponents;
 
-	UPROPERTY(SaveGame, VisibleAnywhere, Category="MounteaInteraction|Read Only")
+	UPROPERTY(SaveGame, VisibleAnywhere, Category="Mountea Interaction|Read Only")
 	TArray<TObjectPtr<UPrimitiveComponent>> CollisionComponents;
 
-	UPROPERTY(VisibleAnywhere, Category="MounteaInteraction|Read Only")
+	UPROPERTY(VisibleAnywhere, Category="Mountea Interaction|Read Only")
 	int32 CachedInteractionWeight = 1;
 
 	UPROPERTY()

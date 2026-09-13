@@ -43,12 +43,12 @@ protected:
 
 protected:
 
-	UPROPERTY(BlueprintAssignable, Category="Mountea|Interaction|Interactable")
+	UPROPERTY(BlueprintAssignable, Category="Mountea Interaction|Interactable")
 	FOnCursorBeginsOverlap OnCursorBeginsOverlap;
 
-	UPROPERTY(BlueprintAssignable, Category="Mountea|Interaction|Interactable")
+	UPROPERTY(BlueprintAssignable, Category="Mountea Interaction|Interactable")
 	FOnCursorStopsOverlap OnCursorStopsOverlap;
 
-	UPROPERTY(SaveGame, VisibleAnywhere, Category="MounteaInteraction|Read Only")
+	UPROPERTY(SaveGame, VisibleAnywhere, Category="Mountea Interaction|Read Only")
 	TObjectPtr<UPrimitiveComponent> OverlappingComponent = nullptr;
 };
