@@ -64,13 +64,9 @@ void UMounteaInteractorComponentTrace::ProcessStateChanged()
 		InteractorState == EInteractorStateV3::EIS_Active;
 
 	if (bShouldTrace)
-	{
 		EnableTracing_Implementation();
-	}
 	else
-	{
 		DisableTracing_Implementation();
-	}
 }
 
 #pragma region TracingControl
@@ -78,7 +74,7 @@ void UMounteaInteractorComponentTrace::ProcessStateChanged()
 void UMounteaInteractorComponentTrace::EnableTracing_Implementation()
 {
 	if (!GetOwner())
-				return;
+		return;
 
 	if (!GetOwner()->HasAuthority())
 	{
@@ -87,10 +83,10 @@ void UMounteaInteractorComponentTrace::EnableTracing_Implementation()
 	}
 
 	if (!GetWorld())
-				return;
+		return;
 
 	if (GetWorld()->GetTimerManager().IsTimerActive(Timer_Ticking))
-				return;
+		return;
 
 	GetWorld()->GetTimerManager().SetTimer(
 		Timer_Ticking,
@@ -105,7 +101,7 @@ void UMounteaInteractorComponentTrace::EnableTracing_Implementation()
 void UMounteaInteractorComponentTrace::DisableTracing_Implementation()
 {
 	if (!GetOwner())
-				return;
+		return;
 
 	if (!GetOwner()->HasAuthority())
 	{
@@ -114,9 +110,7 @@ void UMounteaInteractorComponentTrace::DisableTracing_Implementation()
 	}
 
 	if (GetWorld())
-	{
 		GetWorld()->GetTimerManager().ClearTimer(Timer_Ticking);
-	}
 
 	ClearDetected();
 	LastTraceHits.Reset();
@@ -125,7 +119,7 @@ void UMounteaInteractorComponentTrace::DisableTracing_Implementation()
 void UMounteaInteractorComponentTrace::PauseTracing_Implementation()
 {
 	if (!GetOwner())
-				return;
+		return;
 
 	if (!GetOwner()->HasAuthority())
 	{
@@ -134,15 +128,13 @@ void UMounteaInteractorComponentTrace::PauseTracing_Implementation()
 	}
 
 	if (GetWorld() && GetWorld()->GetTimerManager().IsTimerActive(Timer_Ticking))
-	{
 		GetWorld()->GetTimerManager().PauseTimer(Timer_Ticking);
-	}
 }
 
 void UMounteaInteractorComponentTrace::ResumeTracing_Implementation()
 {
 	if (!GetOwner())
-				return;
+		return;
 
 	if (!GetOwner()->HasAuthority())
 	{
@@ -151,9 +143,7 @@ void UMounteaInteractorComponentTrace::ResumeTracing_Implementation()
 	}
 
 	if (GetWorld() && GetWorld()->GetTimerManager().IsTimerPaused(Timer_Ticking))
-	{
 		GetWorld()->GetTimerManager().UnPauseTimer(Timer_Ticking);
-	}
 }
 
 bool UMounteaInteractorComponentTrace::CanTrace_Implementation() const
@@ -170,9 +160,9 @@ bool UMounteaInteractorComponentTrace::CanTrace_Implementation() const
 void UMounteaInteractorComponentTrace::ProcessTrace_Implementation()
 {
 	if (!CanTrace())
-				return;
+		return;
 	if (!GetOwner() || !GetWorld())
-				return;
+		return;
 
 	FInteractionTraceDataV2 traceData;
 	traceData.CollisionChannel = (ECollisionChannel)CollisionChannel.GetValue();
@@ -213,7 +203,7 @@ void UMounteaInteractorComponentTrace::ProcessTrace_Implementation()
 	for (const FHitResult& hit : traceData.HitResults)
 	{
 		if (!hit.GetActor())
-				continue;
+			continue;
 
 		TArray<UActorComponent*> interactableComps = hit.GetActor()->GetComponentsByInterface(UMounteaInteractableInterface::StaticClass());
 		for (UActorComponent* comp : interactableComps)
@@ -283,16 +273,25 @@ void UMounteaInteractorComponentTrace::PostTraced_Implementation()
 
 	for (const TScriptInterface<IMounteaInteractableInterface>& hit : LastTraceHits)
 	{
-		if (!DetectedSet.Contains(hit)) toAdd.Add(hit);
+		if (!DetectedSet.Contains(hit))
+			toAdd.Add(hit);
 	}
 
 	for (const TScriptInterface<IMounteaInteractableInterface>& existing : DetectedSet)
 	{
-		if (!LastTraceHits.Contains(existing)) toRemove.Add(existing);
+		if (!LastTraceHits.Contains(existing))
+			toRemove.Add(existing);
 	}
 
-	for (const auto& item : toAdd)    { AddDetected(item); }
-	for (const auto& item : toRemove) { RemoveDetected(item); }
+	for (const auto& item : toAdd)
+	{
+		AddDetected(item);
+	}
+
+	for (const auto& item : toRemove)
+	{
+		RemoveDetected(item);
+	}
 }
 
 #pragma endregion
@@ -304,8 +303,13 @@ EMounteaTraceType UMounteaInteractorComponentTrace::GetTraceType() const { retur
 void UMounteaInteractorComponentTrace::SetTraceType_Implementation(const EMounteaTraceType& NewTraceType)
 {
 	if (!GetOwner())
-				return;
-	if (!GetOwner()->HasAuthority()) { SetTraceType_Server(NewTraceType); return; }
+		return;
+
+	if (!GetOwner()->HasAuthority())
+	{
+		SetTraceType_Server(NewTraceType);
+		return;
+	}
 
 	const FTracingData oldData = LastTracingData;
 	TraceType = NewTraceType;
@@ -318,8 +322,13 @@ float UMounteaInteractorComponentTrace::GetTraceInterval() const { return TraceI
 void UMounteaInteractorComponentTrace::SetTraceInterval_Implementation(const float NewInterval)
 {
 	if (!GetOwner())
-				return;
-	if (!GetOwner()->HasAuthority()) { SetTraceInterval_Server(NewInterval); return; }
+		return;
+
+	if (!GetOwner()->HasAuthority())
+	{
+		SetTraceInterval_Server(NewInterval);
+		return;
+	}
 
 	const FTracingData oldData = LastTracingData;
 	TraceInterval = FMath::Max(0.01f, NewInterval);
@@ -345,8 +354,13 @@ float UMounteaInteractorComponentTrace::GetTraceRange() const { return TraceRang
 void UMounteaInteractorComponentTrace::SetTraceRange_Implementation(const float NewRange)
 {
 	if (!GetOwner())
-				return;
-	if (!GetOwner()->HasAuthority()) { SetTraceRange_Server(NewRange); return; }
+		return;
+
+	if (!GetOwner()->HasAuthority())
+	{
+		SetTraceRange_Server(NewRange);
+		return;
+	}
 
 	const FTracingData oldData = LastTracingData;
 	TraceRange = FMath::Max(1.f, NewRange);
@@ -359,8 +373,13 @@ float UMounteaInteractorComponentTrace::GetTraceShapeHalfSize() const { return T
 void UMounteaInteractorComponentTrace::SetTraceShapeHalfSize_Implementation(const float NewTraceShapeHalfSize)
 {
 	if (!GetOwner())
-				return;
-	if (!GetOwner()->HasAuthority()) { SetTraceShapeHalfSize_Server(NewTraceShapeHalfSize); return; }
+		return;
+
+	if (!GetOwner()->HasAuthority())
+	{
+		SetTraceShapeHalfSize_Server(NewTraceShapeHalfSize);
+		return;
+	}
 
 	const FTracingData oldData = LastTracingData;
 	TraceShapeHalfSize = FMath::Max(0.1f, NewTraceShapeHalfSize);
@@ -368,13 +387,20 @@ void UMounteaInteractorComponentTrace::SetTraceShapeHalfSize_Implementation(cons
 	OnTraceDataChanged.Broadcast(LastTracingData, oldData);
 }
 
-bool UMounteaInteractorComponentTrace::GetUseCustomStartTransform() const { return bUseCustomStartTransform != 0; }
+bool UMounteaInteractorComponentTrace::GetUseCustomStartTransform() const
+{
+	return bUseCustomStartTransform != 0;
+}
 
 void UMounteaInteractorComponentTrace::SetUseCustomStartTransform_Implementation(const bool bUse)
 {
 	if (!GetOwner())
-				return;
-	if (!GetOwner()->HasAuthority()) { SetUseCustomStartTransform_Server(bUse); return; }
+		return;
+	if (!GetOwner()->HasAuthority())
+	{
+		SetUseCustomStartTransform_Server(bUse);
+		return;
+	}
 
 	const FTracingData oldData = LastTracingData;
 	bUseCustomStartTransform = bUse ? 1 : 0;
@@ -382,22 +408,27 @@ void UMounteaInteractorComponentTrace::SetUseCustomStartTransform_Implementation
 	OnTraceDataChanged.Broadcast(LastTracingData, oldData);
 }
 
-FTracingData UMounteaInteractorComponentTrace::GetLastTracingData() const { return LastTracingData; }
+FTracingData UMounteaInteractorComponentTrace::GetLastTracingData() const
+{
+	return LastTracingData;
+}
 
 void UMounteaInteractorComponentTrace::SetCustomTraceStart_Implementation(const FTransform& TraceStart)
 {
 	if (!GetOwner())
-				return;
-	if (!GetOwner()->HasAuthority()) { SetCustomTraceStart_Server(TraceStart); return; }
+		return;
+	if (!GetOwner()->HasAuthority())
+	{
+		SetCustomTraceStart_Server(TraceStart);
+		return;
+	}
 
 	const FTracingData oldData = LastTracingData;
 	CustomTraceTransform = TraceStart;
 	LastTracingData.CustomTracingTransform = TraceStart;
 
 	if (SafetyTraceSetup.SafetyTracingMode == ESafetyTracingMode::ESTM_Location)
-	{
 		SafetyTraceSetup.StartLocation = TraceStart.GetLocation();
-	}
 
 	OnTraceDataChanged.Broadcast(LastTracingData, oldData);
 }
@@ -408,18 +439,60 @@ FTransform UMounteaInteractorComponentTrace::GetCustomTraceStart() const { retur
 
 #pragma region NetworkingImpl
 
-void UMounteaInteractorComponentTrace::DisableTracing_Server_Implementation()  { DisableTracing_Implementation(); }
-void UMounteaInteractorComponentTrace::EnableTracing_Server_Implementation()   { EnableTracing_Implementation(); }
-void UMounteaInteractorComponentTrace::PauseTracing_Server_Implementation()    { PauseTracing_Implementation(); }
-void UMounteaInteractorComponentTrace::ResumeTracing_Server_Implementation()   { ResumeTracing_Implementation(); }
-void UMounteaInteractorComponentTrace::ProcessTrace_Server_Implementation()    { ProcessTrace_Implementation(); }
+void UMounteaInteractorComponentTrace::DisableTracing_Server_Implementation()
+{
+	DisableTracing_Implementation();
+}
 
-void UMounteaInteractorComponentTrace::SetTraceType_Server_Implementation(const EMounteaTraceType& NewTraceType) { SetTraceType_Implementation(NewTraceType); }
-void UMounteaInteractorComponentTrace::SetTraceInterval_Server_Implementation(float NewInterval)                 { SetTraceInterval_Implementation(NewInterval); }
-void UMounteaInteractorComponentTrace::SetTraceRange_Server_Implementation(float NewRange)                       { SetTraceRange_Implementation(NewRange); }
-void UMounteaInteractorComponentTrace::SetTraceShapeHalfSize_Server_Implementation(float NewSize)               { SetTraceShapeHalfSize_Implementation(NewSize); }
-void UMounteaInteractorComponentTrace::SetUseCustomStartTransform_Server_Implementation(bool bUse)              { SetUseCustomStartTransform_Implementation(bUse); }
-void UMounteaInteractorComponentTrace::SetCustomTraceStart_Server_Implementation(const FTransform& T)           { SetCustomTraceStart_Implementation(T); }
+void UMounteaInteractorComponentTrace::EnableTracing_Server_Implementation()
+{
+	EnableTracing_Implementation();
+}
+
+void UMounteaInteractorComponentTrace::PauseTracing_Server_Implementation()
+{
+	PauseTracing_Implementation();
+}
+
+void UMounteaInteractorComponentTrace::ResumeTracing_Server_Implementation()
+{
+	ResumeTracing_Implementation();
+}
+
+void UMounteaInteractorComponentTrace::ProcessTrace_Server_Implementation()
+{
+	ProcessTrace_Implementation();
+}
+
+void UMounteaInteractorComponentTrace::SetTraceType_Server_Implementation(const EMounteaTraceType& NewTraceType)
+{
+	SetTraceType_Implementation(NewTraceType);
+}
+
+void UMounteaInteractorComponentTrace::SetTraceInterval_Server_Implementation(float NewInterval)
+{
+	SetTraceInterval_Implementation(NewInterval);
+}
+
+void UMounteaInteractorComponentTrace::SetTraceRange_Server_Implementation(float NewRange)
+{
+	SetTraceRange_Implementation(NewRange);
+}
+
+void UMounteaInteractorComponentTrace::SetTraceShapeHalfSize_Server_Implementation(float NewSize)
+{
+	SetTraceShapeHalfSize_Implementation(NewSize);
+}
+
+void UMounteaInteractorComponentTrace::SetUseCustomStartTransform_Server_Implementation(bool bUse)
+{
+	SetUseCustomStartTransform_Implementation(bUse);
+}
+
+void UMounteaInteractorComponentTrace::SetCustomTraceStart_Server_Implementation(const FTransform& T)
+{
+	SetCustomTraceStart_Implementation(T);
+}
 
 #pragma endregion
 
@@ -428,7 +501,7 @@ void UMounteaInteractorComponentTrace::SetCustomTraceStart_Server_Implementation
 void UMounteaInteractorComponentTrace::DrawTracingDebugStart(FInteractionTraceDataV2& TraceData) const
 {
 	if (!DebugSettings.DebugMode || !GetWorld())
-				return;
+		return;
 
 	switch (TraceType)
 	{
@@ -446,7 +519,7 @@ void UMounteaInteractorComponentTrace::DrawTracingDebugStart(FInteractionTraceDa
 void UMounteaInteractorComponentTrace::DrawTracingDebugEnd(FInteractionTraceDataV2& TraceData) const
 {
 	if (!DebugSettings.DebugMode || !GetWorld())
-				return;
+		return;
 
 	for (const FHitResult& hit : TraceData.HitResults)
 	{
