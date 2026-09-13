@@ -165,7 +165,7 @@ public:
 
 #pragma region ActionCycling
 
-	/** If true, this component forces immediate selection (no cycling UI) — v4 single-action behavior. */
+	/** If true, this component forces immediate selection (no cycling UI) - v4 single-action behavior. */
 	UFUNCTION(BlueprintNativeEvent, Category="Mountea Interaction|Interactable|Cycling")
 	bool IsStandaloneInteraction() const;
 	virtual bool IsStandaloneInteraction_Implementation() const = 0;
