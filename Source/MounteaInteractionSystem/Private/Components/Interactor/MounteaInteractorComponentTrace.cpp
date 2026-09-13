@@ -8,6 +8,8 @@
 #include "Interfaces/MounteaInteractableInterface.h"
 #include "Helpers/MounteaInteractionSystemLog.h"
 #include "Helpers/MounteaInteractionHelpers.h"
+#include "Helpers/MounteaInteractionSystemSettings.h"
+#include "Settings/MounteaInteractorRuntimeConfig.h"
 
 #if WITH_EDITOR
 #include "DrawDebugHelpers.h"
@@ -25,6 +27,19 @@ UMounteaInteractorComponentTrace::UMounteaInteractorComponentTrace()
 
 void UMounteaInteractorComponentTrace::BeginPlay()
 {
+	// TraceInterval falls back to the shared CandidateRefreshRate config value unless this
+	// instance has been given its own explicit interval - a fallback, not a removal, so existing
+	// content that already sets TraceInterval per-instance keeps working unchanged. Must happen
+	// before the LastTracingData snapshot below, or LastTracingData would go stale against
+	// whatever SetDefaults (called inside Super::BeginPlay(), below) would otherwise apply.
+	if (FMath::IsNearlyEqual(TraceInterval, 0.05f))
+	{
+		const UMounteaInteractionSystemSettings* settings = GetDefault<UMounteaInteractionSystemSettings>();
+		const UMounteaInteractorRuntimeConfig* config = settings ? settings->GetInteractorConfig() : nullptr;
+		if (config)
+			TraceInterval = config->CandidateRefreshRate;
+	}
+
 	// Initialize LastTracingData from properties before Super (which calls SetDefaults)
 	LastTracingData.TracingType = TraceType;
 	LastTracingData.TracingInterval = TraceInterval;
