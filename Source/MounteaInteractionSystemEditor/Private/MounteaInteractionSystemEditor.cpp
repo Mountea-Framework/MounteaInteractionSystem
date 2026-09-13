@@ -11,6 +11,10 @@
 
 #include "AssetActions/MounteaInteractorComponentAssetActions.h"
 #include "AssetActions/MounteaInteractableComponentAssetActions.h"
+#include "AssetActions/MounteaInteractorRuntimeConfigAssetActions.h"
+#include "AssetActions/MounteaInteractorUIConfigAssetActions.h"
+#include "AssetActions/MounteaInteractableRuntimeConfigAssetActions.h"
+#include "AssetActions/MounteaInteractableUIConfigAssetActions.h"
 
 #include "AssetToolsModule.h"
 #include "ContentBrowserModule.h"
@@ -188,6 +192,21 @@ void FMounteaInteractionSystemEditor::StartupModule()
 		{
 			InteractableComponentAssetActions = MakeShared<FInteractableComponentAssetActions>();
 			FAssetToolsModule::GetModule().Get().RegisterAssetTypeActions(InteractableComponentAssetActions.ToSharedRef());
+		}
+
+		// Register Configuration DataAssets
+		{
+			InteractorRuntimeConfigAssetActions = MakeShared<FInteractorRuntimeConfigAssetActions>();
+			FAssetToolsModule::GetModule().Get().RegisterAssetTypeActions(InteractorRuntimeConfigAssetActions.ToSharedRef());
+
+			InteractorUIConfigAssetActions = MakeShared<FInteractorUIConfigAssetActions>();
+			FAssetToolsModule::GetModule().Get().RegisterAssetTypeActions(InteractorUIConfigAssetActions.ToSharedRef());
+
+			InteractableRuntimeConfigAssetActions = MakeShared<FInteractableRuntimeConfigAssetActions>();
+			FAssetToolsModule::GetModule().Get().RegisterAssetTypeActions(InteractableRuntimeConfigAssetActions.ToSharedRef());
+
+			InteractableUIConfigAssetActions = MakeShared<FInteractableUIConfigAssetActions>();
+			FAssetToolsModule::GetModule().Get().RegisterAssetTypeActions(InteractableUIConfigAssetActions.ToSharedRef());
 		}
 
 	}
@@ -372,6 +391,11 @@ void FMounteaInteractionSystemEditor::ShutdownModule()
 		{
 			FAssetToolsModule::GetModule().Get().UnregisterAssetTypeActions(InteractorComponentAssetActions.ToSharedRef());
 			FAssetToolsModule::GetModule().Get().UnregisterAssetTypeActions(InteractableComponentAssetActions.ToSharedRef());
+
+			FAssetToolsModule::GetModule().Get().UnregisterAssetTypeActions(InteractorRuntimeConfigAssetActions.ToSharedRef());
+			FAssetToolsModule::GetModule().Get().UnregisterAssetTypeActions(InteractorUIConfigAssetActions.ToSharedRef());
+			FAssetToolsModule::GetModule().Get().UnregisterAssetTypeActions(InteractableRuntimeConfigAssetActions.ToSharedRef());
+			FAssetToolsModule::GetModule().Get().UnregisterAssetTypeActions(InteractableUIConfigAssetActions.ToSharedRef());
 		}
 	}
 

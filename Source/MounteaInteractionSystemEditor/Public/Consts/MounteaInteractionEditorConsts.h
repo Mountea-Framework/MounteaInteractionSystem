@@ -17,6 +17,7 @@ namespace MounteaInteractionBaseTypes
 {
 	inline const FText InteractorBaseClassesMenuEntry =	FText::FromString(TEXT("1. Base Classes (Interactor)"));
 	inline const FText InteractableBaseClassesMenuEntry =	FText::FromString(TEXT("2. Base Classes (Interactable)"));
+	inline const FText ConfigurationMenuEntry =			FText::FromString(TEXT("3. Configuration"));
 }
 
 namespace MounteaInteractionToolbar

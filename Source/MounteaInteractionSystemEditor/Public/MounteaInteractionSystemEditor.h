@@ -36,6 +36,11 @@ private:
 
 	TSharedPtr<class FInteractorComponentAssetActions> InteractorComponentAssetActions;
 	TSharedPtr<class FInteractableComponentAssetActions> InteractableComponentAssetActions;
+
+	TSharedPtr<class FInteractorRuntimeConfigAssetActions> InteractorRuntimeConfigAssetActions;
+	TSharedPtr<class FInteractorUIConfigAssetActions> InteractorUIConfigAssetActions;
+	TSharedPtr<class FInteractableRuntimeConfigAssetActions> InteractableRuntimeConfigAssetActions;
+	TSharedPtr<class FInteractableUIConfigAssetActions> InteractableUIConfigAssetActions;
 	
 public:
 	

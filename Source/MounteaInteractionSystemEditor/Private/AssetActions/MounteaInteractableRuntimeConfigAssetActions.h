@@ -1,0 +1,33 @@
+// All rights reserved Dominik Morse (Pavlicek) 2021
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "AssetTypeActions_Base.h"
+#include "Consts/MounteaInteractionEditorConsts.h"
+#include "Settings/MounteaInteractableRuntimeConfig.h"
+
+class FInteractableRuntimeConfigAssetActions : public FAssetTypeActions_Base
+{
+public:
+	virtual UClass* GetSupportedClass() const override { return UMounteaInteractableRuntimeConfig::StaticClass(); };
+	virtual FText GetName() const override { return INVTEXT("Mountea Interactable Runtime Config"); };
+	virtual FColor GetTypeColor() const override { return FColor::White; };
+	virtual uint32 GetCategories() override
+	{
+		if (FModuleManager::Get().IsModuleLoaded("AssetTools"))
+		{
+			return FAssetToolsModule::GetModule().Get().FindAdvancedAssetCategory(FName("MounteaInteraction"));
+		}
+
+		return  EAssetTypeCategories::Misc;
+	};
+	virtual const TArray<FText>& GetSubMenus() const override
+	{
+		static const TArray<FText> AssetTypeActionSubMenu
+		{
+			MounteaInteractionBaseTypes::ConfigurationMenuEntry
+		};
+		return AssetTypeActionSubMenu;
+	};
+};
