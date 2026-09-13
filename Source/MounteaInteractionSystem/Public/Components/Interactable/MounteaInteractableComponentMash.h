@@ -27,19 +27,19 @@ public:
 
 	UMounteaInteractableComponentMash();
 
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea Interaction|Interactable")
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Interactable")
 	int32 GetMinMashAmountRequired() const { return MinMashAmountRequired; }
 
-	UFUNCTION(BlueprintCallable, Category="Mountea Interaction|Interactable")
+	UFUNCTION(BlueprintCallable, Category="Mountea|Interaction|Interactable")
 	void SetMinMashAmountRequired(const int32 Value);
 
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea Interaction|Interactable")
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Interactable")
 	float GetKeystrokeTimeThreshold() const { return KeystrokeTimeThreshold; }
 
-	UFUNCTION(BlueprintCallable, Category="Mountea Interaction|Interactable")
+	UFUNCTION(BlueprintCallable, Category="Mountea|Interaction|Interactable")
 	void SetKeystrokeTimeThreshold(const float Value);
 
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea Interaction|Interactable")
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Interactable")
 	int32 GetActualMashAmount() const { return ActualMashAmount; }
 
 protected:
@@ -51,10 +51,10 @@ protected:
 	virtual void InteractionCanceled_Implementation() override;
 	virtual float GetInteractionProgress_Implementation() const override;
 
-	UFUNCTION(BlueprintImplementableEvent, Category="Mountea Interaction|Interactable")
+	UFUNCTION(BlueprintImplementableEvent, Category="Mountea|Interaction|Interactable")
 	void OnInteractionFailedEvent();
 
-	UFUNCTION(BlueprintImplementableEvent, Category="Mountea Interaction|Interactable")
+	UFUNCTION(BlueprintImplementableEvent, Category="Mountea|Interaction|Interactable")
 	void OnKeyMashedEvent();
 
 private:
