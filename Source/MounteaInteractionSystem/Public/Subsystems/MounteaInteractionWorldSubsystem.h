@@ -58,33 +58,33 @@ public:
 	 * Assigns an idle pool entry to the given actor, positioning the widget above it.
 	 * Returns false if the pool is exhausted (all entries occupied).
 	 */
-	UFUNCTION(BlueprintCallable, Category="Mountea|Interaction|Subsystem")
+	UFUNCTION(BlueprintCallable, Category="Mountea Interaction|Subsystem")
 	bool AssignAttentionWidget(AActor* FocusedActor);
 
 	/**
 	 * Returns the attention widget for Actor to the pool and hides it.
 	 * No-op if Actor has no assigned entry.
 	 */
-	UFUNCTION(BlueprintCallable, Category="Mountea|Interaction|Subsystem")
+	UFUNCTION(BlueprintCallable, Category="Mountea Interaction|Subsystem")
 	void ReleaseAttentionWidget(AActor* Actor);
 
 	/**
 	 * Updates the EInteractionWidgetMode on the widget assigned to Actor.
 	 * Use to transition between Attention and Interaction modes without reassigning the actor.
 	 */
-	UFUNCTION(BlueprintCallable, Category="Mountea|Interaction|Subsystem")
+	UFUNCTION(BlueprintCallable, Category="Mountea Interaction|Subsystem")
 	void UpdateAttentionWidgetMode(AActor* Actor, EInteractionWidgetMode NewMode);
 
 	/** Returns the widget instance assigned to Actor, or null if none. */
-	UFUNCTION(BlueprintCallable, Category="Mountea|Interaction|Subsystem")
+	UFUNCTION(BlueprintCallable, Category="Mountea Interaction|Subsystem")
 	UUserWidget* GetWidgetForActor(const AActor* Actor) const;
 
 	/** Number of idle (available) pool entries. */
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Subsystem")
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea Interaction|Subsystem")
 	int32 GetIdlePoolCount() const;
 
 	/** Total pool size (idle + occupied). */
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Subsystem")
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea Interaction|Subsystem")
 	int32 GetTotalPoolSize() const { return AttentionWidgetPool.Num(); }
 
 private:

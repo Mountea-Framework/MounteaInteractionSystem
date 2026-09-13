@@ -10,7 +10,7 @@
  * v5.0 Actor Interactable Automatic Component
  *
  * Completes automatically after InteractionPeriod seconds once an interactor enters a slot.
- * No player input required — useful for notification-style interactions (spotting, proximity triggers).
+ * No player input required - useful for notification-style interactions (spotting, proximity triggers).
  *
  * @see https://github.com/Mountea-Framework/MounteaInteractionSystem/wiki/Actor-Interactable-Component-Automatic
  */

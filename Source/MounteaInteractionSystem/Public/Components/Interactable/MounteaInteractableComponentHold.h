@@ -10,7 +10,7 @@
  * v5.0 Actor Interactable Hold Component
  *
  * Player must hold the interaction key for InteractionPeriod seconds.
- * Progress is computed from InteractionStartServerTime (replicated server time) — no FTimerHandle replication.
+ * Progress is computed from InteractionStartServerTime (replicated server time) - no FTimerHandle replication.
  * Releasing the key early cancels the interaction.
  *
  * @see https://github.com/Mountea-Framework/MounteaInteractionSystem/wiki/Actor-Interactable-Component-Hold
