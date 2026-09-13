@@ -32,6 +32,10 @@ class MOUNTEAINTERACTIONSYSTEM_API UMounteaInteractableComponentBase : public UW
 {
 	GENERATED_BODY()
 
+	// Automation tests need to set RequiredInteractorTags directly (no public setter exists) to
+	// exercise the focus-time tag gate without depending on Blueprint/editor-only setup.
+	friend struct FMounteaInteractionTestAccess;
+
 public:
 
 	UMounteaInteractableComponentBase();
@@ -53,6 +57,7 @@ public:
 	virtual TArray<FInteractorSlot>    GetActiveInteractorSlots_Implementation()    const override;
 	virtual int32                      GetMaxInteractors_Implementation()            const override;
 	virtual FGameplayTagContainer      GetRequiredInteractorTags_Implementation()    const override;
+	virtual FGameplayTagContainer      GetExcludedInteractorTags_Implementation()    const override;
 	virtual bool                       IsSlotAvailable_Implementation()              const override;
 	virtual bool                       HasInteractor_Implementation()                const override;
 	virtual void                       RequestInteractorJoin_Implementation(const TScriptInterface<IMounteaInteractorInterface>& RequestingInteractor) override;
@@ -229,7 +234,7 @@ protected:
 	UFUNCTION(Client, Unreliable) void StopHighlight_Client();
 
 	/** ANDs bWidgetStateEligible with bWidgetDistanceEligible and applies the result via
-	 *  SetVisibility() — the single place actual widget visibility gets decided. */
+	 *  SetVisibility() - the single place actual widget visibility gets decided. */
 	void RefreshWidgetVisibility();
 
 #pragma endregion
@@ -243,6 +248,17 @@ protected:
 	virtual void ProcessStopHighlight();
 	virtual void ProcessShowWidget();
 	virtual void ProcessHideWidget();
+
+	/** True while any OTHER IMounteaInteractableInterface component on the same actor is
+	 *  EIS_Active. Gates RequestInteractorJoin only - siblings stay visible/selectable in Tier 2
+	 *  action lists, they're just rejected (like a full slot) if actually started. */
+	bool IsBlockedBySiblingInteractable() const;
+
+	/** Force-releases every currently joined interactor's lock (without re-entrant callbacks into
+	 *  this interactable) and clears all slots. Shared by EndPlay (mid-teardown) and
+	 *  CompleteInteractable (a multi-occupant interaction naturally concluding) - both need "kick
+	 *  everyone out cleanly" with the same semantics, just at different moments. */
+	void ReleaseAllInteractorSlots();
 
 	UFUNCTION()
 	void OnInputModeChanged(ECommonInputType CommonInput);
@@ -423,7 +439,7 @@ protected:
 	UPROPERTY(Replicated, SaveGame, EditAnywhere, Category="Mountea Interaction|Required", meta=(UIMin=1, ClampMin=1))
 	int32 MaxInteractors = 1;
 
-	/** If true, this component forces immediate selection — no action cycling UI. */
+	/** If true, this component forces immediate selection - no action cycling UI. */
 	UPROPERTY(Replicated, SaveGame, EditAnywhere, Category="Mountea Interaction|Required")
 	bool bStandaloneInteraction = false;
 
@@ -440,6 +456,11 @@ protected:
 	/** Tags an interactor must match (any) to join. Empty = no filter. */
 	UPROPERTY(Replicated, EditAnywhere, Category="Mountea Interaction|Optional")
 	FGameplayTagContainer RequiredInteractorTags;
+
+	/** Tags that disqualify an interactor (any match) from joining, checked alongside
+	 *  RequiredInteractorTags. Empty = exclude none. */
+	UPROPERTY(Replicated, EditAnywhere, Category="Mountea Interaction|Optional")
+	FGameplayTagContainer ExcludedInteractorTags;
 
 	/** Tags this interactable exposes to interactors for filtering and slot matching. */
 	UPROPERTY(Replicated, EditAnywhere, Category="Mountea Interaction|Optional")
@@ -491,7 +512,7 @@ protected:
 
 protected:
 
-	/** Current state — drives the state machine. */
+	/** Current state - drives the state machine. */
 	UPROPERTY(ReplicatedUsing=OnRep_InteractableState, SaveGame, VisibleAnywhere, Category="Mountea Interaction|Read Only")
 	EInteractableStateV3 InteractableState = EInteractableStateV3::EIS_Disabled;
 
@@ -534,14 +555,14 @@ protected:
 
 	/** Coarse widget gate: true when InteractableState alone permits the widget to show
 	 *  (Active/Awake). Set by OnRep_InteractableState(). ANDed with bWidgetDistanceEligible in
-	 *  RefreshWidgetVisibility() — state eligible is necessary but not sufficient; a viewing
+	 *  RefreshWidgetVisibility() - state eligible is necessary but not sufficient; a viewing
 	 *  interactor must also confirm range. */
 	UPROPERTY()
 	bool bWidgetStateEligible = false;
 
 	/** Fine-grained widget gate: true once a viewing interactor's own distance check (see
 	 *  RefreshFocus()) has confirmed this interactable is within WidgetRanges.InteractionRange.
-	 *  Set via ToggleWidgetVisibility(). Local to each client's own component instance — never
+	 *  Set via ToggleWidgetVisibility(). Local to each client's own component instance - never
 	 *  replicated, since each client decides this independently for its own camera/pawn position. */
 	UPROPERTY()
 	bool bWidgetDistanceEligible = false;

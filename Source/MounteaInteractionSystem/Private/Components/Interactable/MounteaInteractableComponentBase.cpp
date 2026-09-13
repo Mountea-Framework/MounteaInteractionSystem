@@ -50,39 +50,30 @@ void UMounteaInteractableComponentBase::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (!bInteractableInitialized)
+	if (GetOwner() && GetOwner()->HasAuthority())
 	{
-		Execute_SetDefaults(this);
-		bInteractableInitialized = true;
+		if (!bInteractableInitialized)
+		{
+			Execute_SetDefaults(this);
+			bInteractableInitialized = true;
+		}
+
+		InteractableState = DefaultInteractableState;
+		RemainingLifecycleCount = LifecycleCount;
 	}
 
-	InteractableState = DefaultInteractableState;
-	RemainingLifecycleCount = LifecycleCount;
-
-	// OnRep_ functions only fire on remote clients receiving a replication update — never locally
-	// on the authority that just set the value. Without this explicit call, the widget-eligibility
-	// gate below would never initialize on the server/listen-host (or in single-player), leaving
-	// a freshly-placed default-Awake interactable's widget invisible forever until some later
-	// explicit SetState() call happened to touch it.
 	OnRep_InteractableState();
 }
 
 void UMounteaInteractableComponentBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	for (const FInteractorSlot& slot : ActiveInteractorSlots)
+	if (InteractableState == EInteractableStateV3::EIS_Active && !ActiveInteractorSlots.IsEmpty())
 	{
-		if (slot.Interactor.GetInterface())
-		{
-			Execute_InteractorLost(this, slot.Interactor);
-
-			// This interactable is mid-teardown — tell the interactor to drop its lock without
-			// calling back into us (that's what ForceReleaseInteraction is for; StopInteraction
-			// would re-enter this object). Otherwise the interactor's bSelectionLocked never
-			// clears and it can never start another interaction for the rest of the session.
-			IMounteaInteractorInterface::Execute_ForceReleaseInteraction(slot.Interactor.GetObject());
-		}
+		TScriptInterface<IMounteaInteractorInterface> noInteractor;
+		Execute_InteractionStopped(this, UMounteaInteractionStatics::GetServerTime(this), noInteractor);
 	}
-	ActiveInteractorSlots.Empty();
+
+	ReleaseAllInteractorSlots();
 
 	if (GetWorld())
 	{
@@ -96,13 +87,12 @@ void UMounteaInteractableComponentBase::InitWidget()
 {
 	Super::InitWidget();
 
-	if (UUserWidget* interactionWidget = GetUserWidgetObject())
-	{
-		if (interactionWidget->GetClass()->ImplementsInterface(UActorInteractionWidget::StaticClass()))
-		{
-			IActorInteractionWidget::Execute_SetWidgetMode(interactionWidget, EInteractionWidgetMode::EWM_Interaction);
-		}
-	}
+	UUserWidget* interactionWidget = GetUserWidgetObject();
+	if (!IsValid(interactionWidget))
+		return;
+
+	if (interactionWidget->GetClass()->ImplementsInterface(UActorInteractionWidget::StaticClass()))
+		IActorInteractionWidget::Execute_SetWidgetMode(interactionWidget, EInteractionWidgetMode::EWM_Interaction);
 }
 
 void UMounteaInteractableComponentBase::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -155,6 +145,7 @@ void UMounteaInteractableComponentBase::GetLifetimeReplicatedProps(TArray<FLifet
 	DOREPLIFETIME(UMounteaInteractableComponentBase, bStandaloneInteraction);
 	DOREPLIFETIME(UMounteaInteractableComponentBase, WidgetRanges);
 	DOREPLIFETIME(UMounteaInteractableComponentBase, RequiredInteractorTags);
+	DOREPLIFETIME(UMounteaInteractableComponentBase, ExcludedInteractorTags);
 	DOREPLIFETIME(UMounteaInteractableComponentBase, InteractableCompatibleTags);
 	DOREPLIFETIME(UMounteaInteractableComponentBase, HighlightType);
 	DOREPLIFETIME(UMounteaInteractableComponentBase, HighlightMaterial);
@@ -179,6 +170,11 @@ FGameplayTagContainer UMounteaInteractableComponentBase::GetRequiredInteractorTa
 	return RequiredInteractorTags;
 }
 
+FGameplayTagContainer UMounteaInteractableComponentBase::GetExcludedInteractorTags_Implementation() const
+{
+	return ExcludedInteractorTags;
+}
+
 bool UMounteaInteractableComponentBase::IsSlotAvailable_Implementation() const
 {
 	return ActiveInteractorSlots.Num() < MaxInteractors;
@@ -187,6 +183,36 @@ bool UMounteaInteractableComponentBase::IsSlotAvailable_Implementation() const
 bool UMounteaInteractableComponentBase::HasInteractor_Implementation() const
 {
 	return !ActiveInteractorSlots.IsEmpty();
+}
+
+bool UMounteaInteractableComponentBase::IsBlockedBySiblingInteractable() const
+{
+	if (!GetOwner())
+		return false;
+
+	for (UActorComponent* siblingComponent : GetOwner()->GetComponentsByInterface(UMounteaInteractableInterface::StaticClass()))
+	{
+		if (siblingComponent == this)
+			continue;
+
+		if (IMounteaInteractableInterface::Execute_GetState(siblingComponent) == EInteractableStateV3::EIS_Active)
+			return true;
+	}
+
+	return false;
+}
+
+void UMounteaInteractableComponentBase::ReleaseAllInteractorSlots()
+{
+	for (const FInteractorSlot& slot : ActiveInteractorSlots)
+	{
+		if (slot.Interactor.GetInterface())
+		{
+			Execute_InteractorLost(this, slot.Interactor);
+			IMounteaInteractorInterface::Execute_ForceReleaseInteraction(slot.Interactor.GetObject());
+		}
+	}
+	ActiveInteractorSlots.Empty();
 }
 
 void UMounteaInteractableComponentBase::RequestInteractorJoin_Implementation(const TScriptInterface<IMounteaInteractorInterface>& RequestingInteractor)
@@ -209,21 +235,46 @@ void UMounteaInteractableComponentBase::RequestInteractorJoin_Implementation(con
 	if (bAlreadyJoined) 
 		return;
 
-	if (!Execute_IsSlotAvailable(this))
+	if (IsBlockedBySiblingInteractable())
 	{
 		OnInteractorRejected.Broadcast(RequestingInteractor);
+		IMounteaInteractorInterface::Execute_ForceReleaseInteraction(RequestingInteractor.GetObject());
 		return;
 	}
 
-	if (!RequiredInteractorTags.IsEmpty())
+	if (!Execute_IsSlotAvailable(this))
+	{
+		OnInteractorRejected.Broadcast(RequestingInteractor);
+		// StartInteraction_Implementation locks the interactor optimistically, before the join is
+		// confirmed - a rejection must undo that or the interactor stays permanently locked onto
+		// an interactable it never actually joined. Reuses ForceReleaseInteraction (already used
+		// for the EndPlay teardown case) since the effect is identical: drop the local lock without
+		// calling back into this (already-returning) interactable.
+		IMounteaInteractorInterface::Execute_ForceReleaseInteraction(RequestingInteractor.GetObject());
+		return;
+	}
+
+	if (!RequiredInteractorTags.IsEmpty() || !ExcludedInteractorTags.IsEmpty())
 	{
 		const FGameplayTag interactorTag = IMounteaInteractorInterface::Execute_GetInteractorTag(RequestingInteractor.GetObject());
 		FGameplayTagContainer interactorTags;
 		interactorTags.AddTag(interactorTag);
 
-		if (!interactorTags.HasAny(RequiredInteractorTags))
+		if (!RequiredInteractorTags.IsEmpty() && !interactorTags.HasAny(RequiredInteractorTags))
 		{
 			OnInteractorRejected.Broadcast(RequestingInteractor);
+			IMounteaInteractorInterface::Execute_ForceReleaseInteraction(RequestingInteractor.GetObject());
+			return;
+		}
+
+		// Blacklist - checked independently of (and in addition to) the whitelist above, so an
+		// interaction can stay fully set up while still being turned off for specific groups (an
+		// NPC-tagged interactor excluded from a player-only console; a rival-team-tagged interactor
+		// excluded from this team's vehicle) without touching RequiredInteractorTags at all.
+		if (!ExcludedInteractorTags.IsEmpty() && interactorTags.HasAny(ExcludedInteractorTags))
+		{
+			OnInteractorRejected.Broadcast(RequestingInteractor);
+			IMounteaInteractorInterface::Execute_ForceReleaseInteraction(RequestingInteractor.GetObject());
 			return;
 		}
 	}
@@ -240,6 +291,15 @@ void UMounteaInteractableComponentBase::RequestInteractorJoin_Implementation(con
 
 	ActiveInteractorSlots.Add(newSlot);
 	OnRep_ActiveInteractorSlots();
+
+	// A join alone never made the interactable EIS_Active - only Hover's own cursor-driven path
+	// called ActivateInteractable, so Press/Automatic/Hold/Mash could join and immediately call
+	// CompleteInteractable (below, via InteractionStarted) while still sitting at Awake, and
+	// CompleteInteractable_Implementation unconditionally rejects anything that isn't EIS_Active.
+	// ActivateInteractable's own guards make this a safe no-op if already Active, and it
+	// deliberately does NOT force a transition out of Disabled/Completed.
+	FString activateError;
+	Execute_ActivateInteractable(this, activateError);
 
 	// Reconnects the join path to the per-type interaction logic (Press/Automatic/Hold/Mash all
 	// do their real work inside InteractionStarted_Implementation). Hover bypasses this function
@@ -266,6 +326,19 @@ void UMounteaInteractableComponentBase::RequestInteractorLeave_Implementation(co
 	if (removed > 0)
 	{
 		OnRep_ActiveInteractorSlots();
+
+		Execute_InteractionStopped(this, UMounteaInteractionStatics::GetServerTime(this), LeavingInteractor);
+
+		// A stopped/canceled (not completed) interaction previously left InteractableState stuck at
+		// EIS_Active forever once the last interactor left - nothing else reverted it. Beyond being
+		// wrong on its own, this actively breaks IsBlockedBySiblingInteractable(): an actor would
+		// stay permanently blocked for every sibling interactable after a single aborted attempt.
+		// Only wake up once truly nobody is left mid-interaction (matters for MaxInteractors > 1).
+		if (ActiveInteractorSlots.IsEmpty() && InteractableState == EInteractableStateV3::EIS_Active)
+		{
+			FString wakeError;
+			Execute_WakeUpInteractable(this, wakeError);
+		}
 	}
 }
 
@@ -366,6 +439,9 @@ bool UMounteaInteractableComponentBase::CompleteInteractable_Implementation(FStr
 		Execute_InteractionLifecycleCompleted(this);
 	}
 
+	ReleaseAllInteractorSlots();
+	OnRep_ActiveInteractorSlots();
+
 	return true;
 }
 
@@ -417,7 +493,7 @@ EInteractableStateV3 UMounteaInteractableComponentBase::GetState_Implementation(
 void UMounteaInteractableComponentBase::SetState_Implementation(const EInteractableStateV3 NewState)
 {
 	if (InteractableState == NewState)
-				return;
+		return;
 
 	if (GetOwner() && !GetOwner()->HasAuthority())
 	{
@@ -432,7 +508,7 @@ void UMounteaInteractableComponentBase::SetState_Implementation(const EInteracta
 bool UMounteaInteractableComponentBase::TriggerCooldown_Implementation()
 {
 	if (!GetOwner() || !GetOwner()->HasAuthority())
-				return false;
+		return false;
 
 	Execute_SetState(this, EInteractableStateV3::EIS_Cooldown);
 
@@ -1146,7 +1222,7 @@ void UMounteaInteractableComponentBase::InteractableDependencyStoppedCallback_Im
 void UMounteaInteractableComponentBase::ToggleWidgetVisibility_Implementation(const bool IsVisible)
 {
 	// Callers (the viewing interactor's RefreshFocus() distance check, or a direct Blueprint/
-	// static request) are requesting visibility — but the interactable's own current state can
+	// static request) are requesting visibility - but the interactable's own current state can
 	// still veto it (e.g. a Disabled/Cooldown object should never show a widget just because a
 	// nearby interactor thinks it's in range). See RefreshWidgetVisibility().
 	bWidgetDistanceEligible = IsVisible;
@@ -1237,7 +1313,7 @@ void UMounteaInteractableComponentBase::OnRep_InteractableState()
 {
 	OnInteractableStateChanged.Broadcast(InteractableState);
 
-	// Coarse gate only — this no longer decides visibility directly. The fine-grained distance
+	// Coarse gate only - this no longer decides visibility directly. The fine-grained distance
 	// gate (bWidgetDistanceEligible) is owned by whichever interactor(s) currently have this
 	// interactable detected; RefreshWidgetVisibility() ANDs the two together.
 	bWidgetStateEligible =

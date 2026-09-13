@@ -127,6 +127,15 @@ public:
 	FGameplayTagContainer GetRequiredInteractorTags() const;
 	virtual FGameplayTagContainer GetRequiredInteractorTags_Implementation() const = 0;
 
+	/** Tags that disqualify an interactor (any match) from being accepted into a slot - checked
+	 *  alongside GetRequiredInteractorTags. Empty = exclude none. Lets an interaction stay fully
+	 *  set up (colliders, widgets, etc.) while still being turned off for specific groups, e.g. an
+	 *  NPC-tagged interactor excluded from a player-only console, or a Team.B-tagged interactor
+	 *  excluded from Team A's vehicle. */
+	UFUNCTION(BlueprintNativeEvent, Category="Mountea Interaction|Interactable|Slots")
+	FGameplayTagContainer GetExcludedInteractorTags() const;
+	virtual FGameplayTagContainer GetExcludedInteractorTags_Implementation() const = 0;
+
 	/** True if at least one slot is available for a new interactor. */
 	UFUNCTION(BlueprintNativeEvent, Category="Mountea Interaction|Interactable|Slots")
 	bool IsSlotAvailable() const;
