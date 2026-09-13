@@ -14,6 +14,14 @@
 
 UMounteaInteractorComponentOverlap::UMounteaInteractorComponentOverlap()
 {
+	// Overlap volumes can poke through walls into adjacent rooms - without a secondary trace
+	// validation, an interactor could detect (and interact with) something it has no real line of
+	// sight to. PerformSafetyTrace() (called from RefreshFocus() for every candidate, both Tier 1
+	// and Tier 2) already implements exactly this: a line trace from the interactor's own location
+	// to the candidate, rejected unless the trace is clear or hits the candidate itself. Trace-type
+	// interactors already enable this in their own constructor; Overlap needs it even more, since
+	// it has no line-of-sight component to its detection at all otherwise.
+	SafetyTraceSetup.SafetyTracingMode = ESafetyTracingMode::ESTM_Location;
 }
 
 void UMounteaInteractorComponentOverlap::BeginPlay()
@@ -38,7 +46,7 @@ FString UMounteaInteractorComponentOverlap::ToString_Implementation() const
 void UMounteaInteractorComponentOverlap::SetupInteractorOverlap()
 {
 	if (!GetOwner())
-				return;
+		return;
 
 	if (OverrideCollisionComponents.IsEmpty())
 	{
@@ -53,9 +61,7 @@ void UMounteaInteractorComponentOverlap::SetupInteractorOverlap()
 		for (UPrimitiveComponent* prim : prims)
 		{
 			if (IsValid(prim) && OverrideCollisionComponents.Contains(prim->GetFName()))
-			{
 				AddCollisionComponent_Implementation(prim);
-			}
 		}
 	}
 }
@@ -71,7 +77,7 @@ void UMounteaInteractorComponentOverlap::BindCollisions()
 void UMounteaInteractorComponentOverlap::BindCollision(UPrimitiveComponent* Component)
 {
 	if (!IsValid(Component))
-				return;
+		return;
 	Component->OnComponentBeginOverlap.AddUniqueDynamic(this, &UMounteaInteractorComponentOverlap::StartInteractorOverlap);
 	Component->OnComponentEndOverlap.AddUniqueDynamic(this, &UMounteaInteractorComponentOverlap::StopInteractorOverlap);
 }
@@ -87,7 +93,7 @@ void UMounteaInteractorComponentOverlap::UnbindCollisions()
 void UMounteaInteractorComponentOverlap::UnbindCollision(UPrimitiveComponent* Component)
 {
 	if (!IsValid(Component))
-				return;
+		return;
 	Component->OnComponentBeginOverlap.RemoveDynamic(this, &UMounteaInteractorComponentOverlap::StartInteractorOverlap);
 	Component->OnComponentEndOverlap.RemoveDynamic(this, &UMounteaInteractorComponentOverlap::StopInteractorOverlap);
 }
@@ -99,7 +105,7 @@ void UMounteaInteractorComponentOverlap::UnbindCollision(UPrimitiveComponent* Co
 void UMounteaInteractorComponentOverlap::AddCollisionComponent_Implementation(UPrimitiveComponent* CollisionComponent)
 {
 	if (!IsValid(CollisionComponent) || CollisionShapes.Contains(CollisionComponent))
-				return;
+		return;
 
 	if (GetOwner() && !GetOwner()->HasAuthority())
 	{
@@ -146,7 +152,7 @@ void UMounteaInteractorComponentOverlap::AddCollisionComponents_Implementation(c
 void UMounteaInteractorComponentOverlap::RemoveCollisionComponent_Implementation(UPrimitiveComponent* CollisionComponent)
 {
 	if (!IsValid(CollisionComponent) || !CollisionShapes.Contains(CollisionComponent))
-				return;
+		return;
 
 	if (GetOwner() && !GetOwner()->HasAuthority())
 	{
@@ -190,7 +196,7 @@ TArray<UPrimitiveComponent*> UMounteaInteractorComponentOverlap::GetCollisionCom
 void UMounteaInteractorComponentOverlap::StartInteractorOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (!Execute_CanInteract(this))
-				return;
+		return;
 
 	if (GetOwner() && !GetOwner()->HasAuthority())
 	{
@@ -215,7 +221,7 @@ void UMounteaInteractorComponentOverlap::StopInteractorOverlap(UPrimitiveCompone
 void UMounteaInteractorComponentOverlap::HandleStartOverlap(AActor* OtherActor)
 {
 	if (!IsValid(OtherActor))
-				return;
+		return;
 
 	TArray<UActorComponent*> interactableComps;
 	OtherActor->GetComponents(interactableComps);
@@ -223,7 +229,7 @@ void UMounteaInteractorComponentOverlap::HandleStartOverlap(AActor* OtherActor)
 	for (UActorComponent* comp : interactableComps)
 	{
 		if (!IsValid(comp) || !comp->GetClass()->ImplementsInterface(UMounteaInteractableInterface::StaticClass()))
-				continue;
+			continue;
 
 		TScriptInterface<IMounteaInteractableInterface> interactable;
 		interactable.SetObject(comp);
@@ -236,7 +242,7 @@ void UMounteaInteractorComponentOverlap::HandleStartOverlap(AActor* OtherActor)
 void UMounteaInteractorComponentOverlap::HandleEndOverlap(AActor* OtherActor)
 {
 	if (!IsValid(OtherActor))
-				return;
+		return;
 
 	TArray<UActorComponent*> interactableComps;
 	OtherActor->GetComponents(interactableComps);
@@ -244,7 +250,7 @@ void UMounteaInteractorComponentOverlap::HandleEndOverlap(AActor* OtherActor)
 	for (UActorComponent* comp : interactableComps)
 	{
 		if (!IsValid(comp) || !comp->GetClass()->ImplementsInterface(UMounteaInteractableInterface::StaticClass()))
-				continue;
+			continue;
 
 		TScriptInterface<IMounteaInteractableInterface> interactable;
 		interactable.SetObject(comp);
