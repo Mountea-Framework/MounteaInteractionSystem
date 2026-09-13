@@ -78,6 +78,7 @@ void UMounteaInteractableComponentBase::EndPlay(const EEndPlayReason::Type EndPl
 	if (GetWorld())
 	{
 		GetWorld()->GetTimerManager().ClearTimer(Timer_Cooldown);
+		GetWorld()->GetTimerManager().ClearTimer(Timer_Pause);
 	}
 
 	Super::EndPlay(EndPlayReason);
@@ -458,6 +459,15 @@ void UMounteaInteractableComponentBase::DeactivateInteractable_Implementation()
 void UMounteaInteractableComponentBase::PauseInteraction_Implementation(const float ExpirationTime, const TScriptInterface<IMounteaInteractorInterface>& CausingInteractor)
 {
 	Execute_SetState(this, EInteractableStateV3::EIS_Paused);
+
+	if (GetOwner() && GetOwner()->HasAuthority() && GetWorld() && ExpirationTime > 0.f)
+		GetWorld()->GetTimerManager().SetTimer(Timer_Pause, this, &UMounteaInteractableComponentBase::OnPauseExpired, ExpirationTime, false);
+}
+
+void UMounteaInteractableComponentBase::OnPauseExpired()
+{
+	FString err;
+	Execute_ActivateInteractable(this, err);
 }
 
 bool UMounteaInteractableComponentBase::CanInteract_Implementation() const
@@ -513,16 +523,16 @@ bool UMounteaInteractableComponentBase::TriggerCooldown_Implementation()
 	Execute_SetState(this, EInteractableStateV3::EIS_Cooldown);
 
 	if (CooldownPeriod > 0.f && GetWorld())
-	{
-		GetWorld()->GetTimerManager().SetTimer(Timer_Cooldown, [this]()
-		{
-			Execute_InteractionCooldownCompleted(this);
-			FString err;
-			Execute_WakeUpInteractable(this, err);
-		}, CooldownPeriod, false);
-	}
+		GetWorld()->GetTimerManager().SetTimer(Timer_Cooldown, this, &UMounteaInteractableComponentBase::OnCooldownTimerExpired, CooldownPeriod, false);
 
 	return true;
+}
+
+void UMounteaInteractableComponentBase::OnCooldownTimerExpired()
+{
+	Execute_InteractionCooldownCompleted(this);
+	FString err;
+	Execute_WakeUpInteractable(this, err);
 }
 
 #pragma endregion

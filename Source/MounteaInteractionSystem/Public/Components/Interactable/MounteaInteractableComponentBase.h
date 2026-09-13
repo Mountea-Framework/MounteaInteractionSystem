@@ -249,6 +249,12 @@ protected:
 	virtual void ProcessShowWidget();
 	virtual void ProcessHideWidget();
 
+	/** Timer_Cooldown callback: fires InteractionCooldownCompleted then wakes the interactable. */
+	void OnCooldownTimerExpired();
+
+	/** Timer_Pause callback: reactivates the interactable once its pause expires. */
+	void OnPauseExpired();
+
 	/** True while any OTHER IMounteaInteractableInterface component on the same actor is
 	 *  EIS_Active. Gates RequestInteractorJoin only - siblings stay visible/selectable in Tier 2
 	 *  action lists, they're just rejected (like a full slot) if actually started. */
@@ -549,6 +555,9 @@ protected:
 
 	UPROPERTY()
 	FTimerHandle Timer_Cooldown;
+
+	UPROPERTY()
+	FTimerHandle Timer_Pause;
 
 	UPROPERTY(VisibleAnywhere)
 	uint8 bInteractableInitialized : 1;
