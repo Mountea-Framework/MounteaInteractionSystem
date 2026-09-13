@@ -12,7 +12,7 @@
 
 #define LOCTEXT_NAMESPACE "MounteaInteractionWorldSubsystem"
 
-// Constant "float above origin" height for the pooled attention widget — origin-to-head-height
+// Constant "float above origin" height for the pooled attention widget - origin-to-head-height
 // varies too much across possible interactable actors (props vs. characters) to derive
 // automatically; a fixed offset is the simplest correct default for a first pass.
 static constexpr float AttentionWidgetZOffset = 100.f;
@@ -84,7 +84,7 @@ bool UMounteaInteractionWorldSubsystem::AssignAttentionWidget(AActor* FocusedAct
 		if (IsValid(Entry.WidgetActor))
 		{
 			// Attach (not a one-shot SetActorLocation, and not a Tick) so the widget keeps
-			// following FocusedActor — including under root motion/physics movement — at zero
+			// following FocusedActor - including under root motion/physics movement - at zero
 			// ongoing cost. This is per-client local work: each client's own local Subsystem
 			// instance attaches its own pool actor in its own world, nothing here replicates.
 			Entry.WidgetActor->AttachToActor(FocusedActor, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
@@ -106,7 +106,7 @@ bool UMounteaInteractionWorldSubsystem::AssignAttentionWidget(AActor* FocusedAct
 		return true;
 	}
 
-	LOG_WARNING(TEXT("[MounteaInteractionWorldSubsystem] Pool exhausted — cannot assign attention widget to %s"), *GetNameSafe(FocusedActor));
+	LOG_WARNING(TEXT("[MounteaInteractionWorldSubsystem] Pool exhausted - cannot assign attention widget to %s"), *GetNameSafe(FocusedActor));
 	return false;
 }
 
@@ -150,14 +150,12 @@ void UMounteaInteractionWorldSubsystem::UpdateAttentionWidgetMode(AActor* Actor,
 UUserWidget* UMounteaInteractionWorldSubsystem::GetWidgetForActor(const AActor* Actor) const
 {
 	if (!IsValid(Actor))
-				return nullptr;
+		return nullptr;
 
 	if (const FAttentionWidgetPoolEntry* Entry = FindEntryForActor(Actor))
 	{
 		if (IsValid(Entry->WidgetComponent))
-		{
 			return Entry->WidgetComponent->GetUserWidgetObject();
-		}
 	}
 	return nullptr;
 }
@@ -176,7 +174,7 @@ void UMounteaInteractionWorldSubsystem::SpawnPoolEntries(int32 Count, TSubclassO
 {
 	UWorld* World = GetWorld();
 	if (!World)
-				return;
+		return;
 
 	AttentionWidgetPool.Reserve(Count);
 
@@ -190,7 +188,7 @@ void UMounteaInteractionWorldSubsystem::SpawnPoolEntries(int32 Count, TSubclassO
 
 		AActor* PoolActor = World->SpawnActor<AActor>(AActor::StaticClass(), FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
 		if (!IsValid(PoolActor))
-				continue;
+			continue;
 
 		PoolActor->SetActorHiddenInGame(true);
 
@@ -199,14 +197,12 @@ void UMounteaInteractionWorldSubsystem::SpawnPoolEntries(int32 Count, TSubclassO
 		WidgetComp->SetDrawAtDesiredSize(true);
 
 		// "Float above head" offset lives here (once, at spawn) rather than being re-applied on
-		// every AssignAttentionWidget call — the pool actor itself snaps exactly to the focused
+		// every AssignAttentionWidget call - the pool actor itself snaps exactly to the focused
 		// actor's origin; this component's own relative transform is what lifts it above that.
 		WidgetComp->SetRelativeLocation(FVector(0.f, 0.f, AttentionWidgetZOffset));
 
 		if (WidgetClass)
-		{
 			WidgetComp->SetWidgetClass(WidgetClass);
-		}
 
 		// SetRootComponent() before RegisterComponent(): PoolActor is a bare AActor with no
 		// existing root, and SetActorLocation()/AttachToActor() on the actor are no-ops without
@@ -228,7 +224,7 @@ FAttentionWidgetPoolEntry* UMounteaInteractionWorldSubsystem::FindEntryForActor(
 	for (FAttentionWidgetPoolEntry& Entry : AttentionWidgetPool)
 	{
 		if (Entry.AssignedActor.Get() == Actor)
-				return &Entry;
+			return &Entry;
 	}
 	return nullptr;
 }
@@ -238,7 +234,7 @@ const FAttentionWidgetPoolEntry* UMounteaInteractionWorldSubsystem::FindEntryFor
 	for (const FAttentionWidgetPoolEntry& Entry : AttentionWidgetPool)
 	{
 		if (Entry.AssignedActor.Get() == Actor)
-				return &Entry;
+			return &Entry;
 	}
 	return nullptr;
 }
