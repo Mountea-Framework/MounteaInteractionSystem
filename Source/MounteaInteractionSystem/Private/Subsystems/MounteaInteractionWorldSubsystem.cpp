@@ -196,6 +196,14 @@ void UMounteaInteractionWorldSubsystem::SpawnPoolEntries(int32 Count, TSubclassO
 		WidgetComp->SetWidgetSpace(EWidgetSpace::World);
 		WidgetComp->SetDrawAtDesiredSize(true);
 
+		// Purely visual - this actor must never participate in any physics query. Left at its
+		// default collision profile, a UWidgetComponent blocks enough trace channels (including
+		// custom ones like the interactor's safety-trace channel) that this pool actor - parked at
+		// FVector::ZeroVector whenever it isn't actively assigned to a focused actor - could falsely
+		// block an unrelated interactor's line-of-sight validation for anything else sitting near
+		// the world origin.
+		WidgetComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
 		// "Float above head" offset lives here (once, at spawn) rather than being re-applied on
 		// every AssignAttentionWidget call - the pool actor itself snaps exactly to the focused
 		// actor's origin; this component's own relative transform is what lifts it above that.
