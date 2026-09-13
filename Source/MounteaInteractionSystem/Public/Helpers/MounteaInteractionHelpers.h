@@ -30,6 +30,9 @@ enum class EInteractableLifecycle : uint8
  * Defines how much is tracing method tolerant.
  * High Precision method will find Interactable only in middle of the camera viewport.
  * Low Precision method will find Interactable even slightly off the middle of the camera viewport.
+ *
+ * Unused - zero usages anywhere in the module. UMounteaInteractorComponentTrace actually uses
+ * EMounteaTraceType (ETT_Precise / ETT_Loose) for this same High/Low distinction.
  */
 UENUM(BlueprintType)
 enum class EInteractorPrecision : uint8
@@ -101,11 +104,11 @@ struct FCollisionShapeCache
   ResponseContainer(InResponseContainer)
  {};
 
- UPROPERTY(Category="MounteaInteraction|Collision Cache", VisibleAnywhere)
+ UPROPERTY(Category="Mountea Interaction|Collision Cache", VisibleAnywhere)
  uint8 bGenerateOverlapEvents : 1;
- UPROPERTY(Category="MounteaInteraction|Collision Cache", VisibleAnywhere)
+ UPROPERTY(Category="Mountea Interaction|Collision Cache", VisibleAnywhere)
  TEnumAsByte<ECollisionEnabled::Type> CollisionEnabled;
- UPROPERTY(Category="MounteaInteraction|Collision Cache", VisibleAnywhere)
+ UPROPERTY(Category="Mountea Interaction|Collision Cache", VisibleAnywhere)
  FCollisionResponseContainer ResponseContainer;
 	
 };
@@ -149,13 +152,13 @@ public:
     * Enables Debug in Gameplay.
     * Default: Off
     */
-    UPROPERTY(Category="MounteaInteraction|Debug", BlueprintReadWrite, EditAnywhere)
+    UPROPERTY(Category="Mountea Interaction|Debug", BlueprintReadWrite, EditAnywhere)
     uint8 DebugMode : 1;
    /**
     * Enables Warnings in Editor.
     * Default: On
     */
-    UPROPERTY(Category="MounteaInteraction|Debug", BlueprintReadWrite, EditAnywhere)
+    UPROPERTY(Category="Mountea Interaction|Debug", BlueprintReadWrite, EditAnywhere)
     uint8 EditorDebugMode : 1;
 };
 
@@ -362,7 +365,7 @@ struct FSafetyTracingSetup
 #pragma region V3_StateMachines
 
 /**
- * Interactable state machine — v5.0.
+ * Interactable state machine - v5.0.
  * Adds EIS_Attention for the distance-based widget system (in attention range but not interaction range).
  */
 UENUM(BlueprintType, meta=(ScriptName="InteractableStateV3"))
@@ -370,7 +373,7 @@ enum class EInteractableStateV3 : uint8
 {
 	EIS_Active		UMETA(DisplayName = "Active",		Tooltip = "Interactable is being interacted with."),
 	EIS_Awake		UMETA(DisplayName = "Awake",		Tooltip = "Interactable can be interacted with. Reacts to Interactors."),
-	EIS_Attention	UMETA(DisplayName = "Attention",	Tooltip = "Interactor is in attention range but not yet in interaction range. Shows attention widget. Reserved: never assigned — see EInteractionWidgetMode::EWM_Attention."),
+	EIS_Attention	UMETA(DisplayName = "Attention",	Tooltip = "Interactor is in attention range but not yet in interaction range. Shows attention widget. Reserved: never assigned - see EInteractionWidgetMode::EWM_Attention."),
 	EIS_Cooldown	UMETA(DisplayName = "Cooldown",		Tooltip = "Interactable is recovering. Will awake after cooldown."),
 	EIS_Paused		UMETA(DisplayName = "Paused",		Tooltip = "Interactable is paused. Retains progress."),
 	EIS_Completed	UMETA(DisplayName = "Finished",		Tooltip = "Interaction completed. Cannot be re-activated."),
@@ -379,7 +382,7 @@ enum class EInteractableStateV3 : uint8
 };
 
 /**
- * Interactor state machine — v5.0.
+ * Interactor state machine - v5.0.
  * EIS_Scanning replaces EIS_Awake for clarity.
  */
 UENUM(BlueprintType, meta=(ScriptName="InteractorStateV3"))
@@ -449,7 +452,7 @@ struct FInteractionActionCandidate
 	UPROPERTY(BlueprintReadOnly, Category="Candidate")
 	float CachedWeight = 0.f;
 
-	/** Squared distance at detection time — avoids sqrt for sort comparisons. */
+	/** Squared distance at detection time - avoids sqrt for sort comparisons. */
 	UPROPERTY(BlueprintReadOnly, Category="Candidate")
 	float CachedDistanceSq = 0.f;
 
@@ -501,6 +504,6 @@ struct FInteractorSlot
 
 // NOTE: FInteractorBaseSettings / FInteractableBaseSettings (pre-v5.0 bundled default-value
 // structs, and the sole remaining users of the EInteractorStateV2 / EInteractableStateV2 legacy
-// compat enums below) were removed as dead code — the four-DataAsset config split
+// compat enums below) were removed as dead code - the four-DataAsset config split
 // (UMounteaInteractorRuntimeConfig / UIConfig, UMounteaInteractableRuntimeConfig / UIConfig)
 // supersedes them. The V2 enums themselves are left in place; see their own comments.
