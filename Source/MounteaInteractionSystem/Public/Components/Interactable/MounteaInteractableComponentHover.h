@@ -24,6 +24,11 @@ class MOUNTEAINTERACTIONSYSTEM_API UMounteaInteractableComponentHover : public U
 {
 	GENERATED_BODY()
 
+	// Automation tests need to simulate cursor-hover events directly (no physical cursor exists in
+	// a headless test world) to exercise Hover's dwell/completion pipeline. Friendship isn't
+	// inherited, so this needs its own declaration even though the base classes already grant it.
+	friend struct FMounteaInteractionTestAccess;
+
 public:
 
 	UMounteaInteractableComponentHover();
