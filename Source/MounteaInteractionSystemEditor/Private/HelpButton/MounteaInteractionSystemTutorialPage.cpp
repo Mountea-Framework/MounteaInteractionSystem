@@ -150,8 +150,14 @@ TSharedRef<SWidget> SInteractionSystemTutorialPage::CreateNavigationButton(const
 				.Font_Lambda([this, PageId]()
 				{
 					return CurrentPageId == PageId
-						? FCoreStyle::GetDefaultFontStyle("Bold", 12)
-						: FCoreStyle::GetDefaultFontStyle("Regular", 10);
+						? FCoreStyle::GetDefaultFontStyle("Bold", 11)
+						: FCoreStyle::GetDefaultFontStyle("Regular", 11);
+				})
+				.ColorAndOpacity_Lambda([this, PageId]() -> FSlateColor
+				{
+					return CurrentPageId == PageId
+						? FSlateColor(FLinearColor(0.98f, 0.99f, 1.0f, 1.0f))
+						: FSlateColor::UseForeground();
 				})
 			]
 		];
@@ -162,9 +168,9 @@ TSharedRef<SWidget> SInteractionSystemTutorialPage::CreateNavigationButton(const
 		const bool bSelected = (CurrentPageId == PageId);
 		const bool bHovered = WeakButton.IsValid() && WeakButton.Pin()->IsHovered();
 
-		if (bSelected && bHovered) return FLinearColor(0.12f, 0.52f, 1.0f, 0.60f);
+		if (bSelected && bHovered) return FLinearColor(0.10f, 0.42f, 0.90f, 0.60f);
 		if (bSelected)             return FLinearColor(0.10f, 0.42f, 0.90f, 0.45f);
-		if (bHovered)              return FLinearColor(1.0f, 1.0f, 1.0f, 0.10f);
+		if (bHovered)              return FLinearColor(0.10f, 0.42f, 0.90f, 0.20f);
 		return FLinearColor::Transparent;
 	}));
 
