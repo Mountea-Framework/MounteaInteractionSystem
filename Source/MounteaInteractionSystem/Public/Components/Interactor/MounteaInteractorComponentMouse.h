@@ -40,29 +40,29 @@ protected:
 
 public:
 
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Mouse")
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor|Mouse")
 	void EnableMouseTracing();
 	virtual void EnableMouseTracing_Implementation();
 
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Mouse")
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor|Mouse")
 	void DisableMouseTracing();
 	virtual void DisableMouseTracing_Implementation();
 
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Mouse")
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor|Mouse")
 	bool CanMouseTrace() const;
 	virtual bool CanMouseTrace_Implementation() const;
 
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Mouse")
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Interactor|Mouse")
 	float GetMouseTraceRange() const;
 
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Mouse")
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor|Mouse")
 	void SetMouseTraceRange(float NewRange);
 	virtual void SetMouseTraceRange_Implementation(float NewRange);
 
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Mouse")
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Interactor|Mouse")
 	float GetMouseTraceInterval() const;
 
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Mouse")
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor|Mouse")
 	void SetMouseTraceInterval(float NewInterval);
 	virtual void SetMouseTraceInterval_Implementation(float NewInterval);
 
@@ -72,7 +72,7 @@ protected:
 	void ProcessMouseTrace();
 
 	/** Called after each trace to diff hits against DetectedSet. */
-	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Mouse")
+	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor|Mouse")
 	void PostMouseTraced();
 	virtual void PostMouseTraced_Implementation();
 

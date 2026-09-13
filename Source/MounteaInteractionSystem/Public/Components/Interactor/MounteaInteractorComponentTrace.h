@@ -104,65 +104,65 @@ protected:
 
 public:
 
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Tracing")
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor|Tracing")
 	void DisableTracing();
 	virtual void DisableTracing_Implementation();
 
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Tracing")
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor|Tracing")
 	void EnableTracing();
 	virtual void EnableTracing_Implementation();
 
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Tracing")
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor|Tracing")
 	void PauseTracing();
 	virtual void PauseTracing_Implementation();
 
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Tracing")
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor|Tracing")
 	void ResumeTracing();
 	virtual void ResumeTracing_Implementation();
 
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Tracing")
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor|Tracing")
 	bool CanTrace() const;
 	virtual bool CanTrace_Implementation() const;
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Interactor")
 	EMounteaTraceType GetTraceType() const;
 
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Tracing")
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor|Tracing")
 	void SetTraceType(const EMounteaTraceType& NewTraceType);
 	virtual void SetTraceType_Implementation(const EMounteaTraceType& NewTraceType);
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Interactor")
 	float GetTraceInterval() const;
 
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Tracing")
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor|Tracing")
 	void SetTraceInterval(const float NewInterval);
 	virtual void SetTraceInterval_Implementation(const float NewInterval);
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Interactor")
 	float GetTraceRange() const;
 
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Tracing")
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor|Tracing")
 	void SetTraceRange(const float NewRange);
 	virtual void SetTraceRange_Implementation(const float NewRange);
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Interactor")
 	float GetTraceShapeHalfSize() const;
 
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Tracing")
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor|Tracing")
 	void SetTraceShapeHalfSize(const float NewTraceShapeHalfSize);
 	virtual void SetTraceShapeHalfSize_Implementation(const float NewTraceShapeHalfSize);
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Interactor")
 	bool GetUseCustomStartTransform() const;
 
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Tracing")
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor|Tracing")
 	void SetUseCustomStartTransform(const bool bUse);
 	virtual void SetUseCustomStartTransform_Implementation(const bool bUse);
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Interactor")
 	FTracingData GetLastTracingData() const;
 
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Tracing")
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor|Tracing")
 	void SetCustomTraceStart(const FTransform& TraceStart);
 	virtual void SetCustomTraceStart_Implementation(const FTransform& TraceStart);
 
@@ -171,7 +171,7 @@ public:
 
 protected:
 
-	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Tracing")
+	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor|Tracing")
 	void ProcessTrace();
 	virtual void ProcessTrace_Implementation();
 
@@ -179,7 +179,7 @@ protected:
 	virtual void ProcessTrace_Loose(FInteractionTraceDataV2& TraceData);
 
 	/** Called after each trace completes. Diffs hits against DetectedSet. */
-	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Tracing")
+	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor|Tracing")
 	void PostTraced();
 	virtual void PostTraced_Implementation();
 

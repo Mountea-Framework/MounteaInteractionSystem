@@ -331,7 +331,7 @@ protected:
 
 public:
 
-	UFUNCTION(BlueprintCallable, CallInEditor, Category="MounteaInteraction")
+	UFUNCTION(BlueprintCallable, CallInEditor, Category="Mountea|Interaction|Interactor|Setup")
 	void SetDefaultValues();
 
 #endif

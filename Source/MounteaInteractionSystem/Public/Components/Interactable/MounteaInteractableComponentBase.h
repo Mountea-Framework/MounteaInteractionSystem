@@ -273,7 +273,7 @@ protected:
 
 #if WITH_EDITOR
 public:
-	UFUNCTION(BlueprintCallable, Category="MounteaInteraction")
+	UFUNCTION(BlueprintCallable, Category="Mountea|Interaction|Interactable|Setup")
 	void SetDefaultValues();
 #endif
 
