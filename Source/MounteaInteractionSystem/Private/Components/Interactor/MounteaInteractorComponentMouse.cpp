@@ -58,18 +58,22 @@ void UMounteaInteractorComponentMouse::ProcessStateChanged()
 void UMounteaInteractorComponentMouse::EnableMouseTracing_Implementation()
 {
 	if (!GetOwner())
-				return;
-
-	if (!GetOwner()->HasAuthority())
-	{
-		EnableMouseTracing_Server();
 		return;
-	}
+
+	// DeprojectMousePositionToWorld needs a real local viewport - the server has no meaningful
+	// mouse position for a remote client's controller. Gate on local control, not authority: this
+	// runs on each autonomous proxy and the listen-server host, never on the server's non-local
+	// view of a remote player's controller. Detected hits still reach the server authoritatively
+	// via ReportHitActors_Server inside ProcessMouseTrace() (mirrors how Overlap/Trace re-derive
+	// DetectedSet locally on every instance instead of replicating it).
+	const APlayerController* ownerController = GetOwnerPlayerController();
+	if (!ownerController || !ownerController->IsLocalController())
+		return;
 
 	if (!GetWorld())
-				return;
+		return;
 	if (GetWorld()->GetTimerManager().IsTimerActive(Timer_MouseTicking))
-				return;
+		return;
 
 	GetWorld()->GetTimerManager().SetTimer(
 		Timer_MouseTicking,
@@ -84,18 +88,10 @@ void UMounteaInteractorComponentMouse::EnableMouseTracing_Implementation()
 void UMounteaInteractorComponentMouse::DisableMouseTracing_Implementation()
 {
 	if (!GetOwner())
-				return;
-
-	if (!GetOwner()->HasAuthority())
-	{
-		DisableMouseTracing_Server();
 		return;
-	}
 
 	if (GetWorld())
-	{
 		GetWorld()->GetTimerManager().ClearTimer(Timer_MouseTicking);
-	}
 
 	ClearDetected();
 	LastMouseTraceHits.Reset();
@@ -112,11 +108,11 @@ bool UMounteaInteractorComponentMouse::CanMouseTrace_Implementation() const
 void UMounteaInteractorComponentMouse::ProcessMouseTrace()
 {
 	if (!CanMouseTrace())
-				return;
+		return;
 
 	APlayerController* playerController = GetOwnerPlayerController();
 	if (!playerController)
-				return;
+		return;
 
 	FVector worldOrigin;
 	FVector worldDirection;
@@ -189,30 +185,36 @@ void UMounteaInteractorComponentMouse::PostMouseTraced_Implementation()
 
 	for (const TScriptInterface<IMounteaInteractableInterface>& hit : LastMouseTraceHits)
 	{
-		if (!DetectedSet.Contains(hit)) toAdd.Add(hit);
+		if (!DetectedSet.Contains(hit)) 
+			toAdd.Add(hit);
 	}
 
 	for (const TScriptInterface<IMounteaInteractableInterface>& existing : DetectedSet)
 	{
-		if (!LastMouseTraceHits.Contains(existing)) toRemove.Add(existing);
+		if (!LastMouseTraceHits.Contains(existing)) 
+			toRemove.Add(existing);
 	}
 
-	for (const auto& item : toAdd)    { AddDetected(item); }
-	for (const auto& item : toRemove) { RemoveDetected(item); }
+	for (const auto& item : toAdd)
+	{ 
+		AddDetected(item); 
+	}
+	for (const auto& item : toRemove) 
+	{
+		 RemoveDetected(item); 
+	}
 }
 
 APlayerController* UMounteaInteractorComponentMouse::GetOwnerPlayerController() const
 {
 	if (!GetOwner())
-				return nullptr;
+		return nullptr;
 
 	if (APlayerController* pc = Cast<APlayerController>(GetOwner()))
-				return pc;
+		return pc;
 
 	if (APawn* pawn = Cast<APawn>(GetOwner()))
-	{
 		return Cast<APlayerController>(pawn->GetController());
-	}
 
 	return nullptr;
 }
@@ -226,19 +228,29 @@ float UMounteaInteractorComponentMouse::GetMouseTraceRange() const { return Mous
 void UMounteaInteractorComponentMouse::SetMouseTraceRange_Implementation(float NewRange)
 {
 	if (!GetOwner())
-				return;
-	if (!GetOwner()->HasAuthority()) { SetMouseTraceRange_Server(NewRange); return; }
+		return;
+	if (!GetOwner()->HasAuthority()) 
+	{ 
+		SetMouseTraceRange_Server(NewRange); 
+		return; 
+	}
 
 	MouseTraceRange = FMath::Max(1.f, NewRange);
 }
 
-float UMounteaInteractorComponentMouse::GetMouseTraceInterval() const { return MouseTraceInterval; }
+float UMounteaInteractorComponentMouse::GetMouseTraceInterval() const 
+{ 
+	return MouseTraceInterval; 
+}
 
 void UMounteaInteractorComponentMouse::SetMouseTraceInterval_Implementation(float NewInterval)
 {
 	if (!GetOwner())
-				return;
-	if (!GetOwner()->HasAuthority()) { SetMouseTraceInterval_Server(NewInterval); return; }
+		return;
+	if (!GetOwner()->HasAuthority()) 
+	{ 
+		SetMouseTraceInterval_Server(NewInterval); return; 
+	}
 
 	MouseTraceInterval = FMath::Max(0.01f, NewInterval);
 
@@ -258,16 +270,6 @@ void UMounteaInteractorComponentMouse::SetMouseTraceInterval_Implementation(floa
 #pragma endregion
 
 #pragma region Networking
-
-void UMounteaInteractorComponentMouse::EnableMouseTracing_Server_Implementation()
-{
-	EnableMouseTracing_Implementation();
-}
-
-void UMounteaInteractorComponentMouse::DisableMouseTracing_Server_Implementation()
-{
-	DisableMouseTracing_Implementation();
-}
 
 void UMounteaInteractorComponentMouse::SetMouseTraceRange_Server_Implementation(float NewRange)
 {
@@ -312,5 +314,4 @@ void UMounteaInteractorComponentMouse::ReportHitActors_Server_Implementation(con
 }
 
 #pragma endregion
-
 #undef LOCTEXT_NAMESPACE

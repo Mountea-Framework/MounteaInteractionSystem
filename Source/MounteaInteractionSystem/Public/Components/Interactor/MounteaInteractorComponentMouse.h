@@ -81,19 +81,18 @@ protected:
 
 protected:
 
-	UFUNCTION(Server, Reliable)
-	void EnableMouseTracing_Server();
-
-	UFUNCTION(Server, Reliable)
-	void DisableMouseTracing_Server();
-
 	UFUNCTION(Server, Unreliable)
 	void SetMouseTraceRange_Server(float NewRange);
 
 	UFUNCTION(Server, Unreliable)
 	void SetMouseTraceInterval_Server(float NewInterval);
 
-	UFUNCTION(Server, Reliable)
+	/** Reports the local trace's hit actors so the server's own copy of this component can build
+	 *  a matching DetectedSet - the server has no independent way to derive "what's under this
+	 *  client's mouse cursor" the way it can re-simulate Overlap/Trace detection identically on
+	 *  both sides. Unreliable: fires at ~MouseTraceInterval Hz; a dropped report is superseded by
+	 *  the next trace tick moments later. */
+	UFUNCTION(Server, Unreliable)
 	void ReportHitActors_Server(const TArray<AActor*>& HitActors);
 
 public:
