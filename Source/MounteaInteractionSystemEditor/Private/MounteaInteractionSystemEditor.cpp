@@ -127,7 +127,28 @@ void FMounteaInteractionSystemEditor::StartupModule()
 
 	// Auto-register named collision channels in DefaultEngine.ini if missing
 	{
-		EnsureInteractionChannels();
+		const EMounteaInteractionChannelSetupResult result = EnsureInteractionChannels();
+		if (result == EMounteaInteractionChannelSetupResult::ActivatedNow)
+		{
+			FMounteaInteractionEditorNotify::DisplayNotification(
+				FText::FromString(TEXT("Mountea Interaction System: interaction collision channels have been set up and activated.")),
+				SNotificationItem::CS_Success, 5.0f, 2.0f, TEXT("NotificationList.SuccessImage")
+			);
+		}
+		else if (result == EMounteaInteractionChannelSetupResult::PendingRestart)
+		{
+			FMounteaInteractionEditorNotify::DisplayNotification(
+				FText::FromString(TEXT("Mountea Interaction System: collision channels added to DefaultEngine.ini. Restart the editor to fully apply them.")),
+				SNotificationItem::CS_Fail, 10.0f, 3.0f, TEXT("MessageLog.Warning")
+			);
+		}
+		else if (result == EMounteaInteractionChannelSetupResult::NoFreeSlots)
+		{
+			FMounteaInteractionEditorNotify::DisplayNotification(
+				FText::FromString(TEXT("Mountea Interaction System: could not register interaction collision channels — no free collision channel slot is available.")),
+				SNotificationItem::CS_Fail, 10.0f, 3.0f, TEXT("MessageLog.Error")
+			);
+		}
 	}
 
 	// Try to request Changelog from GitHub & GameplayTags
@@ -275,9 +296,66 @@ void FMounteaInteractionSystemEditor::StartupModule()
 	}
 }
 
-void FMounteaInteractionSystemEditor::EnsureInteractionChannels()
+namespace
 {
-	if (!GConfig) return;
+	// Appends the given lines to the [/Script/Engine.CollisionProfile] section of the project's
+	// DefaultEngine.ini, using raw text so the caller can control the "+" array-append operator.
+	//
+	// This MUST use "+Key=Value" and not FConfigFile::SetArray()+Write(), which emits plain
+	// "Key=Value" lines. When such a plain line is later re-parsed as part of the ini hierarchy
+	// merge (FConfigFile::ProcessCommand, EValueType::Set), it REPLACES the first existing value
+	// found for that key instead of appending — silently discarding any other custom collision
+	// channel already registered under DefaultChannelResponses (including ones added by this same
+	// function in a prior, buggy version). Only "+" (ArrayAdd) is guaranteed to append.
+	bool WriteInteractionCollisionChannelLines(const TArray<FString>& NewPlusPrefixedLines)
+	{
+		const FString IniPath = FPaths::ProjectConfigDir() / TEXT("DefaultEngine.ini");
+		static const FString SectionHeader = TEXT("[/Script/Engine.CollisionProfile]");
+		static const FString ArrayKeyPlain = TEXT("DefaultChannelResponses=");
+
+		TArray<FString> lines;
+		FFileHelper::LoadFileToStringArray(lines, *IniPath);
+
+		// Migration: strip any legacy plain (non "+") InteractionOverlap/InteractionTrace lines —
+		// these are the corrupt leftovers of the bug described above and must not be left in place.
+		lines.RemoveAll([](const FString& line)
+		{
+			const FString trimmed = line.TrimStartAndEnd();
+			if (trimmed.StartsWith(TEXT("+"))) return false;
+			return trimmed.StartsWith(ArrayKeyPlain)
+				&& (trimmed.Contains(TEXT("InteractionOverlap")) || trimmed.Contains(TEXT("InteractionTrace")));
+		});
+
+		const int32 sectionIndex = lines.IndexOfByPredicate([](const FString& line)
+		{
+			return line.TrimStartAndEnd().Equals(SectionHeader);
+		});
+
+		if (sectionIndex == INDEX_NONE)
+		{
+			if (lines.Num() > 0 && !lines.Last().IsEmpty())
+				lines.Add(FString());
+			lines.Add(SectionHeader);
+			lines.Append(NewPlusPrefixedLines);
+		}
+		else
+		{
+			int32 insertIndex = sectionIndex + 1;
+			while (insertIndex < lines.Num() && !lines[insertIndex].TrimStartAndEnd().StartsWith(TEXT("[")))
+				++insertIndex;
+			lines.Insert(NewPlusPrefixedLines, insertIndex);
+		}
+
+		return FFileHelper::SaveStringArrayToFile(lines, *IniPath);
+	}
+}
+
+EMounteaInteractionChannelSetupResult FMounteaInteractionSystemEditor::EnsureInteractionChannels()
+{
+	if (!GConfig) return EMounteaInteractionChannelSetupResult::NoFreeSlots;
+
+	static const TCHAR* Section = TEXT("/Script/Engine.CollisionProfile");
+	static const TCHAR* ArrayKey = TEXT("DefaultChannelResponses");
 
 	// Fast path: both channels already loaded by the collision profile at runtime
 	auto channelExists = [](const FName& Name) -> bool
@@ -291,45 +369,28 @@ void FMounteaInteractionSystemEditor::EnsureInteractionChannels()
 		}
 		return false;
 	};
-	if (channelExists(FName("InteractionOverlap")) && channelExists(FName("InteractionTrace"))) return;
+	if (channelExists(FName("InteractionOverlap")) && channelExists(FName("InteractionTrace")))
+		return EMounteaInteractionChannelSetupResult::AlreadyActive;
 
-	static const TCHAR* Section = TEXT("/Script/Engine.CollisionProfile");
-	const FString iniPath = FPaths::ProjectConfigDir() / TEXT("DefaultEngine.ini");
+	// Work from the live, already-merged in-memory config — this is exactly what UCollisionProfile reads.
+	TArray<FString> mergedEntries;
+	GConfig->GetArray(Section, ArrayKey, mergedEntries, GEngineIni);
 
-	// Read the project DefaultEngine.ini from disk to detect already-pending additions
-	// (written in a previous session but not yet visible to the collision profile at runtime)
-	FConfigFile projectConfig;
-	if (FPaths::FileExists(iniPath))
-		projectConfig.Read(iniPath);
-
-	TArray<FString> projectEntries;
-	projectConfig.GetArray(Section, TEXT("DefaultChannelResponses"), projectEntries);
-
-	auto hasEntry = [&projectEntries](const TCHAR* Name) -> bool
+	auto hasEntry = [](const TArray<FString>& entries, const TCHAR* Name) -> bool
 	{
-		for (const FString& e : projectEntries)
+		for (const FString& e : entries)
 			if (e.Contains(Name)) return true;
 		return false;
 	};
-	if (hasEntry(TEXT("InteractionOverlap")) && hasEntry(TEXT("InteractionTrace"))) return;
-
-	// Collect all ECC_GameTraceChannelN slots already in use (merged + project file)
-	TArray<FString> mergedEntries;
-	GConfig->GetArray(Section, TEXT("DefaultChannelResponses"), mergedEntries, GEngineIni);
 
 	TSet<int32> usedSlots;
-	auto markSlots = [&usedSlots](const TArray<FString>& entries)
-	{
-		for (const FString& e : entries)
-			for (int32 i = 1; i <= 18; i++)
-				if (e.Contains(FString::Printf(TEXT("ECC_GameTraceChannel%d"), i)))
-				{
-					usedSlots.Add(i);
-					break;
-				}
-	};
-	markSlots(mergedEntries);
-	markSlots(projectEntries);
+	for (const FString& e : mergedEntries)
+		for (int32 i = 1; i <= 18; i++)
+			if (e.Contains(FString::Printf(TEXT("ECC_GameTraceChannel%d"), i)))
+			{
+				usedSlots.Add(i);
+				break;
+			}
 
 	int32 nextFree = 1;
 	auto grabFreeSlot = [&]() -> int32
@@ -341,41 +402,71 @@ void FMounteaInteractionSystemEditor::EnsureInteractionChannels()
 	};
 
 	bool dirty = false;
+	bool anySlotFailed = false;
+	TArray<FString> newDiskLines;
 
-	if (!hasEntry(TEXT("InteractionOverlap")))
+	if (!hasEntry(mergedEntries, TEXT("InteractionOverlap")))
 	{
 		const int32 slot = grabFreeSlot();
 		if (slot > 0)
 		{
-			projectEntries.Add(FString::Printf(
+			const FString entry = FString::Printf(
 				TEXT("(Channel=ECC_GameTraceChannel%d,DefaultResponse=ECR_Ignore,bTraceType=False,bStaticObject=False,Name=\"InteractionOverlap\")"),
-				slot));
+				slot);
+			mergedEntries.Add(entry);
+			newDiskLines.Add(FString::Printf(TEXT("+%s=%s"), ArrayKey, *entry));
 			dirty = true;
+		}
+		else
+		{
+			anySlotFailed = true;
 		}
 	}
 
-	if (!hasEntry(TEXT("InteractionTrace")))
+	if (!hasEntry(mergedEntries, TEXT("InteractionTrace")))
 	{
 		const int32 slot = grabFreeSlot();
 		if (slot > 0)
 		{
-			projectEntries.Add(FString::Printf(
+			const FString entry = FString::Printf(
 				TEXT("(Channel=ECC_GameTraceChannel%d,DefaultResponse=ECR_Block,bTraceType=True,bStaticObject=False,Name=\"InteractionTrace\")"),
-				slot));
+				slot);
+			mergedEntries.Add(entry);
+			newDiskLines.Add(FString::Printf(TEXT("+%s=%s"), ArrayKey, *entry));
 			dirty = true;
+		}
+		else
+		{
+			anySlotFailed = true;
 		}
 	}
 
-	if (!dirty) return;
+	if (!dirty)
+	{
+		EDITOR_LOG_ERROR(TEXT("Mountea Interaction System: no free ECC_GameTraceChannel slot is available to register the interaction collision channels."));
+		return EMounteaInteractionChannelSetupResult::NoFreeSlots;
+	}
 
-	projectConfig.SetArray(Section, TEXT("DefaultChannelResponses"), projectEntries);
-	projectConfig.Write(iniPath);
+	// Persist to disk with the "+" append operator so the channels survive future restarts.
+	if (!WriteInteractionCollisionChannelLines(newDiskLines))
+		EDITOR_LOG_ERROR(TEXT("Mountea Interaction System: failed to write interaction collision channels to DefaultEngine.ini."));
 
-	FMounteaInteractionEditorNotify::DisplayNotification(
-		FText::FromString(TEXT("Mountea Interaction System: collision channels added to DefaultEngine.ini. Restart the editor to fully apply them.")),
-		SNotificationItem::CS_Fail, 10.0f, 3.0f, TEXT("MessageLog.Warning")
-	);
-	EDITOR_LOG_WARNING(TEXT("Mountea Interaction System: InteractionOverlap and/or InteractionTrace collision channels written to DefaultEngine.ini. Please restart the editor."));
+	// Patch the live merged config and force the collision profile to reload from it immediately,
+	// so the channels become usable in this session without requiring an editor restart.
+	GConfig->SetArray(Section, ArrayKey, mergedEntries, GEngineIni);
+	UCollisionProfile::Get()->ReloadConfig();
+
+	if (anySlotFailed)
+		EDITOR_LOG_ERROR(TEXT("Mountea Interaction System: at least one interaction collision channel could not be registered — no free ECC_GameTraceChannel slot was available."));
+
+	if (channelExists(FName("InteractionOverlap")) && channelExists(FName("InteractionTrace")))
+	{
+		EDITOR_LOG_WARNING(TEXT("Mountea Interaction System: InteractionOverlap and InteractionTrace collision channels are now active."));
+		return EMounteaInteractionChannelSetupResult::ActivatedNow;
+	}
+
+	EDITOR_LOG_WARNING(TEXT("Mountea Interaction System: InteractionOverlap and/or InteractionTrace collision channels written to DefaultEngine.ini, but could not be hot-reloaded. Please restart the editor."));
+	return EMounteaInteractionChannelSetupResult::PendingRestart;
 }
 
 void FMounteaInteractionSystemEditor::ShutdownModule()
@@ -623,25 +714,28 @@ void FMounteaInteractionSystemEditor::LauncherButtonClicked() const
 
 void FMounteaInteractionSystemEditor::SetupChannelsButtonClicked() const
 {
-	auto channelExistsInProfile = [](const FName& Name) -> bool
-	{
-		UCollisionProfile* profile = UCollisionProfile::Get();
-		if (!profile) return false;
-		for (int32 i = static_cast<int32>(ECC_GameTraceChannel1); i <= static_cast<int32>(ECC_GameTraceChannel18); ++i)
-			if (profile->ReturnChannelNameFromContainerIndex(i) == Name) return true;
-		return false;
-	};
+	const EMounteaInteractionChannelSetupResult result = EnsureInteractionChannels();
 
-	if (channelExistsInProfile(FName("InteractionOverlap")) && channelExistsInProfile(FName("InteractionTrace")))
+	FText title = LOCTEXT("SetupChannels_Title", "Mountea Interaction — Setup Interaction Channels");
+	FText message;
+
+	switch (result)
 	{
-		FMounteaInteractionEditorNotify::DisplayNotification(
-			FText::FromString(TEXT("Mountea Interaction: collision channels are already configured.")),
-			SNotificationItem::CS_Success, 5.0f, 2.0f, TEXT("NotificationList.DefaultMessage")
-		);
-		return;
+	case EMounteaInteractionChannelSetupResult::AlreadyActive:
+		message = LOCTEXT("SetupChannels_AlreadyActive", "Collision channels are already configured and active. No action needed.");
+		break;
+	case EMounteaInteractionChannelSetupResult::ActivatedNow:
+		message = LOCTEXT("SetupChannels_ActivatedNow", "Collision channels have been added to DefaultEngine.ini and are now active. No restart needed.");
+		break;
+	case EMounteaInteractionChannelSetupResult::PendingRestart:
+		message = LOCTEXT("SetupChannels_PendingRestart", "Collision channels were written to DefaultEngine.ini, but could not be activated in this session. Please restart the editor to apply them.");
+		break;
+	case EMounteaInteractionChannelSetupResult::NoFreeSlots:
+		message = LOCTEXT("SetupChannels_NoFreeSlots", "Could not set up interaction collision channels: no free collision channel slot (ECC_GameTraceChannel1-18) is available. Free up a slot in Project Settings > Collision and try again.");
+		break;
 	}
 
-	EnsureInteractionChannels();
+	FMessageDialog::Open(EAppMsgType::Ok, message, title);
 }
 
 void FMounteaInteractionSystemEditor::RegisterTabSpawners(const TSharedRef<FTabManager>& TabManager)

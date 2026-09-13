@@ -11,6 +11,14 @@ class FHttpModule;
 
 DECLARE_LOG_CATEGORY_EXTERN(MounteaInteractionSystemEditor, All, All);
 
+enum class EMounteaInteractionChannelSetupResult : uint8
+{
+	AlreadyActive,		// Both channels were already loaded by the collision profile
+	ActivatedNow,		// Missing channels were written to DefaultEngine.ini AND hot-reloaded into the live collision profile — no restart needed
+	PendingRestart,		// Channels were written/patched but the live collision profile still doesn't report them active; a restart is needed
+	NoFreeSlots			// No free ECC_GameTraceChannel slot was available to write a missing channel
+};
+
 class FMounteaInteractionSystemEditor : public IModuleInterface
 {
 public:
@@ -57,7 +65,7 @@ private:
 
 	void RegisterMenus();
 
-	static void EnsureInteractionChannels();
+	static EMounteaInteractionChannelSetupResult EnsureInteractionChannels();
 
 	void OnGetResponse(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
 	UFUNCTION() void SendHTTPGet();
