@@ -14,16 +14,14 @@
 float UMounteaInteractionStatics::GetServerTime(const UObject* WorldContext)
 {
 	if (!WorldContext)
-				return 0.f;
+		return 0.f;
 
 	const UWorld* world = GEngine->GetWorldFromContextObject(WorldContext, EGetWorldErrorMode::ReturnNull);
 	if (!world)
-				return 0.f;
+		return 0.f;
 
 	if (const AGameStateBase* gameState = world->GetGameState())
-	{
 		return gameState->GetServerWorldTimeSeconds();
-	}
 
 	LOG_WARNING(TEXT("[MounteaInteractionStatics] GetServerTime: no GameState yet, falling back to local time"));
 	return world->GetTimeSeconds();
@@ -34,18 +32,18 @@ bool UMounteaInteractionStatics::CanInteractorJoinSlot(
 	const TScriptInterface<IMounteaInteractorInterface>& Interactor)
 {
 	if (!Interactable.GetObject() || !Interactor.GetObject())
-				return false;
+		return false;
 	if (!Interactable->Execute_IsSlotAvailable(Interactable.GetObject()))
-				return false;
+		return false;
 	if (!Interactable->Execute_CanBeTriggered(Interactable.GetObject()))
-				return false;
+		return false;
 
 	const FGameplayTagContainer requiredTags = Interactable->Execute_GetRequiredInteractorTags(Interactable.GetObject());
 	if (!requiredTags.IsEmpty())
 	{
 		const FGameplayTag interactorTag = Interactor->Execute_GetInteractorTag(Interactor.GetObject());
 		if (!requiredTags.HasTag(interactorTag))
-				return false;
+			return false;
 	}
 
 	return true;
@@ -56,7 +54,7 @@ void UMounteaInteractionStatics::SortActionCandidates(TArray<FInteractionActionC
 	Candidates.Sort([](const FInteractionActionCandidate& A, const FInteractionActionCandidate& B)
 	{
 		if (A.CachedWeight != B.CachedWeight)
-				return A.CachedWeight > B.CachedWeight;
+			return A.CachedWeight > B.CachedWeight;
 		return A.CachedDistanceSq < B.CachedDistanceSq;
 	});
 }
@@ -67,7 +65,7 @@ TArray<FInteractionActionCandidate> UMounteaInteractionStatics::BuildActionCandi
 {
 	TArray<FInteractionActionCandidate> candidates;
 	if (!IsValid(Actor))
-				return candidates;
+		return candidates;
 
 	const float distSq = FVector::DistSquared(Actor->GetActorLocation(), ViewOrigin);
 
@@ -75,16 +73,16 @@ TArray<FInteractionActionCandidate> UMounteaInteractionStatics::BuildActionCandi
 	for (UActorComponent* comp : interactableComps)
 	{
 		if (!IsValid(comp))
-				continue;
+			continue;
 
 		TScriptInterface<IMounteaInteractableInterface> interactable;
 		interactable.SetObject(comp);
 		interactable.SetInterface(Cast<IMounteaInteractableInterface>(comp));
 
 		if (!interactable.GetInterface())
-				continue;
+			continue;
 		if (!IMounteaInteractableInterface::Execute_CanBeTriggered(comp))
-				continue;
+			continue;
 
 		FInteractionActionCandidate candidate;
 		candidate.Interactable = interactable;
@@ -108,11 +106,11 @@ AActor* UMounteaInteractionStatics::SelectBestFocusActor(
 	for (const TScriptInterface<IMounteaInteractableInterface>& Interactable : DetectedInteractables)
 	{
 		if (!Interactable.GetObject())
-				continue;
+			continue;
 
 		AActor* owner = Interactable->Execute_GetOwningActor(Interactable.GetObject());
 		if (!IsValid(owner))
-				continue;
+			continue;
 
 		const int32 weight = Interactable->Execute_GetInteractableWeight(Interactable.GetObject());
 		const float distSq = FVector::DistSquared(owner->GetActorLocation(), ViewOrigin);
@@ -134,11 +132,11 @@ bool UMounteaInteractionStatics::IsInteractableInRange(
 	const float RangeCm)
 {
 	if (!Interactable.GetObject())
-				return false;
+		return false;
 
 	AActor* owner = Interactable->Execute_GetOwningActor(Interactable.GetObject());
 	if (!IsValid(owner))
-				return false;
+		return false;
 
 	return FVector::DistSquared(owner->GetActorLocation(), ViewOrigin) <= FMath::Square(RangeCm);
 }
@@ -157,11 +155,11 @@ TScriptInterface<IMounteaInteractableInterface> UMounteaInteractionStatics::GetF
 {
 	TScriptInterface<IMounteaInteractableInterface> result;
 	if (!IsValid(Actor))
-				return result;
+		return result;
 
 	TArray<UActorComponent*> comps = Actor->GetComponentsByInterface(UMounteaInteractableInterface::StaticClass());
 	if (comps.IsEmpty())
-				return result;
+		return result;
 
 	UActorComponent* first = comps[0];
 	result.SetObject(first);
@@ -173,11 +171,11 @@ TScriptInterface<IMounteaInteractorInterface> UMounteaInteractionStatics::GetFir
 {
 	TScriptInterface<IMounteaInteractorInterface> result;
 	if (!IsValid(Actor))
-				return result;
+		return result;
 
 	TArray<UActorComponent*> comps = Actor->GetComponentsByInterface(UMounteaInteractorInterface::StaticClass());
 	if (comps.IsEmpty())
-				return result;
+		return result;
 
 	UActorComponent* first = comps[0];
 	result.SetObject(first);
@@ -207,7 +205,7 @@ ECollisionChannel UMounteaInteractionStatics::ResolveChannelOrWarn(const FName& 
 {
 	if (ChannelName.IsNone())
 	{
-		LOG_WARNING(TEXT("ResolveChannelOrWarn: ChannelName is None — returning ECC_MAX."));
+		LOG_WARNING(TEXT("ResolveChannelOrWarn: ChannelName is None - returning ECC_MAX."));
 		return ECC_MAX;
 	}
 
@@ -215,7 +213,7 @@ ECollisionChannel UMounteaInteractionStatics::ResolveChannelOrWarn(const FName& 
 	const ECollisionChannel channel = ResolveInteractionChannel(ChannelName, bFound);
 	if (!bFound)
 	{
-		LOG_WARNING(TEXT("ResolveChannelOrWarn: Channel '%s' not registered in collision profile — returning ECC_MAX."), *ChannelName.ToString());
+		LOG_WARNING(TEXT("ResolveChannelOrWarn: Channel '%s' not registered in collision profile - returning ECC_MAX."), *ChannelName.ToString());
 	}
 	return channel;
 }
