@@ -163,38 +163,38 @@ protected:
 	void StopInteraction_Server(const float StopTime);
 
 	/** Server-side mirror of a client's local CycleAction prediction. Recomputes the clamped
-	 *  index from Direction + the server's own ActionList — never trusts a client-sent absolute
+	 *  index from Direction + the server's own ActionList - never trusts a client-sent absolute
 	 *  index. Unreliable: a dropped call self-heals via HighlightedActionIndex's own replication. */
 	UFUNCTION(Server, Unreliable, WithValidation)
 	void CycleAction_Server(const int32 Direction);
 
-	UFUNCTION(Server, Unreliable)
+	UFUNCTION(Server, Unreliable, WithValidation)
 	void SetResponseChannel_Server(const ECollisionChannel NewResponseCollision);
 
-	UFUNCTION(Server, Unreliable)
+	UFUNCTION(Server, Unreliable, WithValidation)
 	void SetDefaultState_Server(const EInteractorStateV3 NewState);
 
-	UFUNCTION(Server, Unreliable)
+	UFUNCTION(Server, Unreliable, WithValidation)
 	void SetInteractorTag_Server(const FGameplayTag& NewInteractorTag);
 
-	UFUNCTION(Server, Unreliable)
+	UFUNCTION(Server, Unreliable, WithValidation)
 	void AddIgnoredActor_Server(AActor* IgnoredActor);
 
-	UFUNCTION(Server, Unreliable)
+	UFUNCTION(Server, Unreliable, WithValidation)
 	void RemoveIgnoredActor_Server(AActor* IgnoredActor);
 
-	UFUNCTION(Server, Unreliable)
+	UFUNCTION(Server, Unreliable, WithValidation)
 	void SetSafetyTracingSetup_Server(const FSafetyTracingSetup& NewSafetyTracingSetup);
 
 	UFUNCTION()
 	void OnRep_InteractorState();
 
 	/** Engine-invoked on the owning client when the server's authoritative HighlightedActionIndex
-	 *  replicates in — corrects any client-side misprediction from CycleAction_Implementation. */
+	 *  replicates in - corrects any client-side misprediction from CycleAction_Implementation. */
 	UFUNCTION()
 	void OnRep_HighlightedActionIndex();
 
-	/** Broadcasts the state-changed delegates. Called by ProcessStateChanged() — the base
+	/** Broadcasts the state-changed delegates. Called by ProcessStateChanged() - the base
 	 *  implementation of the hook subclasses override to bind/unbind detection on transition. */
 	void BroadcastStateChanged();
 
@@ -270,7 +270,13 @@ protected:
 	UPROPERTY(Replicated, EditAnywhere, Category="Mountea Interaction|Optional")
 	TArray<TObjectPtr<AActor>> ListOfIgnoredActors;
 
-	UPROPERTY(EditAnywhere, Category="MounteaInteraction|Debug")
+	/** Caps how many candidates RefreshFocus() keeps in ActionList for the focused actor.
+	 *  Populated from UMounteaInteractorRuntimeConfig::MaxCandidatesPerActor by SetDefaults();
+	 *  not replicated - each client derives its own ActionList locally from the same config. */
+	UPROPERTY(EditAnywhere, Category="Mountea Interaction|Required", meta=(UIMin=1, ClampMin=1))
+	int32 MaxCandidatesPerActor = 8;
+
+	UPROPERTY(EditAnywhere, Category="Mountea Interaction|Debug")
 	FDebugSettings DebugSettings;
 
 	UPROPERTY(ReplicatedUsing=OnRep_InteractorState, VisibleAnywhere, Category="Mountea Interaction|Read Only")
@@ -280,7 +286,7 @@ protected:
 	TArray<TScriptInterface<IMounteaInteractorInterface>> InteractionDependencies;
 
 	/** All currently detected interactable components (populated by subclasses).
-	 *  NOTE: TArray, not TSet — UHT does not support TScriptInterface as a TSet key.
+	 *  NOTE: TArray, not TSet - UHT does not support TScriptInterface as a TSet key.
 	 *  AddDetected() uses AddUnique() to preserve set-like (no duplicates) semantics. */
 	UPROPERTY()
 	TArray<TScriptInterface<IMounteaInteractableInterface>> DetectedSet;
@@ -300,7 +306,7 @@ protected:
 	int32 HighlightedActionIndex = 0;
 
 	/** True while StartInteraction has been called and not yet completed or stopped.
-	 *  COND_OwnerOnly — other clients query occupancy via the interactable's own (already
+	 *  COND_OwnerOnly - other clients query occupancy via the interactable's own (already
 	 *  replicated) ActiveInteractorSlots, not by introspecting a remote player's interactor. */
 	UPROPERTY(Replicated)
 	bool bSelectionLocked = false;
