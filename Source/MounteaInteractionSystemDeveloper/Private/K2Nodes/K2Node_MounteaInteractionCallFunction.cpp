@@ -61,7 +61,7 @@ FLinearColor UK2Node_MounteaInteractionCallFunction::GetNodeTitleColor() const
 
 FSlateIcon UK2Node_MounteaInteractionCallFunction::GetIconAndTint(FLinearColor& OutColor) const
 {
-	OutColor = GetNodeTitleColor();
+	OutColor = FLinearColor(0.823f, 0.823f, 0.823f);
 
 	const FName metaKey = GetMounteaMetaKey();
 
@@ -94,20 +94,41 @@ FSlateIcon UK2Node_MounteaInteractionCallFunction::GetIconAndTint(FLinearColor& 
 
 FText UK2Node_MounteaInteractionCallFunction::GetTooltipText() const
 {
-	const UFunction* func = GetTargetFunction();
-	if (!func) return Super::GetTooltipText();
-
-	FString tooltip = func->GetMetaData(FBlueprintMetadata::MD_Tooltip);
-	if (tooltip.IsEmpty()) return Super::GetTooltipText();
-
-	// Prefix with the meta category for discoverability
+	const FText defaultText = Super::GetTooltipText();
 	const FName metaKey = GetMounteaMetaKey();
-	if (!metaKey.IsNone())
+
+	if (metaKey == "MounteaGetter")
 	{
-		tooltip = FString::Printf(TEXT("[%s] %s"), *metaKey.ToString(), *tooltip);
+		return FText::Format(
+			INVTEXT("{0}\n\n📤 Getter: A getter function is designed to retrieve and return a specific value or property from an object without modifying it.\nGetters are essential for accessing data in a controlled manner, ensuring that external code can view data but not alter it directly."),
+			defaultText);
+	}
+	if (metaKey == "MounteaSetter")
+	{
+		return FText::Format(
+			INVTEXT("{0}\n\n📥 Setter: A setter function is responsible for updating or modifying a particular value or data in an object.\nIt directly affects the state of the target by assigning a new value to one of its properties.\nSetters may include internal validation or checks to ensure that the value being assigned meets certain criteria before applying it."),
+			defaultText);
+	}
+	if (metaKey == "MounteaValidate")
+	{
+		return FText::Format(
+			INVTEXT("{0}\n\n❔ Validator: Validator functions are used to verify the correctness or validity of data.\nThese functions perform checks to ensure that the data adheres to certain rules or constraints, such as format, range, or consistency.\nA successful validation confirms that the data is reliable and suitable for use."),
+			defaultText);
+	}
+	if (metaKey == "MounteaCommand")
+	{
+		return FText::Format(
+			INVTEXT("{0}\n\n⚡ Command: A command function triggers an action or state transition on the target rather than reading or writing a single value.\nCommands may have side effects (starting a timer, changing state, broadcasting delegates) and are not guaranteed to be idempotent - calling one twice can have a different effect than calling it once."),
+			defaultText);
+	}
+	if (metaKey == "MounteaBinding")
+	{
+		return FText::Format(
+			INVTEXT("{0}\n\nBinding: Binding functions subscribe or unsubscribe Blueprint events to native Mountea delegates.\nThe binding is possible even without direct class access which is required by regular events."),
+			defaultText);
 	}
 
-	return FText::FromString(tooltip);
+	return defaultText;
 }
 
 FText UK2Node_MounteaInteractionCallFunction::GetMenuCategory() const
