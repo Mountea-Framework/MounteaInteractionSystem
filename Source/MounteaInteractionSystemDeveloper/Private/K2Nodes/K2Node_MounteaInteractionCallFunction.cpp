@@ -67,26 +67,29 @@ FSlateIcon UK2Node_MounteaInteractionCallFunction::GetIconAndTint(FLinearColor& 
 
 	if (metaKey == "MounteaGetter")
 	{
-		return FSlateIcon(FMounteaInteractionDeveloperStyle::GetStyleSetName(), "K2Node.Getter");
+		return FSlateIcon(FMounteaInteractionDeveloperStyle::GetStyleSetName(), "MISStyleSet.K2Node_GetterIcon.small");
 	}
 	if (metaKey == "MounteaSetter")
 	{
-		return FSlateIcon(FMounteaInteractionDeveloperStyle::GetStyleSetName(), "K2Node.Setter");
+		return FSlateIcon(FMounteaInteractionDeveloperStyle::GetStyleSetName(), "MISStyleSet.K2Node_SetterIcon.small");
 	}
 	if (metaKey == "MounteaValidate")
 	{
-		return FSlateIcon(FMounteaInteractionDeveloperStyle::GetStyleSetName(), "K2Node.Validate");
+		return FSlateIcon(FMounteaInteractionDeveloperStyle::GetStyleSetName(), "MISStyleSet.K2Node_ValidateIcon.small");
 	}
 	if (metaKey == "MounteaCommand")
 	{
-		return FSlateIcon(FMounteaInteractionDeveloperStyle::GetStyleSetName(), "K2Node.Command");
+		return FSlateIcon(FMounteaInteractionDeveloperStyle::GetStyleSetName(), "MISStyleSet.K2Node_CommandIcon.small");
 	}
 	if (metaKey == "MounteaBinding")
 	{
-		return FSlateIcon(FMounteaInteractionDeveloperStyle::GetStyleSetName(), "K2Node.Binding");
+		return FSlateIcon(FMounteaInteractionDeveloperStyle::GetStyleSetName(), "MISStyleSet.K2Node_BindingIcon.small");
 	}
 
-	return FSlateIcon(FMounteaInteractionDeveloperStyle::GetStyleSetName(), "K2Node.Default");
+	// No Mountea meta tag matched (shouldn't normally happen - GetMenuActions only ever spawns this
+	// node class for tagged functions) - fall back to the engine's own default function icon rather
+	// than requesting a brush key nothing registers.
+	return Super::GetIconAndTint(OutColor);
 }
 
 FText UK2Node_MounteaInteractionCallFunction::GetTooltipText() const
@@ -134,7 +137,7 @@ void UK2Node_MounteaInteractionCallFunction::GetMenuActions(FBlueprintActionData
 
 		for (TFieldIterator<UFunction> funcIt(targetClass, EFieldIteratorFlags::ExcludeSuper); funcIt; ++funcIt)
 		{
-			const UFunction* func = *funcIt;
+			UFunction* func = *funcIt;
 			if (!func || !func->HasAnyFunctionFlags(FUNC_Static | FUNC_BlueprintCallable)) continue;
 
 			bool bHasMeta = false;
@@ -143,6 +146,14 @@ void UK2Node_MounteaInteractionCallFunction::GetMenuActions(FBlueprintActionData
 				if (func->HasMetaData(metaKey)) { bHasMeta = true; break; }
 			}
 			if (!bHasMeta) continue;
+
+			// Without this, UEdGraphSchema_K2::CanUserKismetCallFunction() still considers this
+			// function callable, so FBlueprintActionDatabase's own per-class scan (independent of
+			// this GetMenuActions override) ALSO registers the engine's plain default K2Node_CallFunction
+			// for the same UFunction — the palette/context menu then shows two entries with the same
+			// name, and it's a coin flip which one gets placed. Marking it BlueprintInternalUseOnly
+			// suppresses that duplicate, leaving only this custom colored/iconed node.
+			func->SetMetaData(FBlueprintMetadata::MD_BlueprintInternalUseOnly, TEXT("true"));
 
 			UBlueprintNodeSpawner* spawner = UBlueprintNodeSpawner::Create(GetClass());
 			if (!spawner) continue;
