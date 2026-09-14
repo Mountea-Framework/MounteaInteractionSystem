@@ -1,4 +1,4 @@
-﻿// Copyright Dominik Morse (Pavlicek) 2024. All Rights Reserved.
+// Copyright Dominik Morse (Pavlicek) 2024. All Rights Reserved.
 
 #pragma once
 
@@ -36,7 +36,8 @@ public:
 	 */
 	UE_DEPRECATED(5.0, "Use UMounteaInteractableStatics::FindMeshByTag instead.")
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Helpers",
-		meta=(DeprecatedFunction, DeprecationMessage="Use UMounteaInteractableStatics::FindMeshByTag instead."))
+		meta=(DeprecatedFunction, DeprecationMessage="Use UMounteaInteractableStatics::FindMeshByTag instead."),
+		meta=(DisplayName="Interaction - Find Mesh By Tag"))
 	static UMeshComponent* FindMeshByTag(const FName Tag, const AActor* Source);
 
 	/**
@@ -48,7 +49,8 @@ public:
 	 */
 	UE_DEPRECATED(5.0, "Use UMounteaInteractableStatics::FindMeshByName instead.")
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Helpers",
-		meta=(DeprecatedFunction, DeprecationMessage="Use UMounteaInteractableStatics::FindMeshByName instead."))
+		meta=(DeprecatedFunction, DeprecationMessage="Use UMounteaInteractableStatics::FindMeshByName instead."),
+		meta=(DisplayName="Interaction - Find Mesh By Name"))
 	static UMeshComponent* FindMeshByName(const FName Name, const AActor* Source);
 
 	/**
@@ -60,7 +62,8 @@ public:
 	 */
 	UE_DEPRECATED(5.0, "Use UMounteaInteractableStatics::FindPrimitiveByTag instead.")
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Helpers",
-		meta=(DeprecatedFunction, DeprecationMessage="Use UMounteaInteractableStatics::FindPrimitiveByTag instead."))
+		meta=(DeprecatedFunction, DeprecationMessage="Use UMounteaInteractableStatics::FindPrimitiveByTag instead."),
+		meta=(DisplayName="Interaction - Find Primitive By Tag"))
 	static UPrimitiveComponent* FindPrimitiveByTag(const FName Tag, const AActor* Source);
 
 	/**
@@ -72,7 +75,8 @@ public:
 	 */
 	UE_DEPRECATED(5.0, "Use UMounteaInteractableStatics::FindPrimitiveByName instead.")
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Helpers",
-		meta=(DeprecatedFunction, DeprecationMessage="Use UMounteaInteractableStatics::FindPrimitiveByName instead."))
+		meta=(DeprecatedFunction, DeprecationMessage="Use UMounteaInteractableStatics::FindPrimitiveByName instead."),
+		meta=(DisplayName="Interaction - Find Primitive By Name"))
 	static UPrimitiveComponent* FindPrimitiveByName(const FName Name, const AActor* Source);
 
 	/**
@@ -82,7 +86,8 @@ public:
 	 */
 	UE_DEPRECATED(5.0, "Use UMounteaInteractableStatics::GetInteractionSystemSettings instead.")
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Helpers",
-		meta=(DeprecatedFunction, DeprecationMessage="Use UMounteaInteractableStatics::GetInteractionSystemSettings instead."))
+		meta=(DeprecatedFunction, DeprecationMessage="Use UMounteaInteractableStatics::GetInteractionSystemSettings instead."),
+		meta=(DisplayName="Interaction Settings - Get Interaction System Settings"))
 	static UMounteaInteractionSystemSettings* GetInteractionSystemSettings();
 
 	/**
@@ -91,26 +96,32 @@ public:
 	 * @param WorldContext	The world context to check.
 	 * @return							True if cosmetic events can be executed, false otherwise.
 	 */
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Helpers")
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Helpers",
+		meta=(DisplayName="Interaction - Can Execute Cosmetic Events"))
 	static bool CanExecuteCosmeticEvents(const UWorld* WorldContext);
 
 	/** Returns a copy of SourceText with each occurrence of a Replacements key substituted by its matching value. */
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Helpers")
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Helpers",
+		meta=(DisplayName="Interaction - Replace Regex In Text"))
 	static FText ReplaceRegexInText(const FText& SourceText, const TMap<FString, FText>& Replacements);
 
 	/** Returns the local player associated with the given actor, if any. */
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Helpers")
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Helpers",
+		meta=(DisplayName="Interaction - Find Local Player"))
 	static ULocalPlayer* FindLocalPlayer(AActor* ForActor);
 
 	/** Returns true if a gamepad is currently connected. */
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Helpers")
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Helpers",
+		meta=(DisplayName="Interaction - Is Game Pad Connected"))
 	static bool IsGamePadConnected();
 
 	/** Returns the active input device type (keyboard/mouse, gamepad, touch, etc.) for the given player controller. */
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Helpers")
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Helpers",
+		meta=(DisplayName="Interaction - Get Active Input Type"))
 	static ECommonInputType GetActiveInputType(class APlayerController* PlayerController);
 
 	/** Returns true if the given input key is supported on the specified hardware device, and outputs its associated icon texture. */
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Helpers")
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Helpers",
+		meta=(DisplayName="Interaction - Is Input Key Pair Supported"))
 	static bool IsInputKeyPairSupported(class APlayerController* PlayerController, const FKey& InputKey, const FString& HardwareDeviceID, TSoftObjectPtr<class UTexture2D>& FoundInputTexture);
 };

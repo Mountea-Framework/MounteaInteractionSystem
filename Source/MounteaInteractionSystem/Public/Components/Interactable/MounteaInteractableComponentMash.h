@@ -28,23 +28,28 @@ public:
 	UMounteaInteractableComponentMash();
 
 	/** Returns the number of key presses required to complete the mash interaction. */
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Interactable")
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Interactable",
+		meta=(DisplayName="Get Min Mash Amount Required"))
 	int32 GetMinMashAmountRequired() const { return MinMashAmountRequired; }
 
 	/** Sets the number of key presses required to complete the mash interaction. */
-	UFUNCTION(BlueprintCallable, Category="Mountea|Interaction|Interactable")
+	UFUNCTION(BlueprintCallable, Category="Mountea|Interaction|Interactable",
+		meta=(DisplayName="Set Min Mash Amount Required"))
 	void SetMinMashAmountRequired(const int32 Value);
 
 	/** Returns the maximum allowed time, in seconds, between consecutive key presses. */
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Interactable")
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Interactable",
+		meta=(DisplayName="Get Keystroke Time Threshold"))
 	float GetKeystrokeTimeThreshold() const { return KeystrokeTimeThreshold; }
 
 	/** Sets the maximum allowed time, in seconds, between consecutive key presses. */
-	UFUNCTION(BlueprintCallable, Category="Mountea|Interaction|Interactable")
+	UFUNCTION(BlueprintCallable, Category="Mountea|Interaction|Interactable",
+		meta=(DisplayName="Set Keystroke Time Threshold"))
 	void SetKeystrokeTimeThreshold(const float Value);
 
 	/** Returns the current number of key presses registered towards completing the mash interaction. */
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Interactable")
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Interactable",
+		meta=(DisplayName="Get Actual Mash Amount"))
 	int32 GetActualMashAmount() const { return ActualMashAmount; }
 
 protected:
@@ -56,10 +61,12 @@ protected:
 	virtual void InteractionCanceled_Implementation() override;
 	virtual float GetInteractionProgress_Implementation() const override;
 
-	UFUNCTION(BlueprintImplementableEvent, Category="Mountea|Interaction|Interactable")
+	UFUNCTION(BlueprintImplementableEvent, Category="Mountea|Interaction|Interactable",
+		meta=(DisplayName="On Interaction Failed"))
 	void OnInteractionFailedEvent();
 
-	UFUNCTION(BlueprintImplementableEvent, Category="Mountea|Interaction|Interactable")
+	UFUNCTION(BlueprintImplementableEvent, Category="Mountea|Interaction|Interactable",
+		meta=(DisplayName="On Key Mashed"))
 	void OnKeyMashedEvent();
 
 private:

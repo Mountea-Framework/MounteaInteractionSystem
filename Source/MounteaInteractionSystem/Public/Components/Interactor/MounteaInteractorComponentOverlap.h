@@ -41,27 +41,32 @@ protected:
 public:
 
 	/** Add a primitive component as an interactor collision shape. Binds overlap events. */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor",
+		meta=(DisplayName="Add Collision Component"))
 	void AddCollisionComponent(UPrimitiveComponent* CollisionComponent);
 	virtual void AddCollisionComponent_Implementation(UPrimitiveComponent* CollisionComponent);
 
 	/** Add multiple collision components. */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor",
+		meta=(DisplayName="Add Collision Components"))
 	void AddCollisionComponents(const TArray<UPrimitiveComponent*>& CollisionComponents);
 	virtual void AddCollisionComponents_Implementation(const TArray<UPrimitiveComponent*>& CollisionComponents);
 
 	/** Remove a collision component and unbind its overlap events. */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor",
+		meta=(DisplayName="Remove Collision Component"))
 	void RemoveCollisionComponent(UPrimitiveComponent* CollisionComponent);
 	virtual void RemoveCollisionComponent_Implementation(UPrimitiveComponent* CollisionComponent);
 
 	/** Remove multiple collision components. */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor",
+		meta=(DisplayName="Remove Collision Components"))
 	void RemoveCollisionComponents(const TArray<UPrimitiveComponent*>& CollisionComponents);
 	virtual void RemoveCollisionComponents_Implementation(const TArray<UPrimitiveComponent*>& CollisionComponents);
 
 	/** Returns all currently registered collision shapes. */
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Interactor")
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Interactor",
+		meta=(DisplayName="Get Collision Components"))
 	TArray<UPrimitiveComponent*> GetCollisionComponents() const;
 
 protected:

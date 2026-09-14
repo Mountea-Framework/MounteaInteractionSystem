@@ -274,7 +274,8 @@ protected:
 #if WITH_EDITOR
 public:
 	/** Editor-only: repopulates this component's editable properties from the project's Interactable Runtime/UI config defaults. */
-	UFUNCTION(BlueprintCallable, Category="Mountea|Interaction|Interactable|Setup")
+	UFUNCTION(BlueprintCallable, Category="Mountea|Interaction|Interactable|Setup",
+		meta=(DisplayName="Set Default Values"))
 	void SetDefaultValues();
 #endif
 

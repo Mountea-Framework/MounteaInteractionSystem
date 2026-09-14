@@ -41,35 +41,42 @@ protected:
 public:
 
 	/** Starts the mouse cursor trace, ticking at MouseTraceInterval while active. */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor|Mouse")
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor|Mouse",
+		meta=(DisplayName="Enable Mouse Tracing"))
 	void EnableMouseTracing();
 	virtual void EnableMouseTracing_Implementation();
 
 	/** Stops the mouse cursor trace and clears the current detected set. */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor|Mouse")
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor|Mouse",
+		meta=(DisplayName="Disable Mouse Tracing"))
 	void DisableMouseTracing();
 	virtual void DisableMouseTracing_Implementation();
 
 	/** Returns true if this interactor is currently allowed to perform mouse tracing. */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor|Mouse")
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor|Mouse",
+		meta=(DisplayName="Can Mouse Trace"))
 	bool CanMouseTrace() const;
 	virtual bool CanMouseTrace_Implementation() const;
 
 	/** Returns the maximum distance, in centimeters, the mouse trace will reach. */
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Interactor|Mouse")
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Interactor|Mouse",
+		meta=(DisplayName="Get Mouse Trace Range"))
 	float GetMouseTraceRange() const;
 
 	/** Sets the maximum distance, in centimeters, the mouse trace will reach. */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor|Mouse")
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor|Mouse",
+		meta=(DisplayName="Set Mouse Trace Range"))
 	void SetMouseTraceRange(float NewRange);
 	virtual void SetMouseTraceRange_Implementation(float NewRange);
 
 	/** Returns how often, in seconds, the mouse trace re-evaluates. */
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Interactor|Mouse")
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Mountea|Interaction|Interactor|Mouse",
+		meta=(DisplayName="Get Mouse Trace Interval"))
 	float GetMouseTraceInterval() const;
 
 	/** Sets how often, in seconds, the mouse trace re-evaluates. */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor|Mouse")
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor|Mouse",
+		meta=(DisplayName="Set Mouse Trace Interval"))
 	void SetMouseTraceInterval(float NewInterval);
 	virtual void SetMouseTraceInterval_Implementation(float NewInterval);
 
@@ -79,7 +86,8 @@ protected:
 	void ProcessMouseTrace();
 
 	/** Called after each trace to diff hits against DetectedSet. */
-	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor|Mouse")
+	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor|Mouse",
+		meta=(DisplayName="Post Mouse Traced"))
 	void PostMouseTraced();
 	virtual void PostMouseTraced_Implementation();
 

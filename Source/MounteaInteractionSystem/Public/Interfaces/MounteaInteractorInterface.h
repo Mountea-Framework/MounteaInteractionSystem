@@ -52,31 +52,38 @@ protected:
 #pragma region BlueprintImplementableEvents
 
 	/** Called when this interactor's state machine transitions to a new state. */
-	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor",
+		meta=(DisplayName="On Interactor State Changed"))
 	void OnInteractorStateChangedEvent(const EInteractorStateV3& NewState);
 
 	/** Called when the Tier 1 focused actor changes. */
-	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor",
+		meta=(DisplayName="On Focused Actor Changed"))
 	void OnFocusedActorChangedEvent(const AActor* NewFocusedActor);
 
 	/** Called when the Tier 2 action list is rebuilt for the focused actor. */
-	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor",
+		meta=(DisplayName="On Action List Changed"))
 	void OnActionListChangedEvent(const TArray<FInteractionActionCandidate>& NewActionList);
 
 	/** Called when the highlighted (currently selected) action index changes. */
-	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor",
+		meta=(DisplayName="On Highlighted Action Changed"))
 	void OnHighlightedActionChangedEvent(const int32 NewIndex);
 
 	/** Called when the interaction input key is pressed. */
-	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor",
+		meta=(DisplayName="On Interaction Key Pressed"))
 	void OnInteractionKeyPressedEvent(const float& TimeKeyPressed);
 
 	/** Called when the interaction input key is released. */
-	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor",
+		meta=(DisplayName="On Interaction Key Released"))
 	void OnInteractionKeyReleasedEvent(const float& TimeKeyReleased);
 
 	/** Called when this interactor's response collision channel changes. */
-	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor")
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category="Mountea|Interaction|Interactor",
+		meta=(DisplayName="On Interactor Collision Changed"))
 	void OnInteractorCollisionChangedEvent(const TEnumAsByte<ECollisionChannel>& NewCollisionChannel);
 
 #pragma endregion
@@ -86,27 +93,32 @@ public:
 #pragma region FocusAPI
 
 	/** Returns the actor currently focused by Tier 1 selection (highest weight + distance). Null if none in range. */
-	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor|Focus")
+	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor|Focus",
+		meta=(DisplayName="Get Focused Actor"))
 	AActor* GetFocusedActor() const;
 	virtual AActor* GetFocusedActor_Implementation() const = 0;
 
 	/** Returns the Tier 2 action list - all interactable components on the focused actor, sorted by weight descending. */
-	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor|Focus")
+	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor|Focus",
+		meta=(DisplayName="Get Action List"))
 	TArray<FInteractionActionCandidate> GetActionList() const;
 	virtual TArray<FInteractionActionCandidate> GetActionList_Implementation() const = 0;
 
 	/** Returns the currently highlighted action index within the action list. */
-	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor|Focus")
+	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor|Focus",
+		meta=(DisplayName="Get Highlighted Action Index"))
 	int32 GetHighlightedActionIndex() const;
 	virtual int32 GetHighlightedActionIndex_Implementation() const = 0;
 
 	/** Returns the locked action (currently being interacted with), or null if not interacting. */
-	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor|Focus")
+	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor|Focus",
+		meta=(DisplayName="Get Locked Action"))
 	TScriptInterface<IMounteaInteractableInterface> GetLockedAction() const;
 	virtual TScriptInterface<IMounteaInteractableInterface> GetLockedAction_Implementation() const = 0;
 
 	/** True if an interaction is in progress and the action selection is locked. */
-	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor|Focus")
+	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor|Focus",
+		meta=(DisplayName="Is Selection Locked"))
 	bool IsSelectionLocked() const;
 	virtual bool IsSelectionLocked_Implementation() const = 0;
 
@@ -114,7 +126,8 @@ public:
 	 * Advance the highlighted action index by Direction (+1 = next, -1 = prev).
 	 * Wraps around. No-op while selection is locked or action list is empty.
 	 */
-	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor|Focus")
+	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor|Focus",
+		meta=(DisplayName="Cycle Action"))
 	void CycleAction(const int32 Direction);
 	virtual void CycleAction_Implementation(const int32 Direction) = 0;
 
@@ -123,12 +136,14 @@ public:
 #pragma region Interaction
 
 	/** Begin interaction with the currently highlighted action. */
-	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor")
+	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor",
+		meta=(DisplayName="Start Interaction"))
 	void StartInteraction(const float StartTime);
 	virtual void StartInteraction_Implementation(const float StartTime) = 0;
 
 	/** End interaction with the locked action. */
-	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor")
+	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor",
+		meta=(DisplayName="Stop Interaction"))
 	void StopInteraction(const float StopTime);
 	virtual void StopInteraction_Implementation(const float StopTime) = 0;
 
@@ -138,19 +153,23 @@ public:
 	 * isn't left permanently locked out of starting any other interaction. Unlike StopInteraction,
 	 * this never calls back into the interactable - the caller is typically mid-teardown itself.
 	 */
-	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor")
+	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor",
+		meta=(DisplayName="Force Release Interaction"))
 	void ForceReleaseInteraction();
 	virtual void ForceReleaseInteraction_Implementation() = 0;
 
-	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor")
+	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor",
+		meta=(DisplayName="Can Interact"))
 	bool CanInteract() const;
 	virtual bool CanInteract_Implementation() const = 0;
 
-	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor")
+	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor",
+		meta=(DisplayName="Is Valid Interactor"))
 	bool IsValidInteractor() const;
 	virtual bool IsValidInteractor_Implementation() const = 0;
 
-	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor")
+	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor",
+		meta=(DisplayName="Has Interactable"))
 	bool HasInteractable() const;
 	virtual bool HasInteractable_Implementation() const = 0;
 
@@ -158,35 +177,43 @@ public:
 
 #pragma region StateMachine
 
-	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor")
+	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor",
+		meta=(DisplayName="Activate Interactor"))
 	bool ActivateInteractor(FString& ErrorMessage);
 	virtual bool ActivateInteractor_Implementation(FString& ErrorMessage) = 0;
 
-	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor")
+	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor",
+		meta=(DisplayName="Enable Interactor"))
 	bool EnableInteractor(FString& ErrorMessage);
 	virtual bool EnableInteractor_Implementation(FString& ErrorMessage) = 0;
 
-	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor")
+	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor",
+		meta=(DisplayName="Suppress Interactor"))
 	bool SuppressInteractor(FString& ErrorMessage);
 	virtual bool SuppressInteractor_Implementation(FString& ErrorMessage) = 0;
 
-	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor")
+	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor",
+		meta=(DisplayName="Deactivate Interactor"))
 	void DeactivateInteractor();
 	virtual void DeactivateInteractor_Implementation() = 0;
 
-	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor")
+	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor",
+		meta=(DisplayName="Get State"))
 	EInteractorStateV3 GetState() const;
 	virtual EInteractorStateV3 GetState_Implementation() const = 0;
 
-	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor")
+	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor",
+		meta=(DisplayName="Set State"))
 	void SetState(const EInteractorStateV3 NewState);
 	virtual void SetState_Implementation(const EInteractorStateV3 NewState) = 0;
 
-	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor")
+	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor",
+		meta=(DisplayName="Get Default State"))
 	EInteractorStateV3 GetDefaultState() const;
 	virtual EInteractorStateV3 GetDefaultState_Implementation() const = 0;
 
-	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor")
+	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor",
+		meta=(DisplayName="Set Default State"))
 	void SetDefaultState(const EInteractorStateV3 NewState);
 	virtual void SetDefaultState_Implementation(const EInteractorStateV3 NewState) = 0;
 
@@ -194,31 +221,38 @@ public:
 
 #pragma region Properties
 
-	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor")
+	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor",
+		meta=(DisplayName="Get Response Channel"))
 	ECollisionChannel GetResponseChannel() const;
 	virtual ECollisionChannel GetResponseChannel_Implementation() const = 0;
 
-	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor")
+	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor",
+		meta=(DisplayName="Set Response Channel"))
 	void SetResponseChannel(const ECollisionChannel NewResponseChannel);
 	virtual void SetResponseChannel_Implementation(const ECollisionChannel NewResponseChannel) = 0;
 
-	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor")
+	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor",
+		meta=(DisplayName="Get Interactor Tag"))
 	FGameplayTag GetInteractorTag() const;
 	virtual FGameplayTag GetInteractorTag_Implementation() const = 0;
 
-	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor")
+	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor",
+		meta=(DisplayName="Set Interactor Tag"))
 	void SetInteractorTag(const FGameplayTag& NewInteractorTag);
 	virtual void SetInteractorTag_Implementation(const FGameplayTag& NewInteractorTag) = 0;
 
-	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor")
+	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor",
+		meta=(DisplayName="Does Auto Activate"))
 	bool DoesAutoActivate() const;
 	virtual bool DoesAutoActivate_Implementation() const = 0;
 
-	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor")
+	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor",
+		meta=(DisplayName="Get Owning Actor"))
 	AActor* GetOwningActor() const;
 	virtual AActor* GetOwningActor_Implementation() const = 0;
 
-	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor")
+	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor",
+		meta=(DisplayName="To String"))
 	FString ToString() const;
 	virtual FString ToString_Implementation() const = 0;
 
@@ -230,15 +264,18 @@ public:
 
 #pragma region SafetyTrace
 
-	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor")
+	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor",
+		meta=(DisplayName="Get Safety Tracing Setup"))
 	FSafetyTracingSetup GetSafetyTracingSetup() const;
 	virtual FSafetyTracingSetup GetSafetyTracingSetup_Implementation() const = 0;
 
-	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor")
+	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor",
+		meta=(DisplayName="Set Safety Tracing Setup"))
 	void SetSafetyTracingSetup(const FSafetyTracingSetup& NewSafetyTracingSetup);
 	virtual void SetSafetyTracingSetup_Implementation(const FSafetyTracingSetup& NewSafetyTracingSetup) = 0;
 
-	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor")
+	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor",
+		meta=(DisplayName="Perform Safety Trace"))
 	bool PerformSafetyTrace(const AActor* InteractableActor);
 	virtual bool PerformSafetyTrace_Implementation(const AActor* InteractableActor) = 0;
 
@@ -246,23 +283,28 @@ public:
 
 #pragma region IgnoredActors
 
-	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor")
+	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor",
+		meta=(DisplayName="Add Ignored Actor"))
 	void AddIgnoredActor(AActor* IgnoredActor);
 	virtual void AddIgnoredActor_Implementation(AActor* IgnoredActor) = 0;
 
-	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor")
+	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor",
+		meta=(DisplayName="Add Ignored Actors"))
 	void AddIgnoredActors(const TArray<AActor*>& IgnoredActors);
 	virtual void AddIgnoredActors_Implementation(const TArray<AActor*>& IgnoredActors) = 0;
 
-	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor")
+	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor",
+		meta=(DisplayName="Remove Ignored Actor"))
 	void RemoveIgnoredActor(AActor* UnignoredActor);
 	virtual void RemoveIgnoredActor_Implementation(AActor* UnignoredActor) = 0;
 
-	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor")
+	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor",
+		meta=(DisplayName="Remove Ignored Actors"))
 	void RemoveIgnoredActors(const TArray<AActor*>& UnignoredActors);
 	virtual void RemoveIgnoredActors_Implementation(const TArray<AActor*>& UnignoredActors) = 0;
 
-	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor")
+	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor",
+		meta=(DisplayName="Get Ignored Actors"))
 	TArray<AActor*> GetIgnoredActors() const;
 	virtual TArray<AActor*> GetIgnoredActors_Implementation() const = 0;
 
@@ -270,19 +312,23 @@ public:
 
 #pragma region Dependencies
 
-	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor")
+	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor",
+		meta=(DisplayName="Add Interaction Dependency"))
 	void AddInteractionDependency(const TScriptInterface<IMounteaInteractorInterface>& InteractionDependency);
 	virtual void AddInteractionDependency_Implementation(const TScriptInterface<IMounteaInteractorInterface>& InteractionDependency) = 0;
 
-	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor")
+	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor",
+		meta=(DisplayName="Remove Interaction Dependency"))
 	void RemoveInteractionDependency(const TScriptInterface<IMounteaInteractorInterface>& InteractionDependency);
 	virtual void RemoveInteractionDependency_Implementation(const TScriptInterface<IMounteaInteractorInterface>& InteractionDependency) = 0;
 
-	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor")
+	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor",
+		meta=(DisplayName="Get Interaction Dependencies"))
 	TArray<TScriptInterface<IMounteaInteractorInterface>> GetInteractionDependencies() const;
 	virtual TArray<TScriptInterface<IMounteaInteractorInterface>> GetInteractionDependencies_Implementation() const = 0;
 
-	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor")
+	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor",
+		meta=(DisplayName="Process Dependencies"))
 	void ProcessDependencies();
 	virtual void ProcessDependencies_Implementation() = 0;
 
@@ -290,19 +336,23 @@ public:
 
 #pragma region Debug
 
-	UFUNCTION(BlueprintNativeEvent, CallInEditor, Category="Mountea|Interaction|Interactor")
+	UFUNCTION(BlueprintNativeEvent, CallInEditor, Category="Mountea|Interaction|Interactor",
+		meta=(DisplayName="Toggle Debug"))
 	void ToggleDebug();
 	virtual void ToggleDebug_Implementation() = 0;
 
-	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor")
+	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor",
+		meta=(DisplayName="Get Debug Settings"))
 	FDebugSettings GetDebugSettings() const;
 	virtual FDebugSettings GetDebugSettings_Implementation() const = 0;
 
-	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor")
+	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor",
+		meta=(DisplayName="On Interactor Component Activated"))
 	void OnInteractorComponentActivated(UActorComponent* Component, bool bReset);
 	virtual void OnInteractorComponentActivated_Implementation(UActorComponent* Component, bool bReset) = 0;
 
-	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor")
+	UFUNCTION(BlueprintNativeEvent, Category="Mountea|Interaction|Interactor",
+		meta=(DisplayName="Consume Input"))
 	void ConsumeInput(UInputAction* ConsumedInput);
 	virtual void ConsumeInput_Implementation(UInputAction* ConsumedInput) = 0;
 
