@@ -9,6 +9,8 @@
 #include "Helpers/MounteaInteractionHelpers.h"
 #include "MounteaInteractorRuntimeConfig.generated.h"
 
+class UInputMappingContext;
+
 /**
  * Runtime configuration for Interactor components.
  * Referenced as a soft pointer from UMounteaInteractionSystemSettings.
@@ -53,4 +55,17 @@ public:
 	/** How often (in seconds) the interactor refreshes its candidate list. Lower = more responsive, higher = better performance. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Interactor|Detection", meta=(Units="s", UIMin=0.016, ClampMin=0.016))
 	float CandidateRefreshRate = 0.05f;
+
+	/** Optional. If set, added via AddMappingContext for whichever local player controls an
+	 *  interactor's owner, once at BeginPlay. Provides the mapping context itself (so its key
+	 *  bindings — and any Player Mappable Key Settings on them — are active and remappable) without
+	 *  the plugin binding any actual gameplay behaviour: you still wire Start/Stop/Cycle Interaction
+	 *  to specific Input Actions yourself, exactly as before. Leave unset to keep doing all Enhanced
+	 *  Input setup yourself — purely opt-in, changes nothing if left null. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Interactor|Input")
+	TSoftObjectPtr<UInputMappingContext> DefaultInputMappingContext;
+
+	/** Priority passed to AddMappingContext for DefaultInputMappingContext above. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Interactor|Input")
+	int32 InputMappingPriority = 0;
 };
