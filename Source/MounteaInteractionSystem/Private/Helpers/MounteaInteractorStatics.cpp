@@ -4,9 +4,15 @@
 #include "Engine/World.h"
 #include "GameplayTagContainer.h"
 #include "InputAction.h"
+#include "InputMappingContext.h"
+#include "EnhancedInputSubsystems.h"
+#include "GameFramework/Pawn.h"
+#include "GameFramework/PlayerController.h"
 #include "Interfaces/MounteaInteractorInterface.h"
 #include "Interfaces/MounteaInteractableInterface.h"
 #include "Helpers/MounteaInteractionStatics.h"
+#include "Helpers/MounteaInteractionSystemSettings.h"
+#include "Settings/MounteaInteractorRuntimeConfig.h"
 
 #define LOCTEXT_NAMESPACE "MounteaInteractorStatics"
 
@@ -274,6 +280,32 @@ void UMounteaInteractorStatics::ConsumeInteractorInput(
 	if (!Interactor.GetObject())
 		return;
 	Interactor->Execute_ConsumeInput(Interactor.GetObject(), ConsumedInput);
+}
+
+void UMounteaInteractorStatics::ApplyDefaultInputMappingContext(const TScriptInterface<IMounteaInteractorInterface>& Interactor)
+{
+	if (!Interactor.GetObject())
+		return;
+
+	const UMounteaInteractionSystemSettings* settings = GetDefault<UMounteaInteractionSystemSettings>();
+	const UMounteaInteractorRuntimeConfig* config = settings ? settings->GetInteractorConfig() : nullptr;
+	if (!config || config->DefaultInputMappingContext.IsNull())
+		return;
+
+	const APawn* ownerPawn = Cast<APawn>(Interactor->Execute_GetOwningActor(Interactor.GetObject()));
+	if (!ownerPawn || !ownerPawn->IsLocallyControlled())
+		return;
+
+	const APlayerController* playerController = Cast<APlayerController>(ownerPawn->GetController());
+	if (!playerController || !playerController->GetLocalPlayer())
+		return;
+
+	UEnhancedInputLocalPlayerSubsystem* inputSubsystem = playerController->GetLocalPlayer()->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>();
+	if (!inputSubsystem)
+		return;
+
+	if (UInputMappingContext* mappingContext = config->DefaultInputMappingContext.LoadSynchronous())
+		inputSubsystem->AddMappingContext(mappingContext, config->InputMappingPriority);
 }
 
 TArray<TScriptInterface<IMounteaInteractorInterface>> UMounteaInteractorStatics::GetInteractorDependencies(const TScriptInterface<IMounteaInteractorInterface>& Interactor)

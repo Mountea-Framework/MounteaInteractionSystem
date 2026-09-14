@@ -146,6 +146,20 @@ IA_CycleAction (Triggered, Axis1D Value) → Cycle Action (Interactor, Sign(Valu
 					<img src="images/interactor-02-input-binding.png" alt="Blueprint graph showing IA_Interact Enhanced Input events wired to Start Interaction and Stop Interaction" style="max-width:100%;border:1px solid var(--page-border);border-radius:var(--radius-card);margin:var(--space-3) 0;" />
 					<figcaption class="muted">IA_Interact's Started/Completed pins wired directly to the interactor component.</figcaption>
 				</figure>
+				<blockquote>
+					<strong>Optional: one call instead of adding the mapping context by hand.</strong> Set
+					<code>Default Input Mapping Context</code> (+ <code>Input Mapping Priority</code>) on
+					the <strong>Interactor Runtime Config</strong> (page 1), then call
+					<code>Apply Default Input Mapping Context</code> (a Blueprint-callable static on
+					Interactor Statics, takes your interactor) wherever your project already sets up
+					input — its own <code>BeginPlay</code>, on possession, wherever fits. It's not called
+					automatically anywhere; you place the one node yourself. It only adds the mapping
+					context itself (so its key bindings, and any Player Mappable Key Settings on them,
+					are active and remappable) for whichever local player controls the interactor's owner
+					— you still wire the actual Start/Stop/Cycle Interaction calls above yourself. Leave
+					the field unset, or never call it, to keep doing all Enhanced Input setup by hand,
+					exactly as before.
+				</blockquote>
 			</section>
 			</div>
 

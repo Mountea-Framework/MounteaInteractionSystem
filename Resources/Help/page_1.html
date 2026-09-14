@@ -69,6 +69,8 @@ DA_InteractableUIConfig         (class: MounteaInteractableUIConfig)</code></pre
 						<tr><td class="cell-class">SafetyTracingSetup</td><td>FSafetyTracingSetup</td><td>Mode: None</td><td>Secondary line-of-sight validation so overlap volumes can't detect through walls. See page 2.</td></tr>
 						<tr><td class="cell-class">MaxCandidatesPerActor</td><td>int32</td><td>8</td><td>Caps how many interactable components on one focused actor can appear in the Tier 2 action list.</td></tr>
 						<tr><td class="cell-class">CandidateRefreshRate</td><td>float</td><td>0.05s</td><td>How often the focus/candidate list re-evaluates.</td></tr>
+						<tr><td class="cell-class">DefaultInputMappingContext</td><td>TSoftObjectPtr&lt;UInputMappingContext&gt;</td><td>(unset)</td><td>Optional — if assigned, added to the local player's Enhanced Input subsystem automatically on BeginPlay. See page 2.</td></tr>
+						<tr><td class="cell-class">InputMappingPriority</td><td>int32</td><td>0</td><td>Priority passed to AddMappingContext for the field above.</td></tr>
 					</tbody>
 				</table>
 			</section>

@@ -10,6 +10,7 @@
 class IMounteaInteractorInterface;
 class IMounteaInteractableInterface;
 class UInputAction;
+class UInputMappingContext;
 
 /**
  * Static helpers scoped to interactor components.
@@ -248,6 +249,15 @@ public:
 	static void ConsumeInteractorInput(
 		const TScriptInterface<IMounteaInteractorInterface>& Interactor,
 		UInputAction* ConsumedInput);
+
+	/** Adds Interactor Runtime Config's Default Input Mapping Context (if assigned) to whichever
+	 *  local player controls this interactor's owning actor, via AddMappingContext. Safe no-op if
+	 *  unassigned, if the owner isn't a locally-controlled Pawn, or if no Enhanced Input subsystem is
+	 *  available (server-only/AI-controlled actors). Not called automatically anywhere — call it
+	 *  yourself (e.g. from BeginPlay, or on possession) wherever fits your project's flow. */
+	UFUNCTION(BlueprintCallable, Category="Mountea|Interaction|Interactor",
+		meta=(MounteaCommand))
+	static void ApplyDefaultInputMappingContext(const TScriptInterface<IMounteaInteractorInterface>& Interactor);
 
 #pragma endregion
 
