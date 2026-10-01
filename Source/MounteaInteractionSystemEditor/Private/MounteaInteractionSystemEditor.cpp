@@ -44,6 +44,7 @@
 #include "Interfaces/IMainFrameModule.h"
 #include "Serialization/JsonReader.h"
 #include "Settings/MounteaInteractionEditorSettings.h"
+#include "WebBrowserModule.h"
 
 #include "Containers/Ticker.h"
 #include "Dom/JsonObject.h"
@@ -65,64 +66,11 @@ static const FName MenuName("LevelEditor.LevelEditorToolBar.PlayToolBar");
 
 void FMounteaInteractionSystemEditor::StartupModule()
 {
-	// Ensure WebBrowserWidget plugin is enabled - required for HTML help pages and the changelog popup
+	// Load WebBrowser module - SWebBrowserView only creates a browser if the module is already loaded
+	// (normally done by the WebBrowserWidget plugin, which we do not want to require)
 	{
-		const TSharedPtr<IPlugin> webBrowserPlugin = IPluginManager::Get().FindPlugin(TEXT("WebBrowserWidget"));
-		if (!webBrowserPlugin.IsValid() || !webBrowserPlugin->IsEnabled())
-		{
-			const FText errorTitle   = NSLOCTEXT("MounteaInteraction", "WebBrowserPluginMissing_Title",   "Missing Plugin - Mountea Interaction System");
-			const FText errorMessage = NSLOCTEXT("MounteaInteraction", "WebBrowserPluginMissing_Message",
-				"The 'Web Browser Widget' plugin is required for HTML-based help pages and the changelog popup.\n\n"
-				"It will be enabled automatically and the editor will restart.");
-			FMessageDialog::Open(EAppMsgType::Ok, errorMessage, errorTitle);
-
-			const FString projectFile = FPaths::GetProjectFilePath();
-			FString jsonString;
-			if (FFileHelper::LoadFileToString(jsonString, *projectFile))
-			{
-				TSharedPtr<FJsonObject> jsonObject;
-				TSharedRef<TJsonReader<>> reader = TJsonReaderFactory<>::Create(jsonString);
-				if (FJsonSerializer::Deserialize(reader, jsonObject) && jsonObject.IsValid())
-				{
-					TArray<TSharedPtr<FJsonValue>> pluginsArray;
-					if (jsonObject->HasField(TEXT("Plugins")))
-						pluginsArray = jsonObject->GetArrayField(TEXT("Plugins"));
-
-					bool bFound = false;
-					for (const TSharedPtr<FJsonValue>& pluginVal : pluginsArray)
-					{
-						const TSharedPtr<FJsonObject> pluginObj = pluginVal->AsObject();
-						if (pluginObj.IsValid() && pluginObj->GetStringField(TEXT("Name")) == TEXT("WebBrowserWidget"))
-						{
-							pluginObj->SetBoolField(TEXT("Enabled"), true);
-							bFound = true;
-							break;
-						}
-					}
-					if (!bFound)
-					{
-						TSharedPtr<FJsonObject> newPlugin = MakeShareable(new FJsonObject());
-						newPlugin->SetStringField(TEXT("Name"), TEXT("WebBrowserWidget"));
-						newPlugin->SetBoolField(TEXT("Enabled"), true);
-						pluginsArray.Add(MakeShareable(new FJsonValueObject(newPlugin)));
-					}
-
-					jsonObject->SetArrayField(TEXT("Plugins"), pluginsArray);
-
-					FString outString;
-					TSharedRef<TJsonWriter<>> writer = TJsonWriterFactory<>::Create(&outString);
-					if (FJsonSerializer::Serialize(jsonObject.ToSharedRef(), writer))
-						FFileHelper::SaveStringToFile(outString, *projectFile);
-				}
-			}
-
-			FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateLambda([](float) -> bool
-			{
-				FUnrealEdMisc::Get().RestartEditor(false);
-				return false;
-			}));
-			return;
-		}
+		if (!IWebBrowserModule::Get().IsWebModuleAvailable())
+			EDITOR_LOG_WARNING(TEXT("Mountea Interaction System: web browser module is not available, HTML pages will not render."));
 	}
 
 	// Auto-register named collision channels in DefaultEngine.ini if missing
@@ -473,7 +421,8 @@ void FMounteaInteractionSystemEditor::ShutdownModule()
 {
 	// Thumbnails and Icons
 	{
-		FSlateStyleRegistry::UnRegisterSlateStyle(InteractionSet->GetStyleSetName());
+		if (InteractionSet.IsValid())
+			FSlateStyleRegistry::UnRegisterSlateStyle(InteractionSet->GetStyleSetName());
 	}
 
 	// Asset Types Cleanup

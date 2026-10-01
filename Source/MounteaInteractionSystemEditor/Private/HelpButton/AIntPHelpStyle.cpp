@@ -21,6 +21,9 @@ void FAIntPHelpStyle::Initialize()
 
 void FAIntPHelpStyle::Shutdown()
 {
+	if (!StyleInstance.IsValid())
+		return;
+
 	FSlateStyleRegistry::UnRegisterSlateStyle(*StyleInstance);
 	ensure(StyleInstance.IsUnique());
 	StyleInstance.Reset();

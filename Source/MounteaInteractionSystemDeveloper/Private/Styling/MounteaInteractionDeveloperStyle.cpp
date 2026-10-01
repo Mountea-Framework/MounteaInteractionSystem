@@ -43,6 +43,9 @@ void FMounteaInteractionDeveloperStyle::Initialize()
 
 void FMounteaInteractionDeveloperStyle::Shutdown()
 {
+	if (!StyleInstance.IsValid())
+		return;
+
 	FSlateStyleRegistry::UnRegisterSlateStyle(*StyleInstance);
 	ensure(StyleInstance.IsUnique());
 	StyleInstance.Reset();
