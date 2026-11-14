@@ -132,7 +132,12 @@ void UMounteaInteractorComponentOverlap::AddCollisionComponent_Implementation(UP
 
 	CollisionComponent->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	CollisionComponent->SetCollisionResponseToAllChannels(ECR_Ignore);
-	if (bFound) CollisionComponent->SetCollisionResponseToChannel(overlapChannel, ECR_Overlap);
+	if (bFound)
+	{
+		// Both sides ignore every channel but the overlap channel, so the shape itself must be of that type to be seen
+		CollisionComponent->SetCollisionObjectType(overlapChannel);
+		CollisionComponent->SetCollisionResponseToChannel(overlapChannel, ECR_Overlap);
+	}
 	CollisionComponent->SetGenerateOverlapEvents(true);
 
 	CollisionShapes.Add(CollisionComponent);

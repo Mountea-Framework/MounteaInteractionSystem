@@ -440,8 +440,17 @@ bool UMounteaInteractableComponentBase::CompleteInteractable_Implementation(FStr
 		Execute_InteractionLifecycleCompleted(this);
 	}
 
+	// Captured before the slots are emptied; Hover completes with no interactor, so this may stay empty
+	TScriptInterface<IMounteaInteractorInterface> causingInteractor;
+	if (!ActiveInteractorSlots.IsEmpty())
+		causingInteractor = ActiveInteractorSlots[0].Interactor;
+
 	ReleaseAllInteractorSlots();
 	OnRep_ActiveInteractorSlots();
+
+	// Last, so listeners see the final state and may safely destroy or move things
+	const float timeCompleted = UMounteaInteractionStatics::GetServerTime(this);
+	Execute_InteractionCompleted(this, timeCompleted, causingInteractor);
 
 	return true;
 }
@@ -1065,7 +1074,12 @@ void UMounteaInteractableComponentBase::BindCollisionShape_Implementation(UPrimi
 	// Apply minimal interaction profile: ignore all, overlap on overlap channel, block on trace channel
 	PrimitiveComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	PrimitiveComponent->SetCollisionResponseToAllChannels(ECR_Ignore);
-	if (bOverlapFound) PrimitiveComponent->SetCollisionResponseToChannel(overlapChannel, ECR_Overlap);
+	if (bOverlapFound)
+	{
+		// Both sides ignore every channel but the overlap channel, so the shape itself must be of that type to be seen
+		PrimitiveComponent->SetCollisionObjectType(overlapChannel);
+		PrimitiveComponent->SetCollisionResponseToChannel(overlapChannel, ECR_Overlap);
+	}
 	if (bTraceFound)   PrimitiveComponent->SetCollisionResponseToChannel(traceChannel,   ECR_Block);
 	PrimitiveComponent->SetGenerateOverlapEvents(true);
 
