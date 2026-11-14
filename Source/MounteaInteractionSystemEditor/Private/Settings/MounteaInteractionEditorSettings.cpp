@@ -46,6 +46,10 @@ UMounteaInteractionEditorSettings::UMounteaInteractionEditorSettings() : bAllowA
 	EditorTemplatePages.Add(5, FInteractionEditorPageConfig(
 		NSLOCTEXT("MounteaInteractionEditorSettings", "Page5_Title", "Testing & Troubleshooting"),
 		ResolvePluginPath(TEXT("Resources/Help/page_5.html"))
+		));
+		EditorTemplatePages.Add(6, FInteractionEditorPageConfig(
+			NSLOCTEXT("MounteaInteractionEditorSettings", "Page6_Title", "Example Level Tour"),
+			ResolvePluginPath(TEXT("Resources/Help/page_6.html"))
 	));
 }
 

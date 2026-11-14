@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<title>Example Level Tour</title>
+	</head>
+	<body>
+		<div class="doc-page">
+			<header>
+				<div class="version">Version · 5.0</div>
+				<h1>Example Level Tour</h1>
+			</header>
+
+			<div class="doc-content">
+			<section>
+				<p>
+					<code>M_Example.umap</code> is a hub with one portal per feature. Walk into a portal to
+					load its room, and use the "Back to hub" portal inside each room to return. Each room
+					is a streamed sub-level, so leaving a room resets it: levers recharge, destroyed objects
+					come back.
+				</p>
+
+				<table class="setup-table">
+					<tr><th>Room</th><th>Feature</th><th>Pawn</th><th>Setup page</th></tr>
+					<tr><td>1 · Interactor Types</td><td>Overlap, Trace (Precise / Loose), Mouse</td><td>Overlap, Trace, Mouse</td><td>Interactor Setup</td></tr>
+					<tr><td>2 · Interactable Types</td><td>Press, Automatic, Hold, Mash, Hover</td><td>Overlap / Mouse</td><td>Interactable Setup</td></tr>
+					<tr><td>3 · Standalone vs. Cycling</td><td>Multi-action NPC and a standalone door</td><td>Overlap</td><td>Interactable Setup</td></tr>
+					<tr><td>4 · Tag Whitelist / Blacklist</td><td>Interactor tags accepted and rejected</td><td>Tagged player and guard</td><td>Interactor Setup</td></tr>
+					<tr><td>5 · Lifecycle &amp; Cooldown</td><td>Cycled, limited and once-only levers</td><td>Overlap</td><td>Interactable Setup</td></tr>
+					<tr><td>6 · Attention &amp; Widget Modes</td><td>Attention pool and distance-based widget modes</td><td>Overlap</td><td>UMG Widget Setup</td></tr>
+					<tr><td>7 · EndPlay</td><td>Destroying an interactable mid-interaction</td><td>Overlap</td><td>Testing &amp; Troubleshooting</td></tr>
+				</table>
+				<p>Co-op (<code>MaxInteractors</code>) is not in the example level. See Interactable Setup, "Multiple interactors (co-op)".</p>
+			</section>
+
+			<section>
+				<h2>Room 1 · Interactor Types</h2>
+				<p>Three booths with the same target. Only the interactor changes between them.</p>
+				<ul>
+					<li><strong>Booth A, Overlap:</strong> the target is detected only when the pawn's sphere overlaps it. Walking away clears focus.</li>
+					<li><strong>Booth B, Trace Precise then Loose:</strong> Precise needs the crosshair on the target. Loose forgives a small miss. A thin obstruction in front of the target shows the difference.</li>
+					<li><strong>Booth C, Mouse:</strong> top-down camera. Detection follows the cursor, not the pawn's facing.</li>
+				</ul>
+				<p>Try it: stand in each booth and watch which target gets the attention widget.</p>
+				<div class="ui-action-row">
+					<a class="ui-action" href="#" data-miais-type="page" data-miais-target="2">Interactor Setup →</a>
+				</div>
+			</section>
+
+			<section>
+				<h2>Room 2 · Interactable Types</h2>
+				<p>One booth per type. Each completion has a visible effect, so you can tell success from failure without the log.</p>
+				<ul>
+					<li><strong>Press:</strong> a door swings open as soon as you join.</li>
+					<li><strong>Automatic:</strong> a light strip fades on after the interaction period, with no input.</li>
+					<li><strong>Hold:</strong> a lever bar fills while you hold the key. Releasing early resets it.</li>
+					<li><strong>Mash:</strong> a breaker needle climbs with each press. Pressing too slowly does nothing.</li>
+					<li><strong>Hover:</strong> a terminal lights up while the cursor dwells on it (Mouse pawn only).</li>
+				</ul>
+				<div class="ui-action-row">
+					<a class="ui-action" href="#" data-miais-type="page" data-miais-target="3">Interactable Setup →</a>
+				</div>
+			</section>
+
+			<section>
+				<h2>Room 3 · Standalone vs. Action Cycling</h2>
+				<p>
+					The NPC has three actions (Talk, Trade, Inspect) and cycles through them. The door next to
+					it is standalone: no cycling, one immediate action.
+				</p>
+				<ul>
+					<li>Cycle the NPC's actions with the cycle input. The list wraps at both ends.</li>
+					<li>Starting an action locks the highlighted one until it ends.</li>
+				</ul>
+				<div class="ui-action-row">
+					<a class="ui-action" href="#" data-miais-type="page" data-miais-target="3">Interactable Setup →</a>
+				</div>
+			</section>
+
+			<section>
+				<h2>Room 4 · Tag Whitelist and Blacklist</h2>
+				<p>Two portals at the entrance spawn different pawns, so you can test both roles in one session.</p>
+				<ul>
+					<li><strong>Vendor (whitelist):</strong> only the player-tagged pawn can use it. The guard gets a rejection message.</li>
+					<li><strong>Door (blacklist):</strong> the guard-tagged pawn is refused. The player pawn gets through.</li>
+				</ul>
+				<div class="ui-action-row">
+					<a class="ui-action" href="#" data-miais-type="page" data-miais-target="2">Interactor Setup →</a>
+				</div>
+			</section>
+
+			<section>
+				<h2>Room 5 · Lifecycle and Cooldown</h2>
+				<p>Three levers that differ only in their lifecycle settings.</p>
+				<ul>
+					<li><strong>Cycled:</strong> works forever, with a 5 s cooldown after each use.</li>
+					<li><strong>Limited:</strong> works three times with a 2 s cooldown, then stops.</li>
+					<li><strong>Once only:</strong> works once and never shows a cooldown.</li>
+				</ul>
+				<div class="ui-action-row">
+					<a class="ui-action" href="#" data-miais-type="page" data-miais-target="3">Interactable Setup →</a>
+				</div>
+			</section>
+
+			<section>
+				<h2>Room 6 · Attention Range &amp; Widget Modes</h2>
+				<p>A cluster of interactables, more than the attention pool can hold. Walk through it and watch which ones get a widget.</p>
+				<ul>
+					<li>Widgets switch from attention (far) to interaction (near) as you close in.</li>
+					<li>Widgets follow focus. Walking away releases them, with no leftovers.</li>
+				</ul>
+				<div class="ui-action-row">
+					<a class="ui-action" href="#" data-miais-type="page" data-miais-target="4">UMG Widget Setup →</a>
+				</div>
+			</section>
+
+			<section>
+				<h2>Room 7 · EndPlay / Destruction Mid-Interaction</h2>
+				<p>
+					A long Hold lever and a pad a few metres away that destroys it. Start holding the lever,
+					then have the pad used (it is a Press interactable).
+				</p>
+				<ul>
+					<li>The cancel event fires, and the interaction stops cleanly.</li>
+					<li>You can interact with something else straight away.</li>
+				</ul>
+				<div class="ui-action-row">
+					<a class="ui-action" href="#" data-miais-type="page" data-miais-target="5">Testing &amp; Troubleshooting →</a>
+				</div>
+			</section>
+			</div>
+
+			<div class="ui-action-row">
+				<a class="ui-action ui-action--close" href="#" data-miais-type="page" data-miais-target="5">← Testing &amp; Troubleshooting</a>
+			</div>
+		</div>
+	</body>
+</html>
