@@ -120,9 +120,7 @@ void UMounteaInteractableComponentBase::OnRegister()
 
 #if WITH_EDITOR
 	if (GIsEditor && !GIsPlayInEditorWorld)
-	{
 		RequestEditorDefaults.Broadcast();
-	}
 #endif
 }
 
@@ -311,7 +309,7 @@ void UMounteaInteractableComponentBase::RequestInteractorJoin_Implementation(con
 void UMounteaInteractableComponentBase::RequestInteractorLeave_Implementation(const TScriptInterface<IMounteaInteractorInterface>& LeavingInteractor)
 {
 	if (!LeavingInteractor.GetInterface())
-				return;
+		return;
 
 	if (GetOwner() && !GetOwner()->HasAuthority())
 	{
@@ -563,9 +561,7 @@ void UMounteaInteractableComponentBase::InteractorLost_Implementation(const TScr
 void UMounteaInteractableComponentBase::InteractionStarted_Implementation(const float& TimeStarted, const TScriptInterface<IMounteaInteractorInterface>& CausingInteractor)
 {
 	if (GetOwner() && GetOwner()->HasAuthority())
-	{
 		InteractionStartServerTime = UMounteaInteractionStatics::GetServerTime(this);
-	}
 
 	OnInteractionStarted.Broadcast(TimeStarted, CausingInteractor);
 	Execute_OnInteractionStartedEvent(this, TimeStarted, CausingInteractor);
@@ -574,9 +570,7 @@ void UMounteaInteractableComponentBase::InteractionStarted_Implementation(const 
 void UMounteaInteractableComponentBase::InteractionStopped_Implementation(const float& TimeStarted, const TScriptInterface<IMounteaInteractorInterface>& CausingInteractor)
 {
 	if (GetOwner() && GetOwner()->HasAuthority())
-	{
 		InteractionStartServerTime = -1.f;
-	}
 
 	OnInteractionStopped.Broadcast(TimeStarted, CausingInteractor);
 	Execute_OnInteractionStoppedEvent(this, TimeStarted, CausingInteractor);
@@ -597,9 +591,7 @@ void UMounteaInteractableComponentBase::InteractionCycleCompleted_Implementation
 void UMounteaInteractableComponentBase::InteractionCanceled_Implementation()
 {
 	if (GetOwner() && GetOwner()->HasAuthority())
-	{
 		InteractionStartServerTime = -1.f;
-	}
 
 	OnInteractionCanceled.Broadcast();
 	Execute_OnInteractionCanceledEvent(this);
@@ -624,7 +616,7 @@ void UMounteaInteractableComponentBase::InteractionCooldownCompleted_Implementat
 float UMounteaInteractableComponentBase::GetInteractionProgress_Implementation() const
 {
 	if (InteractionStartServerTime < 0.f || InteractionPeriod <= 0.f)
-				return 0.f;
+		return 0.f;
 
 	const float elapsed = UMounteaInteractionStatics::GetServerTime(this) - InteractionStartServerTime;
 	return FMath::Clamp(elapsed / InteractionPeriod, 0.f, 1.f);
@@ -887,9 +879,7 @@ void UMounteaInteractableComponentBase::SetDefaults_Implementation()
 	for (UPrimitiveComponent* Prim : CollisionComponents)
 	{
 		if (IsValid(Prim))
-		{
 			Execute_BindCollisionShape(this, Prim);
-		}
 	}
 }
 
@@ -908,9 +898,7 @@ void UMounteaInteractableComponentBase::StartHighlight_Implementation()
 				continue;
 
 		if (HighlightType == EHighlightType::EHT_OverlayMaterial && IsValid(HighlightMaterial))
-		{
 			Mesh->SetOverlayMaterial(HighlightMaterial);
-		}
 		else if (HighlightType == EHighlightType::EHT_PostProcessing)
 		{
 			Mesh->SetRenderCustomDepth(true);
@@ -919,9 +907,7 @@ void UMounteaInteractableComponentBase::StartHighlight_Implementation()
 	}
 
 	if (GetOwner() && !GetOwner()->HasAuthority())
-	{
 		StartHighlight_Client();
-	}
 }
 
 void UMounteaInteractableComponentBase::StopHighlight_Implementation()
@@ -935,9 +921,7 @@ void UMounteaInteractableComponentBase::StopHighlight_Implementation()
 	}
 
 	if (GetOwner() && !GetOwner()->HasAuthority())
-	{
 		StopHighlight_Client();
-	}
 }
 
 EHighlightType UMounteaInteractableComponentBase::GetHighlightType_Implementation() const
@@ -969,47 +953,61 @@ void UMounteaInteractableComponentBase::SetHighlightMaterial_Implementation(UMat
 TArray<UPrimitiveComponent*> UMounteaInteractableComponentBase::GetCollisionComponents_Implementation() const
 {
 	TArray<UPrimitiveComponent*> out;
-	for (auto p : CollisionComponents) { if (IsValid(p)) out.Add(p); }
+	for (auto p : CollisionComponents) 
+	{ 
+		if (IsValid(p)) 
+			out.Add(p); 
+	}
 	return out;
 }
 
 void UMounteaInteractableComponentBase::AddCollisionComponent_Implementation(UPrimitiveComponent* CollisionComp)
 {
 	if (!IsValid(CollisionComp) || CollisionComponents.Contains(CollisionComp))
-				return;
+		return;
 	CollisionComponents.Add(CollisionComp);
 	Execute_BindCollisionShape(this, CollisionComp);
 }
 
 void UMounteaInteractableComponentBase::AddCollisionComponents_Implementation(const TArray<UPrimitiveComponent*>& InComponents)
 {
-	for (UPrimitiveComponent* Comp : InComponents) Execute_AddCollisionComponent(this, Comp);
+	for (UPrimitiveComponent* Comp : InComponents)
+	{
+		Execute_AddCollisionComponent(this, Comp);
+	}
 }
 
 void UMounteaInteractableComponentBase::RemoveCollisionComponent_Implementation(UPrimitiveComponent* CollisionComp)
 {
 	if (!IsValid(CollisionComp))
-				return;
+		return;
 	Execute_UnbindCollisionShape(this, CollisionComp);
 	CollisionComponents.Remove(CollisionComp);
 }
 
 void UMounteaInteractableComponentBase::RemoveCollisionComponents_Implementation(const TArray<UPrimitiveComponent*>& InComponents)
 {
-	for (UPrimitiveComponent* Comp : InComponents) Execute_RemoveCollisionComponent(this, Comp);
+	for (UPrimitiveComponent* Comp : InComponents)
+	{
+		Execute_RemoveCollisionComponent(this, Comp);
+	}
 }
 
 TArray<UMeshComponent*> UMounteaInteractableComponentBase::GetHighlightableComponents_Implementation() const
 {
 	TArray<UMeshComponent*> out;
-	for (auto m : HighlightableComponents) { if (IsValid(m)) out.Add(m); }
+	for (auto m : HighlightableComponents) 
+	{ 
+		if (IsValid(m))
+			out.Add(m); 
+	}
 	return out;
 }
 
 void UMounteaInteractableComponentBase::AddHighlightableComponent_Implementation(UMeshComponent* HighlightableComp)
 {
 	if (!IsValid(HighlightableComp) || HighlightableComponents.Contains(HighlightableComp))
-				return;
+		return;
 	HighlightableComponents.Add(HighlightableComp);
 	Execute_BindHighlightableMesh(this, HighlightableComp);
 }
@@ -1022,14 +1020,17 @@ void UMounteaInteractableComponentBase::AddHighlightableComponents_Implementatio
 void UMounteaInteractableComponentBase::RemoveHighlightableComponent_Implementation(UMeshComponent* HighlightableComp)
 {
 	if (!IsValid(HighlightableComp))
-				return;
+		return;
 	Execute_UnbindHighlightableMesh(this, HighlightableComp);
 	HighlightableComponents.Remove(HighlightableComp);
 }
 
 void UMounteaInteractableComponentBase::RemoveHighlightableComponents_Implementation(const TArray<UMeshComponent*>& InComponents)
 {
-	for (UMeshComponent* Mesh : InComponents) Execute_RemoveHighlightableComponent(this, Mesh);
+	for (UMeshComponent* Mesh : InComponents)
+	{
+		Execute_RemoveHighlightableComponent(this, Mesh);
+	}
 }
 
 TArray<FName> UMounteaInteractableComponentBase::GetCollisionOverrides_Implementation() const
@@ -1045,7 +1046,7 @@ TArray<FName> UMounteaInteractableComponentBase::GetHighlightableOverrides_Imple
 void UMounteaInteractableComponentBase::BindCollisionShape_Implementation(UPrimitiveComponent* PrimitiveComponent) const
 {
 	if (!IsValid(PrimitiveComponent))
-				return;
+		return;
 
 	// Snapshot pre-setup collision state so UnbindCollisionShape can fully restore it
 	FCollisionShapeCache cache;
@@ -1091,7 +1092,7 @@ void UMounteaInteractableComponentBase::BindCollisionShape_Implementation(UPrimi
 void UMounteaInteractableComponentBase::UnbindCollisionShape_Implementation(UPrimitiveComponent* PrimitiveComponent) const
 {
 	if (!IsValid(PrimitiveComponent))
-				return;
+		return;
 
 	PrimitiveComponent->OnComponentBeginOverlap.RemoveDynamic(const_cast<UMounteaInteractableComponentBase*>(this), &UMounteaInteractableComponentBase::OnInteractableBeginOverlap);
 	PrimitiveComponent->OnComponentEndOverlap.RemoveDynamic(const_cast<UMounteaInteractableComponentBase*>(this), &UMounteaInteractableComponentBase::OnInteractableStopOverlap);
@@ -1175,7 +1176,10 @@ void UMounteaInteractableComponentBase::AddIgnoredClass_Implementation(const TSo
 
 void UMounteaInteractableComponentBase::AddIgnoredClasses_Implementation(const TArray<TSoftClassPtr<UObject>>& AddIgnoredClasses)
 {
-	for (const auto& C : AddIgnoredClasses) IgnoredClasses.AddUnique(C);
+	for (const auto& C : AddIgnoredClasses)
+	{
+		IgnoredClasses.AddUnique(C);
+	}
 }
 
 void UMounteaInteractableComponentBase::RemoveIgnoredClass_Implementation(const TSoftClassPtr<UObject>& RemoveIgnoredClass)
@@ -1185,7 +1189,10 @@ void UMounteaInteractableComponentBase::RemoveIgnoredClass_Implementation(const 
 
 void UMounteaInteractableComponentBase::RemoveIgnoredClasses_Implementation(const TArray<TSoftClassPtr<UObject>>& RemoveIgnoredClasses)
 {
-	for (const auto& C : RemoveIgnoredClasses) IgnoredClasses.Remove(C);
+	for (const auto& C : RemoveIgnoredClasses)
+	{
+		IgnoredClasses.Remove(C);
+	}
 }
 
 #pragma endregion
@@ -1195,7 +1202,7 @@ void UMounteaInteractableComponentBase::RemoveIgnoredClasses_Implementation(cons
 void UMounteaInteractableComponentBase::AddInteractionDependency_Implementation(const TScriptInterface<IMounteaInteractableInterface>& InteractionDependency)
 {
 	if (!InteractionDependency.GetInterface())
-				return;
+		return;
 	InteractionDependencies.AddUnique(InteractionDependency);
 	OnInteractableDependencyChanged.Broadcast(InteractionDependency);
 }
@@ -1322,9 +1329,7 @@ void UMounteaInteractableComponentBase::OnRep_ActiveInteractorSlots()
 	if (UUserWidget* interactionWidget = GetUserWidgetObject())
 	{
 		if (interactionWidget->GetClass()->ImplementsInterface(UActorInteractionWidget::StaticClass()))
-		{
 			IActorInteractionWidget::Execute_SetActionCount(interactionWidget, ActiveInteractorSlots.Num());
-		}
 	}
 }
 
@@ -1442,9 +1447,7 @@ void UMounteaInteractableComponentBase::OnInteractableBeginOverlap(UPrimitiveCom
 	}
 
 	if (interactor.GetInterface())
-	{
 		Execute_InteractorFound(this, interactor);
-	}
 }
 
 void UMounteaInteractableComponentBase::OnInteractableStopOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
@@ -1507,9 +1510,7 @@ void UMounteaInteractableComponentBase::PostEditChangeChainProperty(FPropertyCha
 	                                        GET_MEMBER_NAME_CHECKED(UMounteaInteractableComponentBase, CollisionOverrides) };
 	const FName changedProp = PropertyChangedEvent.GetPropertyName();
 	if (setupProps.Contains(changedProp))
-	{
 		Execute_SetDefaults(this);
-	}
 
 	OnInteractableComponentChanged.Broadcast();
 }
@@ -1552,7 +1553,7 @@ EDataValidationResult UMounteaInteractableComponentBase::IsDataValid(FDataValida
 void UMounteaInteractableComponentBase::DrawDebug()
 {
 	if (!DebugSettings.DebugMode || !GetWorld())
-				return;
+		return;
 
 	const FVector Origin = GetOwner() ? GetOwner()->GetActorLocation() : GetComponentLocation();
 	DrawDebugSphere(GetWorld(), Origin, WidgetRanges.AttentionRange, 16, FColor::Yellow, false, -1.f, 0, 1.f);

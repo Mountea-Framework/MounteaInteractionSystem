@@ -190,7 +190,11 @@ void UMounteaInteractorComponentOverlap::RemoveCollisionComponents_Implementatio
 TArray<UPrimitiveComponent*> UMounteaInteractorComponentOverlap::GetCollisionComponents() const
 {
 	TArray<UPrimitiveComponent*> out;
-	for (auto p : CollisionShapes) { if (IsValid(p)) out.Add(p); }
+	for (auto p : CollisionShapes) 
+	{ 
+		if (IsValid(p))
+		 	out.Add(p); 
+	}
 	return out;
 }
 
@@ -305,9 +309,7 @@ void UMounteaInteractorComponentOverlap::ProcessStateChanged()
 		UnbindCollisions();
 	}
 	else
-	{
 		BindCollisions();
-	}
 }
 
 #undef LOCTEXT_NAMESPACE
